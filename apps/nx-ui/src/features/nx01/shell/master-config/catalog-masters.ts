@@ -216,23 +216,8 @@ export const BRAND_MASTER: EntityMasterConfig = {
   ],
 };
 
-// ── 通用件群組 / 02 對齊第二批 C 軌 CP2-c ──────────────────
-// 群組主檔本身 CRUD；member 多對多衛星表（成員 / 角色 / 各自售價 / 雙向）由
-// dashboard/base/part-compat-group/[id] 詳細頁編輯（後續軌補 UI；endpoint 已暴露 /nx01/part-compat-groups/:id/members）。
-export const PART_COMPAT_GROUP_MASTER: EntityMasterConfig = {
-  basePath: 'nx01/part-compat-groups',
-  category: '產品料號',
-  title: '通用件群組基本資料',
-  entityNoun: '通用件群組',
-  errorCodePrefix: 'nxui_base_part_compat_group',
-  deleteMode: SOFT,
-  fields: [
-    { key: 'code', label: '群組代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[140px]' },
-    { key: 'name', label: '群組名稱', required: true, minWidthClass: 'min-w-[200px]' },
-    { key: 'remark', label: '備註', inList: false },
-    { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
-  ],
-};
+// ── 通用件群組 ─ 2026-06-20 主檔群組模板取代、PART_COMPAT_GROUP_MASTER 移除
+// 改用 features/nx01/product/universal-group/UniversalGroupPage.tsx（主件範式）
 
 // ── 客戶分類 / 02 對齊第二批 C 軌 CP1 ─────────────────────
 export const REGION_MASTER: EntityMasterConfig = {
@@ -439,70 +424,9 @@ export const PARTNER_MASTER: EntityMasterConfig = {
 };
 
 // ── 供應商供貨對應（T3 進貨對齊批次 2026-06-08）─────────────
-// 這是工作流第 2 步「查可跟誰詢價」的核心主檔：哪家供應商賣哪些料件、
-// 廠商料號 / 預設單價 / 預設交期 / MOQ / 主要供應商旗標。
-// 三版本一致（schema 啟用最低需求版本 = LITE-CORE、不掛任何 minPlan）。
-// 後端：apps/nx-api/src/nx02/partner-part（5 endpoint：list/getById/create/patch/softDelete）
-export const PARTNER_PART_MASTER: EntityMasterConfig = {
-  basePath: 'nx02/partner-part',
-  category: '交易對象',
-  title: '供應商供貨對應',
-  entityNoun: '供貨對應',
-  errorCodePrefix: 'nxui_base_partner_part',
-  deleteMode: SOFT,
-  fields: [
-    {
-      key: 'partnerId', label: '供應商', type: 'ref', required: true,
-      refBasePath: 'nx01/partners',
-      // 後端 service.assertPartnerIsSupplier 守 partnerType='S'，UI 也只列純供應商
-      refExtraFilters: { partnerType: 'S' },
-      minWidthClass: 'min-w-[180px]',
-      lockedOnEdit: true,
-    },
-    {
-      key: 'partId', label: '料件', type: 'ref', required: true,
-      refBasePath: 'nx01/parts',
-      minWidthClass: 'min-w-[180px]',
-      lockedOnEdit: true,
-    },
-    {
-      key: 'isPrimary', label: '主要供應商', type: 'toggle', defaultValue: false,
-      minWidthClass: 'min-w-[110px]',
-    },
-    {
-      key: 'supplierPartNo', label: '廠商料號', maxLength: 50,
-      minWidthClass: 'min-w-[140px]',
-      placeholder: '例：Bosch 0986AS0050',
-    },
-    {
-      key: 'defaultUnitCost', label: '預設單價', type: 'number',
-      minWidthClass: 'min-w-[110px]',
-    },
-    {
-      key: 'defaultLeadDays', label: '預設交期(天)', type: 'number',
-      minWidthClass: 'min-w-[120px]',
-    },
-    {
-      key: 'moq', label: 'MOQ', type: 'number',
-      minWidthClass: 'min-w-[100px]',
-    },
-    {
-      key: 'source', label: '來源', type: 'select', defaultValue: 'M',
-      minWidthClass: 'min-w-[100px]',
-      options: [
-        { value: 'M', label: '手動維護' },
-        { value: 'S', label: '系統同步' },
-      ],
-    },
-    {
-      key: 'validFrom', label: '生效起期', type: 'date', inList: false,
-      // 後端 unique [tenantId, partnerId, partId, validFrom]、改 validFrom 等同新建
-      lockedOnEdit: true,
-    },
-    { key: 'validTo', label: '生效迄期', type: 'date', inList: false },
-    { key: 'remark', label: '備註', inList: false, maxLength: 200 },
-  ],
-};
+// ── 供應商供貨對應 ─ 2026-06-20 主檔群組模板取代、PARTNER_PART_MASTER 移除
+// 改用 features/nx01/partner/supplier-supply/SupplierSupplyPage.tsx（品牌 accordion 範式）
+// 後端 API 保留 /nx02/partner-part（5 endpoint）、新頁可重接
 
 // ── 系統設定 ────────────────────────────────────────────
 export const PHONETIC_DICTIONARY_MASTER: EntityMasterConfig = {

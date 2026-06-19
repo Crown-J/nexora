@@ -102,7 +102,7 @@ app/
 ```
 design/
 ├── primitives/    shadcn 基本元件（button / input / dialog / card / ...）
-├── components/    跨業務 widget（PageHeader / PlanChip / filter-bar / form / lookup / quick-search / ...）
+├── components/    跨業務 widget（PageHeader / PlanChip / filter-bar / form / lookup / quick-search / master-batch / multi-select-modal / toast / ...）
 ├── layout/        外殼（DashboardShell / UnifiedTopBar / PlanetDock / DashboardSubNav / ...）
 ├── home/          首頁殼 + 共享星球（HomeShell / HomeView / SharedPlanetRoot / Dock / HomeTopBar / HomeLandingChrome）
 ├── document/      單據雙視圖（DocLayout / DocHeader / DocItemTable / ...）
@@ -184,20 +184,20 @@ nx01/
 │   │   ├── MasterTable.tsx 列表 + dnd-kit 表頭拖拉重排
 │   │   ├── MasterDetail.tsx 詳細頁 wrapper（MasterDetailScroll / EmptyDetail / DetailTable）
 │   │   ├── FormField.tsx   FormField / FormInput / FormSelect（已 token 化、跟主題切）
-│   │   ├── SearchPanel.tsx / ConfirmDialog.tsx / ToastStack.tsx / EntityPickerDialog.tsx / KeyboardSelect.tsx
+│   │   ├── SearchPanel.tsx / ConfirmDialog.tsx / KeyboardSelect.tsx
+│   │   │   （ToastStack / EntityPickerDialog 已搬到 design/components/toast/ + design/components/multi-select-modal/）
 │   │   ├── columns-config/ useColumnsPref hook（localStorage 記欄位順序）
 │   │   └── sort-config/    SortMenuButton（M 排序 dropdown、循環三態）
 │   ├── hooks/             主檔頁 hook（useExportTable 三模式匯出 CSV/PDF/列印）
 │   ├── satellite/         SatelliteSection 衛星表共用 UI
 │   ├── zones/             zoned 主檔分區定義（user / part / warehouse / partner zones + USER_FIELD_SECTIONS）
 │   ├── keyboard/          鍵盤工具
-│   ├── reverse-assign/    反向指派頁
 │   └── config/            shell 通用 config
-├── org/           NX01-01~04 組織架構（員工 user-zoned / 職務 roles / 部門 department / 組別 team）
+├── org/           NX01-01~04 組織架構（員工 user-zoned / 職務 roles / 部門 department / 組別 team / structure 組織架構圖）
 ├── permission/    NX01-05~06 權限管理（職務權限矩陣 RoleViewMatrixPage）
-├── location/      NX01-07~10 據點倉庫（warehouse-zoned / location / site）
-├── partner/       NX01-11~14 往來對象（partner-zoned / customer-grade / supplier-grade）
-├── product/       NX01-15~18 產品與廠牌（part-zoned / brand 合併 / part-group / part-compat-group）
+├── location/      NX01-07~10 據點倉庫（warehouse-zoned / location / site / structure 據點架構圖）
+├── partner/       NX01-11~14 往來對象（partner-zoned / customer-grade / supplier-grade / supplier-supply 供貨對應）
+├── product/       NX01-15~18 產品與廠牌（part-zoned / brand 合併 / part-group / universal-group 主件範式）
 └── dict/          NX01-19~22 字典主檔（country / currency / phonetic-dictionary / region）
 ```
 
@@ -205,6 +205,24 @@ nx01/
 - `EntityMasterPage` 通用配置驅動 13 個簡單表（dept/role/team/sitebase/warehouse/bin/custgrade/suppgrade/region/brand/currency/country/partgroup/zhuyin）
 - 4 個 zoned 頁（user / part / warehouse / partner）各自有衛星表 + zone 分區
 - 統一支援:item-level 導航（⏮◀N/M▶⏭）+ 表頭拖拉欄位 + M 排序 dropdown + P 列印預覽 + O 匯出 + T 垃圾桶 + mount/save/cancel 自動 focus 第一筆 + 全 light theme tokens
+
+#### 主檔群組模板 `MasterBatchShell`（`design/components/master-batch/`）
+
+「左主體列表 + 右成員」型主檔頁的雙欄殼、config-driven。支援兩種左欄模式（`flat` / `tree`）+ 三種右欄模式（`list` / `list-with-extra` / `grouped`）。已交付 4 案例：
+
+| Case | leftMode | rightMode | feature 落點 | 路由 |
+|---|---|---|---|---|
+| 組織架構圖 | tree | list | `features/nx01/org/structure/` | `/master/org-structure` |
+| 據點架構圖 | tree | list-with-extra | `features/nx01/location/structure/` | `/master/location-structure` |
+| 通用件群組 | flat | list | `features/nx01/product/universal-group/` | `/master/universal-group` |
+| 供應商供貨對應 | flat | grouped | `features/nx01/partner/supplier-supply/` | `/master/supplier-supply` |
+
+範式特點：
+- tree mode：chevron 分區點擊（chevron 展開折疊 / 主體 select）、`isSelectable` 允許「可選＋有 children」並存（如據點本身可選且下有倉庫）
+- list-with-extra：上下 50/50 split、case 提供 `renderExtra(s)` 渲染副區（如員工歸屬）
+- grouped：accordion 分組、`memberGroups(s)` return `{ key, label, members, meta, actions }`
+- 多選 modal reuse `design/components/multi-select-modal/EntityPickerDialog`、case 自管 picker state（parent conditional mount）
+- 鍵盤紀律對齊 demo：↑↓ / Enter/Space / Esc / Alt+A 全域加入
 
 ### `middleware.ts` — Next.js 中介層
 
@@ -226,7 +244,9 @@ session / auth gating、跨路由共用邏輯。
 | 改登入 | `app/login/page.tsx` + `design/login/LoginPageView.tsx` + `features/auth/` |
 | 改主檔殼 / 通用功能 | `features/nx01/shell/` |
 | 改主檔工具列按鈕 | `features/nx01/shell/ui/ErpToolbar.tsx`（跨主檔 / 單據共用、A/E/D/F/M/R/P/O/T 統一範式）|
-| 改主檔快速入口（dock 同步）| `features/nx01/shell/master-nav/master-pages.ts`（22 主檔 metadata、href/category/icon）+ `data/home/home-data.ts`（PlanetDock 主檔分組）|
+| 改主檔快速入口（dock 同步）| `features/nx01/shell/master-nav/master-pages.ts`（22 主檔 metadata、href/category/icon）+ `data/home/home-data.ts`（PlanetDock 主檔分組、**真實 dock data source**）|
+| 改主檔群組類型頁（左主體右成員）| `design/components/master-batch/`（shell）+ `features/nx01/<分區>/<頁名>/`（case 自管 mock/API + config）。範式見 `MasterBatchShell` 章節 |
+| 追 navigation 失敗 / dock 卡死 | DevTools console 用 `[NX-NAV]` 過濾、看 tryNavigate → scatter exit → pathname effect 全鏈；`ScatterPageGate` 1.5s fail-safe 會 console.warn 標出失敗 target |
 | 改員工 zones / 詳細頁分區 | `features/nx01/shell/zones/user-zones.ts`（USER_ZONES / USER_FIELDS / USER_FIELD_SECTIONS）|
 | 改 SaaS 平台後台 | `features/platform/` + `app/platform/` |
 | 改新增業務模組 | 對照 NX 編號表、`features/nx0X/` + `data/endpoints/nx0X/` + `data/types/nx0X/` + `app/dashboard/<業務中文名>/` |

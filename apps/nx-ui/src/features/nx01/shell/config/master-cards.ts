@@ -23,7 +23,6 @@ import {
   CircleDollarSign,
   SlidersHorizontal,
   Link2,
-  CarFront,
   Megaphone,
   Award,
   Car,
@@ -178,27 +177,28 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
   // - LITE / PLUS 用戶於 USER 詳細頁直接管理擔任職務 / 隸屬倉庫（forward 視角）
   // - PRO 用戶保留 reverse 範式（依職務 / 倉庫批次匯入移除成員）
   // - sidebar menu 同步移除（menu.base.ts），仍可由本卡片或 URL 進入
+  // 2026-06-20 使用者職務設定 / 使用者據點設定改主檔群組模板
+  //   - 組織架構圖 OrgStructurePage（部門→組別／職務→使用者 雙分支樹）
+  //   - 據點架構圖 LocationStructurePage（據點→倉庫→庫位 + 員工副區）
   {
-    id: 'user-role',
+    id: 'org-structure',
     section: 'account',
-    title: '使用者職務設定',
-    description: '依職務批次匯入或移除隸屬使用者（reverse 視角批次工具）',
+    title: '組織架構圖',
+    description: '部門 → 組別／職務 → 使用者 雙分支樹；員工可多歸組、多職',
     icon: UserCog,
-    statLabel: '關聯筆數',
+    statLabel: '節點數',
     statValue: '—',
-    // 02 第四批 軌 2 2026-06-07：解除 PRO 限制（總經理拍板「功能不綁版本、只差人數」）
-    href: '/dashboard/master/user-role',
+    href: '/dashboard/master/org-structure',
   },
   {
-    id: 'user-warehouse',
+    id: 'location-structure',
     section: 'account',
-    title: '使用者據點設定',
-    description: '依倉庫據點批次匯入或移除隸屬使用者（reverse 視角批次工具）',
+    title: '據點架構圖',
+    description: '據點 → 倉庫 → 庫位 三層結構；下方員工歸屬副區',
     icon: MapPin,
-    statLabel: '關聯筆數',
+    statLabel: '節點數',
     statValue: '—',
-    // 02 第四批 軌 2 2026-06-07：解除 PRO 限制（總經理拍板「功能不綁版本、只差人數」）
-    href: '/dashboard/master/user-warehouse',
+    href: '/dashboard/master/location-structure',
   },
   {
     id: 'role-view',
@@ -274,16 +274,16 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     statValue: '—',
     href: '/dashboard/master/part-relation',
   },
-  // 02 對齊第二批 C 軌 CP2-c：通用件群組（多 part 互為替代品、各自售價、雙向）
+  // 2026-06-20 通用件群組改主檔群組模板（主件範式、群組標題 = 主件、用料號搜尋找群組）
   {
-    id: 'part-compat-group',
+    id: 'universal-group',
     section: 'product',
-    title: '通用件群組基本資料',
-    description: '主件／替代品互為通用、可指定群組內專屬售價（雙向／單向）',
+    title: '通用件群組',
+    description: '同群組成員互相通用、群組標題＝主件、用料號搜尋找群組',
     icon: Link2,
     statLabel: '群組',
     statValue: '—',
-    href: '/dashboard/master/part-compat-group',
+    href: '/dashboard/master/universal-group',
   },
   {
     id: 'part-model',
