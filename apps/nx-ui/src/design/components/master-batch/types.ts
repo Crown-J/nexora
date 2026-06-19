@@ -91,7 +91,8 @@ export type MasterBatchConfig<S, M> = {
   subjectTitle?: (s: S) => string;
   /** 搜尋 match（通用件群組：match 主件 OR 任一成員料號） */
   subjectSearch?: (s: S, q: string) => boolean;
-  subjectCount?: (s: S) => number;
+  /** 成員計數（tree 模式非葉子節點可 return undefined＝不顯示計數） */
+  subjectCount?: (s: S) => number | undefined;
 
   // tree 模式（節點型別 = S；payload 由 case 自定）
   treeRoots?: () => S[];

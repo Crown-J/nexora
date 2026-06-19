@@ -37,7 +37,7 @@ export type SubjectPanelProps<S> = {
   subjects: S[];
   subjectIdOf: (s: S) => string;
   subjectTitleOf?: (s: S) => string;
-  subjectCountOf?: (s: S) => number;
+  subjectCountOf?: (s: S) => number | undefined;
   selectedId: string | null;
   focusedIdx: number;
   onSelect: (id: string, index: number) => void;
