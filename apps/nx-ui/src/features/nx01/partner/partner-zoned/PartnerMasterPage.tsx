@@ -18,7 +18,7 @@ import {
   type PartnerZone,
 } from '@/features/nx01/shell/zones';
 import { ConfirmDialog, type ConfirmState } from '@/features/nx01/shell/ui/ConfirmDialog';
-import { ToastStack, useToast } from '@/features/nx01/shell/ui/ToastStack';
+import { ToastStack, useToast } from '@design/components/toast/ToastStack';
 import {
   ErpToolbar,
   type ErpMode,

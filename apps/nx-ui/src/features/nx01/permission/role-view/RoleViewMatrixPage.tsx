@@ -14,7 +14,7 @@ import { CheckCheck, ChevronDown, ChevronRight } from 'lucide-react';
 import { cn } from '@design/utils/cn';
 import { PageHeader } from '@design/components/page-header/PageHeader';
 import { useDirtyGuard } from '@design/hooks/useDirtyGuard';
-import { ToastStack, useToast } from '@/features/nx01/shell/ui/ToastStack';
+import { ToastStack, useToast } from '@design/components/toast/ToastStack';
 import { listRoles, type RoleDto } from '@data/endpoints/nx01/api/role';
 import {
   listViews,

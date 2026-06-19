@@ -37,7 +37,7 @@ import {
 import { listTeams as listTeamsApi, type TeamDto } from '@data/endpoints/nx01/api/team';
 import { ConfirmDialog, type ConfirmState } from '@/features/nx01/shell/ui/ConfirmDialog';
 import { EntityPickerDialog } from '@design/components/multi-select-modal/EntityPickerDialog';
-import { ToastStack, useToast } from '@/features/nx01/shell/ui/ToastStack';
+import { ToastStack, useToast } from '@design/components/toast/ToastStack';
 import {
   ErpToolbar,
   type ErpMode,

@@ -1,4 +1,4 @@
-// apps/nx-ui/src/features/master-shell/ui/ToastStack.tsx
+// apps/nx-ui/src/design/components/toast/ToastStack.tsx
 /**
  * NEXORA Master Shell — ToastStack + useToast hook
  *

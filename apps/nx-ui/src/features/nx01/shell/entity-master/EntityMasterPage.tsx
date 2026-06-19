@@ -33,7 +33,7 @@ import {
   type MasterTableColumn,
 } from '@/features/nx01/shell/ui/MasterTable';
 import { ConfirmDialog, type ConfirmState } from '@/features/nx01/shell/ui/ConfirmDialog';
-import { ToastStack, useToast } from '@/features/nx01/shell/ui/ToastStack';
+import { ToastStack, useToast } from '@design/components/toast/ToastStack';
 import { MasterDetailScroll, EmptyDetail } from '@/features/nx01/shell/ui/MasterDetail';
 import { FormField, FormInput } from '@/features/nx01/shell/ui/FormField';
 import { KeyboardSelect } from '@/features/nx01/shell/ui/KeyboardSelect';

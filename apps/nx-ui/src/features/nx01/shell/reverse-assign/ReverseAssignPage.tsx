@@ -14,7 +14,7 @@ import { useRouter } from 'next/navigation';
 import { Plus, X } from 'lucide-react';
 import { cn } from '@design/utils/cn';
 import { PageHeader } from '@design/components/page-header/PageHeader';
-import { ToastStack, useToast } from '@/features/nx01/shell/ui/ToastStack';
+import { ToastStack, useToast } from '@design/components/toast/ToastStack';
 import { ConfirmDialog, type ConfirmState } from '@/features/nx01/shell/ui/ConfirmDialog';
 import { EntityPickerDialog } from '@design/components/multi-select-modal/EntityPickerDialog';
 import { listUsers, type UserDto } from '@data/endpoints/nx01/api/user';
