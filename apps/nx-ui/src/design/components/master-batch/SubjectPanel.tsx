@@ -80,8 +80,7 @@ export function SubjectPanel<S>(props: SubjectPanelProps<S>) {
   return (
     <div
       className={cn(
-        'flex min-h-0 flex-col overflow-hidden rounded-2xl border border-border bg-card/95',
-        'backdrop-blur-md shadow-[0_1px_0_rgba(255,255,255,0.05)_inset,0_26px_60px_-34px_rgba(0,0,0,0.7)]',
+        'flex min-h-0 flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-md',
       )}
     >
       {/* 標頭 */}
