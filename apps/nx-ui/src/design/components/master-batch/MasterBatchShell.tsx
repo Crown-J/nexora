@@ -363,7 +363,7 @@ export function MasterBatchShell<S, M>({ config, className }: MasterBatchShellPr
   );
 
   return (
-    <div data-nx-frame className={cn('flex h-full flex-col gap-3', className)}>
+    <div className={cn('flex min-h-0 flex-1 flex-col gap-3', className)}>
       <PageHeader
         crumbs={config.crumbs}
         category={config.category}
