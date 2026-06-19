@@ -395,7 +395,9 @@ export function MasterBatchShell<S, M>({ config, className }: MasterBatchShellPr
           loading={loadingMembers}
           members={selectedSubject ? config.members(selectedSubject) : []}
           memberIdOf={config.memberId}
-          renderMember={config.renderMember}
+          renderMember={(m, i, focused) =>
+            selectedSubject ? config.renderMember(m, i, focused, selectedSubject) : null
+          }
           extraContent={
             selectedSubject && config.renderExtra ? config.renderExtra(selectedSubject) : undefined
           }

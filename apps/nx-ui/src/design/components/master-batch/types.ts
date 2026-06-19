@@ -118,8 +118,10 @@ export type MasterBatchConfig<S, M> = {
   /** 取該主體的成員清單（list / list-with-extra） */
   members: (s: S) => M[];
   memberId: (m: M) => string;
-  /** 渲染單筆成員（list 模式） */
-  renderMember: (m: M, index: number, focused: boolean) => ReactNode;
+  /** 渲染單筆成員（list 模式）
+   *  - s：當前選中主體（給 case 在 row 內查 subject-derived 狀態用、例：通用件群組標主件徽章）
+   */
+  renderMember: (m: M, index: number, focused: boolean, s: S) => ReactNode;
 
   /** list-with-extra：渲染副區（據點架構：員工歸屬副區）（Step 4 補實作） */
   renderExtra?: (s: S) => ReactNode;
