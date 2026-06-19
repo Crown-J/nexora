@@ -110,9 +110,12 @@ design/
 ├── theme/         主題系統（NxPaletteHydration）
 ├── framework/     平台框架（PWA register）
 ├── styles/        全域 CSS（globals / tokens / components / utilities-and-animations / tw-animate）
-├── hooks/         UI 行為 hook（useDebouncedValue / useListLocalPref / useNxThemeMode / useRowSelection / useSplitUrlState）
+├── motion/        動畫範式（scatter 頁切換 radial 散合、對齊 demo system-integrate.js）
+├── hooks/         UI 行為 hook（useDebouncedValue / useDirtyGuard / useListLocalPref / useNxThemeMode / useRowSelection / useSplitUrlState）
 └── utils/         UI 工具（cn / cx / arrayMove / normalize-numeric-input / hubCardDimensions）
 ```
+
+頁切換動畫機制（`design/motion/scatter/`）:`tryNavigate` 攔截 → 註冊的 `ScatterPageGate` 跑 radial scatter exit（沿位置向量推 120px、300ms 後 swap）→ 新頁 `data-nx-frame` 元件自動套散開→合攏（440ms cubic-bezier）。共用元件已預設 `data-nx-frame`:`PageHeader` / `MasterPageHead` / `ErpToolbar` / `MasterTable` / `MasterDetailScroll` / `HomeView` 四區。
 
 檔名 **PascalCase**（`HomeShell.tsx`），utility 用 **camelCase**（`useNxThemeMode.ts` / `cn.ts`）。
 
@@ -172,16 +175,36 @@ features/
 
 ```
 nx01/
-├── shell/         主檔殼框架（EntityMasterPage / 共用 UI / hook / config / 六大分區設定 zones / satellite）
-├── org/           NX01-01~04 組織架構（員工 / 職務 / 部門 / 組別）
-├── permission/    NX01-05~06 權限管理（職務權限矩陣 RoleViewMatrixPage / roles）
-├── location/      NX01-07~10 據點倉庫（warehouse-like / location / user-warehouse / warehouse-zoned）
-├── partner/       NX01-11~14 往來對象（partner / customer-grade / partner-zoned）
-├── product/       NX01-15~18 產品與廠牌（part / part-group / part-zoned 等）
-└── dict/          NX01-19~22 字典主檔（country / currency / phonetic-dictionary）
+├── shell/                 主檔殼框架
+│   ├── entity-master/     EntityMasterPage 通用 config-driven 主檔頁 + MasterTabs / format
+│   ├── master-config/     22 個 master config（catalog-masters / simple-masters）
+│   ├── master-nav/        主檔快速入口（master-pages.ts 22 主檔 metadata / MasterPageHead / MasterQuickNav 分組翻頁）
+│   ├── ui/                共用 UI 元件
+│   │   ├── ErpToolbar.tsx  工具列（A/E/D/F/M/R/P/O/T、跨主檔 / 單據共用）
+│   │   ├── MasterTable.tsx 列表 + dnd-kit 表頭拖拉重排
+│   │   ├── MasterDetail.tsx 詳細頁 wrapper（MasterDetailScroll / EmptyDetail / DetailTable）
+│   │   ├── FormField.tsx   FormField / FormInput / FormSelect（已 token 化、跟主題切）
+│   │   ├── SearchPanel.tsx / ConfirmDialog.tsx / ToastStack.tsx / EntityPickerDialog.tsx / KeyboardSelect.tsx
+│   │   ├── columns-config/ useColumnsPref hook（localStorage 記欄位順序）
+│   │   └── sort-config/    SortMenuButton（M 排序 dropdown、循環三態）
+│   ├── hooks/             主檔頁 hook（useExportTable 三模式匯出 CSV/PDF/列印）
+│   ├── satellite/         SatelliteSection 衛星表共用 UI
+│   ├── zones/             zoned 主檔分區定義（user / part / warehouse / partner zones + USER_FIELD_SECTIONS）
+│   ├── keyboard/          鍵盤工具
+│   ├── reverse-assign/    反向指派頁
+│   └── config/            shell 通用 config
+├── org/           NX01-01~04 組織架構（員工 user-zoned / 職務 roles / 部門 department / 組別 team）
+├── permission/    NX01-05~06 權限管理（職務權限矩陣 RoleViewMatrixPage）
+├── location/      NX01-07~10 據點倉庫（warehouse-zoned / location / site）
+├── partner/       NX01-11~14 往來對象（partner-zoned / customer-grade / supplier-grade）
+├── product/       NX01-15~18 產品與廠牌（part-zoned / brand 合併 / part-group / part-compat-group）
+└── dict/          NX01-19~22 字典主檔（country / currency / phonetic-dictionary / region）
 ```
 
-主檔頁面**全部走 `shell/entity-master/EntityMasterPage` + `shell/master-config/catalog-masters`** 配置範式、不再有舊式 modal master view（已退場）。
+主檔頁全部走員工範式（範本:`features/nx01/org/user-zoned/UserZonedPage.tsx`、文件:`docs/_team/master-page-shell-範式.md`）：
+- `EntityMasterPage` 通用配置驅動 13 個簡單表（dept/role/team/sitebase/warehouse/bin/custgrade/suppgrade/region/brand/currency/country/partgroup/zhuyin）
+- 4 個 zoned 頁（user / part / warehouse / partner）各自有衛星表 + zone 分區
+- 統一支援:item-level 導航（⏮◀N/M▶⏭）+ 表頭拖拉欄位 + M 排序 dropdown + P 列印預覽 + O 匯出 + T 垃圾桶 + mount/save/cancel 自動 focus 第一筆 + 全 light theme tokens
 
 ### `middleware.ts` — Next.js 中介層
 
@@ -198,11 +221,16 @@ session / auth gating、跨路由共用邏輯。
 | 改報價單 | `features/nx04/quote/`（業務）+ `data/endpoints/nx04/quote/`（API）+ `app/dashboard/sale/qt/`（網址）|
 | 改首頁版面 | `design/home/HomeView.tsx`（內容）+ `design/home/HomeShell.tsx`（殼）|
 | 改共享星球轉場 | `design/home/SharedPlanetRoot.tsx` |
-| 改主題色 | `design/styles/tokens.css` + `design/theme/NxPaletteHydration.tsx` |
+| 改頁切換動畫 | `design/motion/scatter/ScatterPageGate.tsx` + 任何想參與動畫的元件 outer div 加 `data-nx-frame` |
+| 改主題色 | `design/styles/tokens.css`（含 `--nx-surface-input*` light theme token）+ `design/theme/NxPaletteHydration.tsx` |
 | 改登入 | `app/login/page.tsx` + `design/login/LoginPageView.tsx` + `features/auth/` |
 | 改主檔殼 / 通用功能 | `features/nx01/shell/` |
+| 改主檔工具列按鈕 | `features/nx01/shell/ui/ErpToolbar.tsx`（跨主檔 / 單據共用、A/E/D/F/M/R/P/O/T 統一範式）|
+| 改主檔快速入口（dock 同步）| `features/nx01/shell/master-nav/master-pages.ts`（22 主檔 metadata、href/category/icon）+ `data/home/home-data.ts`（PlanetDock 主檔分組）|
+| 改員工 zones / 詳細頁分區 | `features/nx01/shell/zones/user-zones.ts`（USER_ZONES / USER_FIELDS / USER_FIELD_SECTIONS）|
 | 改 SaaS 平台後台 | `features/platform/` + `app/platform/` |
 | 改新增業務模組 | 對照 NX 編號表、`features/nx0X/` + `data/endpoints/nx0X/` + `data/types/nx0X/` + `app/dashboard/<業務中文名>/` |
+| 新主檔頁採樣 | 對照 `docs/_team/master-page-shell-範式.md` 8 步 SOP、複製 UserZonedPage 改 API + zone config |
 | 改個欄位名 / typo | 直接 grep 全文找、改、跑 `pnpm --filter nx-ui exec tsc --noEmit` 確認 |
 
 ---
@@ -237,6 +265,8 @@ session / auth gating、跨路由共用邏輯。
   - `NEXORA-模組架構總覽.html`（系統地圖、NX 編號權威來源）
   - `需求規格-00 ~ 08.html`（各模組細分）
   - `nx-table.csv`（schema 對照表）
+- 介面規格：`docs/專案/介面規格/ERP SYSTEM TEST/`（Hana demo HTML / JS / CSS、轉場動畫 system-integrate.js 是對齊源頭）
+- 主檔範式手冊：`docs/_team/master-page-shell-範式.md`（員工頁封存範本、17 元件清單、8 步採樣 SOP）
 - 工具紀律：`docs/_team/HANK-工具紀律.md`
 - 整理歷史：`git log --oneline --grep="CLEANUP"`（P1~P8 共 26 個 commit、~140 檔死碼 / ~25,000 行清掉）
 - ESLint 邊界守：`apps/nx-ui/eslint.config.mjs`
