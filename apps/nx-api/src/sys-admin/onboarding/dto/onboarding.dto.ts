@@ -64,12 +64,21 @@ export class CreateOnboardingDto {
   @MaxLength(50)
   ownerName!: string;
 
-  /// 負責人員工編號（必填、登入用、自由輸入、租戶內唯一）
+  /// 負責人員工編號（選填、登入用、自由輸入、租戶內唯一）
   /// 員工編號制改造（2026-06-02）：取代 ownerEmail 作登入帳號、無格式強制
+  /// CYTIC 對齊規格 §387（2026-06-21）：留空系統自動產 Y0001、可手填覆寫
+  @IsOptional()
   @IsString()
   @MinLength(1)
   @MaxLength(50)
-  ownerEmployeeAccount!: string;
+  ownerEmployeeAccount?: string;
+
+  /// 負責人舊系統員工編號（選填、純對照、灌進 nx01_user.legacy_code）
+  /// CYTIC 開戶 2026-06-21 新增：對齊規格 §128「對應舊系統的舊員工編號、方便資料轉移對照」
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  ownerLegacyCode?: string;
 
   /// 負責人聯絡信箱（必填、寄信用、非登入帳號）
   @IsEmail()

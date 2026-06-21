@@ -1421,6 +1421,8 @@ model Nx01User {
   healthCheckResult                        String?                       @map("health_check_result") @db.VarChar(20)
   /// 舊系統員工編號（純對照、不綁 FK、對齊零件 oldCode 範式）；W3 [3-2] 2026-06-06 新增
   legacyCode                               String?                       @map("legacy_code") @db.VarChar(50)
+  /// 職務（純文字、顯示用、不掛權限；恆迎範式：負責人 / 股東 / 業務員 / 會計 / 倉管員 / 外務員 / 採購助理）；CYTIC 開戶 2026-06-21 新增
+  jobTitle                                 String?                       @map("job_title") @db.VarChar(20)
   /// 人資主檔同步：主要職務角色（選填，與 nx01_user_role 並存）；啟用最低需求版本：PRO
   roleId                                   String?                       @map("role_id") @db.VarChar(15)
   /// 員工隸屬部門（選填）；02 第三批 T1 2026-06-07 從 PRO 解綁 → LITE（總經理拍板：組織欄位各版本都能用、不綁版本）；啟用最低需求版本：LITE

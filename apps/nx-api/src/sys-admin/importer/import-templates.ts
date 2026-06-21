@@ -31,10 +31,15 @@ export const EMPLOYEE_TEMPLATE: TemplateSpec = {
   columns: [
     { header: '姓名', field: 'userName', required: true, example: '王小明' },
     // 2026-06-03 員工編號制對齊：登入用「員工編號」（租戶內唯一、自由文字），不再用 Email 當登入
-    { header: '員工編號（登入用）', field: 'employeeAccount', required: true, hint: '租戶內唯一、客戶可沿用舊系統習慣（如 Y0053 / 001 / wang）', example: 'Y0053' },
+    // CYTIC 對齊規格 §387 audit B6（2026-06-21）：留空系統自動產 Y0001、可手動覆寫
+    { header: '員工編號（登入用、留空自動產 Y+4 碼）', field: 'employeeAccount', required: false, hint: '留空 → 系統自動產 Y0001/Y0002...；可手填（如 Y0053 / 001 / wang），純數字會補成 Y+4 碼', example: 'Y0053' },
+    // CYTIC 開戶 2026-06-21 新增：舊系統員編對照
+    { header: '舊系統員工編號（選填、對照用）', field: 'legacyCode', required: false, hint: '從舊 ERP 帶過來的舊員編、純對照用、登入不用此欄', example: 'Y001' },
     // Email 改選填、純聯絡用（之後重設密碼/系統通知會用）
     { header: 'Email（選填、聯絡用）', field: 'email', required: false, example: 'employee@company.com' },
     { header: '電話', field: 'phone', required: false, example: '0912-345-678' },
+    // CYTIC 開戶 2026-06-21 新增：職務純文字顯示用、不掛權限
+    { header: '職務（選填、顯示用）', field: 'jobTitle', required: false, hint: '純文字、顯示用（如 業務員 / 會計 / 倉管員）、不掛 RBAC 權限', example: '業務員' },
     { header: '角色名稱（可空）', field: 'roleName', required: false, hint: '若該角色不存在、本筆會跳過角色綁定（建議匯入後到「設定→角色與權限」建好角色再回頭指派）', example: '業務' },
     // 「啟用」欄已拿掉（2026-06-03）：匯入一律未啟用、之後在精靈內挑啟用（受席次上限保護）
   ],

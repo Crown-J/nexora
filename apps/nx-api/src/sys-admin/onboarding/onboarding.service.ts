@@ -42,6 +42,17 @@ export class OnboardingService {
     return `${buf}!1`.replace(/[/+=]/g, '').slice(0, 10);
   }
 
+  /// 員編格式化：純數字 → Y+4 碼補零（例：1 → Y0001、156 → Y0156）
+  /// 已是 Y+數字格式或自由文字（如 wang）原樣返回
+  /// CYTIC 對齊規格 §387「Y+4 碼自動給號、可手動覆寫」
+  private formatEmployeeAccount(value: string): string {
+    const trimmed = value.trim();
+    if (/^\d+$/.test(trimmed)) {
+      return `Y${trimmed.padStart(4, '0')}`;
+    }
+    return trimmed;
+  }
+
   async createTenantAndOwner(actorPlatformAdminId: string, dto: CreateOnboardingDto) {
     // 1. 員工編號制改造（2026-06-02）：員編租戶內唯一、開戶當下租戶尚未建立、
     //    不需查衝突（@@unique[tenantId, userAccount] 在 tx 內建立時自動保證）。
@@ -102,13 +113,20 @@ export class OnboardingService {
       // 員工編號制改造（2026-06-02）：
       //    userAccount = dto.ownerEmployeeAccount（負責人自己填的員編、登入用）
       //    email = dto.ownerEmail（聯絡信箱、寄信/重設密碼用、非登入帳號）
+      // CYTIC 對齊規格 §387（2026-06-21）：
+      //    ownerEmployeeAccount 留空時系統自動產 Y0001（從 EMPLOYEE seq counter）
+      //    ownerLegacyCode 灌進 nx01_user.legacy_code（舊系統員編對照）
+      const ownerEmployeeAccount = dto.ownerEmployeeAccount
+        ? this.formatEmployeeAccount(dto.ownerEmployeeAccount)
+        : 'Y0001';
       const owner = await tx.nx01User.create({
         data: {
           tenantId: tenant.id,
-          userAccount: dto.ownerEmployeeAccount,
+          userAccount: ownerEmployeeAccount,
           passwordHash,
           userName: dto.ownerName,
           email: dto.ownerEmail,
+          legacyCode: dto.ownerLegacyCode ?? null,
           isActive: true,
           mustChangePassword: true,
           isTenantOwner: true,
@@ -198,6 +216,18 @@ export class OnboardingService {
         data: {
           tenantId: tenant.id,
           scope: 'PARTNER_L',
+          nextNo: 2,
+        },
+      });
+
+      // 4.5c 建 EMPLOYEE seq counter（CYTIC 對齊規格 §387、2026-06-21 audit B6）
+      // - 開戶建立 Y0001 負責人後、下一個員工從 Y0002 起跳
+      // - importer / 主檔頁新增員工時讀此 counter
+      // - 規格 §128/§387：「Y+4 碼自動給號、可手動覆寫、租戶內唯一」
+      await tx.nx01SeqCounter.create({
+        data: {
+          tenantId: tenant.id,
+          scope: 'EMPLOYEE',
           nextNo: 2,
         },
       });
