@@ -17,19 +17,14 @@
 
 ## 一、總覽
 
-- 灌入 brand 總數：**468**
-- 嚴格演算法疑似配對：**5** 對
+- 灌入 brand 總數：**463**
+- 嚴格演算法疑似配對：**0** 對
 - `-X` 字尾品牌（保留獨立、勿合）：**5** 個
 
 ## 二、疑似可合併配對（執行長 review）
 
 | 配對 | 距離 | 比例 | 建議保留 | 建議合併入 |
 |---|---|---|---|---|
-| ERA-TRW (36) ⇄ ERA/TRW (1) | 1 | 14% | **ERA-TRW** (36 件) | ERA/TRW (1 件) |
-| HUTCHINSON (11) ⇄ HUTCHINS (1) | 2 | 20% | **HUTCHINSON** (11 件) | HUTCHINS (1 件) |
-| FIFFT (9) ⇄ GFIFFT (1) | 1 | 17% | **FIFFT** (9 件) | GFIFFT (1 件) |
-| GIEFFE (8) ⇄ GIFFE (1) | 1 | 17% | **GIEFFE** (8 件) | GIFFE (1 件) |
-| FUJIKOKI (2) ⇄ FUJIKO (1) | 2 | 25% | **FUJIKOKI** (2 件) | FUJIKO (1 件) |
 
 ## 三、特殊字尾品牌（保留獨立、勿合）
 
