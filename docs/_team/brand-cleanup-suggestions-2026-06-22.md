@@ -10,12 +10,15 @@
 - 雙方廠牌字數都 **≥ 4 字**（避免 VW / TRW / BMW 等 2~3 字大廠誤配）
 - 編輯距離 ≤ 2 且 **距離 / max(len) ≤ 0.25**（4 字最多錯 1、8 字最多錯 2）
 - 中文 vs 英文不交叉配對
-- `-X` 字尾保留獨立（中古件範式）
+- 特殊字尾保留獨立、不跨類配對：
+  - `-X` = **中古件**（VW-X = VW 中古件）
+  - `-ZZ` = **瑕疵件**（VW-ZZ = VW 瑕疵件）
+  - `-Z` = **其他特殊分類**（含義待執行長確認）
 
 ## 一、總覽
 
 - 灌入 brand 總數：**522**
-- 嚴格演算法疑似配對：**72** 對
+- 嚴格演算法疑似配對：**62** 對
 - `-X` 字尾品牌（保留獨立、勿合）：**5** 個
 
 ## 二、疑似可合併配對（執行長 review）
@@ -26,10 +29,6 @@
 | PORSCHE (1675) ⇄ BORSCHE (2) | 1 | 14% | **PORSCHE** (1675 件) | BORSCHE (2 件) |
 | PORSCHE (1675) ⇄ PORESCHE (1) | 1 | 13% | **PORSCHE** (1675 件) | PORESCHE (1 件) |
 | PORSCHE (1675) ⇄ PORCHE (1) | 1 | 14% | **PORSCHE** (1675 件) | PORCHE (1 件) |
-| VW-X (737) ⇄ VW-V (4) | 1 | 25% | **VW-X** (737 件) | VW-V (4 件) |
-| VW-X (737) ⇄ VW-XX (3) | 1 | 20% | **VW-X** (737 件) | VW-XX (3 件) |
-| VW-X (737) ⇄ VW-Z (2) | 1 | 25% | **VW-X** (737 件) | VW-Z (2 件) |
-| VW-X (737) ⇄ VW-X> (1) | 1 | 20% | **VW-X** (737 件) | VW-X> (1 件) |
 | VOTEX (576) ⇄ VOTAX (2) | 1 | 20% | **VOTEX** (576 件) | VOTAX (2 件) |
 | VOTEX (576) ⇄ V0TEX (1) | 1 | 20% | **VOTEX** (576 件) | V0TEX (1 件) |
 | SEAT (451) ⇄ MEAT (1) | 1 | 25% | **SEAT** (451 件) | MEAT (1 件) |
@@ -53,7 +52,6 @@
 | ERA-TRW (36) ⇄ ERA/TRW (1) | 1 | 14% | **ERA-TRW** (36 件) | ERA/TRW (1 件) |
 | O/VW (36) ⇄ O-VW (2) | 1 | 25% | **O/VW** (36 件) | O-VW (2 件) |
 | O/VW (36) ⇄ 0/VW (1) | 1 | 25% | **O/VW** (36 件) | 0/VW (1 件) |
-| VW-ZZ (30) ⇄ VW-Z (2) | 1 | 20% | **VW-ZZ** (30 件) | VW-Z (2 件) |
 | OSRAM (27) ⇄ ORAM (1) | 1 | 20% | **OSRAM** (27 件) | ORAM (1 件) |
 | GARRETT (22) ⇄ GARREET (1) | 1 | 14% | **GARRETT** (22 件) | GARREET (1 件) |
 | MAN ZAI(萬在) (21) ⇄ MAN ZAI (萬在) (13) | 1 | 8% | **MAN ZAI(萬在)** (21 件) | MAN ZAI (萬在) (13 件) |
@@ -67,11 +65,8 @@
 | PIERPURG (5) ⇄ PUERBURG (1) | 2 | 25% | **PIERPURG** (5 件) | PUERBURG (1 件) |
 | GERMANY (5) ⇄ GERMAN (1) | 1 | 14% | **GERMANY** (5 件) | GERMAN (1 件) |
 | 中古-VW (5) ⇄ 中古件-VW (1) | 1 | 17% | **中古-VW** (5 件) | 中古件-VW (1 件) |
-| VW-V (4) ⇄ VW-Z (2) | 1 | 25% | **VW-V** (4 件) | VW-Z (2 件) |
 | 瑕疵-VW (4) ⇄ 暇疵-VW (2) | 1 | 20% | **瑕疵-VW** (4 件) | 暇疵-VW (2 件) |
 | VALEO-瑕疵 (4) ⇄ VALEO-中古 (1) | 2 | 25% | **VALEO-瑕疵** (4 件) | VALEO-中古 (1 件) |
-| BOSCH-ZZ (4) ⇄ BOSCH-X (1) | 2 | 25% | **BOSCH-ZZ** (4 件) | BOSCH-X (1 件) |
-| BOSCH-ZZ (4) ⇄ BOSCH-Z (1) | 1 | 13% | **BOSCH-ZZ** (4 件) | BOSCH-Z (1 件) |
 | ANSA/PEDOL (3) ⇄ ANSA/PREDOL (1) | 1 | 9% | **ANSA/PEDOL** (3 件) | ANSA/PREDOL (1 件) |
 | ELDOR (3) ⇄ ELDER (1) | 1 | 20% | **ELDOR** (3 件) | ELDER (1 件) |
 | VW-XX (3) ⇄ VW-X> (1) | 1 | 20% | **VW-XX** (3 件) | VW-X> (1 件) |
@@ -84,18 +79,18 @@
 | VW-無包裝 (2) ⇄ VW-沒包裝 (1) | 1 | 17% | **VW-無包裝** (2 件) | VW-沒包裝 (1 件) |
 | VW-無包裝 (2) ⇄ VW無包裝 (1) | 1 | 17% | **VW-無包裝** (2 件) | VW無包裝 (1 件) |
 | 外匯-新 (1) ⇄ 外匯-A (1) | 1 | 25% | **外匯-新** (1 件) | 外匯-A (1 件) |
-| BOSCH-X (1) ⇄ BOSCH-Z (1) | 1 | 14% | **BOSCH-X** (1 件) | BOSCH-Z (1 件) |
 | VW(VW) (1) ⇄ VW(TW) (1) | 1 | 17% | **VW(VW)** (1 件) | VW(TW) (1 件) |
 | 暇疵-VALEO (1) ⇄ 瑕疵-VALEO (1) | 1 | 13% | **暇疵-VALEO** (1 件) | 瑕疵-VALEO (1 件) |
 | 暇疵-VALEO (1) ⇄ 中古-VALEO (1) | 2 | 25% | **暇疵-VALEO** (1 件) | 中古-VALEO (1 件) |
-| T4-P (1) ⇄ T4-Z (1) | 1 | 25% | **T4-P** (1 件) | T4-Z (1 件) |
 | PORECH (1) ⇄ PORESCHE (1) | 2 | 25% | **PORECH** (1 件) | PORESCHE (1 件) |
 | 瑕疵-VALEO (1) ⇄ 中古-VALEO (1) | 2 | 25% | **瑕疵-VALEO** (1 件) | 中古-VALEO (1 件) |
 | JOST (1) ⇄ JUST (1) | 1 | 25% | **JOST** (1 件) | JUST (1 件) |
 | MASEERATI (1) ⇄ MASERATI (1) | 1 | 11% | **MASEERATI** (1 件) | MASERATI (1 件) |
 | PORESCHE (1) ⇄ PORCHE (1) | 2 | 25% | **PORESCHE** (1 件) | PORCHE (1 件) |
 
-## 三、`-X` 字尾品牌（中古件範式、保留獨立）
+## 三、特殊字尾品牌（保留獨立、勿合）
+
+### 3.1 `-X` 字尾（中古件）
 
 | 廠牌 | 件數 |
 |---|---|
@@ -104,6 +99,35 @@
 | BOSCH-X | 1 |
 | PORSCHE-X | 1 |
 | TRW-X | 1 |
+
+### 3.2 `-ZZ` 字尾（瑕疵件）
+
+| 廠牌 | 件數 |
+|---|---|
+| VW-ZZ | 30 |
+| SKODA-ZZ | 4 |
+| BOSCH-ZZ | 4 |
+| PIERBURG-ZZ | 3 |
+| MARELLI-ZZ | 2 |
+| OZ-ZZ | 1 |
+| VW-X-ZZ | 1 |
+| HELLA-ZZ | 1 |
+| VALEO-ZZ | 1 |
+
+### 3.3 `-Z` 字尾（其他特殊分類、含義待執行長確認）
+
+| 廠牌 | 件數 |
+|---|---|
+| AUDI-Z | 3 |
+| VW-Z | 2 |
+| T4-Z | 1 |
+| BOSCH-Z | 1 |
+
+### 3.4 `-X-ZZ` 字尾（中古件 + 瑕疵件 雙重標籤）
+
+| 廠牌 | 件數 |
+|---|---|
+| VW-X-ZZ | 1 |
 
 ## 四、Top 30 廠牌（按件數）
 
@@ -145,4 +169,5 @@
 1. **看完疑似配對**、決定哪些要合
 2. 想合就告訴 Hank：「合 BOSH → BOSCH」
 3. Hank 寫 `merge-brand --from=X --to=Y` 一次清掉（reassign part.brand_id + 刪舊 brand）
-4. `-X` 字尾品牌**保留**、不要合
+4. `-X` (中古件) / `-ZZ` (瑕疵件) / `-Z` (其他) 字尾品牌**保留**、不要合
+5. `-Z` 字尾品牌請告知 Hank 含義（中古件? 瑕疵件? 其他?）

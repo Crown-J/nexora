@@ -96,10 +96,20 @@ async function main() {
         // 中英文不交叉
         if (isCjk(codeA) !== isCjk(codeB)) continue;
 
-        // -X 字尾規則：base 相同則跳（VW-X vs VW、BOSCH-X vs BOSCH）
-        const baseA = codeA.replace(/-X$/, '');
-        const baseB = codeB.replace(/-X$/, '');
-        if (baseA === baseB && (codeA.endsWith('-X') !== codeB.endsWith('-X'))) continue;
+        // 特殊字尾規則（執行長拍板）：
+        //   -X = 中古件、-ZZ = 瑕疵件、-Z = 其他特殊分類
+        // 任何字尾不同就跳（VW vs VW-X / VW vs VW-ZZ / VW-X vs VW-ZZ）
+        const stripSuffix = (s: string) => s.replace(/-(X|ZZ|Z)$/i, '');
+        const baseA = stripSuffix(codeA);
+        const baseB = stripSuffix(codeB);
+        if (baseA === baseB && codeA !== codeB) continue;
+        // 雙方任一含特殊字尾、不允許跨類配對
+        const aHasSuffix = /-X-?ZZ?$|-X$|-ZZ?$/i.test(codeA);
+        const bHasSuffix = /-X-?ZZ?$|-X$|-ZZ?$/i.test(codeB);
+        if (aHasSuffix !== bHasSuffix) continue;
+        if (aHasSuffix && bHasSuffix && stripSuffix(codeA) !== stripSuffix(codeB)) {
+          // 兩個都帶字尾但基底不同（VW-X vs BOSCH-X），可能是真錯字、保留判定
+        }
 
         const d = levenshtein(codeA, codeB);
         if (d === 0) continue;
@@ -118,7 +128,10 @@ async function main() {
     }
     pairs.sort((x, y) => Math.max(y.aCount, y.bCount) - Math.max(x.aCount, x.bCount));
 
-    const xSuffix = cands.filter(c => c.code.endsWith('-X'));
+    const xSuffix = cands.filter(c => /-X$/.test(c.code));
+    const zzSuffix = cands.filter(c => /-ZZ$/.test(c.code));
+    const zSuffix = cands.filter(c => /-Z$/.test(c.code) && !c.code.endsWith('-ZZ'));
+    const xzzSuffix = cands.filter(c => /-X-ZZ$/.test(c.code));
 
     const lines: string[] = [];
     lines.push(`<!-- docs/_team/brand-cleanup-suggestions-2026-06-22.md -->`);
@@ -133,7 +146,10 @@ async function main() {
     lines.push(`- 雙方廠牌字數都 **≥ 4 字**（避免 VW / TRW / BMW 等 2~3 字大廠誤配）`);
     lines.push(`- 編輯距離 ≤ 2 且 **距離 / max(len) ≤ 0.25**（4 字最多錯 1、8 字最多錯 2）`);
     lines.push(`- 中文 vs 英文不交叉配對`);
-    lines.push(`- \`-X\` 字尾保留獨立（中古件範式）`);
+    lines.push(`- 特殊字尾保留獨立、不跨類配對：`);
+    lines.push(`  - \`-X\` = **中古件**（VW-X = VW 中古件）`);
+    lines.push(`  - \`-ZZ\` = **瑕疵件**（VW-ZZ = VW 瑕疵件）`);
+    lines.push(`  - \`-Z\` = **其他特殊分類**（含義待執行長確認）`);
     lines.push(``);
     lines.push(`## 一、總覽`);
     lines.push(``);
@@ -159,16 +175,38 @@ async function main() {
     }
 
     lines.push(``);
-    lines.push(`## 三、\`-X\` 字尾品牌（中古件範式、保留獨立）`);
+    lines.push(`## 三、特殊字尾品牌（保留獨立、勿合）`);
+    lines.push(``);
+    lines.push(`### 3.1 \`-X\` 字尾（中古件）`);
     lines.push(``);
     lines.push(`| 廠牌 | 件數 |`);
     lines.push(`|---|---|`);
-    for (const x of xSuffix) {
-      lines.push(`| ${x.code} | ${x.partCount} |`);
-    }
-    if (xSuffix.length === 0) {
-      lines.push(`| _（無）_ | _（無）_ |`);
-    }
+    if (xSuffix.length === 0) lines.push(`| _（無）_ | _（無）_ |`);
+    for (const x of xSuffix) lines.push(`| ${x.code} | ${x.partCount} |`);
+
+    lines.push(``);
+    lines.push(`### 3.2 \`-ZZ\` 字尾（瑕疵件）`);
+    lines.push(``);
+    lines.push(`| 廠牌 | 件數 |`);
+    lines.push(`|---|---|`);
+    if (zzSuffix.length === 0) lines.push(`| _（無）_ | _（無）_ |`);
+    for (const x of zzSuffix) lines.push(`| ${x.code} | ${x.partCount} |`);
+
+    lines.push(``);
+    lines.push(`### 3.3 \`-Z\` 字尾（其他特殊分類、含義待執行長確認）`);
+    lines.push(``);
+    lines.push(`| 廠牌 | 件數 |`);
+    lines.push(`|---|---|`);
+    if (zSuffix.length === 0) lines.push(`| _（無）_ | _（無）_ |`);
+    for (const x of zSuffix) lines.push(`| ${x.code} | ${x.partCount} |`);
+
+    lines.push(``);
+    lines.push(`### 3.4 \`-X-ZZ\` 字尾（中古件 + 瑕疵件 雙重標籤）`);
+    lines.push(``);
+    lines.push(`| 廠牌 | 件數 |`);
+    lines.push(`|---|---|`);
+    if (xzzSuffix.length === 0) lines.push(`| _（無）_ | _（無）_ |`);
+    for (const x of xzzSuffix) lines.push(`| ${x.code} | ${x.partCount} |`);
 
     lines.push(``);
     lines.push(`## 四、Top 30 廠牌（按件數）`);
@@ -186,7 +224,8 @@ async function main() {
     lines.push(`1. **看完疑似配對**、決定哪些要合`);
     lines.push(`2. 想合就告訴 Hank：「合 BOSH → BOSCH」`);
     lines.push(`3. Hank 寫 \`merge-brand --from=X --to=Y\` 一次清掉（reassign part.brand_id + 刪舊 brand）`);
-    lines.push(`4. \`-X\` 字尾品牌**保留**、不要合`);
+    lines.push(`4. \`-X\` (中古件) / \`-ZZ\` (瑕疵件) / \`-Z\` (其他) 字尾品牌**保留**、不要合`);
+    lines.push(`5. \`-Z\` 字尾品牌請告知 Hank 含義（中古件? 瑕疵件? 其他?）`);
     lines.push(``);
 
     fs.writeFileSync(REPORT_PATH, lines.join('\n'), 'utf-8');
