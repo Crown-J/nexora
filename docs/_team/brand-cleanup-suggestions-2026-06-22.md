@@ -17,76 +17,19 @@
 
 ## 一、總覽
 
-- 灌入 brand 總數：**520**
-- 嚴格演算法疑似配對：**62** 對
+- 灌入 brand 總數：**468**
+- 嚴格演算法疑似配對：**5** 對
 - `-X` 字尾品牌（保留獨立、勿合）：**5** 個
 
 ## 二、疑似可合併配對（執行長 review）
 
 | 配對 | 距離 | 比例 | 建議保留 | 建議合併入 |
 |---|---|---|---|---|
-| TOPRAN (2065) ⇄ TOPRAM (1) | 1 | 17% | **TOPRAN** (2065 件) | TOPRAM (1 件) |
-| PORSCHE (1675) ⇄ BORSCHE (2) | 1 | 14% | **PORSCHE** (1675 件) | BORSCHE (2 件) |
-| PORSCHE (1675) ⇄ PORESCHE (1) | 1 | 13% | **PORSCHE** (1675 件) | PORESCHE (1 件) |
-| PORSCHE (1675) ⇄ PORCHE (1) | 1 | 14% | **PORSCHE** (1675 件) | PORCHE (1 件) |
-| VOTEX (576) ⇄ VOTAX (2) | 1 | 20% | **VOTEX** (576 件) | VOTAX (2 件) |
-| VOTEX (576) ⇄ V0TEX (1) | 1 | 20% | **VOTEX** (576 件) | V0TEX (1 件) |
-| SEAT (451) ⇄ MEAT (1) | 1 | 25% | **SEAT** (451 件) | MEAT (1 件) |
-| PIERBURG (388) ⇄ PIERPURG (5) | 1 | 13% | **PIERBURG** (388 件) | PIERPURG (5 件) |
-| PIERBURG (388) ⇄ PUERBURG (1) | 1 | 13% | **PIERBURG** (388 件) | PUERBURG (1 件) |
-| VW-一汽 (335) ⇄ VW- 一汽 (1) | 1 | 17% | **VW-一汽** (335 件) | VW- 一汽 (1 件) |
-| VW-一汽 (335) ⇄ VW一汽 (1) | 1 | 20% | **VW-一汽** (335 件) | VW一汽 (1 件) |
-| GATES (324) ⇄ GATE (4) | 1 | 20% | **GATES** (324 件) | GATE (4 件) |
-| GATES (324) ⇄ GOTES (1) | 1 | 20% | **GATES** (324 件) | GOTES (1 件) |
-| TEXTAR (246) ⇄ TRXTAR (2) | 1 | 17% | **TEXTAR** (246 件) | TRXTAR (2 件) |
-| STABILUS (214) ⇄ STABIULUS (1) | 1 | 11% | **STABILUS** (214 件) | STABIULUS (1 件) |
-| CONTI (181) ⇄ COTI (1) | 1 | 20% | **CONTI** (181 件) | COTI (1 件) |
-| VW-瑕疵 (125) ⇄ VW-暇疵 (13) | 1 | 20% | **VW-瑕疵** (125 件) | VW-暇疵 (13 件) |
-| ERNST (112) ⇄ ERNSA (1) | 1 | 20% | **ERNST** (112 件) | ERNSA (1 件) |
-| BORGWARNER (91) ⇄ BORGARNER (1) | 1 | 10% | **BORGWARNER** (91 件) | BORGARNER (1 件) |
-| CORTECO (76) ⇄ COTTECO (1) | 1 | 14% | **CORTECO** (76 件) | COTTECO (1 件) |
-| DELPHI (60) ⇄ DELHI (1) | 1 | 17% | **DELPHI** (60 件) | DELHI (1 件) |
-| BENTLEY (59) ⇄ BENTILEY (17) | 1 | 13% | **BENTLEY** (59 件) | BENTILEY (17 件) |
-| BERU (53) ⇄ BRRU (1) | 1 | 25% | **BERU** (53 件) | BRRU (1 件) |
-| CAFM (51) ⇄ CAMM (1) | 1 | 25% | **CAFM** (51 件) | CAMM (1 件) |
 | ERA-TRW (36) ⇄ ERA/TRW (1) | 1 | 14% | **ERA-TRW** (36 件) | ERA/TRW (1 件) |
-| O/VW (36) ⇄ O-VW (2) | 1 | 25% | **O/VW** (36 件) | O-VW (2 件) |
-| O/VW (36) ⇄ 0/VW (1) | 1 | 25% | **O/VW** (36 件) | 0/VW (1 件) |
-| OSRAM (27) ⇄ ORAM (1) | 1 | 20% | **OSRAM** (27 件) | ORAM (1 件) |
-| GARRETT (22) ⇄ GARREET (1) | 1 | 14% | **GARRETT** (22 件) | GARREET (1 件) |
-| MAN ZAI(萬在) (21) ⇄ MAN ZAI (萬在) (13) | 1 | 8% | **MAN ZAI(萬在)** (21 件) | MAN ZAI (萬在) (13 件) |
-| ITALY (16) ⇄ ITALT (1) | 1 | 20% | **ITALY** (16 件) | ITALT (1 件) |
-| GEMO (14) ⇄ VEMO (2) | 1 | 25% | **GEMO** (14 件) | VEMO (2 件) |
-| PROSCHE (14) ⇄ PORESCHE (1) | 2 | 25% | **PROSCHE** (14 件) | PORESCHE (1 件) |
 | HUTCHINSON (11) ⇄ HUTCHINS (1) | 2 | 20% | **HUTCHINSON** (11 件) | HUTCHINS (1 件) |
-| HAGUS (10) ⇄ HAGNS (2) | 1 | 20% | **HAGUS** (10 件) | HAGNS (2 件) |
 | FIFFT (9) ⇄ GFIFFT (1) | 1 | 17% | **FIFFT** (9 件) | GFIFFT (1 件) |
 | GIEFFE (8) ⇄ GIFFE (1) | 1 | 17% | **GIEFFE** (8 件) | GIFFE (1 件) |
-| PIERPURG (5) ⇄ PUERBURG (1) | 2 | 25% | **PIERPURG** (5 件) | PUERBURG (1 件) |
-| GERMANY (5) ⇄ GERMAN (1) | 1 | 14% | **GERMANY** (5 件) | GERMAN (1 件) |
-| 中古-VW (5) ⇄ 中古件-VW (1) | 1 | 17% | **中古-VW** (5 件) | 中古件-VW (1 件) |
-| 瑕疵-VW (4) ⇄ 暇疵-VW (2) | 1 | 20% | **瑕疵-VW** (4 件) | 暇疵-VW (2 件) |
-| VALEO-瑕疵 (4) ⇄ VALEO-中古 (1) | 2 | 25% | **VALEO-瑕疵** (4 件) | VALEO-中古 (1 件) |
-| ANSA/PEDOL (3) ⇄ ANSA/PREDOL (1) | 1 | 9% | **ANSA/PEDOL** (3 件) | ANSA/PREDOL (1 件) |
-| ELDOR (3) ⇄ ELDER (1) | 1 | 20% | **ELDOR** (3 件) | ELDER (1 件) |
-| VW-XX (3) ⇄ VW-X> (1) | 1 | 20% | **VW-XX** (3 件) | VW-X> (1 件) |
 | FUJIKOKI (2) ⇄ FUJIKO (1) | 2 | 25% | **FUJIKOKI** (2 件) | FUJIKO (1 件) |
-| DSVAT (2) ⇄ OSVAT (1) | 1 | 20% | **DSVAT** (2 件) | OSVAT (1 件) |
-| BORSCHE (2) ⇄ PORESCHE (1) | 2 | 25% | **BORSCHE** (2 件) | PORESCHE (1 件) |
-| LAMBORGHINI (2) ⇄ LAMBORGHI (1) | 2 | 18% | **LAMBORGHINI** (2 件) | LAMBORGHI (1 件) |
-| BOSCH-中古 (2) ⇄ BOSCH-瑕疵 (1) | 2 | 25% | **BOSCH-中古** (2 件) | BOSCH-瑕疵 (1 件) |
-| IMALE (2) ⇄ IMHLE (1) | 1 | 20% | **IMALE** (2 件) | IMHLE (1 件) |
-| VW-無包裝 (2) ⇄ VW-沒包裝 (1) | 1 | 17% | **VW-無包裝** (2 件) | VW-沒包裝 (1 件) |
-| VW-無包裝 (2) ⇄ VW無包裝 (1) | 1 | 17% | **VW-無包裝** (2 件) | VW無包裝 (1 件) |
-| 外匯-新 (1) ⇄ 外匯-A (1) | 1 | 25% | **外匯-新** (1 件) | 外匯-A (1 件) |
-| VW(VW) (1) ⇄ VW(TW) (1) | 1 | 17% | **VW(VW)** (1 件) | VW(TW) (1 件) |
-| 暇疵-VALEO (1) ⇄ 瑕疵-VALEO (1) | 1 | 13% | **暇疵-VALEO** (1 件) | 瑕疵-VALEO (1 件) |
-| 暇疵-VALEO (1) ⇄ 中古-VALEO (1) | 2 | 25% | **暇疵-VALEO** (1 件) | 中古-VALEO (1 件) |
-| PORECH (1) ⇄ PORESCHE (1) | 2 | 25% | **PORECH** (1 件) | PORESCHE (1 件) |
-| 瑕疵-VALEO (1) ⇄ 中古-VALEO (1) | 2 | 25% | **瑕疵-VALEO** (1 件) | 中古-VALEO (1 件) |
-| JOST (1) ⇄ JUST (1) | 1 | 25% | **JOST** (1 件) | JUST (1 件) |
-| MASEERATI (1) ⇄ MASERATI (1) | 1 | 11% | **MASEERATI** (1 件) | MASERATI (1 件) |
-| PORESCHE (1) ⇄ PORCHE (1) | 2 | 25% | **PORESCHE** (1 件) | PORCHE (1 件) |
 
 ## 三、特殊字尾品牌（保留獨立、勿合）
 
@@ -135,27 +78,27 @@
 | 1 | VW | 65554 |
 | 2 | SKODA | 3257 |
 | 3 | FEBI | 2712 |
-| 4 | TOPRAN | 2065 |
+| 4 | TOPRAN | 2066 |
 | 5 | BOSCH | 1699 |
-| 6 | PORSCHE | 1675 |
+| 6 | PORSCHE | 1679 |
 | 7 | ELRING | 1121 |
 | 8 | LMI | 904 |
 | 9 | HELLA | 891 |
 | 10 | MARELLI | 834 |
 | 11 | VALEO | 739 |
 | 12 | VW-X | 737 |
-| 13 | VOTEX | 576 |
+| 13 | VOTEX | 579 |
 | 14 | MAHLE | 574 |
 | 15 | TRW | 554 |
 | 16 | LUK | 468 |
-| 17 | SEAT | 451 |
-| 18 | PIERBURG | 388 |
+| 17 | SEAT | 452 |
+| 18 | PIERBURG | 394 |
 | 19 | LOBRO | 366 |
 | 20 | ATE | 360 |
 | 21 | CAR-VAG | 359 |
-| 22 | VIKA | 336 |
-| 23 | VW-一汽 | 335 |
-| 24 | GATES | 324 |
+| 22 | VW-一汽 | 337 |
+| 23 | VIKA | 336 |
+| 24 | GATES | 329 |
 | 25 | NISSENS | 322 |
 | 26 | KS | 306 |
 | 27 | BREMBO | 294 |
