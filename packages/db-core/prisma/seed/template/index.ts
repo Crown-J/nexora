@@ -26,6 +26,7 @@ import { applyLeaveType } from './apply-leave-type';
 import { applyModelType } from './apply-model-type';
 import { applyPartBrand } from './apply-part-brand';
 import { applyPartGroup } from './apply-part-group';
+import { applyRegion } from './apply-region';
 import { applyRole } from './apply-role';
 import { applySite } from './apply-site';
 import { applyTeam } from './apply-team';
@@ -59,6 +60,7 @@ export async function applyTemplateToTenant(
   await applyBrandCodeRule(prisma, params); // ⚠️ 下半場 A：軸翻轉後依賴 applyPartBrand（規則對應零件品牌）
   await applyCustomerGrade(prisma, params);
   await applySupplierGrade(prisma, params);
+  await applyRegion(prisma, params);
   await applyDiscountCode(prisma, params);
   await applyAccountCode(prisma, params);
 
