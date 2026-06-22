@@ -489,7 +489,7 @@ async function onboardCytic(prisma: PrismaClient): Promise<OnboardResult> {
       mainWarehouseId: warehouse.id,
       departments: deptMap,
     };
-  });
+  }, { timeout: 120000, maxWait: 30000 });
 
   log('ONBOARD', `恆迎開戶完成: ${result.tenantCode} (${result.tenantId})`);
   return result;
