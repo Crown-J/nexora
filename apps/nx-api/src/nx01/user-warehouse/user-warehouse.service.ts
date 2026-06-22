@@ -22,6 +22,7 @@ import type {
   AssignUserWarehouseDto,
   ListUserWarehouseQueryDto,
   RevokeUserWarehouseDto,
+  SetPrimaryUserWarehouseDto,
 } from './dto/user-warehouse.dto';
 
 const SEL = {
@@ -29,6 +30,7 @@ const SEL = {
   tenantId: true,
   userId: true,
   warehouseId: true,
+  isPrimary: true,
   isActive: true,
   assignedAt: true,
   assignedBy: true,
@@ -43,6 +45,7 @@ type UserWarehouseDtoOut = {
   id: string;
   userId: string;
   warehouseId: string;
+  isPrimary: boolean;
   isActive: boolean;
   assignedAt: string;
   assignedBy: string | null;
@@ -71,6 +74,7 @@ export class UserWarehouseService {
       id: row.id,
       userId: row.userId,
       warehouseId: row.warehouseId,
+      isPrimary: row.isPrimary,
       isActive: row.isActive,
       assignedAt: row.assignedAt.toISOString(),
       assignedBy: row.assignedBy,
@@ -98,7 +102,7 @@ export class UserWarehouseService {
       this.prisma.nx01UserWarehouse.count({ where }),
       this.prisma.nx01UserWarehouse.findMany({
         where,
-        orderBy: [{ assignedAt: 'desc' }],
+        orderBy: [{ isPrimary: 'desc' }, { assignedAt: 'desc' }],
         skip,
         take: pageSize,
         select: SEL,
@@ -131,11 +135,20 @@ export class UserWarehouseService {
     });
     if (existing) throw new ConflictException('User already assigned to this warehouse');
 
+    // 若指派為主要倉、先把該員工其他主要倉旗標清掉（service 層守唯一、範式同 user-role）
+    if (dto.isPrimary) {
+      await this.prisma.nx01UserWarehouse.updateMany({
+        where: { tenantId, userId: dto.userId, isPrimary: true },
+        data: { isPrimary: false },
+      });
+    }
+
     const created = await this.prisma.nx01UserWarehouse.create({
       data: {
         tenantId,
         userId: dto.userId,
         warehouseId: dto.warehouseId,
+        isPrimary: dto.isPrimary ?? false,
         isActive: true,
         assignedBy: user.sub,
       },
@@ -153,9 +166,36 @@ export class UserWarehouseService {
     if (!found) throw new NotFoundException('UserWarehouse not found');
 
     // 軟刪除鐵律：保留紀錄、isActive=false + revokedAt（系統不刪資料）
+    // 若取消的是主要倉、isPrimary 同時清掉、避免「停用但仍標主要」邏輯洞
     const updated = await this.prisma.nx01UserWarehouse.update({
       where: { id },
-      data: { isActive: false, revokedAt: new Date() },
+      data: { isActive: false, isPrimary: false, revokedAt: new Date() },
+      select: SEL,
+    });
+    return this.mapRow(updated);
+  }
+
+  async setPrimary(user: RequestUser, id: string, dto: SetPrimaryUserWarehouseDto) {
+    const tenantId = requireTenantId(user);
+    const target = await this.prisma.nx01UserWarehouse.findFirst({
+      where: { id, tenantId },
+      select: { id: true, userId: true, isActive: true },
+    });
+    if (!target) throw new NotFoundException('UserWarehouse not found');
+    if (!target.isActive) {
+      throw new ConflictException('Cannot set primary on revoked assignment');
+    }
+
+    if (dto.isPrimary) {
+      // 同員工只能一筆 isPrimary=true：先把其他筆改 false
+      await this.prisma.nx01UserWarehouse.updateMany({
+        where: { tenantId, userId: target.userId, isPrimary: true },
+        data: { isPrimary: false },
+      });
+    }
+    const updated = await this.prisma.nx01UserWarehouse.update({
+      where: { id },
+      data: { isPrimary: dto.isPrimary },
       select: SEL,
     });
     return this.mapRow(updated);

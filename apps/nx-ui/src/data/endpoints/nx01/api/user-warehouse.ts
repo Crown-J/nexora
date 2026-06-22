@@ -8,6 +8,8 @@ export type UserWarehouseDto = {
   id: string;
   userId: string;
   warehouseId: string;
+  /** 員工主要倉庫旗標（2026-06-22 加、範式同 user-role.isPrimary） */
+  isPrimary: boolean;
   isActive: boolean;
   assignedAt: string;
   assignedBy: string | null;
@@ -40,7 +42,11 @@ export async function listUserWarehouses(params: {
   return res.json() as Promise<PagedResult<UserWarehouseDto>>;
 }
 
-export async function assignUserWarehouse(body: { userId: string; warehouseId: string }): Promise<UserWarehouseDto> {
+export async function assignUserWarehouse(body: {
+  userId: string;
+  warehouseId: string;
+  isPrimary?: boolean;
+}): Promise<UserWarehouseDto> {
   const res = await apiFetch('/user-warehouse', {
     method: 'POST',
     body: JSON.stringify(body),
@@ -55,5 +61,14 @@ export async function revokeUserWarehouse(id: string): Promise<UserWarehouseDto>
     body: JSON.stringify({}),
   });
   await assertOk(res, 'nxui_base_user_warehouse_revoke');
+  return res.json() as Promise<UserWarehouseDto>;
+}
+
+export async function setUserWarehousePrimary(id: string, isPrimary: boolean): Promise<UserWarehouseDto> {
+  const res = await apiFetch(`/user-warehouse/${encodeURIComponent(id)}/set-primary`, {
+    method: 'PATCH',
+    body: JSON.stringify({ isPrimary }),
+  });
+  await assertOk(res, 'nxui_base_user_warehouse_set_primary');
   return res.json() as Promise<UserWarehouseDto>;
 }

@@ -1686,6 +1686,10 @@ model Nx01UserWarehouse {
   revokedAt   DateTime?     @map("revoked_at")
   /// 是否有效（TRUE=目前生效；FALSE=已取消但保留紀錄）；啟用最低需求版本：LITE
   isActive    Boolean       @default(true) @map("is_active")
+  /// 是否為員工主要倉庫（範式同 nx01_user_role.is_primary）
+  /// 每位員工至多 1 筆 isPrimary=true（service 層守、切換時把其他筆改 false）。
+  /// 2026-06-22 執行長拍板：員工可多歸倉、但要能指定一個主要倉
+  isPrimary   Boolean       @default(false) @map("is_primary")
   tenant      Nx99Tenant    @relation("R_Nx01UserWarehouse_tenantId", fields: [tenantId], references: [id])
   user        Nx01User      @relation("R_Nx01UserWarehouse_userId", fields: [userId], references: [id])
   warehouse   Nx01Warehouse @relation("R_Nx01UserWarehouse_warehouseId", fields: [warehouseId], references: [id])

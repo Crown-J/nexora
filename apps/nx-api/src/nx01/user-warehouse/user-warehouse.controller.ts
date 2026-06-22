@@ -27,6 +27,7 @@ import {
   AssignUserWarehouseDto,
   ListUserWarehouseQueryDto,
   RevokeUserWarehouseDto,
+  SetPrimaryUserWarehouseDto,
 } from './dto/user-warehouse.dto';
 import { UserWarehouseService } from './user-warehouse.service';
 
@@ -58,5 +59,14 @@ export class UserWarehouseController {
     @Body() dto: RevokeUserWarehouseDto,
   ) {
     return this.svc.revoke(user, id, dto);
+  }
+
+  @Patch(':id/set-primary')
+  setPrimary(
+    @CurrentUser() user: RequestUser,
+    @Param('id') id: string,
+    @Body() dto: SetPrimaryUserWarehouseDto,
+  ) {
+    return this.svc.setPrimary(user, id, dto);
   }
 }
