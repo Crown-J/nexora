@@ -1,36 +1,42 @@
 // apps/nx-ui/src/features/nx01/org/structure/OrgStructurePage.tsx
-// 組織架構圖（案例 1 / Step 3 Commit B）
-//
-// B 方案雙分支樹：
-//   部門 → [📁 組別 / 🎖 職務] → 葉子（組別 / 職務）→ 點葉子右欄顯示員工
+// 組織架構圖（接真 API、2026-06-22 重寫）
 //
 // schema 真相：Role 只 link Department、Team 也 link Department、Role 與 Team 不直接關聯。
 // 所以「部門→組別→職務→使用者」嚴格四層不成立、用雙分支樹呈現。
 //
+// 樹結構：
+//   部門 → [📁 組別 / 🎖 職務] → 葉子（組別 / 職務）
+//
 // 互動：
-//   - 點組別葉子 → 右欄顯示該組成員（filter by teamIds）
-//   - 點職務葉子 → 右欄顯示掛此職務的員工（filter by roleIds）
-//   - 「指派員工」開 EntityPickerDialog 多選加入 teamIds[] 或 roleIds[]
-//   - 員工可多歸組、多職（執行長拍板）
-//   - ✕ 鈕 / Delete 鍵：從 teamIds[] 或 roleIds[] 移除（員工本身不刪）
+//   - 點組別葉子 → 右欄顯示該組成員（從 nx01_user_team 衛星表）
+//   - 點職務葉子 → 右欄顯示掛此職務的員工（從 nx01_user_role 衛星表）
+//   - 「指派員工」開 EntityPickerDialog 多選加入；員工可多歸組、多職
+//   - ✕ 鈕 / Delete 鍵：revoke user-team 或 user-role（員工本身不刪）
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Briefcase, Building2, FolderTree, Users2, UserPlus } from 'lucide-react';
 
 import { MasterBatchShell } from '@design/components/master-batch';
 import type { MasterBatchConfig } from '@design/components/master-batch';
 import { EntityPickerDialog } from '@design/components/multi-select-modal/EntityPickerDialog';
 import type { PagedResult } from '@data/types/nx01/api';
-
+import { listDepartments, type DepartmentDto } from '@data/endpoints/nx01/api/department';
+import { listTeams, type TeamDto } from '@data/endpoints/nx01/api/team';
+import { listRoles, type RoleDto } from '@data/endpoints/nx01/api/role';
 import {
-  DEPARTMENTS,
-  EMPLOYEES_SEED,
-  ROLES,
-  TEAMS,
-  departmentName,
-  type EmployeeMock,
-} from './mock-data';
+  assignUserTeam,
+  listUserTeams,
+  revokeUserTeam,
+  type UserTeamDto,
+} from '@data/endpoints/nx01/api/user-team';
+import {
+  assignUserRole,
+  listUserRoles,
+  revokeUserRole,
+  type UserRoleDto,
+} from '@data/endpoints/nx01/api/user-role';
+import { listUsers, type UserDto } from '@data/endpoints/nx01/api/user';
 
 type StructureNodeType = 'department' | 'team-folder' | 'role-folder' | 'team' | 'role';
 
@@ -43,61 +49,146 @@ type StructureNode = {
   roleId?: string;
 };
 
+/** 葉子節點的成員顯示用結構 */
+type MemberRow = {
+  /** 衛星表 row id（user-team.id 或 user-role.id），用於 revoke */
+  assignmentId: string;
+  userId: string;
+  userAccount: string | null;
+  userDisplayName: string | null;
+};
+
 export function OrgStructurePage() {
-  const [employees, setEmployees] = useState<EmployeeMock[]>(EMPLOYEES_SEED);
+  const [departments, setDepartments] = useState<DepartmentDto[]>([]);
+  const [teams, setTeams] = useState<TeamDto[]>([]);
+  const [roles, setRoles] = useState<RoleDto[]>([]);
+  /** Map<teamId, MemberRow[]> */
+  const [teamMembers, setTeamMembers] = useState<Map<string, MemberRow[]>>(new Map());
+  /** Map<roleId, MemberRow[]> */
+  const [roleMembers, setRoleMembers] = useState<Map<string, MemberRow[]>>(new Map());
+  const [loading, setLoading] = useState(true);
   const [pickerSubject, setPickerSubject] = useState<StructureNode | null>(null);
+  const [reloadTick, setReloadTick] = useState(0);
+
+  // ---------- 載入：departments + teams + roles + 衛星表所有 active assignments ----------
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      try {
+        const [depRes, teamRes, roleRes] = await Promise.all([
+          listDepartments({ pageSize: 100, isActive: true }),
+          listTeams({ pageSize: 200, isActive: true }),
+          listRoles({ pageSize: 200, isActive: true }),
+        ]);
+        if (cancelled) return;
+        setDepartments(depRes.items);
+        setTeams(teamRes.items);
+        setRoles(roleRes.items);
+
+        // 為每個 team / role 並行 fetch 成員（衛星 active=true）
+        const teamMap = new Map<string, MemberRow[]>();
+        const roleMap = new Map<string, MemberRow[]>();
+        await Promise.all([
+          ...teamRes.items.map(async (t) => {
+            const r = await listUserTeams({ teamId: t.id, isActive: true, pageSize: 100 }).catch(() => null);
+            if (!r) return;
+            teamMap.set(
+              t.id,
+              r.items.map((ut: UserTeamDto) => ({
+                assignmentId: ut.id,
+                userId: ut.userId,
+                userAccount: ut.userAccount,
+                userDisplayName: ut.userDisplayName,
+              })),
+            );
+          }),
+          ...roleRes.items.map(async (r0) => {
+            const r = await listUserRoles({ roleId: r0.id, isActive: true, pageSize: 100 }).catch(() => null);
+            if (!r) return;
+            roleMap.set(
+              r0.id,
+              r.items.map((ur: UserRoleDto) => ({
+                assignmentId: ur.id,
+                userId: ur.userId,
+                userAccount: ur.userAccount,
+                userDisplayName: ur.userDisplayName,
+              })),
+            );
+          }),
+        ]);
+        if (cancelled) return;
+        setTeamMembers(teamMap);
+        setRoleMembers(roleMap);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [reloadTick]);
+
+  const triggerReload = useCallback(() => setReloadTick((t) => t + 1), []);
 
   // ---------- 樹結構 ----------
   const treeRoots = useCallback(
     (): StructureNode[] =>
-      DEPARTMENTS.map((d) => ({
+      departments.map((d) => ({
         id: `dept:${d.id}`,
         type: 'department',
         label: d.name,
         deptId: d.id,
       })),
-    [],
+    [departments],
   );
 
-  const treeChildren = useCallback((n: StructureNode): StructureNode[] => {
-    if (n.type === 'department') {
-      return [
-        { id: `folder:${n.deptId!}:teams`, type: 'team-folder', label: '組別', deptId: n.deptId },
-        { id: `folder:${n.deptId!}:roles`, type: 'role-folder', label: '職務', deptId: n.deptId },
-      ];
-    }
-    if (n.type === 'team-folder') {
-      return TEAMS.filter((t) => t.deptId === n.deptId).map((t) => ({
-        id: `team:${t.id}`,
-        type: 'team',
-        label: t.name,
-        deptId: t.deptId,
-        teamId: t.id,
-      }));
-    }
-    if (n.type === 'role-folder') {
-      return ROLES.filter((r) => r.deptId === n.deptId).map((r) => ({
-        id: `role:${r.id}`,
-        type: 'role',
-        label: r.name,
-        deptId: r.deptId,
-        roleId: r.id,
-      }));
-    }
-    return [];
-  }, []);
-
-  const membersOf = useCallback(
-    (n: StructureNode): EmployeeMock[] => {
-      if (n.type === 'team') return employees.filter((e) => e.teamIds.includes(n.teamId!));
-      if (n.type === 'role') return employees.filter((e) => e.roleIds.includes(n.roleId!));
+  const treeChildren = useCallback(
+    (n: StructureNode): StructureNode[] => {
+      if (n.type === 'department') {
+        return [
+          { id: `folder:${n.deptId!}:teams`, type: 'team-folder', label: '組別', deptId: n.deptId },
+          { id: `folder:${n.deptId!}:roles`, type: 'role-folder', label: '職務', deptId: n.deptId },
+        ];
+      }
+      if (n.type === 'team-folder') {
+        return teams
+          .filter((t) => t.departmentId === n.deptId)
+          .map((t) => ({
+            id: `team:${t.id}`,
+            type: 'team',
+            label: t.name,
+            deptId: t.departmentId,
+            teamId: t.id,
+          }));
+      }
+      if (n.type === 'role-folder') {
+        return roles
+          .filter((r) => r.departmentId === n.deptId)
+          .map((r) => ({
+            id: `role:${r.id}`,
+            type: 'role',
+            label: r.name,
+            deptId: r.departmentId ?? undefined,
+            roleId: r.id,
+          }));
+      }
       return [];
     },
-    [employees],
+    [teams, roles],
+  );
+
+  const membersOf = useCallback(
+    (n: StructureNode): MemberRow[] => {
+      if (n.type === 'team') return teamMembers.get(n.teamId!) ?? [];
+      if (n.type === 'role') return roleMembers.get(n.roleId!) ?? [];
+      return [];
+    },
+    [teamMembers, roleMembers],
   );
 
   // ---------- config ----------
-  const config = useMemo<MasterBatchConfig<StructureNode, EmployeeMock>>(
+  const config = useMemo<MasterBatchConfig<StructureNode, MemberRow>>(
     () => ({
       title: '組織架構圖',
       category: '組織架構',
@@ -114,7 +205,7 @@ export function OrgStructurePage() {
       treeChildren,
       isSelectable: (n) => n.type === 'team' || n.type === 'role',
       defaultExpandedIds: () =>
-        DEPARTMENTS.flatMap((d) => [
+        departments.flatMap((d) => [
           `dept:${d.id}`,
           `folder:${d.id}:teams`,
           `folder:${d.id}:roles`,
@@ -128,23 +219,27 @@ export function OrgStructurePage() {
 
       rightMode: 'list',
       members: membersOf,
-      memberId: (e) => e.id,
-      renderMember: (e) => <EmployeeRow employee={e} />,
+      memberId: (m) => m.userId,
+      renderMember: (m) => <EmployeeRowView member={m} />,
 
       onAdd: (n) => {
         if (n.type === 'team' || n.type === 'role') setPickerSubject(n);
       },
-      onRemoveMember: (n, userId, ctx) => {
-        const removed = employees.find((e) => e.id === userId);
-        setEmployees((prev) =>
-          prev.map((e) => {
-            if (e.id !== userId) return e;
-            if (n.type === 'team') return { ...e, teamIds: e.teamIds.filter((t) => t !== n.teamId) };
-            if (n.type === 'role') return { ...e, roleIds: e.roleIds.filter((r) => r !== n.roleId) };
-            return e;
-          }),
-        );
-        ctx.showToast(`已將 ${removed?.name ?? '員工'} 移出「${n.label}」`, 'success');
+      onRemoveMember: async (n, userId, ctx) => {
+        const member = membersOf(n).find((m) => m.userId === userId);
+        if (!member) return;
+        try {
+          if (n.type === 'team') await revokeUserTeam(member.assignmentId);
+          else if (n.type === 'role') await revokeUserRole(member.assignmentId);
+          ctx.showToast(
+            `已將 ${member.userDisplayName ?? member.userAccount ?? '員工'} 移出「${n.label}」`,
+            'success',
+          );
+          triggerReload();
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : String(e);
+          ctx.showToast(`移除失敗：${msg}`, 'danger');
+        }
       },
       emptyText: (n) => {
         if (n.type === 'team')
@@ -160,59 +255,59 @@ export function OrgStructurePage() {
         return { title: '請選一個組別或職務', desc: '展開部門節點選擇組別或職務分支。' };
       },
     }),
-    [employees, membersOf, treeChildren, treeRoots],
+    [departments, membersOf, treeChildren, treeRoots, triggerReload],
   );
 
-  // ---------- picker：client array 包 fake search ----------
+  // ---------- picker：listUsers async search、排除已指派的 ----------
   const pickerSearch = useCallback(
-    async (q: string): Promise<PagedResult<EmployeeMock>> => {
+    async (q: string): Promise<PagedResult<UserDto>> => {
       if (!pickerSubject) return { items: [], page: 1, pageSize: 0, total: 0 };
-      const qq = q.trim().toLowerCase();
-      const alreadyIds = new Set(membersOf(pickerSubject).map((e) => e.id));
-      const items = employees.filter((e) => {
-        if (alreadyIds.has(e.id)) return false;
-        if (!qq) return true;
-        return e.name.includes(q) || e.id.toLowerCase().includes(qq);
-      });
+      const existingUserIds = new Set(membersOf(pickerSubject).map((m) => m.userId));
+      const res = await listUsers({ q: q.trim() || undefined, pageSize: 50, isActive: true });
+      const items = res.items.filter((u) => !existingUserIds.has(u.id));
       return { items, page: 1, pageSize: items.length, total: items.length };
     },
-    [employees, membersOf, pickerSubject],
+    [pickerSubject, membersOf],
   );
 
   const handlePickerConfirm = useCallback(
-    async (selected: EmployeeMock[]) => {
+    async (selected: UserDto[]) => {
       if (!pickerSubject) return;
       const subj = pickerSubject;
-      setEmployees((prev) =>
-        prev.map((e) => {
-          const isAdded = selected.some((s) => s.id === e.id);
-          if (!isAdded) return e;
+      try {
+        for (const u of selected) {
           if (subj.type === 'team') {
-            if (e.teamIds.includes(subj.teamId!)) return e;
-            return { ...e, teamIds: [...e.teamIds, subj.teamId!] };
+            await assignUserTeam({ userId: u.id, teamId: subj.teamId! });
+          } else if (subj.type === 'role') {
+            await assignUserRole({ userId: u.id, roleId: subj.roleId! });
           }
-          if (subj.type === 'role') {
-            if (e.roleIds.includes(subj.roleId!)) return e;
-            return { ...e, roleIds: [...e.roleIds, subj.roleId!] };
-          }
-          return e;
-        }),
-      );
+        }
+        triggerReload();
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        alert(`指派失敗：${msg}`);
+      }
     },
-    [pickerSubject],
+    [pickerSubject, triggerReload],
   );
 
-  const pickerTitle = pickerSubject
-    ? `指派員工到「${pickerSubject.label}」`
-    : '指派員工';
+  const pickerTitle = pickerSubject ? `指派員工到「${pickerSubject.label}」` : '指派員工';
   const pickerSubtitle =
     pickerSubject?.type === 'team' ? 'Assign Team Members' : 'Assign Role Members';
+
+  if (loading) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center text-sm text-muted-foreground">
+        載入中…
+      </div>
+    );
+  }
 
   return (
     <>
       <MasterBatchShell config={config} />
 
-      <EntityPickerDialog<EmployeeMock>
+      <EntityPickerDialog<UserDto>
         open={pickerSubject !== null}
         onClose={() => setPickerSubject(null)}
         title={pickerTitle}
@@ -220,9 +315,9 @@ export function OrgStructurePage() {
         icon={Users2}
         searchPlaceholder="搜尋姓名或員工編號…"
         search={pickerSearch}
-        getId={(e) => e.id}
-        getLabel={(e) => `${e.id} · ${e.name}`}
-        getDescription={(e) => `部門：${departmentName(e.deptId)}`}
+        getId={(u) => u.id}
+        getLabel={(u) => `${u.username} · ${u.displayName}`}
+        getDescription={(u) => u.email ?? u.phone ?? ''}
         onConfirm={handlePickerConfirm}
         confirmLabel="指派"
       />
@@ -231,34 +326,26 @@ export function OrgStructurePage() {
 }
 
 /* ============ 員工列渲染 ============ */
-function EmployeeRow({ employee }: { employee: EmployeeMock }) {
-  const teamLabels = TEAMS.filter((t) => employee.teamIds.includes(t.id))
-    .map((t) => t.name)
-    .join('、');
-  const roleLabels = ROLES.filter((r) => employee.roleIds.includes(r.id))
-    .map((r) => r.name)
-    .join('、');
+function EmployeeRowView({ member }: { member: MemberRow }) {
+  const display = member.userDisplayName ?? member.userAccount ?? member.userId;
   return (
     <div className="flex items-center gap-3">
       <span className="grid size-9 flex-none place-items-center rounded-full bg-[#E8A020]/18 text-sm font-semibold text-[#E8A020]">
-        {employee.name.slice(0, 1)}
+        {display.slice(0, 1)}
       </span>
       <div className="min-w-0 flex-1">
-        <div className="truncate text-sm text-foreground">{employee.name}</div>
+        <div className="truncate text-sm text-foreground">{display}</div>
         <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
-          <span className="font-mono text-foreground/85">{employee.id}</span>
-          <span className="text-muted-foreground/70">·</span>
+          {member.userAccount ? (
+            <span className="font-mono text-foreground/85">{member.userAccount}</span>
+          ) : null}
+          <span className="inline-flex items-center gap-1">
+            <Briefcase className="size-3" />
+            員工
+          </span>
           <span className="inline-flex items-center gap-1">
             <Building2 className="size-3" />
-            {departmentName(employee.deptId)}
           </span>
-          {roleLabels ? (
-            <span className="inline-flex items-center gap-1">
-              <Briefcase className="size-3" />
-              {roleLabels}
-            </span>
-          ) : null}
-          {teamLabels ? <span className="text-muted-foreground/70">組：{teamLabels}</span> : null}
         </div>
       </div>
     </div>

@@ -17,6 +17,7 @@ export type UserTeamDto = {
   assignedBy: string | null;
   revokedAt: string | null;
   userDisplayName: string | null;
+  userAccount: string | null;
   teamCode: string | null;
   teamName: string | null;
   /** team 所屬部門（後端 join 帶出、給前端「主組決定部門」UX 用） */

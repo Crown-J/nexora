@@ -54,6 +54,7 @@ type UserRoleDtoOut = {
   assignedByName: string | null;
   revokedAt: string | null;
   userDisplayName: string | null;
+  userAccount: string | null;
   roleCode: string | null;
   roleName: string | null;
 };
@@ -82,6 +83,7 @@ export class UserRoleService {
       assignedByName,
       revokedAt: row.revokedAt ? row.revokedAt.toISOString() : null,
       userDisplayName: row.user?.userName ?? row.user?.userAccount ?? null,
+      userAccount: row.user?.userAccount ?? null,
       roleCode: row.role?.code ?? null,
       roleName: row.role?.name ?? null,
     };

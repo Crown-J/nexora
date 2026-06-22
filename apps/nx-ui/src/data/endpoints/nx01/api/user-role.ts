@@ -15,6 +15,7 @@ export type UserRoleDto = {
   assignedByName: string | null;
   revokedAt: string | null;
   userDisplayName: string | null;
+  userAccount: string | null;
   roleCode: string | null;
   roleName: string | null;
 };

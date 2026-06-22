@@ -65,6 +65,7 @@ export type UserTeamDtoOut = {
   assignedBy: string | null;
   revokedAt: string | null;
   userDisplayName: string | null;
+  userAccount: string | null;
   teamCode: string | null;
   teamName: string | null;
   departmentId: string | null;
@@ -88,6 +89,7 @@ export class UserTeamService {
       assignedBy: row.assignedBy,
       revokedAt: row.revokedAt ? row.revokedAt.toISOString() : null,
       userDisplayName: row.user?.userName ?? row.user?.userAccount ?? null,
+      userAccount: row.user?.userAccount ?? null,
       teamCode: row.team?.code ?? null,
       teamName: row.team?.name ?? null,
       departmentId: row.team?.departmentId ?? null,
