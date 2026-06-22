@@ -676,11 +676,14 @@ model Nx01Location {
   warehouseId                                String                 @map("warehouse_id") @db.VarChar(15)
   /// 所屬據點 ID（FK nx01_site；庫位歸屬之據點，預設同所屬倉庫之據點）；啟用最低需求版本：LITE
   siteId                                     String?                @map("site_id") @db.VarChar(15)
+  /// 所屬倉庫分區 ID（FK nx01_warehouse_zone、執行長 2026-06-22 拍板新增四層架構）
+  /// migration 階段每倉預建一個 "Z00 主區"、現有 location 全部關連到該預設 zone
+  zoneId                                     String?                @map("zone_id") @db.VarChar(15)
   /// 庫位代碼（倉內唯一），例：A-01-01、B2-03；啟用最低需求版本：LITE
   code                                       String                 @db.VarChar(30)
   /// 庫位名稱（選填），例：靠門口、二樓左側；啟用最低需求版本：LITE
   name                                       String?                @db.VarChar(100)
-  /// 區域（選填），例：A區、B區；啟用最低需求版本：LITE
+  /// 區域字串（DEPRECATED：2026-06-22 改用 zoneId FK；保留欄位讓既有讀取相容、新寫入請填 zoneId）；啟用最低需求版本：LITE
   zone                                       String?                @db.VarChar(20)
   /// 架號（選填），例：R01；啟用最低需求版本：LITE
   rack                                       String?                @db.VarChar(20)
@@ -704,6 +707,7 @@ model Nx01Location {
   updatedBy                                  String                 @map("updated_by") @db.VarChar(15)
   tenant                                     Nx99Tenant             @relation("R_Nx01Location_tenantId", fields: [tenantId], references: [id])
   warehouse                                  Nx01Warehouse          @relation("R_Nx01Location_warehouseId", fields: [warehouseId], references: [id])
+  warehouseZone                              Nx01WarehouseZone?     @relation("R_Nx01Location_zoneId", fields: [zoneId], references: [id], onDelete: SetNull)
   rev_Nx02PrItem_locationId                  Nx02PrItem[]           @relation("R_Nx02PrItem_locationId")
   rev_Nx02RrItem_locationId                  Nx02RrItem[]           @relation("R_Nx02RrItem_locationId")
   rev_Nx02TiItem_locationId                  Nx02TiItem[]           @relation("R_Nx02TiItem_locationId")
@@ -1826,6 +1830,7 @@ model Nx01Warehouse {
   rev_Nx06DnStop_warehouseId            Nx06DnStop[]           @relation("R_Nx06DnStop_warehouseId")
   rev_Nx07IpWhitelist_warehouseId       Nx07IpWhitelist[]      @relation("R_Nx07IpWhitelist_warehouseId")
   rev_Nx08InventoryCache_warehouseId    Nx08InventoryCache[]   @relation("R_Nx08InventoryCache_warehouseId")
+  rev_Nx01WarehouseZone_warehouseId     Nx01WarehouseZone[]    @relation("R_Nx01WarehouseZone_warehouseId")
 
   @@unique([tenantId, code])
   @@map("nx01_warehouse")
@@ -6976,6 +6981,7 @@ model Nx99Tenant {
   rev_Nx01UserTeam_tenantId                Nx01UserTeam[]                @relation("R_Nx01UserTeam_tenantId")
   rev_Nx01UserWarehouse_tenantId           Nx01UserWarehouse[]           @relation("R_Nx01UserWarehouse_tenantId")
   rev_Nx01Warehouse_tenantId               Nx01Warehouse[]               @relation("R_Nx01Warehouse_tenantId")
+  rev_Nx01WarehouseZone_tenantId           Nx01WarehouseZone[]           @relation("R_Nx01WarehouseZone_tenantId")
   rev_Nx02Demand_tenantId                  Nx02Demand[]                  @relation("R_Nx02Demand_tenantId")
   rev_Nx02Po_tenantId                      Nx02Po[]                      @relation("R_Nx02Po_tenantId")
   rev_Nx02Pr_tenantId                      Nx02Pr[]                      @relation("R_Nx02Pr_tenantId")
@@ -8590,4 +8596,41 @@ model Nx01UserPref {
 
   @@unique([userId, prefKey])
   @@map("nx01_user_pref")
+}
+
+/// =======================================================
+/// Nx01WarehouseZone — DB table `nx01_warehouse_zone`（2026-06-22 執行長拍板新增）
+/// =======================================================
+/// 倉庫內分區（A 區、B 區、不良品區…）。樹層級：site → warehouse → zone → location。
+/// migration 階段為每倉預建一筆 code='Z00' name='主區'、現有 location.zoneId 全指該預設。
+model Nx01WarehouseZone {
+  /// [NX01]+[WHZN]+[7碼流水號]，EX : NX01WHZN0000001；啟用最低需求版本：LITE
+  id          String          @id @default(dbgenerated("gen_nx01_warehouse_zone_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵）
+  tenantId    String          @map("tenant_id") @db.VarChar(15)
+  /// 所屬倉庫 ID（FK to nx01_warehouse、ON DELETE Restrict）
+  warehouseId String          @map("warehouse_id") @db.VarChar(15)
+  /// 分區代碼（倉內唯一）
+  code        String          @db.VarChar(20)
+  /// 分區名稱
+  name        String          @db.VarChar(50)
+  /// 排序用
+  sortNo      Int             @default(0) @map("sort_no")
+  /// 是否啟用（停用不刪資料）
+  isActive    Boolean         @default(true) @map("is_active")
+  /// 建立時間
+  createdAt   DateTime        @default(now()) @map("created_at")
+  /// 建立人
+  createdBy   String          @map("created_by") @db.VarChar(15)
+  /// 更新時間
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+  /// 更新人
+  updatedBy   String          @map("updated_by") @db.VarChar(15)
+  tenant      Nx99Tenant      @relation("R_Nx01WarehouseZone_tenantId", fields: [tenantId], references: [id])
+  warehouse   Nx01Warehouse   @relation("R_Nx01WarehouseZone_warehouseId", fields: [warehouseId], references: [id])
+  rev_Nx01Location_zoneId Nx01Location[] @relation("R_Nx01Location_zoneId")
+
+  @@unique([tenantId, warehouseId, code])
+  @@index([tenantId, warehouseId], map: "nx01_warehouse_zone_tenant_warehouse_idx")
+  @@map("nx01_warehouse_zone")
 }
