@@ -1,58 +1,68 @@
 // apps/nx-ui/src/features/nx01/product/universal-group/SelectMainPartModal.tsx
 // 新建通用件群組 — 「先選主件 → 自動建群組」modal
+// 2026-06-22 改：接真 API（listParts）+ debounced async search、不再用 mock-data
 //
 // 範式：單選 modal（vs EntityPickerDialog 多選）。執行長拍板：
 //   - 群組標題 = 主件、不另取名
-//   - 主件 unique（新建時可選的 parts 已過濾掉所有現有群組的主件）
-//
-// 設計範式：父層 conditional mount（{open && <Modal />}）、modal 內 state
-// 每次 mount 自然 reset、不需要 reset effect、避免 set-state-in-effect lint warning。
+//   - 主件 unique（excludePartIds 為已是其他群組主件的內碼集合、modal 內過濾）
 //
 // 鍵盤：Alt+F 開搜尋、↑↓ 走、Space/Enter 選、Esc 關
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Box, Check, Search } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Box, Check, Loader2, Search } from 'lucide-react';
 
 import { cn } from '@design/utils/cn';
-
-import type { PartMock } from './mock-data';
+import { listParts, type PartDto } from '@data/endpoints/nx01/api/part';
 
 export type SelectMainPartModalProps = {
   onClose: () => void;
-  availableParts: PartMock[];
-  onConfirm: (part: PartMock) => void;
+  /** 已是其他群組主件的 partId 集合、modal 內過濾 */
+  excludePartIds: Set<string>;
+  onConfirm: (part: PartDto) => void;
 };
 
 export function SelectMainPartModal({
   onClose,
-  availableParts,
+  excludePartIds,
   onConfirm,
 }: SelectMainPartModalProps) {
   const [keyword, setKeyword] = useState('');
-  const [selectedCode, setSelectedCode] = useState<string | null>(null);
+  const [items, setItems] = useState<PartDto[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [focusedIdx, setFocusedIdx] = useState(0);
   const [searchOpen, setSearchOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const filtered = useMemo(() => {
-    const q = keyword.trim().toLowerCase();
-    if (!q) return availableParts;
-    return availableParts.filter(
-      (p) => p.code.toLowerCase().includes(q) || p.name.includes(keyword),
-    );
-  }, [availableParts, keyword]);
-
-  const handleKeywordChange = useCallback((value: string) => {
-    setKeyword(value);
-    setFocusedIdx(0); // 在 onChange 重置、避免 useEffect 內 setState
-  }, []);
+  // debounced fetch
+  useEffect(() => {
+    let cancelled = false;
+    const t = setTimeout(async () => {
+      setLoading(true);
+      try {
+        const res = await listParts({ q: keyword.trim() || undefined, pageSize: 50, isActive: true });
+        if (cancelled) return;
+        const filtered = res.items.filter((p) => !excludePartIds.has(p.id));
+        setItems(filtered);
+        setFocusedIdx(0);
+      } catch {
+        if (!cancelled) setItems([]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }, 250);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [keyword, excludePartIds]);
 
   const handleSubmit = useCallback(() => {
-    if (!selectedCode) return;
-    const part = availableParts.find((p) => p.code === selectedCode);
+    if (!selectedId) return;
+    const part = items.find((p) => p.id === selectedId);
     if (part) onConfirm(part);
-  }, [availableParts, onConfirm, selectedCode]);
+  }, [items, onConfirm, selectedId]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -70,7 +80,6 @@ export function SelectMainPartModal({
         if (searchOpen) {
           setSearchOpen(false);
           setKeyword('');
-          setFocusedIdx(0);
           (document.activeElement as HTMLElement | null)?.blur();
         } else {
           onClose();
@@ -78,28 +87,28 @@ export function SelectMainPartModal({
       } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         e.preventDefault();
         e.stopPropagation();
-        const n = filtered.length;
+        const n = items.length;
         if (!n) return;
         setFocusedIdx((i) => (e.key === 'ArrowDown' ? Math.min(n - 1, i + 1) : Math.max(0, i - 1)));
       } else if (e.key === ' ' || e.key === 'Spacebar') {
         if (tag === 'input') return;
         e.preventDefault();
         e.stopPropagation();
-        const it = filtered[focusedIdx];
-        if (it) setSelectedCode(it.code);
+        const it = items[focusedIdx];
+        if (it) setSelectedId(it.id);
       } else if (e.key === 'Enter') {
         e.preventDefault();
         e.stopPropagation();
-        if (selectedCode) handleSubmit();
+        if (selectedId) handleSubmit();
         else {
-          const it = filtered[focusedIdx];
-          if (it) setSelectedCode(it.code);
+          const it = items[focusedIdx];
+          if (it) setSelectedId(it.id);
         }
       }
     }
     window.addEventListener('keydown', onKey, true);
     return () => window.removeEventListener('keydown', onKey, true);
-  }, [searchOpen, filtered, focusedIdx, selectedCode, handleSubmit, onClose]);
+  }, [searchOpen, items, focusedIdx, selectedId, handleSubmit, onClose]);
 
   return (
     <div
@@ -134,37 +143,41 @@ export function SelectMainPartModal({
               ref={searchInputRef}
               type="text"
               value={keyword}
-              onChange={(e) => handleKeywordChange(e.target.value)}
+              onChange={(e) => setKeyword(e.target.value)}
               placeholder="搜尋料號或品名…"
               className="flex-1 bg-transparent text-sm text-[#E8E8EB] outline-none placeholder:text-[#5A5A60]"
             />
+            {loading ? <Loader2 className="size-3.5 animate-spin text-[#888892]" /> : null}
             <span className="hidden text-[10px] tracking-wider text-[#5A5A60] sm:inline">ESC 關閉</span>
           </div>
         ) : (
           <div className="flex items-center gap-2 border-b border-[#2A2A30] px-4 py-1.5 text-[11px] text-[#5A5A60]">
             <Search className="size-3.5" />
             ↑↓ 選 · 空白 標記 · Alt+F 搜尋 · Enter 建立
+            {loading ? <Loader2 className="ml-auto size-3 animate-spin" /> : null}
           </div>
         )}
 
         {/* List */}
         <div className="min-h-0 flex-1 overflow-auto">
-          {filtered.length === 0 ? (
+          {items.length === 0 ? (
             <div className="px-5 py-8 text-center text-xs text-[#5A5A60]">
-              {keyword
+              {loading
+                ? '載入中…'
+                : keyword
                 ? `找不到符合「${keyword}」的零件`
-                : '所有零件都已是其他群組的主件、請先到群組裡換主件'}
+                : '輸入料號或品名搜尋（Alt+F）'}
             </div>
           ) : (
             <ul className="divide-y divide-[#1A1A1F]">
-              {filtered.map((p, index) => {
-                const isSelected = selectedCode === p.code;
+              {items.map((p, index) => {
+                const isSelected = selectedId === p.id;
                 const isFocused = index === focusedIdx;
                 return (
-                  <li key={p.code}>
+                  <li key={p.id}>
                     <button
                       type="button"
-                      onClick={() => setSelectedCode(p.code)}
+                      onClick={() => setSelectedId(p.id)}
                       onMouseEnter={() => setFocusedIdx(index)}
                       className={cn(
                         'flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors',
@@ -192,7 +205,7 @@ export function SelectMainPartModal({
                           {p.code} · {p.name}
                         </span>
                         <span className="truncate text-[11px] text-[#5A5A60]">
-                          {p.brand} · {p.origin}
+                          {p.partBrandCode ?? '—'} · {p.countryCode ?? '—'}
                         </span>
                       </span>
                     </button>
@@ -206,7 +219,7 @@ export function SelectMainPartModal({
         {/* Actions */}
         <div className="flex items-center justify-between border-t border-[#2A2A30] bg-[#0A0A0C]/40 px-5 py-3">
           <span className="text-[10px] text-[#5A5A60]">
-            ESC 取消 · 已選 <span className="font-mono text-[#E8A020]">{selectedCode ? 1 : 0}</span> 顆
+            ESC 取消 · 已選 <span className="font-mono text-[#E8A020]">{selectedId ? 1 : 0}</span> 顆
           </span>
           <div className="flex gap-2">
             <button
@@ -219,10 +232,10 @@ export function SelectMainPartModal({
             <button
               type="button"
               onClick={handleSubmit}
-              disabled={!selectedCode}
+              disabled={!selectedId}
               className={cn(
                 'inline-flex h-8 items-center gap-1.5 rounded-md border border-[#E8A020]/40 bg-[#E8A020]/15 px-3 text-xs font-medium text-[#E8A020] transition-colors',
-                !selectedCode ? 'cursor-not-allowed opacity-50' : 'hover:bg-[#E8A020]/25',
+                !selectedId ? 'cursor-not-allowed opacity-50' : 'hover:bg-[#E8A020]/25',
               )}
             >
               建立群組
