@@ -1,0 +1,456 @@
+/* NEXORA GRID — 進貨模組樣式（NX02）。沿用外殼 tokens 與核心主檔 .nx-* 類別，
+   只新增進貨特有：兩層流程圖 / 單據表頭明細 / 並排比價 / 價格鏈 / 庫存燈號 / 單據狀態徽章。 */
+
+/* ---------- 滿版填高（鏡像 #nx-master-host）---------- */
+#view-purchase{display:flex;flex-direction:column}
+#nx-purchase-host{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+#nx-purchase-host .nx-page{flex:1;min-height:0;padding-bottom:0;overflow:auto}
+#nx-purchase-host .nx-page::-webkit-scrollbar{width:11px}
+#nx-purchase-host .nx-page::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--fg) 16%,transparent);border:3px solid transparent;background-clip:padding-box;border-radius:99px}
+#nx-purchase-host .nx-page{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--gold) 42%,transparent) transparent}
+
+/* 進貨頁首：作業名 + 型態標籤 */
+.pur-head{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap}
+.pur-head .pur-title{font-size:22px;font-weight:700;letter-spacing:-.01em;color:var(--fg)}
+.pur-head .pur-kind{font-size:11px;font-weight:600;color:var(--gold);border:1px solid color-mix(in srgb,var(--gold) 38%,transparent);border-radius:5px;padding:2px 9px}
+.pur-head .pur-lite{font-size:10.5px;font-weight:600;font-family:var(--mono);letter-spacing:.1em;color:var(--muted);border:1px solid var(--panel-bd);border-radius:5px;padding:2px 8px}
+.pur-head .pur-desc{flex:1 1 100%;font-size:13px;color:var(--muted);line-height:1.6;max-width:880px;text-wrap:pretty;margin-top:2px}
+
+/* ====================== 兩層流程圖 ====================== */
+.pur-flow{background:linear-gradient(180deg,color-mix(in oklch,#10161a 82%,transparent),color-mix(in oklch,#0c1115 82%,transparent));
+  border:1px solid var(--panel-bd);border-radius:14px;padding:18px 22px 16px}
+html.light .pur-flow{background:linear-gradient(180deg,#fff,#f7f9fb)}
+.pf-cap{display:flex;align-items:center;gap:9px;font-size:11.5px;color:var(--muted);margin-bottom:14px}
+.pf-cap svg{width:15px;height:15px;color:var(--gold)}
+.pf-cap b{color:var(--fg);font-weight:600}
+.pf-cap .pf-hint{margin-left:auto;color:var(--faint);font-size:11px}
+.pf-track{display:flex;align-items:flex-start;gap:0;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.pf-track::-webkit-scrollbar{display:none}
+.pf-stage{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:96px;flex:none;cursor:pointer;
+  background:transparent;border:none;font-family:var(--sans);padding:0;position:relative}
+.pf-dot{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;flex:none;
+  border:2px solid var(--panel-bd);background:color-mix(in oklch,#0b1013 50%,transparent);color:var(--muted);
+  font-family:var(--mono);font-size:14px;font-weight:600;transition:.18s}
+html.light .pf-dot{background:#eef1f5}
+.pf-dot svg{width:18px;height:18px}
+.pf-stage.done .pf-dot{border-color:color-mix(in srgb,#5fd08a 55%,transparent);background:color-mix(in srgb,#5fd08a 16%,transparent);color:#5fd08a}
+.pf-stage.cur .pf-dot{border-color:var(--gold);background:radial-gradient(circle at 50% 35%,color-mix(in srgb,var(--gold) 38%,transparent),color-mix(in srgb,var(--gold) 12%,transparent));
+  color:var(--gold-bright);box-shadow:0 0 0 5px color-mix(in srgb,var(--gold) 18%,transparent),0 6px 22px -8px color-mix(in srgb,var(--gold) 60%,transparent)}
+.pf-stage.cur .pf-nm{color:var(--gold-bright);font-weight:700}
+.pf-nm{font-size:12.5px;font-weight:600;color:var(--fg);text-align:center;line-height:1.25;white-space:nowrap}
+.pf-sub{font-size:10px;color:var(--faint);text-align:center;line-height:1.2;margin-top:-3px;max-width:104px}
+.pf-stage.expandable .pf-nm::after{content:"";display:inline-block;width:0;height:0;margin-left:5px;vertical-align:middle;
+  border-left:3.5px solid transparent;border-right:3.5px solid transparent;border-top:4px solid currentColor;opacity:.5;transition:.18s}
+.pf-stage.open .pf-nm::after{transform:rotate(180deg)}
+.pf-arrow{flex:none;align-self:flex-start;margin-top:18px;color:var(--faint);display:flex;align-items:center}
+.pf-arrow svg{width:22px;height:13px}
+.pf-stage.done+.pf-arrow,.pf-arrow.done{color:color-mix(in srgb,#5fd08a 60%,transparent)}
+.pf-branch{align-self:center;margin:18px 0 0 8px;font-size:10.5px;color:#e8a06b;border:1px dashed color-mix(in srgb,#e8a06b 45%,transparent);
+  border-radius:6px;padding:3px 9px;white-space:nowrap;flex:none}
+/* 展開的細狀態 */
+.pf-substates{margin-top:14px;border-top:1px dashed var(--line-soft);padding-top:14px;display:none}
+.pf-substates.open{display:block}
+.pf-sub-h{font-size:11px;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:7px}
+.pf-sub-h b{color:var(--gold-bright)}
+.pf-sub-track{display:flex;align-items:center;gap:0;flex-wrap:wrap}
+.pf-mini{display:flex;align-items:center;gap:7px;padding:5px 11px;border-radius:99px;border:1px solid var(--panel-bd);
+  background:color-mix(in oklch,#0b1013 45%,transparent);font-size:11.5px;color:var(--muted);white-space:nowrap}
+html.light .pf-mini{background:#f2f4f8}
+.pf-mini i{width:8px;height:8px;border-radius:50%;background:var(--faint);flex:none}
+.pf-mini.done{color:#5fd08a;border-color:color-mix(in srgb,#5fd08a 35%,transparent)}
+.pf-mini.done i{background:#5fd08a}
+.pf-mini.cur{color:var(--gold-bright);border-color:var(--gold);background:color-mix(in srgb,var(--gold) 14%,transparent)}
+.pf-mini.cur i{background:var(--gold);box-shadow:0 0 0 3px color-mix(in srgb,var(--gold) 22%,transparent)}
+.pf-mini-arr{color:var(--faint);margin:0 3px;font-size:11px}
+
+/* ====================== 單據狀態徽章 ====================== */
+.pur-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;border-radius:99px;padding:2px 9px;white-space:nowrap;border:1px solid transparent}
+.pur-badge::before{content:"";width:6px;height:6px;border-radius:50%;flex:none}
+.pur-badge.g{color:#5fd08a;background:color-mix(in srgb,#5fd08a 13%,transparent)}.pur-badge.g::before{background:#5fd08a}
+.pur-badge.gold{color:var(--gold-bright);background:color-mix(in srgb,var(--gold) 15%,transparent)}.pur-badge.gold::before{background:var(--gold)}
+.pur-badge.b{color:#6fb4f0;background:color-mix(in srgb,#378add 16%,transparent)}.pur-badge.b::before{background:#6fb4f0}
+.pur-badge.m{color:var(--muted);background:color-mix(in srgb,var(--muted) 14%,transparent)}.pur-badge.m::before{background:var(--muted)}
+.pur-badge.o{color:#e8a06b;background:color-mix(in srgb,#e8a020 16%,transparent)}.pur-badge.o::before{background:#e8a06b}
+.pur-badge.r{color:#e8806b;background:color-mix(in srgb,#e24b4a 15%,transparent)}.pur-badge.r::before{background:#e8806b}
+
+/* 進口/國內 chip */
+.pur-cat{font-size:10.5px;font-weight:600;font-family:var(--mono);letter-spacing:.05em;border-radius:5px;padding:1px 7px;border:1px solid var(--panel-bd);color:var(--muted)}
+.pur-cat.imp{color:#6fb4f0;border-color:color-mix(in srgb,#378add 40%,transparent);background:color-mix(in srgb,#378add 10%,transparent)}
+.pur-cat.dom{color:#5fd08a;border-color:color-mix(in srgb,#5fd08a 38%,transparent);background:color-mix(in srgb,#5fd08a 10%,transparent)}
+
+/* ====================== 庫存燈號 ====================== */
+.pur-stk{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:12.5px;font-variant-numeric:tabular-nums}
+.pur-stk i{width:8px;height:8px;border-radius:50%;flex:none}
+.pur-stk.neg{color:#e8806b}.pur-stk.neg i{background:#e24b4a;box-shadow:0 0 6px color-mix(in srgb,#e24b4a 60%,transparent)}
+.pur-stk.zero{color:#e8c45a}.pur-stk.zero i{background:#e8a020}
+.pur-stk.low{color:#e8d98a}.pur-stk.low i{background:#d9c95a}
+.pur-stk.ok{color:#5fd08a}.pur-stk.ok i{background:#5fd08a}
+
+/* ====================== 工具列：作業列表 sub-toolbar ====================== */
+.pur-listbar{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--line-soft);flex-wrap:wrap}
+/* 狀態分頁列（流程圖）— 常駐於工具列上方 */
+.pur-tophdr{display:flex;align-items:center;gap:10px 22px;flex-wrap:wrap}
+/* 明細頁：工具列與單據卡合併成同一張單 */
+.pur-detail-head > .nx-frame:last-child{border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom:none}
+.pur-detail-head + .nx-frame.nx-detail{margin-top:-14px;border-top-left-radius:0;border-top-right-radius:0}
+.pur-detail-head + .nx-frame.nx-detail .nx-detail-bar{border-top:1px dashed var(--line-soft)}
+/* 明細頁頂部單據標題（單號移到上方，與切換列同列）*/
+.pur-dtitle{display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex:1;min-width:240px}
+.pur-dtitle .dt-code{font-family:var(--mono);font-size:17px;font-weight:700;letter-spacing:.02em;color:var(--gold-bright)}
+.pur-dtitle b{font-size:14px;font-weight:600;color:var(--fg)}
+.pur-dtitle .nx-statedot{flex:none}
+.pur-doc-grid.pur-meta{margin-top:-4px;padding-top:13px;border-top:1px dashed var(--line-soft)}
+.pur-tophdr .nx-pageswitch{align-self:center}
+.pur-tabbar{display:flex;align-items:stretch;gap:2px;padding:0 12px;border-bottom:1px solid var(--line-soft);flex-wrap:wrap;background:color-mix(in oklch,#0b1013 30%,transparent)}
+html.light .pur-tabbar{background:#f6f8fa}
+.pur-tabbar.inline{flex:1;min-width:280px;border-bottom:none;background:transparent;padding:0}
+/* 流程圖樣式 inline 狀態列 — 超出範圍橫向捲動，不換行 */
+.pur-tabbar.inline.flow{align-items:center;gap:2px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--gold) 42%,transparent) transparent}
+.pur-tabbar.inline.flow::-webkit-scrollbar{height:7px}
+.pur-tabbar.inline.flow::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--gold) 40%,transparent);border-radius:99px}
+.pur-tabbar.inline.flow .pur-sttab,.pur-tabbar.inline.flow .pur-flowarr,.pur-tabbar.inline.flow .pur-flowdiv{flex:none}
+.pur-flowdiv{width:1px;height:24px;background:var(--line-soft);margin:0 10px}
+.pur-flowarr{display:inline-flex;align-items:center;color:var(--faint);flex:none}
+.pur-flowarr svg{width:18px;height:12px}
+.pur-sttab.node{flex-direction:row;gap:8px;height:44px;border-radius:9px;border-bottom:none;margin-bottom:0;padding:0 12px 0 9px}
+.pur-sttab.node .pf-n{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;flex:none;border:1.5px solid var(--panel-bd);background:color-mix(in oklch,#0b1013 50%,transparent);color:var(--muted);font-family:var(--mono);font-size:11px;font-weight:700;transition:.14s}
+html.light .pur-sttab.node .pf-n{background:#eef1f5}
+.pur-sttab.node:hover{background:var(--hover);color:var(--fg)}
+.pur-sttab.node.on{background:color-mix(in srgb,var(--gold) 13%,transparent);color:var(--gold-bright)}
+.pur-sttab.node.on .pf-n{border-color:var(--gold);background:radial-gradient(circle at 50% 35%,color-mix(in srgb,var(--gold) 40%,transparent),color-mix(in srgb,var(--gold) 12%,transparent));color:var(--gold-bright);box-shadow:0 0 0 4px color-mix(in srgb,var(--gold) 16%,transparent)}
+.pur-sttab.all{height:44px;border-bottom:none;margin-bottom:0;border-radius:9px}
+.pur-sttab.all.on{background:color-mix(in srgb,var(--gold) 13%,transparent)}
+.pur-sttab{position:relative;display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 14px;border:none;background:transparent;color:var(--muted);font-size:13px;font-weight:600;font-family:var(--sans);cursor:pointer;transition:.13s;border-bottom:2px solid transparent;margin-bottom:-1px}
+.pur-tabbar.inline .pur-sttab{height:44px;margin-bottom:0;border-bottom:none;border-radius:9px}
+.pur-tabbar.inline .pur-sttab.on{background:color-mix(in srgb,var(--gold) 13%,transparent)}
+.pur-sttab:hover{color:var(--fg)}
+.pur-tabbar.inline .pur-sttab:hover{background:var(--hover);color:var(--fg)}
+.pur-sttab .c{font-family:var(--mono);font-size:10.5px;font-weight:700;color:var(--faint);background:color-mix(in srgb,var(--muted) 16%,transparent);border-radius:99px;padding:1px 7px;min-width:18px;text-align:center}
+.pur-sttab.on{color:var(--gold-bright);border-bottom-color:var(--gold)}
+.pur-sttab.on .c{color:var(--gold-bright);background:color-mix(in srgb,var(--gold) 18%,transparent)}
+/* 工具列字母鍵帽（DS ToolbarButton：letter chip + label）*/
+.nx-tbtn .nx-key{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:5px;background:color-mix(in srgb,var(--gold) 20%,transparent);color:var(--gold-bright);font-family:var(--mono);font-size:10.5px;font-weight:700;line-height:1;margin-right:1px}
+.nx-tbtn:hover .nx-key{background:color-mix(in srgb,var(--gold) 32%,transparent)}
+.nx-tbtn.on .nx-key{background:color-mix(in srgb,var(--gold) 40%,transparent);color:var(--gold-bright)}
+.nx-tbtn[disabled] .nx-key{background:color-mix(in srgb,var(--muted) 18%,transparent);color:var(--muted)}
+.pur-listbar .pur-lt{font-size:13px;font-weight:600;color:var(--fg);display:flex;align-items:center;gap:8px}
+.pur-listbar .pur-lt svg{width:16px;height:16px;color:var(--gold)}
+.pur-listbar .sp{flex:1}
+.pur-stagefilter{display:flex;gap:3px;flex-wrap:wrap}
+.pur-sf{font-size:12px;font-weight:600;color:var(--muted);background:transparent;border:1px solid transparent;border-radius:8px;padding:5px 12px;cursor:pointer;font-family:var(--sans);transition:.13s}
+.pur-sf:hover{background:var(--hover);color:var(--fg)}
+.pur-sf.on{background:color-mix(in srgb,var(--gold) 16%,transparent);color:var(--gold-bright);border-color:color-mix(in srgb,var(--gold) 35%,transparent)}
+.pur-sf .c{font-family:var(--mono);font-size:10.5px;opacity:.8;margin-left:5px}
+
+/* 列表內聯動作鈕 */
+.pur-link{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--gold-bright);
+  background:color-mix(in srgb,var(--gold) 11%,transparent);border:1px solid color-mix(in srgb,var(--gold) 32%,transparent);
+  border-radius:7px;padding:4px 10px;cursor:pointer;font-family:var(--sans);white-space:nowrap;transition:.13s}
+.pur-link:hover{background:color-mix(in srgb,var(--gold) 20%,transparent)}
+.pur-link svg{width:13px;height:13px}
+.pur-link.ghost{color:var(--muted);background:transparent;border-color:var(--panel-bd)}
+.pur-link.ghost:hover{background:var(--hover);color:var(--fg)}
+
+/* money */
+.pur-money{font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--fg)}
+.pur-money .cur{color:var(--faint);font-size:11px;margin-right:2px}
+.pur-money.twd2{color:var(--muted);font-size:11.5px}
+
+/* ====================== 單據表頭明細 ====================== */
+.pur-doc{display:flex;flex-direction:column;gap:16px;padding:18px 20px}
+.pur-doc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:13px 22px}
+.pur-fld{display:flex;flex-direction:column;gap:5px}
+.pur-fld .k{font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.pur-fld .k .ro{font-size:9.5px;color:var(--faint);border:1px solid var(--panel-bd);border-radius:4px;padding:0 5px}
+.pur-fld .k .req{color:#e8806b;font-weight:700}
+.pur-fld .v{font-size:14px;color:var(--fg);font-weight:500}
+.pur-fld .v.mono{font-family:var(--mono);color:var(--gold-bright)}
+.pur-fld input,.pur-fld select{height:38px;border-radius:9px;border:1px solid var(--panel-bd);background:color-mix(in oklch,#0b1013 55%,transparent);color:var(--fg);font-size:13.5px;padding:0 12px;font-family:var(--sans);outline:none;width:100%}
+html.light .pur-fld input,html.light .pur-fld select{background:#f6f8fa}
+.pur-fld input:focus,.pur-fld select:focus{border-color:color-mix(in srgb,var(--gold) 55%,transparent)}
+.pur-fld input:disabled,.pur-fld select:disabled{opacity:.62;cursor:not-allowed}
+.pur-sec{font-size:11.5px;font-weight:700;color:var(--gold);letter-spacing:.04em;padding-top:14px;margin-top:2px;border-top:1px dashed var(--line-soft);grid-column:1/-1}
+.pur-imp-flag{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:#6fb4f0;background:color-mix(in srgb,#378add 11%,transparent);border:1px solid color-mix(in srgb,#378add 30%,transparent);border-radius:8px;padding:6px 11px}
+.pur-imp-flag svg{width:14px;height:14px}
+
+/* 明細 line-item 表格 */
+.pur-lines{width:100%;border-collapse:separate;border-spacing:0;font-size:12.5px;border:1px solid var(--line-soft);border-radius:11px;overflow:hidden}
+.pur-lines th{background:linear-gradient(180deg,color-mix(in oklch,#1a222b 80%,transparent),color-mix(in oklch,#141b22 80%,transparent));
+  color:#c8c8d0;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;text-align:left;padding:9px 11px;white-space:nowrap;border-bottom:1px solid var(--panel-bd)}
+html.light .pur-lines th{background:#eef1f5;color:#5a6675}
+.pur-lines th.num,.pur-lines td.num{text-align:right;font-variant-numeric:tabular-nums}
+.pur-lines td{padding:9px 11px;border-bottom:1px solid var(--line-soft);color:var(--fg);vertical-align:middle}
+.pur-lines tbody tr:nth-child(even) td{background:color-mix(in oklch,#fff 2.5%,transparent)}
+html.light .pur-lines tbody tr:nth-child(even) td{background:#fafbfd}
+.pur-lines tbody tr:last-child td{border-bottom:none}
+/* 明細子表預設停第一個品項（選取游標） */
+.pur-lines tbody tr:first-child td{box-shadow:inset 3px 0 0 color-mix(in srgb,var(--gold) 70%,transparent)}
+.pur-lines tbody tr:first-child td:first-child{background:color-mix(in srgb,var(--gold) 7%,transparent)}
+.pur-lines .pn{font-family:var(--mono);font-size:11.5px;color:var(--gold-bright)}
+.pur-lines .pn2{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.pur-lines .nm{font-size:12.5px;color:var(--fg)}
+.pur-lines input{width:90px;height:32px;border-radius:7px;border:1px solid var(--panel-bd);background:color-mix(in oklch,#0b1013 55%,transparent);color:var(--fg);font-size:12.5px;padding:0 9px;outline:none;font-family:var(--mono);text-align:right}
+html.light .pur-lines input{background:#fff}
+.pur-lines input:focus{border-color:color-mix(in srgb,var(--gold) 55%,transparent)}
+.pur-lines select{height:32px;border-radius:7px;border:1px solid var(--panel-bd);background:color-mix(in oklch,#0b1013 55%,transparent);color:var(--fg);font-size:12px;padding:0 8px;outline:none;font-family:var(--sans)}
+html.light .pur-lines select{background:#fff}
+.pur-lines tfoot td{padding:10px 11px;border-top:1px solid var(--panel-bd);font-weight:600;background:color-mix(in oklch,#0b1013 35%,transparent)}
+html.light .pur-lines tfoot td{background:#f6f8fa}
+.pur-lines-wrap{overflow-x:auto}
+.pur-defect-warn{font-size:11px;color:#e8a06b;margin-top:3px}
+
+/* 詳細頁動作列 */
+.pur-detail-foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-top:4px}
+.pur-detail-foot .sp{flex:1}
+.pur-stepnote{font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:7px}
+.pur-stepnote svg{width:14px;height:14px;color:var(--gold)}
+
+/* ====================== 並排比價矩陣 ====================== */
+.pur-compare{overflow-x:auto;border:1px solid var(--line-soft);border-radius:11px}
+.pur-cmp{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5px;min-width:640px}
+.pur-cmp th{background:color-mix(in oklch,#141b22 85%,transparent);color:#c8c8d0;font-size:10.5px;font-weight:700;letter-spacing:.03em;padding:10px 12px;text-align:center;border-bottom:1px solid var(--panel-bd);white-space:nowrap}
+html.light .pur-cmp th{background:#eef1f5;color:#5a6675}
+.pur-cmp th.part{text-align:left;min-width:200px;position:sticky;left:0;z-index:2}
+.pur-cmp td.part{text-align:left;position:sticky;left:0;background:color-mix(in oklch,#10161a 92%,transparent);z-index:1}
+html.light .pur-cmp td.part{background:#fff}
+.pur-cmp td{padding:10px 12px;border-bottom:1px solid var(--line-soft);text-align:center;vertical-align:middle}
+.pur-cmp tbody tr:last-child td{border-bottom:none}
+.pur-cmp .sup-h{display:flex;flex-direction:column;gap:2px;align-items:center}
+.pur-cmp .sup-h b{color:var(--fg);font-size:12px}
+.pur-cmp .sup-h small{color:var(--faint);font-family:var(--mono);font-size:10px}
+.pur-quote{display:inline-flex;flex-direction:column;gap:3px;align-items:center;padding:7px 12px;border-radius:9px;border:1px solid var(--panel-bd);background:color-mix(in oklch,#0b1013 40%,transparent);cursor:pointer;min-width:92px;transition:.14s;font-family:var(--sans)}
+html.light .pur-quote{background:#f6f8fa}
+.pur-quote:hover{border-color:color-mix(in srgb,var(--gold) 50%,transparent);background:color-mix(in srgb,var(--gold) 8%,transparent)}
+.pur-quote .pr{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.pur-quote .twd{font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+.pur-quote .ld{font-size:10px;color:var(--faint)}
+.pur-quote.best{border-color:color-mix(in srgb,#5fd08a 55%,transparent);background:color-mix(in srgb,#5fd08a 9%,transparent)}
+.pur-quote.best .pr{color:#5fd08a}
+.pur-quote.picked{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 14%,transparent);box-shadow:0 0 0 1px var(--gold)}
+.pur-quote.picked .pr{color:var(--gold-bright)}
+.pur-quote .tagrow{display:flex;gap:4px}
+.pur-quote .qtag{font-size:9px;font-weight:700;border-radius:4px;padding:0 5px}
+.pur-quote .qtag.best{color:#5fd08a;background:color-mix(in srgb,#5fd08a 16%,transparent)}
+.pur-quote .qtag.picked{color:var(--gold-bright);background:color-mix(in srgb,var(--gold) 18%,transparent)}
+.pur-cmp .noquote{color:var(--faint);font-size:11px}
+
+/* ====================== 價格鏈面板 ====================== */
+.pur-pricechain{border:1px solid var(--panel-bd);border-radius:13px;overflow:hidden;background:color-mix(in oklch,#10161a 75%,transparent)}
+html.light .pur-pricechain{background:#fff}
+.pc-h{display:flex;align-items:center;gap:9px;padding:12px 16px;border-bottom:1px solid var(--line-soft);font-size:13px;font-weight:600}
+.pc-h svg{width:16px;height:16px;color:var(--gold)}
+.pc-h .pc-auto{margin-left:auto;font-size:11px;font-weight:600;border-radius:99px;padding:3px 11px}
+.pc-h .pc-auto.auto{color:#6fb4f0;background:color-mix(in srgb,#378add 14%,transparent)}
+.pc-h .pc-auto.frozen{color:var(--gold-bright);background:color-mix(in srgb,var(--gold) 16%,transparent)}
+.pc-flow{display:flex;align-items:stretch;gap:0;padding:18px 16px;overflow-x:auto}
+.pc-node{display:flex;flex-direction:column;gap:7px;align-items:center;min-width:150px;flex:none}
+.pc-node .pc-lbl{font-size:11px;color:var(--muted);text-align:center;display:flex;align-items:center;gap:5px}
+.pc-node .pc-lbl .lock{font-size:9px;color:var(--faint)}
+.pc-box{width:100%;border-radius:11px;border:1px solid var(--panel-bd);background:color-mix(in oklch,#0b1013 50%,transparent);padding:11px 12px;display:flex;flex-direction:column;gap:5px;align-items:center}
+html.light .pc-box{background:#f6f8fa}
+.pc-box.cost{border-color:color-mix(in srgb,#e8a06b 38%,transparent)}
+.pc-box.price{border-color:color-mix(in srgb,var(--gold) 45%,transparent);background:color-mix(in srgb,var(--gold) 8%,transparent)}
+.pc-box .big{font-family:var(--mono);font-size:19px;font-weight:700;color:var(--fg);font-variant-numeric:tabular-nums}
+.pc-box.price .big{color:var(--gold-bright)}
+.pc-box .secret{font-size:10px;color:#e8a06b;display:flex;align-items:center;gap:4px}
+.pc-box .secret svg{width:11px;height:11px}
+.pc-box input{width:100%;height:34px;border-radius:8px;border:1px solid var(--panel-bd);background:color-mix(in oklch,#0b1013 60%,transparent);color:var(--fg);font-size:14px;padding:0 10px;outline:none;font-family:var(--mono);text-align:center;font-weight:600}
+html.light .pc-box input{background:#fff}
+.pc-box input:focus{border-color:color-mix(in srgb,var(--gold) 60%,transparent)}
+.pc-box .unit{font-size:10px;color:var(--faint)}
+.pc-arrow{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:0 14px;color:var(--faint);min-width:80px}
+.pc-arrow svg{width:26px;height:14px}
+.pc-arrow .op{font-size:10.5px;color:var(--muted);font-family:var(--mono)}
+.pc-foot{display:flex;align-items:center;gap:12px;padding:11px 16px;border-top:1px solid var(--line-soft);flex-wrap:wrap}
+.pc-foot .note{font-size:11.5px;color:var(--muted);flex:1;line-height:1.5}
+.pc-reset{font-size:12px;font-weight:600;color:var(--muted);background:transparent;border:1px solid var(--panel-bd);border-radius:8px;padding:6px 12px;cursor:pointer;font-family:var(--sans)}
+.pc-reset:hover{background:var(--hover);color:var(--fg)}
+
+/* 成本變動提醒徽章 */
+.pur-alert{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#e8a06b;background:color-mix(in srgb,#e8a020 14%,transparent);border:1px solid color-mix(in srgb,#e8a020 35%,transparent);border-radius:99px;padding:2px 9px;white-space:nowrap}
+.pur-alert svg{width:12px;height:12px}
+.pur-costalert-bar{display:flex;align-items:flex-start;gap:11px;padding:12px 15px;border-radius:11px;background:color-mix(in srgb,#e8a020 9%,transparent);border:1px solid color-mix(in srgb,#e8a020 30%,transparent);border-left:3px solid #e8a020;margin-bottom:14px}
+.pur-costalert-bar svg{width:17px;height:17px;color:#e8a06b;flex:none;margin-top:1px}
+.pur-costalert-bar .t{font-size:12.5px;color:var(--fg);line-height:1.55}
+.pur-costalert-bar b{color:#e8c45a}
+
+/* ====================== 模組管理頁／收件匣 ====================== */
+.pur-mgmt-banner{display:flex;align-items:center;gap:11px;padding:11px 15px;border-radius:11px;background:color-mix(in srgb,#378add 8%,transparent);border:1px solid color-mix(in srgb,#378add 25%,transparent);font-size:12.5px;color:var(--muted);line-height:1.5}
+.pur-mgmt-banner svg{width:17px;height:17px;color:#6fb4f0;flex:none}
+.pur-mgmt-banner b{color:var(--fg)}
+.pur-inbox-btn{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:var(--fg);background:color-mix(in oklch,#10161a 70%,transparent);border:1px solid var(--panel-bd);border-radius:9px;padding:8px 13px;cursor:pointer;font-family:var(--sans);position:relative}
+html.light .pur-inbox-btn{background:#fff}
+.pur-inbox-btn:hover{border-color:color-mix(in srgb,var(--gold) 45%,transparent)}
+.pur-inbox-btn svg{width:16px;height:16px;color:var(--gold)}
+.pur-inbox-btn .badge{min-width:18px;height:18px;border-radius:99px;background:var(--danger);color:#fff;font-size:10px;font-weight:700;font-family:var(--mono);display:grid;place-items:center;padding:0 4px}
+.pur-inbox-list{display:flex;flex-direction:column;gap:9px;margin-top:4px}
+.pur-inbox-card{display:flex;gap:13px;padding:13px 15px;border-radius:12px;border:1px solid var(--panel-bd);background:color-mix(in oklch,#10161a 60%,transparent)}
+html.light .pur-inbox-card{background:#fafbfd}
+.pur-inbox-card .ico{width:36px;height:36px;border-radius:9px;display:grid;place-items:center;flex:none;background:color-mix(in srgb,var(--gold) 13%,transparent);color:var(--gold-bright)}
+.pur-inbox-card .ico svg{width:18px;height:18px}
+.pur-inbox-card .bd{flex:1;min-width:0}
+.pur-inbox-card .r1{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:4px}
+.pur-inbox-card .src{font-size:13px;font-weight:600;color:var(--fg)}
+.pur-inbox-card .kindtag{font-size:10px;font-weight:600;border-radius:5px;padding:1px 7px}
+.pur-inbox-card .kindtag.new{color:#5fd08a;background:color-mix(in srgb,#5fd08a 14%,transparent)}
+.pur-inbox-card .kindtag.update{color:#6fb4f0;background:color-mix(in srgb,#378add 14%,transparent)}
+.pur-inbox-card .meta{font-size:11px;color:var(--faint);font-family:var(--mono)}
+.pur-inbox-card .draft{font-size:12px;color:var(--muted);line-height:1.55;margin-top:3px}
+.pur-inbox-card .draft b{color:var(--fg)}
+.pur-inbox-card .acts{display:flex;flex-direction:column;gap:7px;justify-content:center;flex:none}
+
+/* ====================== 彈窗（客訂／歷史數據／過帳確認）====================== */
+.pur-modal{position:fixed;inset:0;z-index:320;display:grid;place-items:center}
+.pur-modal-bg{position:absolute;inset:0;background:rgba(4,7,10,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.pur-modal-card{position:relative;width:520px;max-width:94vw;max-height:86vh;overflow:auto;border-radius:16px;border:1px solid var(--panel-bd);
+  background:color-mix(in oklch,#10161a 96%,transparent);backdrop-filter:blur(20px);box-shadow:0 40px 90px -30px rgba(0,0,0,.9);padding:20px 22px}
+html.light .pur-modal-card{background:#fff}
+.pur-modal-card.wide{width:760px}
+.pur-modal-h{display:flex;align-items:center;gap:11px;margin-bottom:16px}
+.pur-modal-h .mt{font-size:11px;font-weight:600;letter-spacing:.04em;padding:3px 10px;border-radius:99px;color:var(--gold-bright);background:color-mix(in srgb,var(--gold) 15%,transparent)}
+.pur-modal-h b{font-size:17px;font-weight:600}
+.pur-modal-x{margin-left:auto;width:32px;height:32px;border-radius:8px;border:1px solid var(--panel-bd);background:transparent;color:var(--muted);cursor:pointer;display:grid;place-items:center}
+.pur-modal-x:hover{background:var(--hover);color:var(--fg)}.pur-modal-x svg{width:16px;height:16px}
+.pur-modal-foot{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+/* 過帳四件事 */
+.pur-post-list{display:flex;flex-direction:column;gap:9px;margin:6px 0 4px}
+.pur-post-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:11px;border:1px solid var(--line-soft);background:color-mix(in oklch,#0b1013 40%,transparent)}
+html.light .pur-post-item{background:#f6f8fa}
+.pur-post-item .n{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;flex:none;background:color-mix(in srgb,#5fd08a 15%,transparent);color:#5fd08a;font-family:var(--mono);font-weight:700;font-size:13px}
+.pur-post-item .t{font-size:13px;color:var(--fg)}
+.pur-post-item .t span{color:var(--muted);font-size:11.5px;display:block;margin-top:1px}
+/* 客訂 / 歷史數據 表 */
+.pur-mini-table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:4px}
+.pur-mini-table th{text-align:left;color:var(--muted);font-size:11px;font-weight:600;padding:7px 9px;border-bottom:1px solid var(--line-soft)}
+.pur-mini-table td{padding:8px 9px;border-bottom:1px solid var(--line-soft);color:var(--fg)}
+.pur-mini-table td.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.pur-turn{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:4px 0 14px}
+.pur-turn .tile{border:1px solid var(--panel-bd);border-radius:11px;padding:12px 14px;text-align:center}
+.pur-turn .tile .v{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--gold-bright)}
+.pur-turn .tile .l{font-size:11px;color:var(--muted);margin-top:4px}
+.pur-spark{display:flex;align-items:flex-end;gap:3px;height:54px;padding:8px 2px 0}
+.pur-spark .bar{flex:1;border-radius:3px 3px 0 0;background:color-mix(in srgb,var(--gold) 45%,transparent);min-height:3px}
+.pur-spark .bar.sell{background:color-mix(in srgb,#378add 50%,transparent)}
+
+/* 建議數量 chip */
+.pur-suggest{font-size:11.5px;color:var(--muted);white-space:nowrap}
+.pur-suggest b{font-family:var(--mono);color:var(--gold-bright);font-weight:600;font-size:13px}
+
+/* 歷史數據：月/年 互動長條 + hover 數量 */
+.pur-hist-bar{display:flex;align-items:center;gap:16px;margin:4px 0 6px;flex-wrap:wrap}
+.pur-hist-legend{display:flex;align-items:center;gap:14px;font-size:11.5px;color:var(--muted);flex:1}
+.pur-hist-legend span{display:inline-flex;align-items:center;gap:6px}
+.pur-hist-legend i{width:9px;height:9px;border-radius:2px}
+.pur-hist-legend i.in{background:color-mix(in srgb,var(--gold) 60%,transparent)}
+.pur-hist-legend i.sell{background:color-mix(in srgb,#378add 65%,transparent)}
+.pur-hist-legend .hint{margin-left:auto;color:var(--faint)}
+.pur-hist{position:relative;padding-top:52px}
+.pur-hist-tip{position:absolute;top:0;transform:translateX(-50%);background:color-mix(in oklch,#0d1317 97%,transparent);border:1px solid var(--panel-bd);border-radius:9px;padding:8px 12px;white-space:nowrap;opacity:0;transition:opacity .12s;pointer-events:none;display:flex;flex-direction:column;gap:3px;box-shadow:0 14px 36px -14px rgba(0,0,0,.75);z-index:5;font-size:11.5px}
+html.light .pur-hist-tip{background:#fff}
+.pur-hist-tip.show{opacity:1}
+.pur-hist-tip b{color:var(--fg);font-weight:600}
+.pur-hist-tip>b{color:var(--gold-bright);font-size:12.5px;margin-bottom:1px}
+.pur-hist-tip span{display:flex;align-items:center;gap:7px;color:var(--muted)}
+.pur-hist-tip span b{font-family:var(--mono);color:var(--fg)}
+.pur-hist-tip i{width:8px;height:8px;border-radius:2px;flex:none}
+.pur-hist-tip i.in{background:var(--gold)}
+.pur-hist-tip i.sell{background:#6fb4f0}
+.pur-hist-tip .end{color:var(--faint)}
+.pur-hist-bars{display:flex;gap:5px;align-items:flex-end}
+.pur-hist-grp{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;border-radius:8px;padding:5px 2px 4px;transition:background .12s}
+.pur-hist-grp:hover{background:var(--hover)}
+.pur-hist-pair{display:flex;align-items:flex-end;justify-content:center;gap:3px;height:120px;width:100%}
+.pur-hist-pair .bar{width:42%;max-width:15px;border-radius:3px 3px 0 0;min-height:3px;transition:.12s}
+.pur-hist-pair .bar.in{background:color-mix(in srgb,var(--gold) 52%,transparent)}
+.pur-hist-pair .bar.sell{background:color-mix(in srgb,#378add 56%,transparent)}
+.pur-hist-grp:hover .bar.in{background:var(--gold)}
+.pur-hist-grp:hover .bar.sell{background:#6fb4f0}
+.pur-hist-x{font-size:10px;color:var(--faint);font-family:var(--mono)}
+.pur-hist-grp.drill{cursor:pointer}
+.pur-hist-grp.drill::after{content:"";opacity:0}
+.pur-hist-crumb{display:flex;align-items:center;gap:10px}
+.pur-hist-back{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:var(--muted);background:transparent;border:1px solid var(--panel-bd);border-radius:8px;padding:5px 11px 5px 8px;cursor:pointer;font-family:var(--sans);transition:.13s}
+.pur-hist-back:hover{background:var(--hover);color:var(--fg);border-color:color-mix(in srgb,var(--gold) 40%,transparent)}
+.pur-hist-back svg{width:13px;height:13px}
+.pur-hist-title{font-size:13px;font-weight:600;color:var(--gold-bright)}
+
+/* 編輯就地（缺貨簿安全量）*/
+.pur-inline-edit{width:64px;height:30px;border-radius:7px;border:1px solid var(--panel-bd);background:color-mix(in oklch,#0b1013 55%,transparent);color:var(--fg);font-size:12.5px;padding:0 8px;outline:none;font-family:var(--mono);text-align:right}
+html.light .pur-inline-edit{background:#fff}
+.pur-inline-edit:focus{border-color:color-mix(in srgb,var(--gold) 55%,transparent)}
+.pur-cust-link{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--gold-bright);cursor:pointer;border-bottom:1px dashed color-mix(in srgb,var(--gold) 45%,transparent)}
+.pur-cust-none{font-size:11.5px;color:var(--faint)}
+
+/* 空狀態 */
+.pur-empty{padding:48px 24px;text-align:center;color:var(--faint);font-size:13px;display:flex;flex-direction:column;align-items:center;gap:12px}
+.pur-empty svg{width:40px;height:40px;opacity:.5}
+.pur-back{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--muted);background:transparent;border:1px solid var(--panel-bd);border-radius:9px;padding:7px 13px;cursor:pointer;font-family:var(--sans)}
+.pur-back:hover{background:var(--hover);color:var(--fg)}.pur-back svg{width:15px;height:15px}
+
+/* ====================== v3.10 料號即時查詢（F2） ====================== */
+.pur-modal-card.xl{width:980px}
+.pil-bar{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.pil-sel{height:36px;border-radius:9px;border:1px solid var(--panel-bd);background:color-mix(in oklch,#0b1013 55%,transparent);color:var(--fg);font-size:12.5px;padding:0 10px;font-family:var(--sans);outline:none}
+html.light .pil-sel{background:#f6f8fa}
+.pil-search{flex:1;min-width:220px;display:flex;align-items:center;gap:8px;height:36px;border-radius:9px;border:1px solid var(--panel-bd);background:color-mix(in oklch,#0b1013 55%,transparent);padding:0 12px}
+html.light .pil-search{background:#f6f8fa}
+.pil-search svg{width:14px;height:14px;color:var(--faint);flex:none}
+.pil-search input{flex:1;border:none;background:transparent;color:var(--fg);font-size:13px;outline:none;font-family:var(--sans)}
+.pil-chk{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);white-space:nowrap;cursor:pointer}
+.pil-chk input{accent-color:var(--gold)}
+.pil-split{display:grid;grid-template-columns:1.55fr 1fr;gap:14px;align-items:start}
+@media(max-width:820px){.pil-split{grid-template-columns:1fr}}
+.pil-listwrap{max-height:46vh;overflow-y:auto;overflow-x:hidden;border-radius:11px}
+.pil-table{font-size:12px;width:100%;table-layout:fixed}
+.pil-table td{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pil-table tbody tr{cursor:pointer}
+.pil-table tbody tr:first-child td{box-shadow:none}
+.pil-table tbody tr:first-child td:first-child{background:inherit}
+.pil-table tbody tr.sel td{background:color-mix(in srgb,var(--gold) 13%,transparent)!important;box-shadow:inset 3px 0 0 var(--gold)}
+.pil-table tbody tr.off{opacity:.55}
+.pil-table .pn{font-family:var(--mono);font-size:11.5px;color:var(--gold-bright)}
+.pil-table .pn2{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.pil-info{border:1px solid var(--panel-bd);border-radius:12px;padding:14px;background:color-mix(in oklch,#0b1013 40%,transparent);position:sticky;top:0}
+html.light .pil-info{background:#f6f8fa}
+.pil-info.empty{color:var(--faint);font-size:12.5px;text-align:center;padding:30px 14px}
+.pil-info-h{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--fg);padding-bottom:11px;margin-bottom:11px;border-bottom:1px dashed var(--line-soft);flex-wrap:wrap}
+.pil-info-h svg{width:14px;height:14px;color:var(--gold)}
+.pil-info-h b{color:var(--gold-bright);font-family:var(--mono);font-size:12.5px}
+.pil-unit{margin-left:auto;font-size:11px;color:var(--muted);font-family:var(--mono)}
+.pil-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px 14px}
+.pil-cell{display:flex;flex-direction:column;gap:3px}
+.pil-cell .k{font-size:10.5px;color:var(--muted)}
+.pil-cell .v{font-size:13px;color:var(--fg);font-family:var(--mono);font-variant-numeric:tabular-nums}
+.pil-cell .v.gold{color:var(--gold-bright)}
+.pil-mini{font-family:var(--sans);font-size:9.5px;color:var(--faint);margin-left:4px}
+.pil-foot-hint{margin-right:auto;font-size:11.5px;color:var(--faint)}
+.pil-sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(108px,1fr));gap:8px;margin-bottom:14px}
+.pil-sumcell{display:flex;flex-direction:column;gap:4px;border:1px solid var(--panel-bd);border-radius:10px;padding:9px 11px;background:color-mix(in oklch,#0b1013 35%,transparent)}
+html.light .pil-sumcell{background:#f6f8fa}
+.pil-sumcell .k{font-size:10.5px;color:var(--muted);line-height:1.3}
+.pil-sumcell .v{font-size:16px;font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--fg)}
+.pil-sumcell .v.gold{color:var(--gold-bright)}
+.pil-whh{font-size:11px;font-weight:700;color:var(--gold);letter-spacing:.04em;margin:2px 0 6px}
+.pil-wh{margin-top:2px}
+.pil-wh th{font-size:10.5px}
+.pil-wh-total td{font-weight:600;border-top:1px solid var(--panel-bd)}
+.pil-wh-total td:first-child{color:var(--muted)}
+
+/* 品項編輯彈窗 */
+.pie-pick{display:flex;align-items:flex-end;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.pie-pick-l{flex:1;min-width:240px;display:flex;flex-direction:column;gap:6px}
+.pie-lbl{font-size:11.5px;color:var(--muted)}
+.pie-lbl .req,.pur-fld .k .req{color:#e8806b;font-weight:700}
+.pie-part{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;border:1px solid var(--panel-bd);border-radius:10px;padding:9px 12px;background:color-mix(in oklch,#0b1013 45%,transparent)}
+html.light .pie-part{background:#f6f8fa}
+.pie-part.empty{color:var(--faint);font-size:12.5px}
+.pie-part .pn{font-family:var(--mono);font-size:12.5px;color:var(--gold-bright)}
+.pie-part b{font-size:13.5px;font-weight:600;color:var(--fg)}
+.pie-part .meta{font-size:11.5px;color:var(--muted)}
+.pie-kbd,.pie-part kbd{font-family:var(--mono);font-size:10px;border:1px solid var(--panel-bd);border-radius:4px;padding:0 5px;color:var(--muted);margin-left:4px}
+
+/* 唯讀明細清單列選取（明細編輯態：下方清單唯讀＋可選） */
+.pur-lines.selectable tbody tr{cursor:pointer}
+.pur-lines.selectable tbody tr:first-child td{box-shadow:none}
+.pur-lines.selectable tbody tr:first-child td:first-child{background:inherit}
+.pur-lines.selectable tbody tr.sel td{background:color-mix(in srgb,var(--gold) 12%,transparent)!important;box-shadow:inset 3px 0 0 var(--gold)}

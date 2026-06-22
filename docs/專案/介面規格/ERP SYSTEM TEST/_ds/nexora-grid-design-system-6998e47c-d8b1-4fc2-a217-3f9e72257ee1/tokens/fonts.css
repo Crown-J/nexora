@@ -1,0 +1,14 @@
+/* ==========================================================================
+   NEXORA GRID — Webfonts
+   --------------------------------------------------------------------------
+   The product self-hosts Geist + Geist Mono via next/font. In this design
+   system we pull the same families from Google Fonts so consuming projects
+   and specimen cards render identically without bundling binaries.
+
+   ⚠ SUBSTITUTION NOTE: original app self-hosts Geist (Vercel). Google Fonts
+   serves the identical Geist family, so this is a hosting swap, not a visual
+   one. If you need offline/self-hosted binaries, drop the .woff2 files here
+   and replace these @import lines with @font-face rules.
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap');

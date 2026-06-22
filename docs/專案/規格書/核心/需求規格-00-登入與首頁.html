@@ -1,0 +1,289 @@
+<!-- 檔案位置：docs/專案/規格書/核心/需求規格-00-登入與首頁.html -->
+<!-- 檔案版本：v1.2 -->
+<!-- 檔案說明：NX00 系統外殼層——登入畫面、首頁儀表板，以及橫跨全頁面的 top bar 與全域導覽（小星球）。
+     這些是「框」，各模組是「框裡換的內容」。本檔寫框、各模組需求規格寫內容。 -->
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>需求規格 00 — 登入與首頁 v1.0</title>
+<style>
+:root{--navy:#1F3A5F;--amber:#c8881f;--sub:#5d6675;--line:#e3e7ee;--warn:#962d2d;--bg:#fafbfc;--star:#7a4e09;}
+*{box-sizing:border-box;}
+body{font-family:'PingFang TC','Microsoft JhengHei','Noto Sans TC',sans-serif;color:#26303d;line-height:1.7;max-width:1000px;margin:0 auto;padding:38px 26px 80px;background:#fff;}
+header.doc{border-bottom:3px solid var(--navy);padding-bottom:16px;margin-bottom:6px;}
+header.doc h1{color:var(--navy);font-size:24px;margin:0 0 6px;}
+.meta{color:var(--sub);font-size:12.5px;line-height:1.6;} .meta b{color:var(--navy);}
+h2{color:#fff;background:var(--navy);font-size:17px;margin:32px 0 8px;padding:7px 13px;border-radius:5px;}
+h3.sub{color:var(--navy);font-size:14px;margin:16px 0 4px;border-bottom:1px dashed var(--line);padding-bottom:2px;}
+h3.ent{color:var(--navy);font-size:15.5px;margin:20px 0 3px;padding-left:10px;border-left:4px solid var(--amber);}
+p{margin:6px 0;font-size:13.5px;}
+table.fields{border-collapse:collapse;width:100%;font-size:12.5px;margin:0 0 8px;}
+table.fields th,table.fields td{border:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:top;}
+table.fields th{background:#33507a;color:#fff;font-weight:600;}
+table.fields tr:nth-child(even) td{background:var(--bg);}
+td.fnm{font-weight:700;color:var(--navy);white-space:nowrap;}
+td.prop{white-space:nowrap;color:#6a4a12;font-size:11.5px;}
+td.num{text-align:center;font-weight:700;color:var(--navy);white-space:nowrap;}
+.cal{border-radius:5px;padding:7px 12px;margin:6px 0;font-size:12.5px;line-height:1.6;}
+.cal.warn{background:#fbf0f0;border:1px solid #e6c4c4;border-left:4px solid var(--warn);}
+.cal.note{background:#eef3f9;border:1px solid #cfddee;border-left:4px solid #33507a;}
+.cal.star{background:#fdf6e9;border:1px solid #ecd9b0;border-left:4px solid var(--amber);}
+.cal b{color:var(--navy);}
+.lead{background:var(--bg);border-left:4px solid var(--amber);border-radius:6px;padding:10px 14px;margin:8px 0;font-size:13.5px;}
+.tag{display:inline-block;font-size:10.5px;font-weight:700;border-radius:3px;padding:0 6px;margin-left:5px;vertical-align:middle;}
+.t-now{background:#e3f0e3;color:#2d6a2d;} .t-later{background:#fdf3e3;color:var(--star);} .t-ro{background:#eef2f8;color:var(--navy);}
+ul{margin:6px 0;padding-left:22px;font-size:13.5px;} li{margin:4px 0;}
+footer{margin-top:46px;padding-top:14px;border-top:1px solid var(--line);color:var(--sub);font-size:12px;}
+</style>
+</head>
+<body>
+
+<header class="doc"><h1>需求規格 00 — 登入與首頁</h1>
+<div class="meta"><b>檔案位置：</b>docs/專案/規格書/核心/需求規格-00-登入與首頁.html　|　<b>版本：</b>v1.2　|　<b>維護：</b>CTO（Alex）　|　<b>NX 碼：</b>NX00（核心 / LITE）<br>
+<b>說明：</b>系統外殼層「該做成怎樣」的施工級需求——登入畫面、首頁儀表板，以及橫跨全頁面的 top bar 與全域導覽（小星球）。這些是全系統共通的「框」，內容不隨模組改變。各模組畫面細節見其需求規格。</div></header>
+
+<p class="lead">NX00 是<b>系統外殼</b>：使用者一進系統就看到、且橫跨所有頁面、不隨模組改變的部分。涵蓋四塊——<b>全域導覽（小星球）</b>、<b>top bar</b>、<b>登入畫面</b>、<b>首頁儀表板</b>。標記說明：<span class="tag t-now">本次</span> 此版實作；<span class="tag t-later">伏筆</span> 預留位置、另立任務；<span class="tag t-ro">唯讀</span> 使用者僅瀏覽不可改。</p>
+
+<div class="cal note"><b>每個畫面的寫法：</b>固定兩段——「一、畫面欄位」說明這張畫面有哪些欄位（靜態）；「二、操作與結果」說明按了什麼、系統做什麼、出現什麼結果（動態）。</div>
+
+<!-- ============ 全域導覽 ============ -->
+<h2>一、全域導覽（小星球）</h2>
+<p>全系統<b>唯一</b>的導覽元件，桌面與手機統一使用，不再有其他 dock、浮鈕或底欄。位於 top bar 最左側。提供「去任一模組／頁面」的單一入口。</p>
+
+<h3 class="sub">一、畫面欄位（選單結構）</h3>
+<p>喚醒後為兩層結構，橫移切換層級。</p>
+<table class="fields">
+<tr><th>層級</th><th>內容</th></tr>
+<tr><td class="fnm">主選單</td><td>八個固定項，順序：首頁 / 個人 / 主檔 / 採購 / 銷貨 / 庫存 / 財務 / 報表</td></tr>
+<tr><td class="fnm">子選單</td><td>頂部一個「返回」，下方為該模組的子項目清單。「主檔」項較特殊，其子選單再分一層（見下方「主檔的三層結構」）</td></tr>
+</table>
+<p>每一個主選單項二擇一：<b>無子選單</b>→ 直接進入該頁；<b>有子選單</b>→ 進入下一層（橫移動畫）。多數模組為兩層（主選單 → 子選單頁）。</p>
+<div class="cal star"><b>主檔的三層結構：</b>「主檔」項因主檔數量多，採三層導覽——<br>
+第一層 主選單「主檔」 → 第二層 六大分區 → 第三層 各分區的主檔頁。<br>
+六大分區為：<b>組織架構 / 權限管理 / 據點倉庫 / 往來對象 / 產品與廠牌 / 字典主檔</b>（與 NX01 核心主檔規格的分區一致）。點分區橫移進入第三層、列該分區的主檔；各分區主檔清單見 NX01。</div>
+
+<h3 class="sub">二、操作與結果</h3>
+<p><b>⌨ 鍵盤操作</b></p>
+<table class="fields">
+<tr><th>動作</th><th>結果</th></tr>
+<tr><td class="fnm">Alt+X</td><td>喚醒小星球，焦點落在主選單</td></tr>
+<tr><td class="fnm">↑ / ↓</td><td>在當層項目間移動選取；<b>可循環</b>（首項往上跳末項，末項往下跳首項）</td></tr>
+<tr><td class="fnm">Enter（無子）</td><td>直接進入該頁</td></tr>
+<tr><td class="fnm">Enter（有子）</td><td>向左橫移進入子選單</td></tr>
+<tr><td class="fnm">← 左鍵</td><td>返回上一層（主檔的第三層→第二層分區→第一層主選單，逐層退）</td></tr>
+<tr><td class="fnm">Esc</td><td>關閉小星球</td></tr>
+</table>
+<p><b>🖱 滑鼠操作</b>（與鍵盤完全對稱）</p>
+<table class="fields">
+<tr><th>動作</th><th>結果</th></tr>
+<tr><td class="fnm">點小星球</td><td>喚醒</td></tr>
+<tr><td class="fnm">點項目（無子）</td><td>直接進入該頁</td></tr>
+<tr><td class="fnm">點項目（有子）</td><td>向左橫移進入子選單</td></tr>
+<tr><td class="fnm">點「返回」</td><td>回到上一層</td></tr>
+<tr><td class="fnm">點空白處 / 再點小星球</td><td>關閉</td></tr>
+</table>
+<div class="cal note"><b>備註：</b>「個人」項開啟個人儀表板（與 top bar 使用者選單的「個人儀表板」為<b>同一頁、兩入口</b>，遊戲化伏筆、<span class="tag t-later">另立任務</span>）。子選單各模組項目<b>暫沿用既有</b>，隨後續各模組需求規格修訂同步更新。</div>
+
+<!-- ============ TOP BAR ============ -->
+<h2>二、Top bar</h2>
+<p>全系統唯一的頂部列，橫跨所有頁面、所有模組共用。左側為品牌識別、右側為使用者工具，內容不隨模組改變。</p>
+
+<h3 class="sub">一、畫面欄位</h3>
+<p><b>左側・由左至右</b></p>
+<table class="fields">
+<tr><th>#</th><th>元件</th><th>內容</th><th>性質</th></tr>
+<tr><td class="num">1</td><td class="fnm">小星球 dock</td><td>星球圖示（全域導覽，見上節）</td><td class="prop">可互動</td></tr>
+<tr><td class="num">2</td><td class="fnm">NEXORA 品牌</td><td>NEXORA GRID 字樣</td><td class="prop">可互動</td></tr>
+<tr><td class="num">3</td><td class="fnm">租戶名稱</td><td>登入公司之中文名</td><td class="prop">顯示</td></tr>
+</table>
+<p><b>右側・由右至左</b></p>
+<table class="fields">
+<tr><th>#</th><th>元件</th><th>內容</th><th>性質</th></tr>
+<tr><td class="num">4</td><td class="fnm">使用者按鈕</td><td>頭像 ＋ 員編 ＋ 姓名</td><td class="prop">可互動</td></tr>
+<tr><td class="num">5</td><td class="fnm">設定齒輪</td><td>齒輪圖示（環境設定）</td><td class="prop">可互動</td></tr>
+<tr><td class="num">6</td><td class="fnm">通知按鈕</td><td>鈴鐺 ＋ 未處理件數 badge</td><td class="prop">可互動</td></tr>
+<tr><td class="num">7</td><td class="fnm">公告按鈕</td><td>喇叭 ＋ 未讀公告 badge</td><td class="prop">可互動</td></tr>
+<tr><td class="num">8</td><td class="fnm">日期時間</td><td>日期 ＋ 時間 ＋ 星期</td><td class="prop">顯示</td></tr>
+</table>
+
+<h3 class="sub">二、操作與結果</h3>
+
+<h3 class="ent">使用者按鈕</h3>
+<table class="fields">
+<tr><th>動作</th><th>結果</th></tr>
+<tr><td class="fnm">點按鈕</td><td>展開使用者選單，三項（見下）</td></tr>
+<tr><td>└ 個人儀表板</td><td>開啟個人儀表板（與小星球「個人」同一頁）<span class="tag t-later">伏筆</span></td></tr>
+<tr><td>└ 修改密碼</td><td>開啟改密功能（須接真實後端 API）</td></tr>
+<tr><td>└ 登出</td><td>清除登入狀態，導向登入頁</td></tr>
+</table>
+
+<h3 class="ent">設定齒輪（環境設定）</h3>
+<p>點齒輪 → 開啟「環境設定」整合選單（單層、不分組），七項：</p>
+<table class="fields">
+<tr><th>#</th><th>項目</th><th>性質</th><th>本次</th></tr>
+<tr><td class="num">1</td><td class="fnm">深淺主題（淺／深／跟隨系統）</td><td class="prop">個人可調</td><td><span class="tag t-now">本次</span></td></tr>
+<tr><td class="num">2</td><td class="fnm">雙重驗證（2FA 開／關）</td><td class="prop">個人可調</td><td><span class="tag t-now">本次</span></td></tr>
+<tr><td class="num">3</td><td class="fnm">語言（繁中／英文）</td><td class="prop">個人可調</td><td><span class="tag t-later">伏筆</span></td></tr>
+<tr><td class="num">4</td><td class="fnm">字級／密度（緊湊⇄寬鬆）</td><td class="prop">個人可調</td><td><span class="tag t-later">伏筆</span></td></tr>
+<tr><td class="num">5</td><td class="fnm">鍵盤快捷鍵設定</td><td class="prop">個人可調</td><td><span class="tag t-later">伏筆</span></td></tr>
+<tr><td class="num">6</td><td class="fnm">版本顯示</td><td class="prop">唯讀</td><td><span class="tag t-ro">唯讀</span></td></tr>
+<tr><td class="num">7</td><td class="fnm">關於系統介紹</td><td class="prop">唯讀</td><td><span class="tag t-ro">唯讀</span></td></tr>
+</table>
+<p><b>深淺主題操作：</b>選 淺／深／跟隨系統 → 全系統即時套用、記住偏好。</p>
+<div class="cal star"><b>定位：</b>齒輪只放「個人環境偏好」與「系統資訊瀏覽」——只影響「我自己用起來的樣子」，<b>不含任何會動到全公司的設定</b>（稅率、單據編號規則、簽核流程等仍歸核心主檔與各模組，不進此選單，亦不對一般員工開放）。</div>
+
+<h3 class="ent">通知按鈕</h3>
+<p><b>定位：</b>待辦驅動——只推「該你動手做的事」，做完才消，不是訊息流。</p>
+<table class="fields">
+<tr><th>動作</th><th>結果</th></tr>
+<tr><td class="fnm">點鈴鐺</td><td>展開通知列表，依來源分類、最新在上，每則顯示來源單據</td></tr>
+<tr><td class="fnm">點一則</td><td>直接跳到該單據詳細頁</td></tr>
+<tr><td class="fnm">全部已讀</td><td>清紅點</td></tr>
+</table>
+<div class="cal star"><b>badge 規則：</b>顯示「未處理」件數（非「未讀」）。<b>已讀 ≠ 已處理</b>——待簽核的單，點開看了不等於簽了，badge 須等真的處理完才消，避免漏簽。</div>
+<p><b>觸發來源（四類原則，具體單據隨各模組規格定稿填入）：</b></p>
+<table class="fields">
+<tr><th>類別</th><th>說明</th><th>是否進鈴</th></tr>
+<tr><td class="fnm">一、待我簽核／審批</td><td>不處理會擋住流程（採購單待核、折讓待審…）</td><td>是</td></tr>
+<tr><td class="fnm">二、已指派給我的作業</td><td>系統派工（驗收／撿貨／盤點／案件指派…）</td><td>是</td></tr>
+<tr><td class="fnm">三、與我相關的狀態變化</td><td>我發起的被退件、被核准等回饋</td><td>保留討論</td></tr>
+<tr><td class="fnm">四、系統預警</td><td>庫存低、帳款逾期、效期將到等</td><td>保留討論</td></tr>
+</table>
+<div class="cal note"><b>通知 vs 任務清單分工：</b>通知鈴＝即時「叮你一下」（剛發生、要注意）；首頁任務清單＝常駐「攤開待辦」（目前所有待我處理）。兩者來源可共用、職責不同。通知後端（事件來源、已讀狀態）<span class="tag t-later">另立任務</span>。</div>
+
+<h3 class="ent">公告按鈕</h3>
+<table class="fields">
+<tr><th>動作</th><th>結果</th></tr>
+<tr><td class="fnm">點喇叭</td><td>開啟佈告欄</td></tr>
+</table>
+<p>維持現狀，本次不修改（資料源已串接 /nx01 佈告欄）。</p>
+
+<h3 class="ent">NEXORA 品牌字樣 / 日期時間</h3>
+<table class="fields">
+<tr><th>元件</th><th>操作與結果</th></tr>
+<tr><td class="fnm">NEXORA 品牌</td><td>點擊 → 回到首頁</td></tr>
+<tr><td class="fnm">日期時間</td><td>顯示日期＋時間（秒級）＋星期，不可互動</td></tr>
+</table>
+
+<!-- ============ 登入畫面 ============ -->
+<h2>三、登入畫面</h2>
+<p>系統唯一入口。使用者進入系統的第一個畫面，驗證身分後進入首頁。</p>
+
+<h3 class="sub">一、畫面欄位</h3>
+<table class="fields">
+<tr><th>#</th><th>欄位</th><th>說明</th><th>必填</th><th>記住我</th></tr>
+<tr><td class="num">1</td><td class="fnm">公司帳號</td><td>對應租戶代碼</td><td>是</td><td>記憶</td></tr>
+<tr><td class="num">2</td><td class="fnm">員工編號</td><td>對應帳號</td><td>是</td><td>記憶</td></tr>
+<tr><td class="num">3</td><td class="fnm">密碼</td><td>含顯示／隱藏切換</td><td>是</td><td>不記憶</td></tr>
+</table>
+<p><b>其他畫面元素：</b>「記住我」勾選框（記公司帳號＋員編，不記密碼）、「忘記密碼」連結、星球＋星空視覺背景、版本號 footer、展示模式提示條（demo 模式時顯示）。</p>
+
+<h3 class="sub">二、操作與結果</h3>
+<h3 class="ent">登入</h3>
+<table class="fields">
+<tr><th>動作</th><th>結果</th></tr>
+<tr><td class="fnm">填三欄送出（成功）</td><td>進入系統。若為<b>首次登入</b>→ 強制導向改密頁、改完才進首頁；否則直接進首頁</td></tr>
+<tr><td class="fnm">送出（密碼錯）</td><td>顯示錯誤，累計失敗次數</td></tr>
+<tr><td class="fnm">連續錯 5 次</td><td>鎖定該帳號（以「公司帳號＋員編」為單位），提示「帳號已鎖定，請 5 分鐘後再試」</td></tr>
+<tr><td class="fnm">鎖定中再送出</td><td>擋下，提示仍在鎖定</td></tr>
+<tr><td class="fnm">滿 5 分鐘</td><td>自動解鎖（無管理者手動解）</td></tr>
+<tr><td class="fnm">帳號已停用</td><td>擋下，提示「帳號已停用，請聯絡管理者」</td></tr>
+<tr><td class="fnm">已開 2FA 者（帳密正確）</td><td>多一步輸入 TOTP 驗證碼，通過才進系統；未開 2FA 者無此步</td></tr>
+</table>
+<h3 class="ent">記住我</h3>
+<table class="fields"><tr><th>動作</th><th>結果</th></tr>
+<tr><td class="fnm">勾選後登入</td><td>下次開啟登入頁自動帶入公司帳號＋員編，密碼仍須輸入</td></tr></table>
+<h3 class="ent">忘記密碼</h3>
+<table class="fields">
+<tr><th>情況</th><th>結果</th></tr>
+<tr><td class="fnm">有留 email／手機</td><td>可選擇收驗證碼 → 驗證 → 設新密碼</td></tr>
+<tr><td class="fnm">沒留</td><td>顯示「請聯絡系統管理者重設」</td></tr>
+<tr><td class="fnm">重設成功</td><td>新密碼即生效；下次登入視同首登 → 強制改密</td></tr>
+</table>
+<h3 class="ent">改密碼（首登 / 管理者重設後）</h3>
+<table class="fields">
+<tr><th>項目</th><th>內容</th></tr>
+<tr><td class="fnm">觸發時機</td><td>① 首次登入　② 管理者重設密碼後</td></tr>
+<tr><td class="fnm">規則</td><td>新密碼至少 6 碼</td></tr>
+<tr><td class="fnm">完成</td><td>改畢才能進入系統</td></tr>
+</table>
+
+<h3 class="sub">三、機制定義（資安政策）</h3>
+<table class="fields">
+<tr><th>機制</th><th>政策</th></tr>
+<tr><td class="fnm">失敗鎖定</td><td>連錯 5 次 → 鎖 5 分鐘 → 純自動解（無手動解鎖）</td></tr>
+<tr><td class="fnm">計數單位</td><td>公司帳號 ＋ 員編</td></tr>
+<tr><td class="fnm">密碼強度</td><td>至少 6 碼（寬鬆，貼合現場）</td></tr>
+<tr><td class="fnm">首登強制改密</td><td>首次登入 + 管理者重設後皆觸發</td></tr>
+<tr><td class="fnm">忘記密碼</td><td>雙軌：有留 email／手機者自助重設，未留者引導找管理者</td></tr>
+<tr><td class="fnm">雙重驗證 2FA</td><td>個人自選開／關，技術用 TOTP 驗證器；在「設定齒輪 → 環境設定」開關</td></tr>
+<tr><td class="fnm">停用攔截</td><td>已停用帳號禁止登入</td></tr>
+</table>
+
+<!-- ============ 首頁儀表板 ============ -->
+<h2>四、首頁儀表板</h2>
+<p>登入後的<b>落地頁</b>。聚焦「我近期要處理的事」——不是模組樞紐（導覽靠小星球）、也不是個人檔案（那是個人儀表板，另立）。</p>
+
+<h3 class="sub">一、畫面欄位</h3>
+<table class="fields">
+<tr><th>#</th><th>區塊</th><th>內容</th></tr>
+<tr><td class="num">1</td><td class="fnm">Top bar</td><td>全域元件（每頁皆有，見第二節）</td></tr>
+<tr><td class="num">2</td><td class="fnm">行事曆</td><td>可選取日期，與事件簿連動。呈現方式（七卡輪轉）見下方備註</td></tr>
+<tr><td class="num">3</td><td class="fnm">事件簿</td><td>顯示「選取日期」的個人行程</td></tr>
+<tr><td class="num">4</td><td class="fnm">全體出勤</td><td>顯示全體員工當下狀態（在勤總覽）</td></tr>
+<tr><td class="num">5</td><td class="fnm">任務清單</td><td>顯示「跟我有關的未完成單據」</td></tr>
+</table>
+
+<h3 class="sub">二、操作與結果</h3>
+
+<h3 class="ent">行事曆 ⇄ 事件簿（連動）</h3>
+<table class="fields"><tr><th>動作</th><th>結果</th></tr>
+<tr><td class="fnm">點選某一天</td><td>事件簿切換成顯示「那天」的個人行程（選哪天、事件簿就顯示哪天）</td></tr>
+<tr><td class="fnm">選擇年月份</td><td>跳轉至指定年／月</td></tr>
+<tr><td class="fnm">今天</td><td>一鍵回到今天</td></tr>
+</table>
+<p><b>事件簿事件類型（四類）：</b>排假、假日（用戶自訂、系統不預設國定假日）、會議、活動。實際顯示內容由實作調整。</p>
+<div class="cal note"><b>行事曆呈現方式歸設計（Hana）：</b>本檔規格僅定「行事曆放個人行程、可選日期、選定日於事件簿顯示明細」之功能與資料；視覺呈現（現為七卡輪轉：中間今天放大、滾輪輪轉、點日輪轉到中間、滿版不捲動）屬設計範疇，規格不框死，改版不需回頭改本檔。<b>按鈕：</b>年月選擇 ＋ 今天（不設左右箭頭，單日切換由輪轉取代）。</div>
+<div class="cal star"><b>行事曆＝個人行程備忘：</b>純記錄、無統計、無報表、無核准、無協作（不邀請、不公告全公司）。正式請假流程（計特休、核准）歸人資套件 NX06。</div>
+
+<h3 class="ent">全體出勤</h3>
+<table class="fields"><tr><th>動作</th><th>結果</th></tr>
+<tr><td class="fnm">顯示</td><td>全體員工當下狀態：上班／外出／出差／休假／病假等，含「在勤 X／全部 Y」總計</td></tr>
+</table>
+<div class="cal star"><b>LITE 只看狀態、不算數據：</b>核心版僅呈現「誰在不在」的即時狀態總覽，<b>不</b>統計出勤工時、不計特休剩餘天數。工時統計、特休天數、考勤報表等深度人資功能歸<b>加購 NX06 人資</b>；員工排休本身歸事件簿（個人行程·排假）。</div>
+<div class="cal note"><b>可見範圍：</b>現狀全體員工可見彼此在勤狀態（中小企業常態）。<span class="tag t-later">伏筆</span>未來可加「是否顯示全體出勤」開關，本次不做。</div>
+
+<h3 class="ent">任務清單</h3>
+<table class="fields">
+<tr><th>動作</th><th>結果</th></tr>
+<tr><td class="fnm">顯示</td><td>「跟我有關」的未完成單據＝我發起的 ＋ 指派給我的（不顯示全公司單據）；可依類別篩（報價／銷貨／出貨／收款／採購…），顯示單號、對象、金額、到期／逾期</td></tr>
+<tr><td class="fnm">點一筆</td><td>跳到該單據詳細頁</td></tr>
+<tr><td class="fnm">無待辦時</td><td>顯示空狀態（不放摘要數據格）</td></tr>
+</table>
+<div class="cal note"><b>首頁不含數據格：</b>「自訂營運數據格（營業額／毛利等 BI 數據）」與「待辦計數摘要格」皆不放首頁——前者歸<b>加購套件</b>，後者已移除。任務清單空時直接顯示空狀態。</div>
+
+<!-- ============ 補做 / 連帶 ============ -->
+<h2>五、補做與連帶事項</h2>
+<p>本檔定案連帶產生的施工與跨模組事項，彙整於此供 Hank 依序處理。</p>
+<table class="fields">
+<tr><th>類</th><th>事項</th></tr>
+<tr><td class="prop">收斂</td><td>原三條 mobile dock（工作站／⊕開單／7模組）與兩條 top bar（Home／Master）全部退場，統一為本檔定義之單一小星球＋單一 top bar</td></tr>
+<tr><td class="prop">清死碼</td><td>HomeTopBar 公告區、中央槽兩段死分支移除；寫死的 mock 通知（固定「3」）移除</td></tr>
+<tr><td class="prop">補 token</td><td>原 MasterTopBar 硬編碼暗色 → 補 design token，使其跟隨深淺主題（系統支援淺色、非 dark-only）</td></tr>
+<tr><td class="prop">補 API</td><td>修改密碼、忘記密碼接真實後端（現為 mock／擺設按鈕）</td></tr>
+<tr><td class="prop">跨模組 🔴</td><td>NX01 核心主檔員工須新增 <b>email、手機</b>欄位（非必填）——忘記密碼自助重設依賴此</td></tr>
+<tr><td class="prop">後端</td><td>失敗鎖定計數、首登標記、驗證碼重設流程、2FA（TOTP）綁定與驗證</td></tr>
+<tr><td class="prop">另立任務</td><td>個人儀表板（遊戲化）、通知後端、環境設定其餘伏筆項（語言／字級密度／快捷鍵）</td></tr>
+<tr><td class="prop">套件連帶</td><td>首頁「全體出勤」之深度功能（工時統計／特休天數／考勤報表）歸<b>NX06 人資套件</b>——做 NX06 規格時納入「首頁出勤看板的深度版」</td></tr>
+</table>
+
+<footer>
+需求規格 00 登入與首頁 v1.2　·　NX00 系統外殼層　·　涵蓋全域導覽（小星球）、top bar、登入畫面、首頁儀表板　·　全系統模組地圖見《NEXORA 模組架構總覽》。<br>
+v1.2 變更：小星球主選單七項→八項（補「主檔」於個人與採購之間，對齊 as-built）；明定「主檔」採三層導覽（主檔→六大分區→各主檔頁），六大分區與 NX01 一致；鍵盤返回說明補三層逐層退。<br>
+v1.1 變更：首頁行事曆改為七卡輪轉（呈現歸 Hana）、按鈕改年月選擇＋今天、新增「全體出勤」區塊（LITE 看狀態／深度歸 NX06）、四類事件明定、移除待辦計數格。
+</footer>
+
+</body>
+</html>

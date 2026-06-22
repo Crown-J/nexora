@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="zh-Hant" class="">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NEXORA GRID — 轉場動畫與星球 實作規格</title>
+<style>
+  :root{
+    --bg:#0b0e12; --panel:#12161c; --panel2:#161b22; --line:rgba(150,165,185,.14);
+    --line-soft:rgba(150,165,185,.08); --fg:#e7ecf2; --muted:#9aa6b4; --faint:#6a7682;
+    --gold:#f4b400; --gold-b:#ffcf5a; --mono:"Geist Mono",ui-monospace,"SF Mono",Menlo,monospace;
+    --sans:"Geist","Noto Sans TC",system-ui,sans-serif;
+    --ok:#1d9e75; --warn:#e8a020; --info:#378add;
+  }
+  *{box-sizing:border-box}
+  html{font-size:108%}
+  body{margin:0;background:
+      radial-gradient(120% 70% at 50% -10%,rgba(244,180,0,.10),transparent 55%),
+      var(--bg);
+    color:var(--fg);font-family:var(--sans);line-height:1.6;letter-spacing:.005em;
+    -webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto;padding:64px 28px 120px}
+
+  .eyebrow{font-size:11px;letter-spacing:.42em;color:var(--gold);text-transform:uppercase;font-weight:600;margin:0 0 14px}
+  h1{font-size:38px;font-weight:700;letter-spacing:.01em;margin:0 0 10px;line-height:1.1}
+  h1 b{color:var(--gold)}
+  .lede{color:var(--muted);font-size:16px;max-width:760px;margin:0 0 14px}
+  .toc{display:flex;flex-wrap:wrap;gap:8px;margin:26px 0 10px}
+  .toc a{font-size:12.5px;font-family:var(--mono);letter-spacing:.06em;color:var(--muted);text-decoration:none;
+    border:1px solid var(--line);border-radius:999px;padding:6px 13px;transition:.16s}
+  .toc a:hover{color:var(--gold-b);border-color:rgba(244,180,0,.4);background:rgba(244,180,0,.06)}
+
+  section{margin-top:58px;scroll-margin-top:24px}
+  .sec-h{display:flex;align-items:baseline;gap:14px;border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:8px}
+  .sec-n{font-family:var(--mono);font-size:13px;color:var(--gold);letter-spacing:.18em;font-weight:500}
+  h2{font-size:25px;font-weight:650;margin:0;letter-spacing:.01em}
+  .sec-sub{color:var(--muted);font-size:14.5px;margin:14px 0 0}
+
+  .card{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);
+    border-radius:14px;padding:22px 24px;margin-top:18px;
+    box-shadow:0 1px 0 rgba(255,255,255,.03) inset,0 24px 50px -34px rgba(0,0,0,.8)}
+  .card h3{margin:0 0 4px;font-size:16.5px;font-weight:600;display:flex;align-items:center;gap:10px}
+  .tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;padding:3px 9px;border-radius:6px;
+    border:1px solid var(--line);color:var(--muted);text-transform:uppercase;font-weight:500}
+  .tag.css{color:var(--info);border-color:rgba(55,138,221,.4);background:rgba(55,138,221,.08)}
+  .tag.js{color:var(--gold-b);border-color:rgba(244,180,0,.4);background:rgba(244,180,0,.08)}
+  .tag.svg{color:var(--ok);border-color:rgba(29,158,117,.4);background:rgba(29,158,117,.08)}
+  .card .where{font-family:var(--mono);font-size:11.5px;color:var(--faint);margin:2px 0 14px;letter-spacing:.03em}
+
+  ol.steps{margin:6px 0 0;padding:0;list-style:none;counter-reset:s}
+  ol.steps>li{position:relative;padding:11px 0 11px 44px;border-top:1px solid var(--line-soft);counter-increment:s}
+  ol.steps>li:first-child{border-top:none}
+  ol.steps>li::before{content:counter(s);position:absolute;left:0;top:10px;width:26px;height:26px;border-radius:50%;
+    display:grid;place-items:center;font-family:var(--mono);font-size:12px;font-weight:600;color:var(--gold);
+    border:1px solid rgba(244,180,0,.4);background:rgba(244,180,0,.07)}
+  .lbl{color:var(--muted)}
+  code,kbd{font-family:var(--mono);font-size:.86em;background:rgba(150,165,185,.1);border:1px solid var(--line-soft);
+    border-radius:5px;padding:1.5px 6px;color:#d4dbe4;letter-spacing:.01em}
+  code .g{color:var(--gold-b)}
+
+  table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13.5px}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+  th{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);font-weight:600}
+  td code{font-size:.84em;white-space:nowrap}
+  td.dur{font-family:var(--mono);color:var(--gold-b);white-space:nowrap}
+  tr:last-child td{border-bottom:none}
+
+  .note{border-left:2px solid var(--gold);padding:4px 0 4px 16px;margin:16px 0 0;color:var(--muted);font-size:14px}
+  .warn{border-left-color:var(--warn)}
+  .warn b{color:var(--gold-b)}
+
+  ul.plain{margin:8px 0 0;padding-left:20px;color:var(--muted);font-size:14.5px}
+  ul.plain li{margin:5px 0}
+  ul.plain b{color:var(--fg);font-weight:600}
+
+  .layers{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:14px}
+  .ly{border:1px solid var(--line);border-radius:10px;padding:13px 15px;background:rgba(150,165,185,.03)}
+  .ly .z{font-family:var(--mono);font-size:10.5px;color:var(--gold);letter-spacing:.1em}
+  .ly b{display:block;font-size:14px;margin:3px 0 3px}
+  .ly span{font-size:12.5px;color:var(--muted)}
+
+  .gap{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+  .gap>div{border-radius:10px;padding:15px 17px}
+  .gap .bad{border:1px solid rgba(226,75,74,.35);background:rgba(226,75,74,.06)}
+  .gap .good{border:1px solid rgba(29,158,117,.35);background:rgba(29,158,117,.06)}
+  .gap h4{margin:0 0 8px;font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+  .gap .bad h4{color:#e98a89}
+  .gap .good h4{color:#56c79f}
+  .gap ul{margin:0;padding-left:18px;font-size:13.5px;color:var(--muted)}
+  .gap ul li{margin:4px 0}
+  @media(max-width:720px){.gap{grid-template-columns:1fr}}
+  .foot{margin-top:70px;padding-top:20px;border-top:1px solid var(--line);font-family:var(--mono);
+    font-size:11.5px;color:var(--faint);letter-spacing:.1em;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+  .foot b{color:var(--gold)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="eyebrow">NEXORA GRID · 實作交接規格</p>
+  <h1>轉場動畫 &amp; <b>星球</b> 完整規格</h1>
+  <p class="lede">這份文件把目前 <code>NEXORA 系統.html</code> 裡的<b>所有</b>轉場動畫與星球(planet)實作逐一拆解，附上實際數值、easing、觸發條件與檔案位置。直接交給 Claude Code 當實作依據，比讓它從截圖推測準得多 —— 因為動畫與飛行軌跡在靜態畫面裡是看不見的。</p>
+
+  <div class="toc">
+    <a href="#a">A · 登入→儀表板 主轉場</a>
+    <a href="#b">B · 登出 反向轉場</a>
+    <a href="#c">C · 視圖散開／合攏</a>
+    <a href="#d">D · 儀表板進場錯落</a>
+    <a href="#e">E · 微互動轉場</a>
+    <a href="#planet">★ 星球完整拆解</a>
+    <a href="#why">★ 為什麼你的星球不一樣</a>
+  </div>
+
+  <!-- ============ A ============ -->
+  <section id="a">
+    <div class="sec-h"><span class="sec-n">A</span><h2>登入 → 儀表板 主轉場</h2></div>
+    <p class="sec-sub">系統的招牌轉場。由 <code>&lt;body&gt;</code> 的 state class 驅動：<code>login → state-leaving → state-app</code>。觸發點：登入表單 submit（<code class="g">enter()</code> @ <code>system-engine.js</code>）。星球在這裡<b>實際飛行</b>，是整個轉場的主角。</p>
+
+    <div class="card">
+      <h3>狀態機時間軸 <span class="tag js">JS 驅動</span></h3>
+      <div class="where">system-engine.js · enter() ／ globals.css 段 .state-machine</div>
+      <ol class="steps">
+        <li><span class="lbl">送出表單 → 加上 <code>body.state-leaving</code>。</span>登入卡與品牌同時退場：<code>.lg-right</code> 往右滑出 <code>translateX(64px) scale(.98)</code>（<code class="dur">.65s cubic-bezier(.5,0,.2,1)</code>）；<code>.lg-brand</code> 下沉淡出 <code>translateY(8px)</code>（.5s）；welcome／title／subtitle／ver 淡出。</li>
+        <li><span class="lbl">星球第一步 — 滑向畫面中心並微放大。</span><code>placePlanet(中心, 0.44×高, scale 1.12, 'transform .8s cubic-bezier(.45,0,.25,1)')</code>。</li>
+        <li><span class="lbl">800ms 後 — 加上 <code>body.state-app</code>，星球收縮並停泊進 TopBar logo 槽。</span><code>placeDock('transform .95s cubic-bezier(.6,0,.2,1)')</code>，停泊縮放 = <code>logo寬 / 440 × 2</code>。</li>
+        <li><span class="lbl">同時：</span><code>#app-layer</code> opacity 0→1（<code class="dur">.6s</code>）；<code>#login-layer</code> 淡出（.5s）並於 620ms 後 <code>display:none</code>。</li>
+        <li><span class="lbl">1500ms — <code class="g">forceShow()</code> 保險。</span>就算分頁被切到背景動畫沒跑完，也強制把內容設為可見（避免卡在 opacity:0）。</li>
+      </ol>
+      <p class="note warn"><b>關鍵不可省：</b>星球不是「登入畫面一顆、TopBar 另一顆」。它是<b>同一個 DOM 元件</b>在兩個位置之間飛 —— 詳見下方「星球完整拆解」。少了這個架構，這段主轉場根本做不出來。</p>
+    </div>
+  </section>
+
+  <!-- ============ B ============ -->
+  <section id="b">
+    <div class="sec-h"><span class="sec-n">B</span><h2>登出 反向轉場</h2></div>
+    <p class="sec-sub">觸發：使用者選單「登出」→ <code class="g">window.nxLogout()</code>。是 A 的鏡像。</p>
+    <div class="card">
+      <h3>反向時間軸 <span class="tag js">JS 驅動</span></h3>
+      <div class="where">system-engine.js · logout()</div>
+      <ol class="steps">
+        <li>儀表板整體淡出：<code>#app-layer</code> opacity→0（<code class="dur">.55s</code>）。移除 <code>state-app</code>、加回 <code>state-leaving</code>，並還原 <code>#login-layer</code> 為 <code>display:flex</code>（此時表單仍被 state-leaving 壓著隱藏）。</li>
+        <li>星球從 TopBar 脫離 → 飛回中心並微放大（<code class="dur">.8s cubic-bezier(.45,0,.25,1)</code>）。</li>
+        <li>星球滑回登入大圖位置（<code class="dur">.95s cubic-bezier(.6,0,.2,1)</code>）；移除 <code>state-leaving</code> → 表單／品牌淡入；清掉殘留 inline style；重置 submit 按鈕。</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============ C ============ -->
+  <section id="c">
+    <div class="sec-h"><span class="sec-n">C</span><h2>視圖切換 · 散開／合攏</h2></div>
+    <p class="sec-sub">首頁 ↔ 核心主檔 ↔ 進貨 之間切換時的轉場。觸發：<code class="g">nxNavigate()</code> → <code class="g">showView()</code>。TopBar 全程不動，只有主內容區的「框框」動。</p>
+    <div class="card">
+      <h3>散開 → 合攏 <span class="tag js">JS 驅動</span></h3>
+      <div class="where">system-integrate.js · showView() / setScatter()</div>
+      <ol class="steps">
+        <li><span class="lbl">舊視圖散開：</span>每個框（<code>.card / .nx-frame / .nx-page-head</code>）以視圖中心為原點，沿自身方向<b>向外推 120px</b> 並 <code>scale(.9)</code> 淡出。<code class="dur">transform .44s cubic-bezier(.34,.05,.2,1)，opacity .4s</code>。</li>
+        <li><span class="lbl">300ms 後切換：</span>舊視圖 <code>hidden</code>、<code class="g">render()</code> 填入新內容、新視圖先設為「已散開」狀態（instant），強制 reflow（<code>offsetWidth</code>），再合攏回原位淡入。</li>
+        <li>560ms 後 <code class="g">finalize()</code> 清掉 inline transform／opacity。</li>
+      </ol>
+      <p class="note">易漏點：散開方向是<b>逐框計算的徑向向量</b>（每張卡朝離開中心的方向飛），不是整塊一起淡入淡出。少了這個就失去「爆開／聚攏」的手感。</p>
+    </div>
+  </section>
+
+  <!-- ============ D ============ -->
+  <section id="d">
+    <div class="sec-h"><span class="sec-n">D</span><h2>儀表板進場 · 錯落浮現</h2></div>
+    <p class="sec-sub">主轉場進入 <code>state-app</code> 時，問候語與各卡片不是一起出現，而是<b>依序延遲</b>由下往上浮現。純 CSS。</p>
+    <div class="card">
+      <h3>stagger 延遲表 <span class="tag css">純 CSS</span></h3>
+      <div class="where">globals.css · .greet / .main .card</div>
+      <p style="margin:0 0 6px;color:var(--muted);font-size:13.5px">基底：<code>opacity 0; transform translateY(28px)</code> → 進場 <code>transition: opacity .6s ease, transform .7s cubic-bezier(.2,.75,.2,1)</code>。各元素只差在 <code>transition-delay</code>：</p>
+      <table>
+        <tr><th>元素</th><th>選擇器</th><th>延遲</th></tr>
+        <tr><td>問候語</td><td><code>.greet</code></td><td class="dur">0.15s</td></tr>
+        <tr><td>左欄卡 1（行事曆）</td><td><code>.col-l &gt; .card:nth-of-type(1)</code></td><td class="dur">0.30s</td></tr>
+        <tr><td>右側任務卡</td><td><code>.grid &gt; .card</code></td><td class="dur">0.38s</td></tr>
+        <tr><td>左欄卡 2（事件＋出勤）</td><td><code>.col-l &gt; .card:nth-of-type(2)</code></td><td class="dur">0.46s</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ E ============ -->
+  <section id="e">
+    <div class="sec-h"><span class="sec-n">E</span><h2>微互動轉場</h2></div>
+    <p class="sec-sub">分散在各元件上的小轉場。數量多但都短促（多在 .14–.28s），是「精緻感」的來源，最常被整批漏掉。</p>
+    <div class="card">
+      <h3>清單 <span class="tag css">純 CSS</span></h3>
+      <table>
+        <tr><th>元件</th><th>動態</th><th>數值</th></tr>
+        <tr><td>導覽 Dock 面板開啟</td><td>由 <code>translateY(-8px) scale(.97)</code> 淡入</td><td class="dur">opacity .2s / transform .2s cubic-bezier(.2,.8,.3,1)</td></tr>
+        <tr><td>Dock 多層下鑽</td><td><code>.dock-rail</code> 橫移切層</td><td class="dur">transform .28s cubic-bezier(.3,.8,.3,1)</td></tr>
+        <tr><td>設定開關 (toggle)</td><td>把手滑動 + 變金色</td><td class="dur">.18s</td></tr>
+        <tr><td>Modal 彈窗</td><td>背景模糊淡入 + 卡片浮起</td><td class="dur">opacity .2s</td></tr>
+        <tr><td>登入輸入框 focus</td><td>金色描邊 + 光暈 + 底色</td><td class="dur">border/shadow/bg .18s</td></tr>
+        <tr><td>登入按鈕按壓</td><td><code>translateY(1px)</code></td><td class="dur">transform .12s</td></tr>
+        <tr><td>iconbtn／navitem／userbtn</td><td>hover 變色／底色</td><td class="dur">.15s</td></tr>
+        <tr><td>篩選 chip／task／att／event／公告</td><td>hover 底色／邊框</td><td class="dur">.14s</td></tr>
+        <tr><td>卡片 hover（DS 規範）</td><td><code>translateY(-1px)</code> + 邊框轉金 + 加深陰影</td><td class="dur">150–300ms</td></tr>
+        <tr><td>星空 <code>#stars</code></td><td>主題切換時 opacity</td><td class="dur">.4s</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <div class="foot">
+    <span>NEXORA GRID · 轉場與星球規格</span>
+    <span><b>★ 星球拆解見下一頁 ↓</b></span>
+  </div>
+
+  <!-- ============ PLANET ============ -->
+  <section id="planet">
+    <div class="sec-h"><span class="sec-n">★</span><h2>星球(Planet) 完整拆解</h2></div>
+    <p class="sec-sub">這是落差最大的部分。星球<b>不是一張 PNG、也不是單一 SVG icon</b>，而是一個多層 DOM＋inline SVG 組裝、由 <code>requestAnimationFrame</code> 物理驅動、會在兩個位置間實際飛行的元件。要長得一樣，下面每一層與每個子動畫都得在。</p>
+
+    <div class="card">
+      <h3>核心架構：一顆星球，兩個位置 <span class="tag js">最關鍵</span></h3>
+      <div class="where">DOM: #planet-stage &gt; #planetWrap（固定定位，z-index 60）· system-engine.js: placePlanet/placeLogin/placeDock</div>
+      <ul class="plain">
+        <li><b>只有一顆星球。</b> <code>#planetWrap</code> 是 <code>position:fixed</code>、自然尺寸 <code>440×440</code>（常數 <code>BASE=440</code>）的單一元件，永遠浮在最上層。</li>
+        <li><b>登入大圖與 TopBar 小 logo 是同一顆。</b> JS 用 <code>getBoundingClientRect()</code> 量出登入區占位 <code>#lg-slot</code> 與 TopBar 的 <code>.logo</code> 兩個矩形，再用 <code>transform: translate()+scale()</code> 把同一顆星球擺到對應位置／縮放。登入時 <code class="g">placeLogin()</code>、進系統後 <code class="g">placeDock()</code>。</li>
+        <li><b>TopBar 裡那個 <code>.logo</code> SVG 是隱形佔位。</b> CSS <code>.logo{opacity:0}</code> —— 它只負責「卡」出版面空間，讓飛過來的真星球有地方停泊。真正看到的金色星球永遠是 <code>#planetWrap</code>。</li>
+        <li><b>resize 會重新定位。</b> 視窗縮放時依當前狀態重算 <code>placeLogin/placeDock</code>，星球不會跑位。</li>
+      </ul>
+      <p class="note warn"><b>若把它做成兩個獨立元素（登入一個大星球、TopBar 一個小 logo）—— 飛行／停泊轉場（A、B 段）就完全無法成立，</b>這通常就是「星球差很多」的根因。</p>
+    </div>
+
+    <div class="card">
+      <h3>視覺層疊（由底到頂）<span class="tag svg">DOM + SVG</span></h3>
+      <div class="where">NEXORA 系統.html · #planetWrap 內部</div>
+      <div class="layers">
+        <div class="ly"><span class="z">底層</span><b>.halo-outer</b><span>金色徑向光暈，<code>breathe 5.6s</code> 呼吸縮放</span></div>
+        <div class="ly"><span class="z">球體</span><b>.sphere</b><span>金屬球，inset 高光 + 金色外光 + 深陰影</span></div>
+        <div class="ly"><span class="z">紋理</span><b>svg.hexsphere</b><span>金屬徑向漸層 <code>metalG</code> + 旋轉環紋 + 陰影 + 能量波 + 反應爐核心</span></div>
+        <div class="ly"><span class="z">高光</span><b>.spec</b><span>左上玻璃反光，<code>mix-blend:screen</code></span></div>
+        <div class="ly"><span class="z">核心</span><b>.reactor</b><span>金白熾光核心，<code>breatheCore 3.8s</code></span></div>
+        <div class="ly"><span class="z">軌道</span><b>.satdot ×3</b><span>三顆守護衛星，rAF 橢圓軌道</span></div>
+      </div>
+      <p class="note">金屬質感全來自 <b>SVG 徑向漸層</b>（<code>metalG</code>：亮 <code>#d6dbe3</code> → 暗 <code>#242a33</code>），circuit／hex 質感來自一個 <code>pattern</code> 環紋；不是貼圖。</p>
+    </div>
+
+    <div class="card">
+      <h3>星球本體的常駐動畫（缺一就會「死掉」變平面）<span class="tag svg">SVG + CSS + JS</span></h3>
+      <table>
+        <tr><th>動畫</th><th>實作</th><th>週期 / 行為</th></tr>
+        <tr><td>外光暈呼吸</td><td>CSS <code>@keyframes breathe</code></td><td class="dur">5.6s · opacity + scale</td></tr>
+        <tr><td>核心熾光呼吸</td><td>CSS <code>breatheCore</code> + SVG <code>&lt;animate&gt;</code>（核心 r、光暈 opacity）</td><td class="dur">3.8s</td></tr>
+        <tr><td>環紋自轉</td><td>SVG <code>&lt;animateTransform type=rotate&gt;</code> 0→360°</td><td class="dur">140s（極慢）</td></tr>
+        <tr><td>能量漣漪</td><td>JS <code class="g">buildHexWave()</code> 程序生成一格格 <code>.hexcell</code>，每格跑 <code>@keyframes hexwave</code>，<b>延遲依離中心距離遞增</b> → 由內往外擴散的脈衝</td><td class="dur">6.8s linear，distance-based delay</td></tr>
+      </table>
+      <p class="note">能量漣漪是手刻生成的：以球心為原點鋪一張六邊網格，每個 cell 的 <code>animation-delay</code> 正比於離心距離，視覺上就是一圈圈能量往外推。這一段很容易被當成「裝飾」整段砍掉。</p>
+    </div>
+
+    <div class="card">
+      <h3>三顆守護衛星（只在登入時出現）<span class="tag js">rAF 物理</span></h3>
+      <div class="where">system-engine.js · sats[] / updateSats()</div>
+      <ul class="plain">
+        <li><b>橢圓軌道。</b> 三顆各有自己的起始角 <code>a</code>、角速度 <code>sp</code>（含正負＝順逆時針）、半徑 <code>rx .66 / ry .30</code>、與不同<b>傾角 tilt（18° / 78° / 132°）</b>，所以軌道面交錯成 3D 感。</li>
+        <li><b>深度感。</b> 依 <code>sin(角度)</code> 算 depth → 動態調整 <code>scale（0.8–1.12）</code>、<code>opacity（.55–1）</code>、<code>z-index</code>（衛星會繞到球前 / 球後）。</li>
+        <li><b>滑鼠互動 (guarding)。</b> 游標靠近星球（距離 &lt; 0.62×球寬）時，三顆衛星會<b>聚集到游標那一側</b>、放大到 1.16、加速跟手（lerp k 0.085→0.16）。</li>
+        <li><b>只在登入態存在。</b> <code>appState !== 'login'</code> 時 opacity 設 0 —— 停泊進 TopBar 後衛星就收起來。</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>星空背景 Canvas（星球的舞台）<span class="tag js">Canvas rAF</span></h3>
+      <div class="where">system-engine.js · #stars canvas · frame()</div>
+      <ul class="plain">
+        <li><b>三層視差星空</b>（depth 5 / 14 / 30，共 300 + 140 + 42 顆），各自 twinkle 閃爍、緩慢漂移，並隨滑鼠視差位移（最遠層最敏感）。最亮層帶 glow。</li>
+        <li><b>18 顆發光微粒</b>（青／藍／金三色）緩緩上升，<code>globalCompositeOperation='lighter'</code> 疊加發光。</li>
+        <li><b>流星</b>：每隔約 7–17 秒從左/右上方畫過，帶漸層拖尾。</li>
+        <li><b>淺色主題</b>會切換成不同的極光式渲染（柔光 + 微粒）。</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ WHY ============ -->
+  <section id="why">
+    <div class="sec-h"><span class="sec-n">★</span><h2>為什麼你的星球會「差很多」</h2></div>
+    <p class="sec-sub">對照常見的重做結果與正確架構，落差幾乎都落在這幾點：</p>
+    <div class="gap">
+      <div class="bad">
+        <h4>常見錯誤重做</h4>
+        <ul>
+          <li>做成<b>一張靜態 PNG / 單一 SVG icon</b> → 沒金屬漸層層次、沒呼吸、沒漣漪，看起來扁平</li>
+          <li>登入星球與 TopBar logo 做成<b>兩個獨立元素</b> → 沒有飛行＋停泊轉場</li>
+          <li>漏掉 <code>buildHexWave()</code> 能量漣漪、環紋自轉 → 星球靜止「死掉」</li>
+          <li>沒有 rAF 衛星，或衛星只是固定繞圈、無傾角／無滑鼠互動</li>
+          <li>漏掉 <code>#stars</code> 星空 canvas → 星球失去舞台、孤立懸空</li>
+          <li>用近似色硬填，沒照 <code>metalG / coreG</code> 的漸層停點 → 顏色與質感不對</li>
+        </ul>
+      </div>
+      <div class="good">
+        <h4>正確架構（照這個給指令）</h4>
+        <ul>
+          <li><b>一顆</b> <code>#planetWrap</code>（440px、fixed、z-60），多層 DOM + inline SVG 組裝</li>
+          <li>JS 量 <code>#lg-slot</code> / <code>.logo</code> 兩矩形，用 transform 在兩處間<b>飛行＋縮放</b>；TopBar <code>.logo</code> 設 <code>opacity:0</code> 當佔位</li>
+          <li>常駐動畫全到：breathe 5.6s／breatheCore 3.8s／環紋 140s／hexwave 6.8s(距離延遲)</li>
+          <li>三顆衛星 rAF：各自角速度＋傾角(18/78/132°)＋深度 scale/opacity/z＋滑鼠 guarding，僅登入態</li>
+          <li>保留 <code>#stars</code> 三層視差星空 + 發光微粒 + 流星</li>
+          <li>顏色一律照 SVG 漸層停點，不自創色</li>
+        </ul>
+      </div>
+    </div>
+    <p class="note warn" style="margin-top:22px"><b>給 Claude Code 的一句話總結：</b>「星球是<b>單一</b>多層 DOM+SVG 元件，用 JS transform 在登入大圖位置與 TopBar logo 佔位之間飛行；本體含 breathe/breatheCore/旋轉環紋/距離延遲的 hexwave 漣漪四組常駐動畫，外加三顆 rAF 橢圓軌道（含傾角與滑鼠互動）衛星，背景是三層視差星空 canvas。請逐項實作，勿簡化成靜態圖。」</p>
+  </section>
+
+  <div class="foot">
+    <span>來源：NEXORA 系統.html · system-engine.js · system-integrate.js</span>
+    <span>NEXORA <b>GRID</b></span>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,10 +1,12 @@
 <!-- 檔案位置：docs/專案/規格書/核心/需求規格-01-核心主檔.html -->
-<!-- 檔案版本：v2.0 -->
-<!-- 檔案說明：核心主檔模組（NX01）完整功能需求（施工級藍圖）。逐主檔列欄位、性質、規則、來源、關聯。
-     對應《操作手冊-02 Ver 2.7》。落差/待釐清以 ⚠️ 標示，待 Hank 對 schema 驗證。 -->
+<!-- 檔案版本：v3.9 -->
+<!-- 檔案說明：核心主檔模組的完整功能需求（施工級藍圖）。NX01。逐主檔列欄位、性質、規則、來源、關聯，
+     並於有操作之畫面補「操作與結果」段。本規格為權威來源，系統須據此對齊；落差以 ⚠️ 標示供 Hank 檢查回報。
+     v3.0 變更：版型對齊 NX00（畫面欄位＋操作與結果雙段式）、補 NX 碼、補本次/伏筆/唯讀 tag、補「手機」欄位、
+     「待釐清」升級為「補做與連帶事項」專區。 -->
 <!DOCTYPE html><html lang="zh-Hant"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>需求規格 01 — 核心主檔 v2.0</title>
+<title>需求規格 01 — 核心主檔 v3.9</title>
 <style>
 :root{--navy:#1F3A5F;--amber:#c8881f;--sub:#5d6675;--line:#e3e7ee;--warn:#962d2d;--bg:#fafbfc;--star:#7a4e09;}
 *{box-sizing:border-box;}
@@ -34,13 +36,25 @@ td.prop{white-space:nowrap;color:#6a4a12;font-size:11.5px;}
 .lead{background:var(--bg);border-left:4px solid var(--amber);border-radius:6px;padding:10px 14px;margin:8px 0;font-size:13.5px;}
 ul{margin:6px 0;padding-left:22px;font-size:13.5px;} li{margin:4px 0;}
 code{background:#eef2f8;border-radius:4px;padding:1px 5px;font-size:12px;}
+h3.sub{color:var(--navy);font-size:14px;margin:16px 0 4px;border-bottom:1px dashed var(--line);padding-bottom:2px;}
+td.num{text-align:center;font-weight:700;color:var(--navy);white-space:nowrap;}
+.tag{display:inline-block;font-size:10.5px;font-weight:700;border-radius:3px;padding:0 6px;margin-left:5px;vertical-align:middle;}
+.t-now{background:#e3f0e3;color:#2d6a2d;} .t-later{background:#fdf3e3;color:var(--star);} .t-ro{background:#eef2f8;color:var(--navy);}
+table.ops{border-collapse:collapse;width:100%;font-size:12.5px;margin:0 0 8px;}
+table.ops th,table.ops td{border:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:top;}
+table.ops th{background:#33507a;color:#fff;font-weight:600;}
+table.ops tr:nth-child(even) td{background:var(--bg);}
+table.ops td.act{font-weight:700;color:var(--navy);white-space:nowrap;}
 footer{margin-top:46px;padding-top:14px;border-top:1px solid var(--line);color:var(--sub);font-size:12px;}
 </style></head><body>
 <header class="doc"><h1>需求規格 01 — 核心主檔</h1>
-<div class="meta"><b>檔案位置：</b>docs/專案/規格書/核心/需求規格-01-核心主檔.html　|　<b>版本：</b>v2.0　|　<b>維護：</b>CTO（Alex）<br>
+<div class="meta"><b>檔案位置：</b>docs/專案/規格書/核心/需求規格-01-核心主檔.html　|　<b>版本：</b>v3.9　|　<b>維護：</b>CTO（Alex）　|　<b>NX 碼：</b>NX01（核心 / LITE）<br>
 <b>說明：</b>核心主檔「該做成怎樣」的施工級需求——逐主檔列欄位、性質、規則、來源、關聯。操作步驟見《操作手冊-02 Ver 2.7》；工程慣例見《核心系統規格》。</div></header>
 
-<p class="lead">核心主檔是<b>所有單據的資料底座</b>，進貨/庫存/銷貨/財務/報表全引用它。本模組含七大分區：帳號與權限、產品與料號、組織架構、交易對象、系統設定、內建主檔，外加所有主檔共通的通用需求。</p>
+<p class="lead">核心主檔是<b>所有單據的資料底座</b>，進貨/庫存/銷貨/財務/報表全引用它。本模組含六大分區：組織架構、權限管理、據點倉庫、往來對象、產品與廠牌、字典主檔，外加所有主檔共通的通用需求。設計理念採<b>「先建素材、再組裝」</b>：各基本資料頁只負責建立實體本身，部門/組/職務/員工的指派關係統一在「組織架構圖」組裝。標記說明：<span class="tag t-now">本次</span> 此版實作；<span class="tag t-later">伏筆</span> 預留位置、另立任務；<span class="tag t-ro">唯讀</span> 使用者僅瀏覽不可改。</p>
+
+<div class="cal note"><b>導覽銜接（DOCK）：</b>本模組的六大分區即小星球「主檔」項的第二層選單——主檔導覽採三層：<b>主檔 → 六大分區 → 各分區的主檔頁</b>。各分區包含的主檔即下列各節，分區順序與小星球一致。DOCK 三層導覽的完整定義見 NX00。</div>
+<div class="cal note"><b>每個畫面的寫法：</b>有實際操作的畫面採兩段——「一、畫面欄位」說明這張畫面有哪些欄位（靜態）；「二、操作與結果」說明按了什麼、系統做什麼、出現什麼結果（動態）。純靜態的小型字典主檔（國家、幣別、地區等）只需新增/編輯/停用/啟用，不另列操作段。</div>
 
 <h2>通用需求（所有主檔共通）</h2>
 <div class="cal star"><b>無刪除、只停用：</b>系統沒有實體刪除、只有「停用」。停用資料不消失、只是不再出現在日常清單與下拉，需要時可再「啟用」。權限矩陣對應欄位即名為「停用」（軟刪除）。停用方向永遠放行。</div>
@@ -52,186 +66,334 @@ footer{margin-top:46px;padding-top:14px;border-top:1px solid var(--line);color:v
 <li>客戶端介面/URL 只用業務中文名，不外露內部代碼或表名。</li>
 </ul>
 <div class="cal note">【說明】 本手冊每個主檔開頭都會標「選單位置」，照著點就能找到該畫面。</div><div class="cal star">【重點】 NEXORA 沒有「刪除」、只有「停用」。停用的資料不會消失、只是不再出現在日常清單與下拉裡，需要時可再「啟用」。所以權限矩陣裡那一欄也叫「停用」不是「刪除」。</div>
-<h2>帳號與權限</h2>
-<p>這一區管理「人」與「能做什麼」：建立員工帳號、定義職務、設定每個職務能用哪些畫面。共五個主檔。</p>
 
-<h3 class="ent">使用者基本資料 <span class="mt">一般表格</span> <span class="mt">LITE</span></h3>
-<div class="ent-menu">選單位置 主檔 → 帳號與權限 → 使用者基本資料</div>
-<p>建立與維護每位員工的資料、帳號與權限。畫面分四個分頁：基本資料、帳號權限、帳號安全、人力資源。</p>
-<div class="ep"><div class="ep-h">基本資料分頁</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">員工編號</td><td class="prop">必填 / 建立後不可改</td><td>格式 Y＋4 碼（例如 Y0001），新增時系統自動給號、可手動覆寫。這也是登入帳號。建立後鎖定。</td></tr><tr><td class="fnm">姓名</td><td class="prop">必填</td><td>員工本名。</td></tr><tr><td class="fnm">大頭貼</td><td class="prop">選填</td><td>員工大頭照，可開鏡頭拍或選檔上傳，顯示在員工列表與相關畫面，方便辨識。</td></tr><tr><td class="fnm">Email</td><td class="prop">選填</td><td>電子郵件，供通知與聯絡。</td></tr><tr><td class="fnm">電話</td><td class="prop">選填</td><td>聯絡電話。</td></tr><tr><td class="fnm">性別</td><td class="prop">選填</td><td>下拉：男／女／其他。</td></tr><tr><td class="fnm">生日</td><td class="prop">選填</td><td>出生日期，點欄位選日曆。</td></tr><tr><td class="fnm">身分證字號</td><td class="prop">選填</td><td>供報稅、勞健保等人事作業參考。</td></tr><tr><td class="fnm">國籍</td><td class="prop">選填</td><td>下拉（來源：國家主檔），預設台灣。</td></tr><tr><td class="fnm">部門</td><td class="prop">選填</td><td>從員工的「主組」自動帶出（主組屬於哪個部門就是哪個部門），唯讀；沒有掛組的員工（少數行政人員）才可在此手動選部門。</td></tr><tr><td class="fnm">戶籍地址</td><td class="prop">選填</td><td>結構化填寫：選縣市→選鄉鎮市區（自動帶郵遞區號）→填詳細地址（路巷弄號樓）。</td></tr><tr><td class="fnm">通訊地址</td><td class="prop">選填</td><td>實際通訊地址，填法同戶籍地址，可與戶籍不同。</td></tr><tr><td class="fnm">到職日</td><td class="prop">選填</td><td>到職日期，點欄位選日曆。供年資計算。</td></tr><tr><td class="fnm">離職日期</td><td class="prop">選填</td><td>員工離職日期，點欄位選日曆。留空表示在職；填了即標示已離職（仍保留資料、不刪除）。</td></tr><tr><td class="fnm">緊急聯絡人／緊急聯絡電話</td><td class="prop">選填</td><td>緊急狀況的聯絡對象與電話。</td></tr><tr><td class="fnm">最高學歷</td><td class="prop">選填</td><td>例如 高中／專科／大學／碩士。</td></tr><tr><td class="fnm">畢業學校</td><td class="prop">選填</td><td>畢業學校名稱。</td></tr><tr><td class="fnm">兵役狀況</td><td class="prop">選填</td><td>例如 已服／未服／免役／替代役。</td></tr><tr><td class="fnm">體檢日期</td><td class="prop">選填</td><td>最近一次健檢日期，點欄位選日曆。</td></tr><tr><td class="fnm">體檢結果</td><td class="prop">選填</td><td>合格／不合格／複檢／未體檢。只記結果文字、不存報告檔。</td></tr><tr><td class="fnm">舊系統員工編號</td><td class="prop">進階</td><td>對應舊系統的舊員工編號，方便資料轉移對照。列表預設不顯示。</td></tr></table></div>
-<div class="ep"><div class="ep-h">帳號權限分頁</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">職務</td><td class="prop">選填</td><td>勾選一個或多個職務（可複選），員工因此取得對應權限。</td></tr><tr><td class="fnm">隸屬組</td><td class="prop">選填</td><td>選擇員工所屬的組（可選一或多個，其中一個為主組）。主組決定員工的部門（例如主組是台北一組、屬銷售部，員工部門即銷售部）。可標記是否為組長。</td></tr><tr><td class="fnm">是否為公司負責人</td><td class="prop">選填</td><td>開關。標記是否為公司負責人。負責人也占一席。</td></tr><tr><td class="fnm">隸屬據點</td><td class="prop">選填</td><td>下拉（來源：據點／倉庫主檔），這名員工隸屬哪個據點。也可在「使用者據點設定」批次工具一次設定多人。</td></tr><tr><td class="fnm">是否啟用</td><td class="prop">選填</td><td>開關。啟用後員工才能登入；啟用人數（含負責人）受席次上限管控，停用永遠放行。</td></tr></table></div>
+<h2>主檔頁面型態</h2>
+<p>每個主檔標題旁標一個<b>型態標籤</b>，代表它套用哪一種頁面架構。以下定義各型態的版面結構與通用行為（只定架構與互動，視覺風格由設計系統供應）。後續各主檔只描述自己的欄位差異，頁面框架一律引用本章。</p>
+
+<h3 class="sub">型態一覽</h3>
+<table class="ops"><tr><th>型態標籤</th><th>用途</th><th>代表主檔</th></tr>
+<tr><td class="act">一般表格</td><td>標準 CRUD：清單頁＋詳細頁</td><td>多數主檔（職務、部門、品牌、地區、國家…）</td></tr>
+<tr><td class="act">一般表格（多分頁）</td><td>同上，但詳細頁分多個分頁</td><td>員工基本資料</td></tr>
+<tr><td class="act">一般表格（含子表）</td><td>同上，詳細頁帶子表</td><td>往來對象（地址／窗口子表）、零件（替代料／照片）</td></tr>
+<tr><td class="act">一般表格（系統內建）</td><td>同上，但只能改不能新增（內建資料）</td><td>客戶分級</td></tr>
+<tr><td class="act">一般表格（半開放）</td><td>內建項鎖定、可另新增自訂項</td><td>供應商分級</td></tr>
+<tr><td class="act">群組批次</td><td>左右欄：左選主體、右維護成員</td><td>通用件群組、供應商供貨對應</td></tr>
+<tr><td class="act">圖像化指派</td><td>多層串接面板，逐層指派</td><td>組織架構圖、據點架構圖</td></tr>
+<tr><td class="act">權限矩陣</td><td>畫面×權限的勾選矩陣</td><td>職務權限設定</td></tr>
+</table>
+
+<h3 class="sub">型態一：一般表格（基準型態）</h3>
+<p>最常見的型態，由「資料瀏覽（清單頁）」與「詳細資料（詳細頁）」兩個分頁構成，頂部以分頁列切換。全鍵盤可操作。</p>
+<div class="ep"><div class="ep-h">清單頁（資料瀏覽）— 由上而下的版面</div><table class="fields"><tr><th>區塊</th><th>內容與行為</th></tr>
+<tr><td class="fnm">分頁列</td><td>「資料瀏覽 / 詳細資料」兩個分頁，可鍵盤快捷切換。</td></tr>
+<tr><td class="fnm">工具列</td><td>由左到右：翻頁鈕與頁次 → 更正（進編輯）→ 查詢（開搜尋條）→｜→ 停用／啟用（依選列狀態自動切換）→ 匯出（CSV／PDF／列印）→ 重新整理 →｜→ 欄位（顯示/隱藏欄、附隱藏數）→ 篩選（多條件，附條件數）→（撐開）→ 顯示停用（切換是否列出停用資料）→ 選取（進多選批次模式）。</td></tr>
+<tr><td class="fnm">浮動面板</td><td>搜尋／欄位設定／篩選三個面板，在工具列下方就地展開，同時只開一個（互斥）。</td></tr>
+<tr><td class="fnm">資料表格</td><td>表頭固定（捲動時不跑掉）、列間斑馬紋、可鍵盤上下切列、Enter 進該筆詳細。停用列預設不顯示、開「顯示停用」才出現並加狀態標示；選中列加明顯標示。</td></tr>
+<tr><td class="fnm">頁尾</td><td>顯示「共 X 筆 / 顯示 Y 筆」與「每頁 N 筆」選擇（傳統分頁，非無限捲動）。</td></tr>
+</table></div>
+<div class="ep"><div class="ep-h">詳細頁（詳細資料）— 由上而下的版面</div><table class="fields"><tr><th>區塊</th><th>內容與行為</th></tr>
+<tr><td class="fnm">標題列</td><td>狀態圓點＋主標題（該筆的代碼或名稱，新增時顯示「新增○○」）＋「編輯中／瀏覽」狀態字。</td></tr>
+<tr><td class="fnm">欄位區</td><td>雙欄網格（手機單欄），欄位順序＝該主檔欄位定義順序；長欄位（多行文字、地址）自動跨欄。必填欄 label 加「*」。</td></tr>
+<tr><td class="fnm">動作（編輯模式）</td><td>進編輯模式時工具列轉為「存檔／取消」；有未存變更時切走會跳三選確認（存檔後離開／放棄變更／取消）。</td></tr>
+<tr><td class="fnm">異動紀錄區</td><td>底部顯示建立／最後修改的時間與人員（唯讀）。</td></tr>
+</table></div>
+<div class="cal star">【通用行為】 全鍵盤：分頁切換、工具列各鈕、表格上下、Enter 進詳細、編輯中 Enter 逐格跳、最後一格 Enter 觸發存檔確認。軟刪除：所有「刪除」一律是停用、可再啟用。唯讀欄：以唯讀樣式顯示、不可聚焦編輯（如代碼類、計算欄、推導欄）。</div>
+
+<h3 class="sub">型態二：一般表格（多分頁）</h3>
+<p>架構同「一般表格」，差別在<b>詳細頁分多個分頁</b>，每個分頁裝一組相關欄位，頂部以分頁切換。清單頁與通用行為完全相同。例：員工基本資料分「基本資料／教育程度／職務部門／帳號狀況」四分頁。</p>
+
+<h3 class="sub">型態三：一般表格（含子表）</h3>
+<p>架構同「一般表格」，詳細頁除主欄位外，下方再帶<b>一個或多個子表</b>（一對多明細）。子表通用範式：子表區有標題＋筆數＋「新增」鈕，主檔詳細頁上以唯讀明細列呈現；子表項目的新增／編輯走獨立的子頁面（非就地編輯）。例：往來對象的聯絡窗口／送貨地址、零件的替代料／照片。</p>
+
+<h3 class="sub">型態四／五：一般表格（系統內建 / 半開放）</h3>
+<p>架構同「一般表格」，差別只在「能不能新增」：<br>
+· <b>系統內建</b>：資料由系統預置，使用者只能改不能新增、不能停用（例：客戶分級 A／B／C／D）。<br>
+· <b>半開放</b>：內建項鎖定（不能改代碼、不能停用），但使用者可<b>另新增</b>自訂項（例：供應商分級內建 A～D，可再加 VIP／列管）。</p>
+
+<h3 class="sub">型態六：群組批次</h3>
+<p><b>左右兩欄</b>面板，處理「一個主體配多個成員」的多對多關係。左欄＝主體清單（可搜尋、可選、部分可新建）；右欄＝選定主體的成員清單（每列一筆、可移除、右上有筆數與加入鈕）。成員可帶屬性的（如通用件群組成員有角色／替代設定），右欄每列可展開設定。供應商供貨對應另有「品牌＋群組＋產地」批次匯入視窗。全鍵盤操作。</p>
+
+<h3 class="sub">型態七：圖像化指派</h3>
+<p><b>多層串接</b>面板，由左至右逐層收斂，點左層節點、右層顯示其下層內容，用於組裝層級與指派關係。組織架構圖為四層（部門→組→職務→成員，含未指派成員池）；據點架構圖為三層（據點→倉庫→庫位，含員工據點指派）。各層的建立走各自基本資料頁，此型態只做「指派關係」的組裝。</p>
+
+<h3 class="sub">型態八：權限矩陣</h3>
+<p><b>畫面 × 權限</b>的二維勾選矩陣。每一列是一個畫面、每一欄是一種權限（瀏覽／新增／修改／停用／匯出／核准），交叉格打勾即授權。支援單格、整列（整個畫面）、整模組三層批次勾選；採「暫存後一次存檔」，未存離開會提醒。例：職務權限設定。</p>
+
+<h2>組織架構</h2>
+<p>建立組織的人事素材：員工、部門、組別、職務。本分區只負責「建立這些實體本身」；它們的指派關係（誰在哪個部門/組/職務）統一到「權限管理 → 組織架構圖」設定。員工基本資料的部門/組/職務欄位僅顯示、不可在此編輯。</p>
+
+<h3 class="ent">員工基本資料 <span class="mt">一般表格（多分頁）</span> <span class="mt">LITE</span></h3>
+<div class="ent-menu">選單位置 主檔 → 組織架構 → 員工基本資料</div>
+<p>建立與維護每位員工的個人資料、學經歷、組織歸屬與帳號。畫面分四個分頁：<b>基本資料、教育程度、職務部門、帳號狀況</b>。<b>部門/組/職務/據點僅顯示（唯讀），指派統一在「權限管理 → 組織架構圖」「據點架構圖」組裝。</b>版面採通用多分頁詳細頁範式（見「通用頁面範式」）。</p>
+<div class="ep"><div class="ep-h">① 基本資料分頁</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">員工編號</td><td class="prop">必填 / 建立後不可改</td><td>格式 Y＋4 碼（例如 Y0001），新增時系統自動給號、可手動覆寫，租戶內唯一。這也是登入帳號（NX00 以「公司帳號＋員工編號」登入）。建立後鎖定。</td></tr><tr><td class="fnm">舊系統員工編號</td><td class="prop">進階</td><td>對應舊系統的舊員工編號，方便資料轉移對照。列表預設不顯示。</td></tr><tr><td class="fnm">中文姓名</td><td class="prop">必填</td><td>員工中文本名。</td></tr><tr><td class="fnm">英文姓名</td><td class="prop">選填</td><td>員工英文姓名。</td></tr><tr><td class="fnm">大頭貼</td><td class="prop">選填</td><td>員工大頭照，可開鏡頭拍或選檔上傳，顯示在員工列表與相關畫面，方便辨識。</td></tr><tr><td class="fnm">Email</td><td class="prop">選填</td><td>電子郵件，供通知與聯絡。亦可作忘記密碼自助重設管道之一。</td></tr><tr><td class="fnm">電話</td><td class="prop">選填</td><td>市話或室內聯絡電話。</td></tr><tr><td class="fnm">手機</td><td class="prop">選填</td><td>行動電話。供「忘記密碼」自助重設（收簡訊驗證碼）與系統通知使用，見 NX00 登入流程。未填手機（且未填 Email）者無法走自助重設，只能由管理員重設密碼。</td></tr><tr><td class="fnm">性別</td><td class="prop">選填</td><td>下拉：男／女／其他。</td></tr><tr><td class="fnm">生日</td><td class="prop">選填</td><td>出生日期，點欄位選日曆。</td></tr><tr><td class="fnm">身分證字號</td><td class="prop">選填 / 遮罩</td><td>供報稅、勞健保等人事作業參考。<b>預設遮罩顯示（*****），點「顯示」即可解遮看明碼</b>——能進此主檔者本即高階主管，遮罩為防意外瞥見／截圖外洩的第二層防護，非嚴格權限隔離。</td></tr><tr><td class="fnm">國籍</td><td class="prop">選填</td><td>下拉（來源：國家主檔），預設台灣。</td></tr><tr><td class="fnm">戶籍地址</td><td class="prop">選填</td><td>結構化填寫：選縣市→選鄉鎮市區（自動帶郵遞區號）→填詳細地址（路巷弄號樓）。整列跨欄。</td></tr><tr><td class="fnm">通訊地址</td><td class="prop">選填</td><td>實際通訊地址，填法同戶籍地址，可與戶籍不同。整列跨欄。</td></tr><tr><td class="fnm">緊急聯絡人姓名</td><td class="prop">選填</td><td>緊急狀況的聯絡對象姓名。</td></tr><tr><td class="fnm">緊急聯絡人關係</td><td class="prop">選填</td><td>與員工的關係（例如 父／母／配偶）。</td></tr><tr><td class="fnm">緊急聯絡人電話</td><td class="prop">選填</td><td>緊急聯絡電話。</td></tr></table></div>
+<div class="cal note">【排版】 基本資料分頁採三欄網格、同性質欄位由上而下分群：編號類（員工編號／舊系統員工編號）→姓名類（中文／英文姓名，大頭貼置右獨立區塊跨多列）→個人類（性別／生日／身分證／國籍）→聯絡類（Email／電話／手機，Email 可跨欄）→地址類（戶籍／通訊地址整列跨三欄）→緊急聯絡類（姓名／關係／電話）。短欄位佔一格、長欄位跨欄、地址整列。</div>
+<div class="ep"><div class="ep-h">② 教育程度分頁</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">最高學歷</td><td class="prop">選填</td><td>例如 高中／專科／大學／碩士。</td></tr><tr><td class="fnm">畢業學校</td><td class="prop">選填</td><td>畢業學校名稱。</td></tr><tr><td class="fnm">兵役狀況</td><td class="prop">選填</td><td>例如 已服／未服／免役／替代役。</td></tr><tr><td class="fnm">體檢日期</td><td class="prop">選填</td><td>最近一次健檢日期，點欄位選日曆。</td></tr><tr><td class="fnm">體檢結果</td><td class="prop">選填</td><td>合格／不合格／複檢／未體檢。只記結果文字、不存報告檔。</td></tr></table></div>
+<div class="ep"><div class="ep-h">③ 職務部門分頁（全唯讀，指派在架構圖）</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">部門</td><td class="prop">唯讀</td><td>由組織架構圖的職務指派往上推導（員工掛某職務→職務在某組→組屬某部門），僅顯示。</td></tr><tr><td class="fnm">組別</td><td class="prop">唯讀</td><td>員工所屬的組（由職務往上推導），僅顯示。</td></tr><tr><td class="fnm">職務</td><td class="prop">唯讀</td><td>員工目前掛的職務（員工因此取得對應權限）。指派在「權限管理 → 組織架構圖」，僅顯示。</td></tr><tr><td class="fnm">隸屬據點</td><td class="prop">唯讀</td><td>員工隸屬的據點。指派在「據點架構圖」，僅顯示。</td></tr><tr><td class="fnm">是否為公司負責人</td><td class="prop">唯讀 / 客戶端不顯示</td><td>標記是否為公司負責人（負責人占一席、具最高權限）。<b>此欄在客戶端介面完全不顯示</b>；第一個負責人於開通租戶時由 Innova 指定，之後變更負責人只能透過 Innova 客服後台操作——一般員工與管理員均無法自行設定，避免越權奪取最高權限。</td></tr></table></div>
+<div class="cal note">【說明】 啟用人數（含負責人）受席次上限管控，啟用/停用的詳細行為見本主檔下方「操作與結果」。</div>
+<div class="ep"><div class="ep-h">④ 帳號狀況分頁</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">到職日</td><td class="prop">選填</td><td>到職日期，點欄位選日曆。供年資計算。</td></tr><tr><td class="fnm">離職日期</td><td class="prop">選填</td><td>員工離職日期，點欄位選日曆。留空表示在職；填了即標示已離職（仍保留資料、不刪除，並建議一併停用釋出席次）。</td></tr><tr><td class="fnm">重置密碼</td><td class="prop">動作鈕</td><td>按下跳確認視窗；確認後將密碼重設為預設密碼（＝該員工的員工編號）並自動開啟「強制下次登入改密碼」。員工下次登入須先改密碼，改完後該強制旗標自動關閉。無獨立的強制改密開關，統一由此動作驅動。</td></tr><tr><td class="fnm">啟用雙重驗證</td><td class="prop">選填 / 有防呆</td><td>開關。開啟後該員工登入須加驗第二因素（TOTP／驗證碼），見 NX00 登入流程。<b>防呆：員工未設手機且未設 Email 時，此開關無法開啟（因第二因素驗證碼需有手機或 Email 管道可送達）；系統提示「請先填寫手機或 Email」。</b></td></tr><tr><td class="fnm">最近登入時間</td><td class="prop">唯讀</td><td>最後一次成功登入的時間，純顯示。</td></tr><tr><td class="fnm">是否啟用</td><td class="prop">選填</td><td>開關。啟用後員工才能登入；啟用人數（含負責人）受席次上限管控，停用永遠放行。</td></tr></table></div>
+<div class="cal note">【說明】 連續登入失敗鎖定、鎖定到期時間等由系統自動處理（見 NX00 登入流程），不在本分頁逐欄呈現。</div>
+<h3 class="sub">操作與結果</h3>
+<table class="ops"><tr><th>動作</th><th>結果</th></tr>
+<tr><td class="act">新增員工</td><td>系統自動帶員工編號（可覆寫），填妥必填欄位後存檔。員工預設為「未啟用」，不占席次、不能登入。</td></tr>
+<tr><td class="act">啟用員工</td><td>打開「是否啟用」→ 檢查啟用人數（含負責人）是否已達席次上限：未達則啟用、員工可登入；已達則擋下並提示「席次已滿」。</td></tr>
+<tr><td class="act">停用員工</td><td>關閉「是否啟用」→ 永遠放行（停用方向不檢查上限），釋出一席。停用者資料保留、不能登入、不出現在日常下拉。離職員工以停用處理（資料保留、非刪除）。</td></tr>
+<tr><td class="act">重置密碼</td><td>按「重置密碼」→ 確認視窗 → 密碼重設為預設密碼（員工編號）並自動開啟強制改密；員工下次登入改完密碼後該旗標自動關閉（見 NX00 登入流程）。</td></tr>
+<tr><td class="act">啟用雙重驗證</td><td>打開開關前系統檢查：未填手機且未填 Email → 擋下並提示「請先填寫手機或 Email」；有任一管道才可開啟。</td></tr>
+<tr><td class="act">設離職</td><td>填「離職日期」→ 標示已離職、資料保留（非刪除），建議一併停用以釋出席次。</td></tr>
+<tr><td class="act">解遮身分證字號</td><td>身分證字號預設遮罩，點「顯示」即解遮看明碼（第二層防護）。</td></tr>
+</table>
 <div class="cal star">【重點】 工具列下方一直顯示席次徽章，例如「席次 3 / 10 席（已啟用含負責人）」——綠數字是已用、灰數字是上限。要再啟用員工時若已達上限會擋下並提示。</div>
-<div class="ep"><div class="ep-h">帳號安全分頁</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">強制下次登入改密碼</td><td class="prop">選填</td><td>開關。打開後員工下次登入須先改密碼（例如重設密碼後）。</td></tr><tr><td class="fnm">連續失敗登入次數</td><td class="prop">建立後不可改</td><td>系統自動記錄，純顯示。</td></tr><tr><td class="fnm">鎖定到期時間</td><td class="prop">建立後不可改</td><td>帳號因多次登入失敗被鎖定時，顯示何時解除。純顯示。</td></tr><tr><td class="fnm">最近登入時間</td><td class="prop">建立後不可改</td><td>最後一次成功登入的時間。純顯示。</td></tr></table></div>
-<div class="cal note">【說明】 「人力資源分頁」屬人資套件（加購）範圍，提供 HR 員工編號、預設職務、工作組等進階人事欄位。基本的員工資料、帳號、權限在前三個分頁就能完成；人資套件的詳細操作見人資套件手冊。</div>
 
 <h3 class="ent">職務基本資料 <span class="mt">一般表格</span> <span class="mt">LITE</span></h3>
-<div class="ent-menu">選單位置 主檔 → 帳號與權限 → 職務基本資料</div>
+<div class="ent-menu">選單位置 主檔 → 組織架構 → 職務基本資料</div>
 <p>職務是一組畫面權限的集合（例如採購員、業務員、倉管、會計）。員工掛上職務就取得該職務的權限。</p>
-<div class="ep"><div class="ep-h">職務欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">職務代碼</td><td class="prop">必填 / 建立後不可改</td><td>自動轉大寫（例如 SALES、FINANCE），建立後鎖定。</td></tr><tr><td class="fnm">職務名稱</td><td class="prop">必填</td><td>員工看到的中文職務名。</td></tr><tr><td class="fnm">說明</td><td class="prop">進階</td><td>備註用。</td></tr><tr><td class="fnm">層級</td><td class="prop">選填</td><td>職務階層（例如 G1／G2／G3），供組織呈現與 KPI 參考。各版本皆可用。</td></tr><tr><td class="fnm">隸屬部門</td><td class="prop">選填</td><td>下拉（來源：部門主檔），這個職務屬於哪個部門。</td></tr><tr><td class="fnm">排序</td><td class="prop">進階</td><td>顯示順序，預設 0。</td></tr></table></div>
+<div class="ep"><div class="ep-h">職務欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">職務代碼</td><td class="prop">必填 / 建立後不可改</td><td>自動轉大寫（例如 SALES、FINANCE），建立後鎖定。</td></tr><tr><td class="fnm">職務名稱</td><td class="prop">必填</td><td>員工看到的中文職務名。</td></tr><tr><td class="fnm">說明</td><td class="prop">進階</td><td>備註用。</td></tr><tr><td class="fnm">層級</td><td class="prop">選填</td><td>職務階層（例如 G1／G2／G3），供組織呈現與 KPI 參考。各版本皆可用。</td></tr><tr><td class="fnm">隸屬組</td><td class="prop">必填</td><td>下拉（來源：組別主檔），這個職務掛在哪個組底下。職務的部門由組往上推導（組屬哪個部門，職務就屬哪個部門）。對應組織架構圖的 部門→組→職務 層級。</td></tr><tr><td class="fnm">排序</td><td class="prop">進階</td><td>顯示順序，預設 0。</td></tr></table></div>
 <div class="cal star">【重點】 三步驟才完整：建職務 → 設權限（職務權限設定）→ 員工掛職務。只建職務、沒設權限，員工掛上去也沒有任何畫面可用。</div>
 
 <h3 class="ent">部門基本資料 <span class="mt">一般表格</span> <span class="mt">LITE</span></h3>
-<div class="ent-menu">選單位置 主檔 → 帳號與權限 → 部門基本資料</div>
-<p>部門是組織的最上層分類（例如銷售部、採購部、倉儲部）。建好部門後，「組」會掛在部門底下，員工再透過組歸屬到部門。員工主檔、職務主檔的部門下拉都來自這裡。</p>
+<div class="ent-menu">選單位置 主檔 → 組織架構 → 部門基本資料</div>
+<p>部門是組織的最上層分類（例如銷售部、採購部、倉儲部）。此頁只建立部門本身；組/職務/員工如何掛進部門，在「組織架構圖」組裝。</p>
 <div class="ep"><div class="ep-h">部門欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">部門代碼</td><td class="prop">必填 / 建立後不可改</td><td>自動轉大寫，建立後鎖定。</td></tr><tr><td class="fnm">部門名稱</td><td class="prop">必填</td><td>部門名稱（例如 銷售部）。</td></tr><tr><td class="fnm">排序</td><td class="prop">進階</td><td>顯示順序。</td></tr></table></div>
 
 <h3 class="ent">組基本資料 <span class="mt">一般表格</span> <span class="mt">LITE</span></h3>
-<div class="ent-menu">選單位置 主檔 → 帳號與權限 → 組基本資料</div>
-<p>組是部門底下的單位（例如銷售部的「台北一組」）。組織層級是「部門 → 組 → 員工」：員工掛在組上，組屬於哪個部門、員工的部門就跟著是哪個。</p>
-<div class="ep"><div class="ep-h">組欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">組代碼</td><td class="prop">必填 / 建立後不可改</td><td>自動轉大寫（例如 TPE1），建立後鎖定。</td></tr><tr><td class="fnm">組名稱</td><td class="prop">必填</td><td>組名稱（例如 台北一組）。</td></tr><tr><td class="fnm">隸屬部門</td><td class="prop">必填</td><td>下拉（來源：部門主檔），這個組屬於哪個部門。員工的部門由此決定。</td></tr><tr><td class="fnm">上層組</td><td class="prop">選填</td><td>下拉（來源：組主檔本身）。要做更細的層級時，可把這個組掛在另一個組底下（支援子組）；一般兩層就夠、可留空。</td></tr><tr><td class="fnm">排序</td><td class="prop">進階</td><td>顯示順序。</td></tr></table></div>
-<div class="cal star">【重點】 員工是不是「組長」，在員工的帳號權限分頁、隸屬組那裡標記。組長之後可用在公告對象（對全體組長發公告）等場景。</div>
+<div class="ent-menu">選單位置 主檔 → 組織架構 → 組別基本資料</div>
+<p>組是部門底下的單位（例如銷售部的「台北一組」）。此頁只建立組本身；職務/員工如何掛進組，在「組織架構圖」組裝。</p>
+<div class="ep"><div class="ep-h">組欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">組代碼</td><td class="prop">必填 / 建立後不可改</td><td>自動轉大寫（例如 TPE1），建立後鎖定。</td></tr><tr><td class="fnm">組名稱</td><td class="prop">必填</td><td>組名稱（例如 台北一組）。</td></tr><tr><td class="fnm">隸屬部門</td><td class="prop">必填</td><td>下拉（來源：部門主檔），這個組屬於哪個部門。</td></tr><tr><td class="fnm">上層組</td><td class="prop">選填</td><td>下拉（來源：組主檔本身）。要做更細的層級時，可把這個組掛在另一個組底下（支援子組）；一般兩層就夠、可留空。</td></tr><tr><td class="fnm">排序</td><td class="prop">進階</td><td>顯示順序。</td></tr></table></div>
+<div class="cal note">【說明】 組長身分、員工掛組，都在「組織架構圖」設定。組長之後可用在公告對象（對全體組長發公告）等場景。</div>
 
-<h3 class="ent">使用者職務設定 <span class="mt">group 批次</span> <span class="mt">LITE</span></h3>
-<div class="ent-menu">選單位置 主檔 → 帳號與權限 → 使用者職務設定</div>
-<p>批次工具：以「職務」為單位，一次把多名員工指派到同一個職務（一般主檔是一人一筆，這裡是一個職務配多人）。畫面左右兩欄：左欄列職務、右欄列「該職務目前的成員」。</p>
-<div class="ep"><div class="ep-h">畫面區塊</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">左欄</td><td class="prop">選填</td><td>全部職務清單，每列顯示職務名稱與代碼。上下鍵移動、右鍵進右欄。</td></tr><tr><td class="fnm">右欄</td><td class="prop">選填</td><td>選定職務目前的成員清單，每列顯示員工姓名與帳號，附「× 撤銷」鈕；右上有筆數與「指派成員」鈕。</td></tr><tr><td class="fnm">指派成員視窗</td><td class="prop">選填</td><td>搜尋帳號／姓名後多選加入；已是成員者不可重複選。</td></tr></table></div>
-<div class="cal note">【說明】 這是批次工具、各版本皆可用。也可在「使用者基本資料」的帳號權限分頁逐一替員工勾選職務（一次一人）；批次工具則適合一次處理多人。</div>
+<h2>權限管理</h2>
+<p>把組織素材「組裝」起來，並設定每個職務的權限。包含圖像化的組織架構圖（指派部門/組/職務/員工）與職務權限矩陣。</p>
 
-<h3 class="ent">使用者據點設定 <span class="mt">group 批次</span> <span class="mt">LITE</span></h3>
-<div class="ent-menu">選單位置 主檔 → 帳號與權限 → 使用者據點設定</div>
-<p>與「使用者職務設定」同一種批次畫面，只是軸換成「倉庫／據點」：以倉庫為單位，一次指派多名員工隸屬該倉。</p>
-<div class="cal note">【說明】 批次工具、各版本皆可用。也可在「使用者基本資料」的隸屬據點欄位逐一設定（一次一人）。</div>
+<h3 class="ent">組織架構圖 <span class="mt">圖像化指派</span> <span class="mt">LITE</span></h3>
+<div class="ent-menu">選單位置 主檔 → 權限管理 → 組織架構圖</div>
+<p>以圖像化的多層級面板「組裝」整個組織的人事歸屬，取代舊版的「使用者職務設定」「使用者據點設定」兩個批次頁。由左至右四層串接：<b>部門 → 組別 → 職務 → 成員</b>，點左層節點，右層即顯示其下層內容，逐欄往右展開指派。</p>
+<h3 class="sub">一、畫面欄位</h3>
+<div class="ep"><div class="ep-h">四層串接面板（由左至右）</div><table class="fields"><tr><th>層</th><th>內容</th><th>說明</th></tr><tr><td class="fnm">第一層 部門</td><td>部門清單</td><td>來源：部門主檔。點選一個部門 → 第二層顯示其下的組別。</td></tr><tr><td class="fnm">第二層 組別</td><td>選定部門下的組別</td><td>來源：組別主檔（隸屬該部門者）。點選一個組 → 第三層顯示該組的職務。</td></tr><tr><td class="fnm">第三層 職務</td><td>選定組下的職務</td><td>職務來源為全公司職務主檔，被指派到此組。點選一個職務 → 第四層顯示掛此職務的成員。</td></tr><tr><td class="fnm">第四層 成員</td><td>掛此職務的員工</td><td>來源：員工主檔。員工掛在「職務」節點下——員工的組與部門由此往上推導。一名員工可掛多個職務（可跨組/跨部門）。</td></tr><tr><td class="fnm">未指派成員池</td><td>尚未掛任何職務的員工</td><td>新進或尚未派職的員工先進此池，不屬任何部門/組；派了職務即從池中歸位。</td></tr></table></div>
+<h3 class="sub">二、操作與結果</h3>
+<table class="ops"><tr><th>動作</th><th>結果</th></tr>
+<tr><td class="act">逐層點選</td><td>由部門往右點，逐層收斂，最終在某職務節點看到其成員。</td></tr>
+<tr><td class="act">指派員工到職務</td><td>在第四層把「未指派池」或其他來源的員工拉入此職務節點 → 員工取得該職務權限、並歸入該職務所在的組與部門。</td></tr>
+<tr><td class="act">移除員工指派</td><td>把員工從某職務節點移出 → 失去該職務歸屬；若不再掛任何職務則回到未指派池。</td></tr>
+<tr><td class="act">指派職務到組</td><td>把職務掛到某組節點下（決定這個組有哪些職務）。</td></tr>
+</table>
+<div class="cal star">【重點】 「先建素材、再組裝」：部門/組/職務/員工都在各自基本資料頁建立，這張圖只做「指派關係」的組裝。員工的部門/組/職務在員工基本資料是唯讀，一律在此設定。</div>
+<div class="cal note">【說明】 一名員工可同時掛多個職務、因而跨組或跨部門；尚未掛職務的員工停留在「未指派成員池」、不屬任何部門。</div>
 
 <h3 class="ent">職務權限設定 <span class="mt">權限矩陣</span> <span class="mt">LITE</span></h3>
-<div class="ent-menu">選單位置 主檔 → 帳號與權限 → 職務權限設定</div>
+<div class="ent-menu">選單位置 主檔 → 權限管理 → 職務權限設定</div>
 <p>決定「某個職務能對某個畫面做哪些事」。畫面是一張大矩陣：上方選一個職務，縱軸是各畫面（依模組分群），橫軸是六種權限，用打勾設定。</p>
+<h3 class="sub">一、畫面欄位</h3>
 <div class="ep"><div class="ep-h">六種權限（橫軸，由左到右）</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">瀏覽</td><td class="prop">選填</td><td>能不能看這個畫面。</td></tr><tr><td class="fnm">新增</td><td class="prop">選填</td><td>能不能在這畫面新增資料。</td></tr><tr><td class="fnm">修改</td><td class="prop">選填</td><td>能不能更正資料。</td></tr><tr><td class="fnm">停用</td><td class="prop">選填</td><td>能不能停用資料（NEXORA 無實體刪除，對應軟刪除）。</td></tr><tr><td class="fnm">匯出</td><td class="prop">選填</td><td>能不能把資料匯出。</td></tr><tr><td class="fnm">核准</td><td class="prop">選填</td><td>能不能核准需要審核的單據。只對有審核流程的畫面有意義（例如採購單的核准／退件、保固申請、盤點），其餘畫面此格不適用。把採購單的「核准」只開放給主管職務，就能做到「採購員送審、主管才能核准」。</td></tr></table></div>
-<div class="ep"><div class="ep-h">三層批次勾選</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">單格</td><td class="prop">選填</td><td>點方塊或按空白鍵，切換單一畫面的單一權限。</td></tr><tr><td class="fnm">整列（整個畫面）</td><td class="prop">選填</td><td>點該畫面的「全選／清除」鈕（或鍵盤 A），一次設好這畫面的六種權限。</td></tr><tr><td class="fnm">整模組</td><td class="prop">選填</td><td>點模組標題的「整模組全選／整模組清除」，一次設好整個模組所有畫面。</td></tr></table></div>
-<div class="cal warn">【注意】 權限矩陣採「暫存後一次存檔」：所有勾選都是本地累積，一定要按「存檔」才送出。若沒存就要離開頁面，系統會跳「有未存檔的權限變更，確定離開？」提醒。</div>
+<h3 class="sub">二、操作與結果</h3>
+<table class="ops"><tr><th>動作</th><th>結果</th></tr>
+<tr><td class="act">上方選職務</td><td>矩陣載入該職務目前的權限勾選狀態。</td></tr>
+<tr><td class="act">勾單格</td><td>點方塊或按空白鍵，切換單一畫面的單一權限（本地暫存，未送出）。</td></tr>
+<tr><td class="act">整列全選/清除</td><td>點該畫面的「全選／清除」鈕（或鍵盤 A），一次設好這畫面的六種權限。</td></tr>
+<tr><td class="act">整模組全選/清除</td><td>點模組標題的「整模組全選／整模組清除」，一次設好整個模組所有畫面。</td></tr>
+<tr><td class="act">存檔</td><td>把本地累積的所有勾選一次送出生效。</td></tr>
+<tr><td class="act">未存檔離開</td><td>系統跳「有未存檔的權限變更，確定離開？」提醒，避免漏存。</td></tr>
+</table>
+<div class="cal warn">【注意】 權限矩陣採「暫存後一次存檔」：所有勾選都是本地累積，一定要按「存檔」才送出。</div>
 <div class="cal star">【重點】 「系統管理員」與「公司負責人」這兩個職務不會出現在職務下拉裡——它們本來就擁有全部權限，不需要在這裡逐項勾選。</div>
 
-<h2>產品與料號</h2>
-<p>這一區管理零件本身與料號相關設定。核心是零件基本資料，搭配品牌、零件群組、通用件群組。</p>
+<h2>據點倉庫</h2>
+<p>管理據點、倉庫、庫位三層倉儲實體，並以「據點架構圖」組裝其層級與員工據點歸屬。各基本資料頁只建立實體本身。</p>
+
+<h3 class="ent">據點架構圖 <span class="mt">圖像化指派</span> <span class="mt">LITE</span></h3>
+<div class="ent-menu">選單位置 主檔 → 據點倉庫 → 據點架構圖</div>
+<p>以圖像化多層級面板組裝倉儲層級與員工據點歸屬，取代舊版「使用者據點設定」批次頁。由左至右三層串接：<b>據點 → 倉庫 → 庫位</b>；並可在據點節點指派隸屬員工。</p>
+<h3 class="sub">一、畫面欄位</h3>
+<div class="ep"><div class="ep-h">三層串接面板（由左至右）</div><table class="fields"><tr><th>層</th><th>內容</th><th>說明</th></tr><tr><td class="fnm">第一層 據點</td><td>據點清單</td><td>來源：據點主檔。點選 → 第二層顯示其下倉庫；同時可在此指派隸屬此據點的員工。</td></tr><tr><td class="fnm">第二層 倉庫</td><td>選定據點下的倉庫</td><td>來源：倉庫主檔（屬該據點者）。點選 → 第三層顯示其下庫位。</td></tr><tr><td class="fnm">第三層 庫位</td><td>選定倉庫下的庫位</td><td>來源：庫位主檔（屬該倉庫者）。</td></tr></table></div>
+<h3 class="sub">二、操作與結果</h3>
+<table class="ops"><tr><th>動作</th><th>結果</th></tr>
+<tr><td class="act">逐層點選</td><td>由據點往右點，逐層展開倉庫、庫位。</td></tr>
+<tr><td class="act">指派員工到據點</td><td>在據點節點把員工拉入 → 員工隸屬該據點（員工基本資料的隸屬據點欄即顯示此結果，唯讀）。</td></tr>
+<tr><td class="act">移除員工據點</td><td>把員工從據點移出。</td></tr>
+</table>
+<div class="cal note">【說明】 據點/倉庫/庫位本身在各自基本資料頁建立；此圖只做層級串接與員工據點指派的組裝。</div>
+
+<h3 class="ent">據點基本資料 <span class="mt">一般表格</span> <span class="mt">LITE</span></h3>
+<div class="ent-menu">選單位置 主檔 → 據點倉庫 → 據點基本資料</div>
+<div class="ep"><div class="ep-h">據點欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">據點代碼</td><td class="prop">必填 / 建立後不可改</td><td>自動轉大寫。</td></tr><tr><td class="fnm">據點名稱</td><td class="prop">必填</td><td>據點名稱。</td></tr><tr><td class="fnm">地址</td><td class="prop">進階</td><td>據點地址（舊版自由文字）。</td></tr><tr><td class="fnm">聯絡電話</td><td class="prop">選填</td><td>據點電話。</td></tr><tr><td class="fnm">排序</td><td class="prop">進階</td><td>顯示順序。</td></tr></table></div>
+
+<h3 class="ent">倉庫基本資料 <span class="mt">一般表格</span> <span class="mt">LITE</span></h3>
+<div class="ent-menu">選單位置 主檔 → 據點倉庫 → 倉庫基本資料</div>
+<div class="ep"><div class="ep-h">倉庫欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">倉庫代碼</td><td class="prop">必填 / 建立後不可改</td><td>自動轉大寫。</td></tr><tr><td class="fnm">倉庫名稱</td><td class="prop">必填</td><td>倉庫名稱。</td></tr><tr><td class="fnm">所屬據點</td><td class="prop">必填</td><td>下拉（來源：據點主檔），這個倉屬於哪個據點。</td></tr><tr><td class="fnm">倉別</td><td class="prop">進階</td><td>下拉（來源：倉別主檔），倉庫類別。</td></tr><tr><td class="fnm">備註</td><td class="prop">進階</td><td>備註。</td></tr><tr><td class="fnm">排序</td><td class="prop">進階</td><td>顯示順序。</td></tr></table></div>
+
+<h3 class="ent">庫位基本資料 <span class="mt">一般表格</span> <span class="mt">LITE</span></h3>
+<div class="ent-menu">選單位置 主檔 → 據點倉庫 → 庫位基本資料</div>
+<div class="ep"><div class="ep-h">庫位欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">所屬據點</td><td class="prop">選填</td><td>下拉（來源：據點主檔）。</td></tr><tr><td class="fnm">所屬倉庫</td><td class="prop">必填</td><td>下拉（來源：倉庫主檔），這個庫位在哪個倉。</td></tr><tr><td class="fnm">庫位代碼</td><td class="prop">必填 / 建立後不可改</td><td>庫位編號。</td></tr><tr><td class="fnm">名稱</td><td class="prop">選填</td><td>庫位名稱。</td></tr><tr><td class="fnm">區／架號／層／格</td><td class="prop">進階</td><td>庫位細部位置。</td></tr><tr><td class="fnm">備註</td><td class="prop">進階</td><td>備註。</td></tr><tr><td class="fnm">排序</td><td class="prop">進階</td><td>顯示順序。</td></tr></table></div>
+
+<h2>往來對象</h2>
+<p>客戶、供應商、同行、外包物流、銀行等所有往來對象，底層集中在一張主檔，用「對象類型」區分。<b>畫面依對象類型拆成六個入口（濾鏡視圖）</b>：保養廠（客戶）、同行、供應商、外包物流、一般廠商、銀行——同一張表、各入口濾出該類型，新增時即帶入對應類型。客戶分級、供應商分級、供貨對應等支援字典亦歸本分區；地區字典歸「字典主檔」。</p>
+
+<h3 class="ent">往來對象基本資料 <span class="mt">一般表格（含地址／聯絡窗口子表）</span> <span class="mt">LITE</span></h3>
+<div class="ent-menu">選單位置 主檔 → 往來對象 → 往來對象基本資料</div>
+<p>所有往來對象都在這一個主檔，用「對象類型」區分。畫面分四個分頁：基本資料、銷貨、出貨、財務。</p>
+<h3 class="sub">一、畫面欄位</h3>
+<div class="cal star">【重點】 畫面依對象類型自動顯示分頁：保養廠／同行 → 四分頁全顯；供應商 → 基本資料＋出貨＋財務；外包物流 → 基本資料＋出貨；一般廠商／銀行 → 基本資料＋財務。</div>
+<div class="ep"><div class="ep-h">基本資料分頁</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">公司代碼</td><td class="prop">必填 / 建立後不可改</td><td>類型代碼＋4 碼流水（如客戶 C0001、供應商 S0001），自動給號、可覆寫，建立後鎖定。</td></tr><tr><td class="fnm">公司全名</td><td class="prop">必填</td><td>完整公司名稱。</td></tr><tr><td class="fnm">公司簡稱</td><td class="prop">選填</td><td>常用簡稱。</td></tr><tr><td class="fnm">英文名稱</td><td class="prop">選填</td><td>英文公司名。</td></tr><tr><td class="fnm">對象類型</td><td class="prop">必填</td><td>下拉：C 保養廠／O 同行／S 供應商／T 外包物流／V 一般廠商／B 銀行。建立後不可改。</td></tr><tr><td class="fnm">備註</td><td class="prop">選填</td><td>自由備註。</td></tr><tr><td class="fnm">服務據點</td><td class="prop">選填</td><td>此對象主要往來的服務據點。</td></tr><tr><td class="fnm">主要聯絡人</td><td class="prop">選填</td><td>公司主要聯絡人（簡單顯示用；多部門窗口用下方聯絡窗口）。</td></tr><tr><td class="fnm">公司負責人姓名</td><td class="prop">選填</td><td>對方公司的負責人／老闆。與我方「業務員」不同（業務員在銷貨分頁）。</td></tr><tr><td class="fnm">公司電話／行動電話／傳真／Email／網站</td><td class="prop">選填</td><td>各項聯絡資訊。</td></tr><tr><td class="fnm">國別</td><td class="prop">選填</td><td>下拉（來源：國家主檔），預設台灣。</td></tr><tr><td class="fnm">地區</td><td class="prop">選填</td><td>下拉（來源：地區主檔）。客戶搬家可改、不影響編號，報表可依地區分析。</td></tr><tr><td class="fnm">母公司</td><td class="prop">選填</td><td>下拉（來源：往來對象本身）。連鎖客戶選母公司後，這筆就是該母公司分店。</td></tr><tr><td class="fnm">舊系統代碼</td><td class="prop">進階</td><td>對應舊系統編號，方便轉移對照。</td></tr><tr><td class="fnm">聯絡窗口</td><td class="prop">選填</td><td>可建多筆部門窗口，見下方「聯絡窗口子表」。</td></tr></table></div>
+<div class="ep"><div class="ep-h">銷貨分頁（保養廠／同行才顯示）</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">客戶分級</td><td class="prop">選填</td><td>下拉（來源：客戶分級主檔 A／B／C／D），決定售價自動套用的加成率。</td></tr><tr><td class="fnm">自訂毛利率 %</td><td class="prop">選填</td><td>這客戶專屬毛利率，有填就覆寫分級、沒填跟分級走。</td></tr><tr><td class="fnm">信用額度</td><td class="prop">選填</td><td>最多賒帳金額，0＝不限制。</td></tr><tr><td class="fnm">信用狀態</td><td class="prop">選填</td><td>下拉：N 正常／W 警示／F 凍結。</td></tr><tr><td class="fnm">預設出貨倉</td><td class="prop">選填</td><td>下拉（來源：倉庫主檔），開銷貨單預設出這倉。</td></tr><tr><td class="fnm">可調貨給此對象</td><td class="prop">選填</td><td>開關。同行之間調貨（軋帳）用。</td></tr><tr><td class="fnm">業務員</td><td class="prop">選填</td><td>下拉（來源：員工主檔），我方指派負責這客戶的業務員。</td></tr></table></div>
+<div class="ep"><div class="ep-h">出貨分頁</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">送貨地址</td><td class="prop">選填</td><td>（客戶）可建多筆送貨地址（連鎖客戶送不同分店），其中一筆設預設。開銷貨單自動帶預設，見下方地址子表。</td></tr><tr><td class="fnm">預設入庫倉</td><td class="prop">選填</td><td>（供應商）下拉（來源：倉庫主檔），向這家供應商進貨時，採購單／進貨單預設收進這個倉。一家供應商設一個預設倉；同供應商不同港口進不同倉的情況，於進貨時手動改倉即可。對應客戶端的「預設出貨倉」。</td></tr></table></div>
+<div class="ep"><div class="ep-h">財務分頁</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">統一編號</td><td class="prop">選填</td><td>有統編才能開三聯發票；沒統編的零散客人改走散客帳戶。</td></tr><tr><td class="fnm">國內付款條件</td><td class="prop">必填</td><td>下拉：PREPAY 預付／NET30 月結 30／NET60／NET90。</td></tr><tr><td class="fnm">進口付款條件</td><td class="prop">選填</td><td>下拉：TT 電匯／LC 信用狀／DP 付款交單／DA 承兌交單。</td></tr><tr><td class="fnm">貿易條件</td><td class="prop">選填</td><td>國貿條規（CIF／FOB／EXW），進口用。</td></tr><tr><td class="fnm">預設幣別</td><td class="prop">選填</td><td>下拉（來源：幣別主檔）。</td></tr><tr><td class="fnm">預設發票聯數</td><td class="prop">選填</td><td>下拉：0 不開發票／2 二聯／3 三聯，開單自動帶、可逐筆改。</td></tr><tr><td class="fnm">供應商分級</td><td class="prop">選填</td><td>下拉（來源：供應商分級主檔），供應商評等用。</td></tr><tr><td class="fnm">收帳地址</td><td class="prop">選填</td><td>寄帳單／發票的地址，最多 1 筆，見下方地址子表。</td></tr></table></div>
+<div class="cal warn">【注意】 「不開發票」是為配合少數客戶。選不開發票的金額，系統會在報表單獨呈現「未開發票金額」（銷售報表為主、損益表底部小計）——有稅務風險，建議盡量導正客戶開立發票。</div>
+<div class="ep"><div class="ep-h">每筆窗口欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">窗口姓名</td><td class="prop">必填</td><td>聯絡人姓名。</td></tr><tr><td class="fnm">職務／部門</td><td class="prop">選填</td><td>負責什麼（例如 採購副理、會計、零件室）。</td></tr><tr><td class="fnm">電話／分機／手機</td><td class="prop">選填</td><td>聯絡電話。</td></tr><tr><td class="fnm">Email</td><td class="prop">選填</td><td>電子郵件。</td></tr><tr><td class="fnm">排序</td><td class="prop">選填</td><td>多筆窗口顯示順序。</td></tr><tr><td class="fnm">備註</td><td class="prop">選填</td><td>提醒（例如「只接下午」）。</td></tr></table></div>
+<div class="ep"><div class="ep-h">每筆地址欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">地址標籤</td><td class="prop">選填</td><td>（僅送貨）地址代稱，例如「總公司」「桃園倉」。</td></tr><tr><td class="fnm">設為預設送貨地址</td><td class="prop">選填</td><td>（僅送貨）開關，勾選的開銷貨單自動帶入。</td></tr><tr><td class="fnm">國別</td><td class="prop">選填</td><td>下拉（來源：國家主檔），預設台灣。台灣走縣市字典、國外用完整地址自由填。</td></tr><tr><td class="fnm">縣市／鄉鎮市區</td><td class="prop">選填</td><td>（台灣）下拉選擇，選鄉鎮後自動帶郵遞區號。</td></tr><tr><td class="fnm">郵遞區號</td><td class="prop">選填</td><td>台灣選區自動帶、唯讀；國外自填。</td></tr><tr><td class="fnm">路街／巷／弄／號／之／樓／室</td><td class="prop">選填</td><td>（台灣）門牌各欄分填。</td></tr><tr><td class="fnm">完整地址</td><td class="prop">選填</td><td>（國外）整段地址自由填。</td></tr><tr><td class="fnm">收件人／收件電話</td><td class="prop">選填</td><td>這個地址的收件人與電話。</td></tr><tr><td class="fnm">備註</td><td class="prop">選填</td><td>補充說明。</td></tr></table></div>
+
+<h3 class="sub">二、操作與結果</h3>
+<table class="ops"><tr><th>動作</th><th>結果</th></tr>
+<tr><td class="act">選「對象類型」</td><td>畫面依類型自動顯示對應分頁：保養廠／同行→四分頁全顯；供應商→基本＋出貨＋財務；外包物流→基本＋出貨；一般廠商／銀行→基本＋財務。對象類型建立後不可改。</td></tr>
+<tr><td class="act">新增・公司代碼留空</td><td>系統依對象類型自動給號（如客戶 C0001、供應商 S0001），可覆寫，建立後鎖定。</td></tr>
+<tr><td class="act">加聯絡窗口</td><td>可建多筆部門窗口（請款找會計、叫貨找零件室…），各筆獨立電話／Email／備註，可排序。</td></tr>
+<tr><td class="act">加送貨地址</td><td>可建多筆送貨地址（連鎖客戶送不同分店），勾一筆「設為預設」→ 開銷貨單自動帶該地址。</td></tr>
+<tr><td class="act">依付款條件重算（財務分頁）</td><td>按鈕依供應商付款條件自動換算供應商分級（付款條件越好評等越高）。</td></tr>
+<tr><td class="act">設母公司</td><td>選母公司後，這筆即成為該母公司的分店（連鎖客戶歸戶）。</td></tr>
+</table>
+<div class="cal star">【重點】 同一家客戶不同事找不同人：請款找會計、叫貨找零件室、談合約找老闆。可建多筆聯絡窗口。</div>
+
+<h3 class="ent">客戶分級基本資料 <span class="mt">一般表格（系統內建、只能改不能新增）</span> <span class="mt">LITE</span></h3>
+<div class="ent-menu">選單位置 主檔 → 往來對象 → 客戶分級基本資料</div>
+<p>客戶的評等分級，用在往來對象「銷貨分頁」的客戶分級下拉，決定售價自動套用的加成率。系統內建 A／B／C／D 四級。</p>
+<div class="ep"><div class="ep-h">客戶分級欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">分級代碼</td><td class="prop">建立後不可改</td><td>A／B／C／D。</td></tr><tr><td class="fnm">分級名稱</td><td class="prop">必填</td><td>分級名稱。</td></tr><tr><td class="fnm">加成率(%)</td><td class="prop">選填</td><td>這一級套用的加成率（決定四級售價怎麼算）。</td></tr><tr><td class="fnm">排序</td><td class="prop">進階</td><td>顯示順序。</td></tr></table></div>
+
+<h3 class="ent">供應商分級基本資料 <span class="mt">一般表格（半開放）</span> <span class="mt">LITE</span></h3>
+<div class="ent-menu">選單位置 主檔 → 往來對象 → 供應商分級基本資料</div>
+<p>供應商的評等分級，用在往來對象「財務分頁」的供應商分級下拉。系統內建 A／B／C／D 四級（對應付款條件越好評等越高），可在往來對象按「依付款條件重算」自動分級。</p>
+<div class="ep"><div class="ep-h">供應商分級欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">分級代碼</td><td class="prop">建立後不可改</td><td>內建 A／B／C／D 鎖住不可改不可刪（自動分級要用到）；客戶可新增自己的等級代碼。</td></tr><tr><td class="fnm">分級名稱</td><td class="prop">必填</td><td>分級名稱。</td></tr><tr><td class="fnm">說明</td><td class="prop">進階</td><td>備註用。</td></tr><tr><td class="fnm">排序</td><td class="prop">進階</td><td>顯示順序。</td></tr></table></div>
+<div class="cal note">【說明】 供應商分級是「半開放」：內建的 A／B／C／D 鎖住（系統自動分級要用），但您可以新增自己的等級（例如 VIP、列管）當業務分類擴展用。</div>
+
+<h3 class="ent">供應商供貨對應基本資料 <span class="mt">群組批次</span> <span class="mt">LITE</span></h3>
+<div class="ent-menu">選單位置 主檔 → 往來對象 → 供應商供貨對應基本資料</div>
+<p>記錄「哪家供應商供哪些料件」，以及各家的廠商料號、預設單價、交期、最低訂購量。這是採購詢價的基礎——詢價時系統依此帶出「這料件可以跟哪些供應商詢價」，採購人員不必憑記憶。畫面採<b>群組批次面板</b>：以供應商為軸，左欄選供應商、右欄維護其供貨料件清單。</p>
+<h3 class="sub">一、畫面欄位</h3>
+<div class="ep"><div class="ep-h">畫面區塊</div><table class="fields"><tr><th>區塊</th><th>說明</th></tr><tr><td class="fnm">左欄</td><td>供應商清單（來源：往來對象中對象類型為供應商者），每列顯示供應商名稱與代碼。</td></tr><tr><td class="fnm">右欄</td><td>選定供應商目前的供貨料件清單，每列一筆供貨對應（含下方各欄），附「× 移除」鈕；右上有筆數與「批次匯入」鈕。</td></tr></table></div>
+<div class="ep"><div class="ep-h">每筆供貨對應欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">料件</td><td class="prop">必填 / 建立後不可改</td><td>下拉（來源：零件主檔），這家供應商供的料件。料件本身已帶品牌與產地屬性。</td></tr><tr><td class="fnm">生效起期</td><td class="prop">建立後不可改</td><td>這筆供貨對應從哪天起生效。</td></tr><tr><td class="fnm">主要供應商</td><td class="prop">選填</td><td>開關。標記這家是不是這料件的主要（首選）供應商。</td></tr><tr><td class="fnm">廠商料號</td><td class="prop">選填</td><td>這家供應商對這顆料件用的料號（對方的料號），對照查詢用。</td></tr><tr><td class="fnm">預設單價</td><td class="prop">選填</td><td>向這家進這料件的預設單價，詢價／開採購單時帶入參考。</td></tr><tr><td class="fnm">預設交期</td><td class="prop">選填</td><td>這家供這料件的預設交期（天），估到貨用。</td></tr><tr><td class="fnm">最低訂購量</td><td class="prop">選填</td><td>這家對這料件的最低訂購量（MOQ）。</td></tr><tr><td class="fnm">來源</td><td class="prop">選填</td><td>下拉：手動（人工建立）／系統（依進貨紀錄自動產生）。</td></tr><tr><td class="fnm">生效迄期</td><td class="prop">選填</td><td>這筆供貨對應到哪天止；留空表示持續有效。</td></tr><tr><td class="fnm">備註</td><td class="prop">進階</td><td>備註。</td></tr></table></div>
+<h3 class="sub">二、操作與結果</h3>
+<table class="ops"><tr><th>動作</th><th>結果</th></tr>
+<tr><td class="act">左欄選供應商</td><td>右欄載入該供應商目前的供貨料件清單。</td></tr>
+<tr><td class="act">批次匯入</td><td>開視窗，以<b>品牌 ＋ 零件群組 ＋ 產地</b>為篩選條件，把符合的零件一次帶入右欄。例：甲廠選「A 品牌・底盤件・德國」一次匯入該批料件；乙廠選「A 品牌・底盤件・上海」匯入另一批。已存在的供貨對應不重複帶入。</td></tr>
+<tr><td class="act">個別移除</td><td>點某筆料件「× 移除」→ 把這家其實沒供的品項剔除（批次帶入後微調用）。</td></tr>
+<tr><td class="act">設主要供應商</td><td>打開某筆「主要供應商」開關 → 標記此供應商為該料件首選。</td></tr>
+</table>
+<div class="cal star">【重點】 這張表是「詢價」的基礎：詢價時系統依此自動帶出「這料件可以跟哪些供應商詢價」，採購人員不用憑記憶。進貨過後系統也會用進貨紀錄回頭補充這張對應。</div>
+<div class="cal note">【說明】 產地是零件本身的屬性（工廠生產國），不另存於供貨對應。批次匯入以「品牌＋群組＋產地」當篩選，是為了精準帶入「同品牌但不同產地」的正確那一批零件（如 A 品牌德國產 vs 上海產為不同零件筆）。</div>
+
+<h2>產品與廠牌</h2>
+<p>這一區管理零件本身與料號相關設定。核心是零件基本資料，搭配廠牌、零件群組、通用件群組。</p>
 
 <div class="design">
-<div class="dh">零件編碼設計（四層）— 目標設計與現況對照</div>
+<div class="dh">零件編碼設計（四層）— 定義與帶碼邏輯</div>
 <table class="fields">
-<tr><th>層</th><th>名稱</th><th>對應現有欄位</th><th>需求</th></tr>
-<tr><td class="fnm">① 內碼</td><td>系統綁定錨點</td><td>系統主鍵（不對外）</td><td>系統自動產生、永不變。所有單據（進貨/銷貨/庫存）底層綁此，使對外主碼變動時歷史單據不斷。</td></tr>
-<tr><td class="fnm">② 編號</td><td>對外主碼候選 A</td><td>零件料號</td><td>對外主要料號。買「汽車資料庫套件」時由編碼規則引擎自動產生統一格式；否則人工填。建立後鎖定。</td></tr>
-<tr><td class="fnm">③ 舊碼</td><td>對外主碼候選 B</td><td>舊料號</td><td>客戶舊系統料號（如「06L 911 021 !」），自由填。</td></tr>
-<tr><td class="fnm">④ 副碼</td><td>對照碼</td><td>廠牌料號</td><td>該廠牌對此料件的料號（原廠或副廠），供對照查詢。</td></tr>
+<tr><th>層</th><th>名稱</th><th>對應現有欄位</th><th>說明</th></tr>
+<tr><td class="fnm">A 內碼</td><td>系統綁定錨點</td><td>系統主鍵（不對外）</td><td>系統自動產生、永不變。<b>需求：所有單據（進貨/銷貨/庫存）底層一律綁此內碼，不綁對外料號（B）</b>，使對外主碼變動時歷史單據不斷。</td></tr>
+<tr><td class="fnm">B 編號</td><td>對外主碼</td><td>零件料號</td><td>對外顯示的主要料號。是否可編輯／自動帶碼依「有無套件、規則是否有值」決定（見下方帶碼邏輯）。建立後鎖定。</td></tr>
+<tr><td class="fnm">C 舊碼</td><td>主碼來源 / 沿用舊料號</td><td>舊料號</td><td>客戶舊系統料號（如「06L 911 021 !」），自由填。沒套件時 B 預設自動帶入 C。</td></tr>
+<tr><td class="fnm">D 副碼</td><td>對照碼</td><td>廠牌料號</td><td>該廠牌對此料件的料號（原廠或副廠），供對照查詢。</td></tr>
 </table>
-<div class="cal star"><b>主碼動態判定（現已實作）：</b>新增零件時「零件料號」② 留空，系統自動帶「舊料號」③ 當主料號 → 即「② 有值用 ②、② 空退 ③」。</div>
-<div class="cal star"><b>套件邊界：</b>編碼規則引擎、品牌料號規則、車型適配、TecDoc 對照＝汽車資料庫套件（加購）；基本記錄能力（填料號/廠牌/品名/廠牌料號）留 LITE。</div>
-<div class="cal warn"><b>⚠️ 待 Hank 對 schema 驗證：</b>(1) 是否存在獨立於「零件料號」的系統內碼 ① 作永久錨點，或「零件料號」本身即不可改錨點；(2) 若料號建立後鎖定，主碼由 ③ 切 ② 的情境是否存在、歷史單據如何處理（見待釐清）。</div>
+<div class="cal star"><b>B 編號帶碼邏輯（兩段階梯）：</b><br>
+<b>一、沒買汽車資料庫套件：</b>B 為<b>可編輯</b>，預設自動帶入 C（舊碼）。即留空 B → 系統以 C 當主碼。<br>
+<b>二、買了汽車資料庫套件：</b>畫面多出「編碼規則」與 SEG1～SEG5 欄位——<br>
+　· 編碼規則<b>為空值</b> → 行為同「沒套件」：B 可編輯、預設帶入 C。<br>
+　· 編碼規則<b>不為空值</b> → 依規則填入 SEG1～SEG5，<b>B 變為不可編輯、由系統自動編碼</b>。<br>
+（SEG 組碼細節、規則引擎、品牌料號規則、車型適配、TecDoc 對照等屬汽車資料庫套件，留待套件需求另做說明。）</div>
+<div class="cal star"><b>B 唯一性檢查：</b>沒套件時 B 沿用客戶舊料號（C），雖實務重複性不高，系統仍須對 B 做<b>租戶內唯一性檢查、擋重複</b>。</div>
+<div class="cal star"><b>內碼錨點需求：</b>系統須有獨立於對外料號（B）的內碼 A 作永久錨點，所有單據底層綁 A、不綁 B。如此料號改號（B 變動）時，歷史單據透過 A 保持不斷。改號前後關聯記於零件主檔「改號關聯」。</div>
 </div>
 
 
 <h3 class="ent">零件基本資料 <span class="mt">一般表格</span> <span class="mt">LITE</span></h3>
-<div class="ent-menu">選單位置 主檔 → 產品與料號 → 零件基本資料</div>
+<div class="ent-menu">選單位置 主檔 → 產品與廠牌 → 零件基本資料</div>
 <p>建立每顆零件的料號、品名、售價、庫存設定與照片。畫面分四個分頁：基本資料、銷貨、採購、庫存。</p>
+<h3 class="sub">一、畫面欄位</h3>
 <div class="cal warn">【注意】 權限屏障：「售價」只在銷貨分頁、「進貨成本」只在採購分頁，兩個分頁可開放給不同角色看（例如業務看得到售價、看不到進貨成本）。</div>
-<div class="ep"><div class="ep-h">基本資料分頁</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">零件料號</td><td class="prop">必填 / 建立後不可改</td><td>對外顯示的主要料號。新增可留空，系統自動帶「舊料號」當料號；建立後鎖定。</td></tr><tr><td class="fnm">品名</td><td class="prop">必填</td><td>零件名稱。</td></tr><tr><td class="fnm">正廠件</td><td class="prop">選填</td><td>開關：正廠件／副廠件。</td></tr><tr><td class="fnm">廠牌料號</td><td class="prop">選填</td><td>該廠牌對這顆料件使用的料號（可能是原廠或副廠的料號），供對照查詢。</td></tr><tr><td class="fnm">舊料號</td><td class="prop">選填</td><td>客戶舊系統的料號；新增時料號留空會帶這個值當主料號。</td></tr><tr><td class="fnm">零件品牌</td><td class="prop">選填</td><td>下拉（來源：品牌主檔中標為零件品牌者）。品牌一律下拉、不手打，避免同品牌不同寫法。</td></tr><tr><td class="fnm">零件族群</td><td class="prop">選填</td><td>下拉（來源：零件群組主檔），例如機油濾、煞車片。</td></tr><tr><td class="fnm">零件類型</td><td class="prop">選填</td><td>下拉：專用件／通用件／組合件／拆解件。</td></tr><tr><td class="fnm">產地</td><td class="prop">選填</td><td>下拉（來源：國家主檔）。這顆零件實際生產國，與品牌國別不同。</td></tr><tr><td class="fnm">規格／備註</td><td class="prop">選填</td><td>規格說明或備註，多行文字。</td></tr><tr><td class="fnm">單位</td><td class="prop">必填</td><td>計量單位（LITE 固定 pcs）。</td></tr><tr><td class="fnm">正廠料號對應</td><td class="prop">選填</td><td>可建多筆「品牌＋正廠料號」對應，供副廠件對照原廠料號查詢。</td></tr><tr><td class="fnm">改號關聯</td><td class="prop">選填</td><td>記錄料號改號前後的關聯。</td></tr><tr><td class="fnm">照片管理</td><td class="prop">選填</td><td>進入照片管理，最多 5 張，見下方「零件照片」。</td></tr></table></div>
+<div class="ep"><div class="ep-h">基本資料分頁</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">零件料號</td><td class="prop">必填 / 建立後不可改</td><td>對外顯示的主要料號（B 編號）。沒套件時可編輯、留空自動帶「舊料號」（C）並做唯一性檢查；買套件且編碼規則有值時由系統依 SEG 自動編碼、不可編輯。建立後鎖定。詳見上方編碼設計。</td></tr><tr><td class="fnm">品名</td><td class="prop">必填</td><td>零件名稱。</td></tr><tr><td class="fnm">正廠件</td><td class="prop">選填</td><td>開關：正廠件／副廠件。</td></tr><tr><td class="fnm">廠牌料號</td><td class="prop">選填</td><td>該廠牌對這顆料件使用的料號（可能是原廠或副廠的料號），供對照查詢。</td></tr><tr><td class="fnm">舊料號</td><td class="prop">選填</td><td>客戶舊系統的料號；新增時料號留空會帶這個值當主料號。</td></tr><tr><td class="fnm">零件品牌</td><td class="prop">選填</td><td>下拉（來源：品牌主檔中標為零件品牌者）。品牌一律下拉、不手打，避免同品牌不同寫法。</td></tr><tr><td class="fnm">零件族群</td><td class="prop">選填</td><td>下拉（來源：零件群組主檔），例如機油濾、煞車片。</td></tr><tr><td class="fnm">零件類型</td><td class="prop">選填</td><td>下拉：專用件／通用件／組合件／拆解件。</td></tr><tr><td class="fnm">產地</td><td class="prop">選填</td><td>下拉（來源：國家主檔）。這顆零件實際生產國，與品牌國別不同。</td></tr><tr><td class="fnm">規格／備註</td><td class="prop">選填</td><td>規格說明或備註，多行文字。</td></tr><tr><td class="fnm">單位</td><td class="prop">必填</td><td>計量單位（LITE 固定 pcs）。</td></tr><tr><td class="fnm">正廠料號對應</td><td class="prop">選填</td><td>可建多筆「品牌＋正廠料號」對應，供副廠件對照原廠料號查詢。</td></tr><tr><td class="fnm">改號關聯</td><td class="prop">選填</td><td>記錄料號改號前後的關聯。</td></tr><tr><td class="fnm">照片管理</td><td class="prop">選填</td><td>進入照片管理，最多 5 張，見下方「零件照片」。</td></tr></table></div>
 <div class="ep"><div class="ep-h">銷貨分頁</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">A／B／C／D 級售價</td><td class="prop">選填</td><td>四個客戶分級各自的售價，客戶下單依其分級自動帶價。</td></tr><tr><td class="fnm">售價更新時間</td><td class="prop">建立後不可改</td><td>系統自動記錄售價最後更新時間。</td></tr><tr><td class="fnm">售價更新人</td><td class="prop">建立後不可改</td><td>系統自動記錄更新人。</td></tr><tr><td class="fnm">最後銷售時間</td><td class="prop">建立後不可改</td><td>系統自動記錄這顆零件最後一次賣出的時間，搭配最後進貨時間可抓出呆滯料。純顯示。</td></tr></table></div>
 <div class="cal star">【重點】 編輯銷貨分頁時有「依成本重算」按鈕：按下去用「進貨成本 × 各分級加成率」自動算好四級售價，仍可手動微調。</div>
 <div class="ep"><div class="ep-h">採購分頁</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">進貨成本</td><td class="prop">選填</td><td>進貨成本，由採購填，是「依成本重算」售價的計算基準。</td></tr><tr><td class="fnm">最後進貨時間</td><td class="prop">建立後不可改</td><td>系統自動記錄這顆零件最後一次進貨的時間，可一眼看出久未進貨的零件。純顯示。</td></tr></table></div>
 <div class="ep"><div class="ep-h">庫存分頁</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">退貨政策</td><td class="prop">必填</td><td>下拉：F 廠保（原廠保固）／S 自保（自家保固）／R 整新（整新品）／N 不退（不可退不保固）／W 保固（走保固流程）。銷貨退貨時系統依此判斷能不能退、走什麼流程。</td></tr><tr><td class="fnm">保固月數</td><td class="prop">必填</td><td>保固幾個月，0＝不保固。走保固類時依此判斷是否在保固內。</td></tr><tr><td class="fnm">建議保存期限</td><td class="prop">選填</td><td>這顆零件的建議保存期限（月）。新增時自動繼承所屬族群的預設值，可在此覆寫；0 或留空表示無保存期限。供即期提醒與庫存管理參考。</td></tr><tr><td class="fnm">安全量／最高量／預設庫位</td><td class="prop">選填</td><td>可依每個倉庫分別設。安全量＝低於就該補貨（低庫存警報依此）；最高量提醒避免囤貨；預設庫位是預設擺放位置。</td></tr></table></div>
 <div class="cal note">【說明】 退貨政策決定「能不能退、怎麼退」；退貨單怎麼開、保固流程怎麼跑，詳見銷貨手冊與庫存手冊。</div>
 <div class="cal star">【重點】 汽配零件常靠照片辨識。每顆最多 5 張，建議拍正面、反面、側面，加 1～2 張細節照。</div>
-<div class="ep"><div class="ep-h">照片管理操作</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">拍照</td><td class="prop">選填</td><td>手機／平板開後鏡頭直接拍；電腦開檔案／視訊鏡頭。</td></tr><tr><td class="fnm">選檔上傳</td><td class="prop">選填</td><td>從相簿或電腦選圖，支援 PNG／JPEG／GIF／WebP，可多選。</td></tr><tr><td class="fnm">設主圖</td><td class="prop">選填</td><td>把某張設為主圖（縮圖顯示「主圖」徽章），零件列表與查詢顯示這張。</td></tr><tr><td class="fnm">刪除</td><td class="prop">選填</td><td>滑到照片上出現刪除鈕，可單張刪除。</td></tr></table></div>
+<h3 class="sub">二、操作與結果</h3>
+<table class="ops"><tr><th>動作</th><th>結果</th></tr>
+<tr><td class="act">新增零件・料號留空</td><td>沒套件（或編碼規則為空）時，系統自動帶「舊料號」當主料號並做唯一性檢查；料號建立後鎖定不可改。</td></tr>
+<tr><td class="act">依成本重算（銷貨分頁）</td><td>按鈕以「進貨成本 × 各分級加成率」自動算好 A／B／C／D 四級售價，仍可手動微調。</td></tr>
+<tr><td class="act">拍照</td><td>手機／平板開後鏡頭直接拍；電腦開檔案／視訊鏡頭。</td></tr>
+<tr><td class="act">選檔上傳</td><td>從相簿或電腦選圖，支援 PNG／JPEG／GIF／WebP，可多選；每顆最多 5 張。</td></tr>
+<tr><td class="act">設主圖</td><td>把某張設為主圖（縮圖顯示「主圖」徽章），零件列表與查詢顯示這張。</td></tr>
+<tr><td class="act">刪除照片</td><td>滑到照片上出現刪除鈕，可單張刪除。</td></tr>
+</table>
 <div class="cal warn">【注意】 每顆零件最多 5 張照片。</div>
 
-<h3 class="ent">品牌基本資料 <span class="mt">一般表格</span> <span class="mt">LITE</span></h3>
-<div class="ent-menu">選單位置 主檔 → 產品與料號 → 品牌基本資料</div>
+<h3 class="ent">廠牌基本資料 <span class="mt">一般表格</span> <span class="mt">LITE</span></h3>
+<div class="ent-menu">選單位置 主檔 → 產品與廠牌 → 廠牌基本資料</div>
 <p>同時管車廠品牌與零件品牌，用兩個開關區分一個品牌屬哪一邊（例如 VAG 同時是車廠也是零件品牌，兩個都開）。</p>
 <div class="ep"><div class="ep-h">品牌欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">品牌代碼</td><td class="prop">必填 / 建立後不可改</td><td>固定三碼、自動轉大寫（例如 BSH、MAN）。建立後鎖定。</td></tr><tr><td class="fnm">品牌名稱</td><td class="prop">必填</td><td>品牌中文名。</td></tr><tr><td class="fnm">英文名稱</td><td class="prop">進階</td><td>品牌英文名。</td></tr><tr><td class="fnm">國別</td><td class="prop">選填</td><td>下拉（來源：國家主檔），品牌所屬國。</td></tr><tr><td class="fnm">汽車品牌</td><td class="prop">選填</td><td>開關。打開＝車廠品牌（車型字典用）。</td></tr><tr><td class="fnm">零件品牌</td><td class="prop">選填</td><td>開關。打開＝零件品牌（零件主檔品牌下拉會列出）。</td></tr><tr><td class="fnm">Logo 網址</td><td class="prop">進階</td><td>品牌 Logo 圖片網址。</td></tr><tr><td class="fnm">備註</td><td class="prop">進階</td><td>備註。</td></tr><tr><td class="fnm">排序</td><td class="prop">進階</td><td>顯示順序。</td></tr></table></div>
 
 <h3 class="ent">零件群組基本資料 <span class="mt">一般表格</span> <span class="mt">LITE</span></h3>
-<div class="ent-menu">選單位置 主檔 → 產品與料號 → 零件群組基本資料</div>
+<div class="ent-menu">選單位置 主檔 → 產品與廠牌 → 零件群組基本資料</div>
 <p>零件的分類群組（例如機油濾、煞車片），零件主檔的「零件族群」下拉會列出。</p>
 <div class="ep"><div class="ep-h">零件群組欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">族群代碼</td><td class="prop">必填 / 建立後不可改</td><td>自動轉大寫。</td></tr><tr><td class="fnm">族群名稱</td><td class="prop">必填</td><td>群組名稱。</td></tr><tr><td class="fnm">預設建議保存期限</td><td class="prop">選填</td><td>這個族群零件的預設建議保存期限（月）。有保存期限考量的族群（例如電瓶、油品）填一個預設值，新增該族群的零件時自動帶入；沒有保存期限的族群留空即可。</td></tr><tr><td class="fnm">排序</td><td class="prop">進階</td><td>顯示順序。</td></tr></table></div>
 <div class="cal star">【重點】 保存期限採「族群設預設、零件可覆寫」：在族群設一次預設值，新增零件自動繼承，不必一顆顆編；個別零件若不同，再到零件主檔覆寫即可。做法與客戶分級加成率＋個別毛利率覆寫相同。</div>
 
-<h3 class="ent">通用件群組基本資料 <span class="mt">一般表格</span> <span class="mt">LITE</span></h3>
-<div class="ent-menu">選單位置 主檔 → 產品與料號 → 通用件群組基本資料</div>
-<p>把可互相替代的零件歸成一組，零件查詢時自動帶出組內可替代品與庫存。先建群組，再進群組詳細頁加成員。</p>
+<h3 class="ent">通用件群組基本資料 <span class="mt">群組批次</span> <span class="mt">LITE</span></h3>
+<div class="ent-menu">選單位置 主檔 → 產品與廠牌 → 通用件群組基本資料</div>
+<p>把可互相替代的零件歸成一組，零件查詢時自動帶出組內可替代品與庫存。畫面採<b>群組批次面板</b>：左欄選群組、右欄維護成員清單；每個成員可設角色、雙向替代、專屬售價。</p>
 <div class="ep"><div class="ep-h">群組欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">群組代碼</td><td class="prop">必填 / 建立後不可改</td><td>自動轉大寫。</td></tr><tr><td class="fnm">群組名稱</td><td class="prop">必填</td><td>這組通用件的名稱。</td></tr><tr><td class="fnm">備註</td><td class="prop">進階</td><td>備註。</td></tr><tr><td class="fnm">排序</td><td class="prop">進階</td><td>顯示順序。</td></tr></table></div>
-<div class="ep"><div class="ep-h">群組成員（在詳細頁逐筆加入）</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">零件</td><td class="prop">必填</td><td>用料號或品名搜尋後選一顆零件加入。</td></tr><tr><td class="fnm">角色</td><td class="prop">必填</td><td>下拉：主件（首選品項）／替代品。</td></tr><tr><td class="fnm">專屬售價</td><td class="prop">選填</td><td>這顆在這組的專屬售價，留空就用零件本身售價。</td></tr><tr><td class="fnm">雙向替代</td><td class="prop">選填</td><td>開關。勾＝A 與 B 互相替代；不勾＝單向（A 用 B 替代）。</td></tr><tr><td class="fnm">備註</td><td class="prop">選填</td><td>備註。</td></tr></table></div>
+<div class="ep"><div class="ep-h">群組成員（右欄逐筆維護）</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">零件</td><td class="prop">必填</td><td>用料號或品名搜尋後選一顆零件加入。</td></tr><tr><td class="fnm">角色</td><td class="prop">必填</td><td>下拉：主件（首選品項）／替代品。</td></tr><tr><td class="fnm">專屬售價</td><td class="prop">選填</td><td>這顆在這組的專屬售價，留空就用零件本身售價。</td></tr><tr><td class="fnm">雙向替代</td><td class="prop">選填</td><td>開關。勾＝A 與 B 互相替代；不勾＝單向（A 用 B 替代）。</td></tr><tr><td class="fnm">備註</td><td class="prop">選填</td><td>備註。</td></tr></table></div>
 <div class="cal star">【重點】 查詢任一顆零件，系統自動帶出同群組可替代品與各自庫存，缺貨時可改推替代品。查詢會自動忽略空格、星號、點、大小寫差異，對方料號各種寫法都找得到。</div>
+<h3 class="sub">操作與結果</h3>
+<table class="ops"><tr><th>動作</th><th>結果</th></tr>
+<tr><td class="act">左欄選/建群組</td><td>左欄列出所有通用件群組，可新建（代碼、名稱）；選一組後右欄載入其成員。</td></tr>
+<tr><td class="act">加成員</td><td>右欄用料號或品名搜尋選零件加入，設角色（主件／替代品）、可填專屬售價、勾雙向替代。可一次加多顆。</td></tr>
+<tr><td class="act">移除成員</td><td>點成員「× 移除」把零件移出此群組。</td></tr>
+<tr><td class="act">查詢零件</td><td>查任一成員 → 系統自動帶出同群組可替代品與各自庫存；缺貨時可改推替代品。</td></tr>
+</table>
 <div class="cal note">【說明】 說明：品牌料號規則、零件關聯、料件車型適配，以及下方的車型字典等，都屬「汽車資料庫套件」（加購）功能，不在本手冊範圍，詳見加購套件手冊。本手冊只涵蓋 LITE 核心主檔。</div>
 
-<h2>組織架構</h2>
-<p>管理據點、倉庫、庫位的層級：據點底下有倉庫，倉庫底下有庫位。</p>
-
-<h3 class="ent">據點基本資料 <span class="mt">一般表格</span> <span class="mt">LITE</span></h3>
-<div class="ent-menu">選單位置 主檔 → 組織架構 → 據點基本資料</div>
-<div class="ep"><div class="ep-h">據點欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">據點代碼</td><td class="prop">必填 / 建立後不可改</td><td>自動轉大寫。</td></tr><tr><td class="fnm">據點名稱</td><td class="prop">必填</td><td>據點名稱。</td></tr><tr><td class="fnm">設為主據點</td><td class="prop">選填</td><td>開關。每個租戶只有一個主據點。</td></tr><tr><td class="fnm">地址</td><td class="prop">進階</td><td>據點地址（舊版自由文字）。</td></tr><tr><td class="fnm">聯絡電話</td><td class="prop">選填</td><td>據點電話。</td></tr><tr><td class="fnm">排序</td><td class="prop">進階</td><td>顯示順序。</td></tr></table></div>
-
-<h3 class="ent">倉庫基本資料 <span class="mt">一般表格</span> <span class="mt">LITE</span></h3>
-<div class="ent-menu">選單位置 主檔 → 組織架構 → 倉庫基本資料</div>
-<div class="ep"><div class="ep-h">倉庫欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">倉庫代碼</td><td class="prop">必填 / 建立後不可改</td><td>自動轉大寫。</td></tr><tr><td class="fnm">倉庫名稱</td><td class="prop">必填</td><td>倉庫名稱。</td></tr><tr><td class="fnm">所屬據點</td><td class="prop">必填</td><td>下拉（來源：據點主檔），這個倉屬於哪個據點。</td></tr><tr><td class="fnm">倉別</td><td class="prop">進階</td><td>下拉（來源：倉別主檔），倉庫類別。</td></tr><tr><td class="fnm">備註</td><td class="prop">進階</td><td>備註。</td></tr><tr><td class="fnm">排序</td><td class="prop">進階</td><td>顯示順序。</td></tr></table></div>
-
-<h3 class="ent">庫位基本資料 <span class="mt">一般表格</span> <span class="mt">LITE</span></h3>
-<div class="ent-menu">選單位置 主檔 → 組織架構 → 庫位基本資料</div>
-<div class="ep"><div class="ep-h">庫位欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">所屬據點</td><td class="prop">選填</td><td>下拉（來源：據點主檔）。</td></tr><tr><td class="fnm">所屬倉庫</td><td class="prop">必填</td><td>下拉（來源：倉庫主檔），這個庫位在哪個倉。</td></tr><tr><td class="fnm">庫位代碼</td><td class="prop">必填 / 建立後不可改</td><td>庫位編號。</td></tr><tr><td class="fnm">名稱</td><td class="prop">選填</td><td>庫位名稱。</td></tr><tr><td class="fnm">區／架號／層／格</td><td class="prop">進階</td><td>庫位細部位置。</td></tr><tr><td class="fnm">備註</td><td class="prop">進階</td><td>備註。</td></tr><tr><td class="fnm">排序</td><td class="prop">進階</td><td>顯示順序。</td></tr></table></div>
-
-<h2>交易對象</h2>
-<p>客戶、供應商、同行、外包物流、銀行等往來對象，加上客戶分級與地區。</p>
-
-<h3 class="ent">往來對象基本資料 <span class="mt">一般表格（含地址／聯絡窗口子表）</span> <span class="mt">LITE</span></h3>
-<div class="ent-menu">選單位置 主檔 → 交易對象 → 往來對象基本資料</div>
-<p>所有往來對象都在這一個主檔，用「對象類型」區分。畫面分四個分頁：基本資料、銷貨、出貨、財務。</p>
-<div class="cal star">【重點】 畫面依對象類型自動顯示分頁：保養廠／同行 → 四分頁全顯；供應商 → 基本資料＋出貨＋財務；外包物流 → 基本資料＋出貨；一般廠商／銀行 → 基本資料＋財務。</div>
-<div class="ep"><div class="ep-h">基本資料分頁</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">公司代碼</td><td class="prop">必填 / 建立後不可改</td><td>類型代碼＋4 碼流水（如客戶 C0001、供應商 S0001），自動給號、可覆寫，建立後鎖定。</td></tr><tr><td class="fnm">公司全名</td><td class="prop">必填</td><td>完整公司名稱。</td></tr><tr><td class="fnm">公司簡稱</td><td class="prop">選填</td><td>常用簡稱。</td></tr><tr><td class="fnm">英文名稱</td><td class="prop">選填</td><td>英文公司名。</td></tr><tr><td class="fnm">對象類型</td><td class="prop">必填</td><td>下拉：C 保養廠／O 同行／S 供應商／T 外包物流／V 一般廠商／B 銀行。建立後不可改。</td></tr><tr><td class="fnm">備註</td><td class="prop">選填</td><td>自由備註。</td></tr><tr><td class="fnm">服務據點</td><td class="prop">選填</td><td>此對象主要往來的服務據點。</td></tr><tr><td class="fnm">主要聯絡人</td><td class="prop">選填</td><td>公司主要聯絡人（簡單顯示用；多部門窗口用下方聯絡窗口）。</td></tr><tr><td class="fnm">公司負責人姓名</td><td class="prop">選填</td><td>對方公司的負責人／老闆。與我方「業務員」不同（業務員在銷貨分頁）。</td></tr><tr><td class="fnm">公司電話／行動電話／傳真／Email／網站</td><td class="prop">選填</td><td>各項聯絡資訊。</td></tr><tr><td class="fnm">國別</td><td class="prop">選填</td><td>下拉（來源：國家主檔），預設台灣。</td></tr><tr><td class="fnm">地區</td><td class="prop">選填</td><td>下拉（來源：地區主檔）。客戶搬家可改、不影響編號，報表可依地區分析。</td></tr><tr><td class="fnm">母公司</td><td class="prop">選填</td><td>下拉（來源：往來對象本身）。連鎖客戶選母公司後，這筆就是該母公司分店。</td></tr><tr><td class="fnm">舊系統代碼</td><td class="prop">進階</td><td>對應舊系統編號，方便轉移對照。</td></tr><tr><td class="fnm">聯絡窗口</td><td class="prop">選填</td><td>可建多筆部門窗口，見下方「聯絡窗口子表」。</td></tr></table></div>
-<div class="ep"><div class="ep-h">銷貨分頁（保養廠／同行才顯示）</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">客戶分級</td><td class="prop">選填</td><td>下拉（來源：客戶分級主檔 A／B／C／D），決定售價自動套用的加成率。</td></tr><tr><td class="fnm">自訂毛利率 %</td><td class="prop">選填</td><td>這客戶專屬毛利率，有填就覆寫分級、沒填跟分級走。</td></tr><tr><td class="fnm">信用額度</td><td class="prop">選填</td><td>最多賒帳金額，0＝不限制。</td></tr><tr><td class="fnm">信用狀態</td><td class="prop">選填</td><td>下拉：N 正常／W 警示／F 凍結。</td></tr><tr><td class="fnm">預設出貨倉</td><td class="prop">選填</td><td>下拉（來源：倉庫主檔），開銷貨單預設出這倉。</td></tr><tr><td class="fnm">可調貨給此對象</td><td class="prop">選填</td><td>開關。同行之間調貨（軋帳）用。</td></tr><tr><td class="fnm">業務員</td><td class="prop">選填</td><td>下拉（來源：員工主檔），我方指派負責這客戶的業務員。</td></tr></table></div>
-<div class="ep"><div class="ep-h">出貨分頁</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">送貨地址</td><td class="prop">選填</td><td>可建多筆送貨地址（連鎖客戶送不同分店），其中一筆設預設。開銷貨單自動帶預設，見下方地址子表。</td></tr></table></div>
-<div class="ep"><div class="ep-h">財務分頁</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">統一編號</td><td class="prop">選填</td><td>有統編才能開三聯發票；沒統編的零散客人改走散客帳戶。</td></tr><tr><td class="fnm">國內付款條件</td><td class="prop">必填</td><td>下拉：PREPAY 預付／NET30 月結 30／NET60／NET90。</td></tr><tr><td class="fnm">進口付款條件</td><td class="prop">選填</td><td>下拉：TT 電匯／LC 信用狀／DP 付款交單／DA 承兌交單。</td></tr><tr><td class="fnm">貿易條件</td><td class="prop">選填</td><td>國貿條規（CIF／FOB／EXW），進口用。</td></tr><tr><td class="fnm">預設幣別</td><td class="prop">選填</td><td>下拉（來源：幣別主檔）。</td></tr><tr><td class="fnm">預設發票聯數</td><td class="prop">選填</td><td>下拉：0 不開發票／2 二聯／3 三聯，開單自動帶、可逐筆改。</td></tr><tr><td class="fnm">供應商分級</td><td class="prop">選填</td><td>下拉（來源：供應商分級主檔），供應商評等用。</td></tr><tr><td class="fnm">收帳地址</td><td class="prop">選填</td><td>寄帳單／發票的地址，最多 1 筆，見下方地址子表。</td></tr></table></div>
-<div class="cal warn">【注意】 「不開發票」是為配合少數客戶。選不開發票的金額，系統會在報表單獨呈現「未開發票金額」（銷售報表為主、損益表底部小計）——有稅務風險，建議盡量導正客戶開立發票。</div>
-<div class="cal star">【重點】 同一家客戶不同事找不同人：請款找會計、叫貨找零件室、談合約找老闆。可建多筆聯絡窗口。</div>
-<div class="ep"><div class="ep-h">每筆窗口欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">窗口姓名</td><td class="prop">必填</td><td>聯絡人姓名。</td></tr><tr><td class="fnm">職務／部門</td><td class="prop">選填</td><td>負責什麼（例如 採購副理、會計、零件室）。</td></tr><tr><td class="fnm">電話／分機／手機</td><td class="prop">選填</td><td>聯絡電話。</td></tr><tr><td class="fnm">Email</td><td class="prop">選填</td><td>電子郵件。</td></tr><tr><td class="fnm">排序</td><td class="prop">選填</td><td>多筆窗口顯示順序。</td></tr><tr><td class="fnm">備註</td><td class="prop">選填</td><td>提醒（例如「只接下午」）。</td></tr></table></div>
-<div class="ep"><div class="ep-h">每筆地址欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">地址標籤</td><td class="prop">選填</td><td>（僅送貨）地址代稱，例如「總公司」「桃園倉」。</td></tr><tr><td class="fnm">設為預設送貨地址</td><td class="prop">選填</td><td>（僅送貨）開關，勾選的開銷貨單自動帶入。</td></tr><tr><td class="fnm">國別</td><td class="prop">選填</td><td>下拉（來源：國家主檔），預設台灣。台灣走縣市字典、國外用完整地址自由填。</td></tr><tr><td class="fnm">縣市／鄉鎮市區</td><td class="prop">選填</td><td>（台灣）下拉選擇，選鄉鎮後自動帶郵遞區號。</td></tr><tr><td class="fnm">郵遞區號</td><td class="prop">選填</td><td>台灣選區自動帶、唯讀；國外自填。</td></tr><tr><td class="fnm">路街／巷／弄／號／之／樓／室</td><td class="prop">選填</td><td>（台灣）門牌各欄分填。</td></tr><tr><td class="fnm">完整地址</td><td class="prop">選填</td><td>（國外）整段地址自由填。</td></tr><tr><td class="fnm">收件人／收件電話</td><td class="prop">選填</td><td>這個地址的收件人與電話。</td></tr><tr><td class="fnm">備註</td><td class="prop">選填</td><td>補充說明。</td></tr></table></div>
-
-<h3 class="ent">客戶分級基本資料 <span class="mt">一般表格（系統內建、只能改不能新增）</span> <span class="mt">LITE</span></h3>
-<div class="ent-menu">選單位置 主檔 → 交易對象 → 客戶分級基本資料</div>
-<div class="ep"><div class="ep-h">客戶分級欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">分級代碼</td><td class="prop">建立後不可改</td><td>A／B／C／D。</td></tr><tr><td class="fnm">分級名稱</td><td class="prop">必填</td><td>分級名稱。</td></tr><tr><td class="fnm">加成率(%)</td><td class="prop">選填</td><td>這一級套用的加成率（決定四級售價怎麼算）。</td></tr><tr><td class="fnm">排序</td><td class="prop">進階</td><td>顯示順序。</td></tr></table></div>
-
-<h3 class="ent">供應商分級基本資料 <span class="mt">一般表格（半開放）</span> <span class="mt">LITE</span></h3>
-<div class="ent-menu">選單位置 主檔 → 交易對象 → 供應商分級基本資料</div>
-<p>供應商的評等分級，用在往來對象「財務分頁」的供應商分級下拉。系統內建 A／B／C／D 四級（對應付款條件越好評等越高），可在往來對象按「依付款條件重算」自動分級。</p>
-<div class="ep"><div class="ep-h">供應商分級欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">分級代碼</td><td class="prop">建立後不可改</td><td>內建 A／B／C／D 鎖住不可改不可刪（自動分級要用到）；客戶可新增自己的等級代碼。</td></tr><tr><td class="fnm">分級名稱</td><td class="prop">必填</td><td>分級名稱。</td></tr><tr><td class="fnm">說明</td><td class="prop">進階</td><td>備註用。</td></tr><tr><td class="fnm">排序</td><td class="prop">進階</td><td>顯示順序。</td></tr></table></div>
-<div class="cal note">【說明】 供應商分級是「半開放」：內建的 A／B／C／D 鎖住（系統自動分級要用），但您可以新增自己的等級（例如 VIP、列管）當業務分類擴展用。</div>
+<h2>字典主檔</h2>
+<p>全系統共用的基礎字典：地區、國家、幣別、注音字典。（公告已移除單獨主檔，改由 Top Bar 的廣播鈕進入公告頁編輯。）</p>
 
 <h3 class="ent">地區基本資料 <span class="mt">一般表格</span> <span class="mt">LITE</span></h3>
-<div class="ent-menu">選單位置 主檔 → 交易對象 → 地區基本資料</div>
-<div class="ep"><div class="ep-h">地區欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">地區代碼</td><td class="prop">必填 / 建立後不可改</td><td>自動轉大寫。</td></tr><tr><td class="fnm">地區名稱</td><td class="prop">必填</td><td>例如北部、中部、南部、東部、離島。客戶基本資料「地區」下拉會列出。</td></tr><tr><td class="fnm">排序</td><td class="prop">進階</td><td>顯示順序。</td></tr></table></div>
-
-<h3 class="ent">供應商供貨對應基本資料 <span class="mt">一般表格</span> <span class="mt">LITE</span></h3>
-<div class="ent-menu">選單位置 主檔 → 交易對象 → 供應商供貨對應基本資料</div>
-<p>記錄「哪家供應商賣哪些料件」，以及各家的廠商料號、預設單價、交期、最低訂購量。這是採購詢價的基礎——詢價時系統依此帶出「這料件可以跟哪些供應商詢價」，採購人員不必憑記憶。</p>
-<div class="ep"><div class="ep-h">供應商供貨對應欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">供應商</td><td class="prop">必填 / 建立後不可改</td><td>下拉（來源：往來對象中的供應商），這筆對應是哪家供應商。</td></tr><tr><td class="fnm">料件</td><td class="prop">必填 / 建立後不可改</td><td>下拉（來源：零件主檔），這家供應商賣的料件。</td></tr><tr><td class="fnm">生效起期</td><td class="prop">建立後不可改</td><td>這筆供貨對應從哪天起生效。</td></tr><tr><td class="fnm">主要供應商</td><td class="prop">選填</td><td>開關。標記這家是不是這料件的主要（首選）供應商。</td></tr><tr><td class="fnm">廠商料號</td><td class="prop">選填</td><td>這家供應商對這顆料件用的料號（對方的料號），對照查詢用。</td></tr><tr><td class="fnm">預設單價</td><td class="prop">選填</td><td>向這家進這料件的預設單價，詢價／開採購單時帶入參考。</td></tr><tr><td class="fnm">預設交期</td><td class="prop">選填</td><td>這家供這料件的預設交期（天），估到貨用。</td></tr><tr><td class="fnm">最低訂購量</td><td class="prop">選填</td><td>這家對這料件的最低訂購量（MOQ）。</td></tr><tr><td class="fnm">來源</td><td class="prop">選填</td><td>下拉：手動（人工建立）／系統（依進貨紀錄自動產生）。</td></tr><tr><td class="fnm">生效迄期</td><td class="prop">選填</td><td>這筆供貨對應到哪天止；留空表示持續有效。</td></tr><tr><td class="fnm">備註</td><td class="prop">進階</td><td>備註。</td></tr></table></div>
-<div class="cal star">【重點】 這張表是「詢價」的基礎：詢價時系統依此自動帶出「這料件可以跟哪些供應商詢價」，採購人員不用憑記憶。進貨過後系統也會用進貨紀錄回頭補充這張對應。</div>
-
-<h2>系統設定</h2>
-<p>全系統共用的基礎設定：公告、國家、幣別、注音字典。</p>
-
-<h3 class="ent">公告基本資料 <span class="mt">一般表格</span> <span class="mt">LITE</span></h3>
-<div class="ent-menu">選單位置 主檔 → 系統設定 → 公告基本資料</div>
-<div class="ep"><div class="ep-h">公告欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">標題</td><td class="prop">必填</td><td>公告標題。</td></tr><tr><td class="fnm">內容</td><td class="prop">進階</td><td>公告內容，多行文字。</td></tr><tr><td class="fnm">重要性</td><td class="prop">選填</td><td>下拉：一般／重要／緊急。</td></tr><tr><td class="fnm">置頂</td><td class="prop">進階</td><td>開關，置頂顯示。</td></tr><tr><td class="fnm">到期日</td><td class="prop">進階</td><td>到期日期，過期後不再顯示。</td></tr></table></div>
+<div class="ent-menu">選單位置 主檔 → 字典主檔 → 地區基本資料</div>
+<p>業務地區分類（北/中/南/東/離島），往來對象「地區」下拉與地區別報表分析引用。屬全系統共用字典。</p>
+<div class="ep"><div class="ep-h">地區欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">地區代碼</td><td class="prop">必填 / 建立後不可改</td><td>自動轉大寫。</td></tr><tr><td class="fnm">地區名稱</td><td class="prop">必填</td><td>例如北部、中部、南部、東部、離島。往來對象「地區」下拉會列出。</td></tr><tr><td class="fnm">排序</td><td class="prop">進階</td><td>顯示順序。</td></tr></table></div>
 
 <h3 class="ent">國家基本資料 <span class="mt">一般表格</span> <span class="mt">LITE</span></h3>
-<div class="ent-menu">選單位置 主檔 → 系統設定 → 國家基本資料</div>
+<div class="ent-menu">選單位置 主檔 → 字典主檔 → 國家基本資料</div>
 <div class="ep"><div class="ep-h">國家欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">國家代碼</td><td class="prop">必填 / 建立後不可改</td><td>自動轉大寫，例如 TW。</td></tr><tr><td class="fnm">國家名稱</td><td class="prop">必填</td><td>例如台灣。</td></tr><tr><td class="fnm">排序</td><td class="prop">進階</td><td>顯示順序。</td></tr></table></div>
 
 <h3 class="ent">幣別基本資料 <span class="mt">一般表格</span> <span class="mt">LITE</span></h3>
-<div class="ent-menu">選單位置 主檔 → 系統設定 → 幣別基本資料</div>
+<div class="ent-menu">選單位置 主檔 → 字典主檔 → 幣別基本資料</div>
 <div class="ep"><div class="ep-h">幣別欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">幣別代碼</td><td class="prop">必填 / 建立後不可改</td><td>例如 TWD、USD。</td></tr><tr><td class="fnm">幣別名稱</td><td class="prop">必填</td><td>例如新台幣。</td></tr><tr><td class="fnm">幣別符號</td><td class="prop">選填</td><td>例如 NT$。</td></tr><tr><td class="fnm">小數位數</td><td class="prop">選填</td><td>金額小數位數，預設 2。</td></tr><tr><td class="fnm">排序</td><td class="prop">進階</td><td>顯示順序。</td></tr></table></div>
 
 <h3 class="ent">注音字典基本資料 <span class="mt">一般表格</span> <span class="mt">LITE</span></h3>
-<div class="ent-menu">選單位置 主檔 → 系統設定 → 注音字典基本資料</div>
+<div class="ent-menu">選單位置 主檔 → 字典主檔 → 注音字典基本資料</div>
 <p>注音字典是「注音快搜」的基礎，記錄每個中文字對應的注音。系統已內建常用字，一般不需手動維護；如有特殊罕用字搜不到，可在此補登。</p>
 <div class="ep"><div class="ep-h">注音字典欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">字</td><td class="prop">必填</td><td>單一中文字。</td></tr><tr><td class="fnm">主注音</td><td class="prop">必填</td><td>這個字的注音。</td></tr><tr><td class="fnm">主聲母</td><td class="prop">必填</td><td>注音首碼（聲母），快搜比對用。</td></tr></table></div>
 
 <h2>內建主檔（無單獨入口）</h2>
-<p>以下主檔在主檔中心沒有單獨的卡片入口，由其他主檔的下拉間接使用。列出讓您知道它們存在。</p>
+<p>以下主檔在 DOCK 導覽中沒有單獨入口，由其他主檔的下拉間接使用。列出讓您知道它們存在。</p>
 <div class="ep"><div class="ep-h">內建主檔</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">倉別</td><td class="prop">選填</td><td>系統內建、唯讀的倉庫分類（描述庫存流向模式，例如良品倉、不良品倉、在途倉）。由「倉庫」的所屬倉別下拉間接使用，不開放新增或修改——因為每種倉別都綁系統的庫存流向邏輯。</td></tr><tr><td class="fnm">畫面字典</td><td class="prop">選填</td><td>被「職務權限設定」當縱軸（各畫面清單）使用，系統內建、不開放單獨維護。</td></tr></table></div>
-<h2>待釐清 / 待驗證</h2>
-<ul>
-<li>① <b>零件主碼錨點：</b>是否有獨立於「零件料號」的系統內碼作永久錨點，或料號本身即不可改錨點（影響改號與歷史單據處理）。</li>
-<li>② <b>主碼由舊碼切到編號：</b>料號建立後鎖定，若要從 ③ 舊碼切到 ② 編號，歷史單據是否凍結當時編號、或重新對應。</li>
-<li>③ <b>沒套件時舊碼當主碼：</b>是否需擋重複、保唯一性。</li>
-<li>④ <b>汽車資料庫套件加購後</b>，LITE 既有零件編碼如何銜接到編碼規則引擎產生的統一格式。</li>
-<li>⑤ <b>員工編號格式：</b>手冊載「系統自動給 Y＋4 碼、可手動覆寫、建立後鎖定、即登入帳號」；產品方向為「員編自由文字、租戶內唯一、不強制格式」。兩者以「自動給號為預設、可覆寫成任意唯一文字」對齊，請 Hank 確認現況一致。</li>
-</ul>
-<footer>需求規格 01 核心主檔 v2.0　·　來源：操作手冊-02 Ver 2.7（as-built，逐欄抽取）＋ 產品決策（四層編碼）　·　v2.0 由 v1.0 摘要版改寫為施工級藍圖。</footer>
+<h2>補做與連帶事項</h2>
+<p>本規格為權威來源。以下為本檔定案的需求定義與跨模組連帶，Hank 應據此<b>檢查系統是否一致並回報落差</b>；若技術上無法實作，再回頭與 CTO 討論調整需求（規格不主動配合現況修改）。</p>
+<table class="ops">
+<tr><th>類</th><th>需求 / 連帶</th></tr>
+<tr><td class="act">跨模組 🔴</td><td>使用者基本資料新增「手機」欄位（選填）——NX00 忘記密碼自助重設（簡訊驗證碼）依賴此。未填手機且未填 Email 者無法自助重設、僅能由管理員重設。系統須具備此欄位與對應流程。</td></tr>
+<tr><td class="act">需求 🔴</td><td><b>零件內碼錨點：</b>系統須有獨立於對外料號（B）的內碼 A 作永久錨點，所有單據底層綁 A、不綁 B，使料號改號時歷史單據不斷。</td></tr>
+<tr><td class="act">需求 🔴</td><td><b>B 唯一性檢查：</b>沒套件時 B 沿用客戶舊料號（C），系統須對 B 做租戶內唯一性檢查、擋重複。</td></tr>
+</table>
+<div class="cal note">【其他已定案需求・列此存證】<br>
+· <b>零件編碼邏輯：</b>沒套件→B 可編輯、預設帶 C；買套件且編碼規則有值→依 SEG 自動編碼、B 鎖定（詳見上方編碼設計，SEG 細節留套件需求）。<br>
+· <b>員工編號格式：</b>「Y＋4 碼自動給號、可手動覆寫、租戶內唯一、建立後鎖定、即登入帳號」。</div>
+<footer>需求規格 01 核心主檔 v3.9　·　NX01 核心 / LITE　·　來源：操作手冊-02 Ver 2.7（as-built，逐欄抽取）＋ 產品決策（四層編碼）。<br>
+v3.9 變更：新增「主檔頁面型態」章節——定義 8 種型態的版面架構與通用行為（一般表格／多分頁／含子表／系統內建／半開放／群組批次／圖像化指派／權限矩陣），各主檔標題的型態標籤即指向此章；只定架構與互動、不含風格色碼。<br>
+v3.8 變更：到職日/離職日補入帳號狀況分頁；啟用雙重驗證加防呆（未設手機且未設 Email 不可啟用）。<br>
+v3.7 變更：員工基本資料分頁重切為四分頁（基本資料／教育程度／職務部門／帳號狀況，移除舊「帳號權限/帳號安全/人力資源」分頁）；新增英文姓名、緊急聯絡人拆三欄；身分證字號改遮罩（點顯示解遮，第二層防護）；重置密碼改一鍵動作（設員編為預設密碼＋自動強制改密、登入改完自動關）；新增「啟用雙重驗證」欄；負責人改唯讀且客戶端不顯示（第一個開通時指定、變更僅限客服）；補基本資料分頁三欄網格排版說明。<br>
+v3.6 變更：補「DOCK 三層導覽」銜接附註——六大分區即小星球「主檔」項的第二層選單（主檔→分區→主檔頁），與 NX00 v1.2 對齊。<br>
+v3.5 變更：移除據點「設為主據點」欄位（當進貨預設地點的設計不成立——總公司可能無倉、客戶多倉依港口而異）；改以倉庫層級預設——出庫預設綁客戶（沿用銷貨分頁「預設出貨倉」）、入庫預設綁供應商（出貨分頁新增「預設入庫倉」，一家一個預設、多港口情況進貨時手動改倉）。<br>
+v3.4 變更：職務「隸屬部門」改為「隸屬組」（對齊組織架構圖 部門→組→職務 鏈，部門由組推導）；分區順序排正為 組織架構→權限管理→據點倉庫→往來對象→產品與廠牌→字典主檔；部門/組基本資料確認移除成員批次段（指派一律在組織架構圖）。<br>
+v3.3 變更：六大分區重整（組織架構／權限管理／據點倉庫／往來對象／產品與廠牌／字典主檔）；採「先建素材、再組裝」——新增「組織架構圖」（部門→組→職務→成員，員工掛職務、未指派進暫存池）與「據點架構圖」（據點→倉庫→庫位＋員工據點指派），取代並移除「使用者職務設定」「使用者據點設定」；員工基本資料（原使用者基本資料改名）部門/組/職務改唯讀；職務權限設定移入「權限管理」；往來對象改六入口濾鏡視圖；分級與供貨對應併回往來對象；移除公告主檔（改 Top Bar 廣播鈕）；品牌改名廠牌；地區歸字典主檔。<br>
+v3.2 變更：分區重整——「組織架構」改名「倉庫與庫位」（只裝據點/倉庫/庫位）、地區移入「系統設定」、客戶分級/供應商分級/供貨對應獨立為「分級與供貨設定」分區；部門/組詳細頁補批次拉/剔成員；通用件群組與供應商供貨對應改為群組批次面板（供貨對應＝供應商為軸、品牌/群組/產地批次匯入＋個別移除）；客戶分級補獨立主檔標題；移除「主檔中心」殘留字樣。<br>
+v3.1 變更：手機選填規則明確化（未填僅能管理員重設）、零件編碼四層改寫為「沒套件／買套件（規則空/有值）」兩段階梯、零件內碼錨點與 B 唯一性定為規格需求、員工編號格式定案；補做專區改為「規格定義、Hank 檢查一致性回報」立場。<br>
+v3.0 變更：版型對齊 NX00（畫面欄位＋操作與結果雙段式）、補 NX 碼、補本次/伏筆/唯讀 tag、新增「手機」欄位、修正標題編號 02→01。</footer>
 </body></html>

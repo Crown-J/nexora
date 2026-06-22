@@ -1,0 +1,53 @@
+/* ==========================================================================
+   NEXORA GRID — Typography Tokens
+   --------------------------------------------------------------------------
+   Geist Sans for everything; Geist Mono for codes, IDs, quantities, money and
+   keyboard hints (tabular figures). Type scale is rem-based so the app-wide
+   110% root-font bump (customer-friendly, older operators) scales the whole
+   system at once.
+   ========================================================================== */
+
+:root {
+  /* Root scale — the product runs at 110% by default for readability.
+     Specimen cards & consumers may override --nx-root-font-size. */
+  --nx-root-font-size: 110%;
+
+  /* Families */
+  --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, 'PingFang TC',
+    'Microsoft JhengHei', sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, 'SF Mono', 'Cascadia Code', monospace;
+
+  /* Weights */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Type scale (rem, scales with root) */
+  --text-2xs: 0.625rem;   /* 10px · category eyebrows, kbd chips */
+  --text-xs: 0.75rem;     /* 12px · table meta, captions */
+  --text-sm: 0.875rem;    /* 14px · body / table cells / controls */
+  --text-base: 1rem;      /* 16px · default body */
+  --text-lg: 1.125rem;    /* 18px · sub-headings */
+  --text-xl: 1.25rem;     /* 20px · doc titles */
+  --text-2xl: 1.5rem;     /* 24px · page titles */
+  --text-3xl: 1.875rem;   /* 30px · greeting / dashboard headers */
+  --text-4xl: 2.25rem;    /* 36px · hero numbers */
+
+  /* Line heights */
+  --leading-tight: 1.15;
+  --leading-snug: 1.35;
+  --leading-normal: 1.55;
+
+  /* Letter spacing — wide tracking is a NEXORA signature for eyebrows,
+     uppercase labels and doc codes. */
+  --tracking-tight: -0.01em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.15em;
+  --tracking-wider: 0.2em;
+  --tracking-widest: 0.25em;
+}
+
+:root {
+  font-size: var(--nx-root-font-size);
+}

@@ -1,0 +1,761 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NEXORA GRID — 系統</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="nx-master.css">
+<link rel="stylesheet" href="nx-purchase.css">
+<style>
+:root{
+  --gold:#d9a431; --gold-bright:#f0c45a;
+  --bio:#3fe6d4; --bio-2:#46c8ff; --violet:#9a6cff;
+  --green:#1d9e75; --danger:#e24b4a; --warning:#e8a020; --info:#4f9be8;
+
+  --fg:#eef3f4; --muted:#93a3a6; --faint:#5d6a6c;
+  --line:rgba(255,255,255,.085);
+  --line-soft:rgba(255,255,255,.05);
+  --panel:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.018));
+  --panel-bd:rgba(255,255,255,.085);
+  --chip:rgba(255,255,255,.045);
+  --hover:rgba(255,255,255,.05);
+  --sans:'Geist',system-ui,-apple-system,sans-serif;
+  --mono:'Geist Mono',ui-monospace,monospace;
+}
+html.light{
+  --fg:#27303a; --muted:#647082; --faint:#9aa6b4;
+  --line:rgba(40,55,75,.12);
+  --line-soft:rgba(40,55,75,.07);
+  --panel:linear-gradient(180deg, #ffffff, #f4f7fa);
+  --panel-bd:rgba(40,55,75,.13);
+  --chip:rgba(40,55,75,.05);
+  --hover:rgba(40,55,75,.06);
+  --gold:#e0701c; --gold-bright:#c8550f;
+}
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{
+  margin:0;font-family:var(--sans);color:var(--fg);
+  background:
+    radial-gradient(ellipse 60% 50% at 18% 0%, rgba(40,200,180,.12), transparent 58%),
+    radial-gradient(ellipse 50% 44% at 82% 0%, rgba(120,84,200,.14), transparent 60%),
+    radial-gradient(ellipse 70% 50% at 50% 0%, rgba(160,116,32,.12), transparent 52%),
+    radial-gradient(circle at 50% 30%, #0a1014, #070b0e 60%, #04070a 100%);
+  background-attachment:fixed;
+  -webkit-font-smoothing:antialiased;min-height:100vh;
+}
+html.light body.state-app{
+  background:
+    url("data:image/svg+xml,%3Csvg width='28' height='49' viewBox='0 0 28 49' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%237d8aa0' fill-opacity='0.09'%3E%3Cpath d='M13.99 9.25l13 7.5v15l-13 7.5L1 31.75v-15l12.99-7.5zM3 17.9v12.7l10.99 6.34 11-6.35V17.9l-11-6.34L3 17.9zM0 15l12.98-7.5V0h-2v6.35L0 12.69v2.3zm0 18.5L12.98 41v8h-2v-6.85L0 35.81v-2.3zM15 0v7.5L27.99 15H28v-2.31h-.01L17 6.35V0h-2zm0 49v-8l12.99-7.5H28v2.31h-.01L17 42.15V49h-2z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(ellipse 90% 50% at 50% 0%, #ffffff, transparent 70%),
+    linear-gradient(180deg,#eef2f6 0%,#e4e9f0 60%,#dce2ea 100%);
+  background-size:52px 91px, auto, auto;
+  background-attachment:fixed;
+}
+html.light #login-layer{color:#eef3f4;--fg:#eef3f4;--muted:#93a3a6;--faint:#5d6a6c;--gold:#d9a431;--gold-bright:#f0c45a}
+#stars{position:fixed;inset:0;z-index:0;display:block;transition:opacity .4s}
+html.light body.state-app #stars{opacity:1}
+
+.app{position:relative;z-index:1;height:100vh;overflow:hidden;display:flex;flex-direction:column}
+
+/* ============ TOPBAR ============ */
+.topbar{position:sticky;top:0;z-index:50;
+  background:color-mix(in oklch, #0a1014 72%, transparent);
+  backdrop-filter:blur(16px) saturate(1.3);-webkit-backdrop-filter:blur(16px) saturate(1.3);
+  border-bottom:1px solid var(--line)}
+html.light .topbar{background:linear-gradient(180deg,#e8782a,#db671a);border-bottom-color:rgba(0,0,0,.16);
+  --fg:#fff;--muted:rgba(255,255,255,.82);--faint:rgba(255,255,255,.6);--line:rgba(255,255,255,.26);--hover:rgba(255,255,255,.16);--panel-bd:rgba(255,255,255,.32)}
+html.light .topbar .wm b{color:#fff}
+html.light .topbar .dot-badge{background:#fff;color:#c8550f;border-color:#db671a}
+html.light .topbar .avatar{background:rgba(255,255,255,.28);color:#fff}
+html.light .menu{--fg:#27303a;--muted:#647082;--faint:#9aa6b4;--line:rgba(40,55,75,.12);--line-soft:rgba(40,55,75,.07);--hover:rgba(40,55,75,.06);--panel-bd:rgba(40,55,75,.13);color:#27303a}
+html.light .dock-trigger:hover{background:rgba(255,255,255,.16)}
+html.light body.state-app #planetWrap{filter:brightness(1.16) contrast(1.05) drop-shadow(0 2px 5px rgba(80,40,0,.3))}
+.tb-row{width:100%;padding:11px 22px;display:flex;align-items:center;gap:16px}
+.brand{display:flex;align-items:center;gap:11px;min-width:0}
+.logo{width:34px;height:34px;flex:none}
+.wm{font-weight:700;font-size:15px;letter-spacing:.02em;white-space:nowrap}
+.wm b{color:var(--gold);font-weight:700}
+.plan{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.12em;color:var(--gold);
+  border:1px solid color-mix(in srgb,var(--gold) 45%,transparent);border-radius:5px;padding:2px 7px;
+  background:color-mix(in srgb,var(--gold) 12%,transparent)}
+.tenant{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted);white-space:nowrap;
+  padding-left:13px;margin-left:2px;border-left:1px solid var(--line)}
+.tenant svg{width:14px;height:14px;color:var(--faint)}
+.tb-spacer{flex:1}
+.clock{text-align:right;line-height:1.25;margin-right:4px}
+.clock .d{font-size:11px;color:var(--muted);letter-spacing:.02em}
+.clock .t{font-family:var(--mono);font-size:13px;color:var(--fg);letter-spacing:.06em;font-variant-numeric:tabular-nums}
+.iconbtn{position:relative;width:37px;height:37px;display:grid;place-items:center;border:none;background:transparent;
+  color:var(--muted);cursor:pointer;border-radius:9px;transition:background .15s,color .15s}
+.iconbtn:hover{background:var(--hover);color:var(--fg)}
+.iconbtn svg{width:18px;height:18px}
+.dot-badge{position:absolute;top:6px;right:6px;min-width:15px;height:15px;padding:0 3px;border-radius:999px;
+  background:var(--danger);color:#fff;font-size:9px;font-weight:700;display:grid;place-items:center;
+  font-family:var(--mono);border:1.5px solid #0a1014}
+html.light .dot-badge{border-color:#f4f6f4}
+.userbtn{display:flex;align-items:center;gap:9px;padding:5px 9px 5px 6px;border-radius:11px;cursor:pointer;
+  border:1px solid var(--line);background:transparent;color:var(--fg);transition:background .15s,border-color .15s}
+.userbtn:hover{background:var(--hover);border-color:var(--panel-bd)}
+.avatar{width:30px;height:30px;border-radius:999px;display:grid;place-items:center;font-size:13px;font-weight:600;
+  background:color-mix(in srgb,var(--gold) 22%,transparent);color:var(--gold-bright);flex:none}
+.userbtn .nm{text-align:left;line-height:1.2}
+.userbtn .nm b{display:block;font-size:12.5px;font-weight:500}
+.userbtn .nm span{display:block;font-size:10px;color:var(--muted)}
+.userbtn>svg{width:14px;height:14px;color:var(--faint)}
+
+/* nav row */
+.tb-nav{max-width:1320px;margin:0 auto;padding:0 18px;display:flex;gap:2px;overflow-x:auto}
+.tb-nav::-webkit-scrollbar{height:0}
+.navitem{display:inline-flex;align-items:center;gap:8px;padding:11px 15px;border:none;background:transparent;
+  color:var(--muted);font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;
+  border-bottom:2px solid transparent;font-family:var(--sans);transition:color .15s}
+.navitem svg{width:16px;height:16px}
+.navitem:hover{color:var(--fg)}
+.navitem.on{color:var(--fg);font-weight:600;border-bottom-color:var(--gold)}
+.navitem.on svg{color:var(--gold)}
+
+/* dropdowns */
+.menu{position:absolute;top:46px;right:0;width:320px;border-radius:14px;border:1px solid var(--panel-bd);
+  background:color-mix(in oklch,#10161a 92%,transparent);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  box-shadow:0 24px 60px -22px rgba(0,0,0,.8);overflow:hidden;z-index:60}
+html.light .menu{background:rgba(255,255,255,.97)}
+.menu.user{width:200px;padding:5px}
+.menu-h{padding:11px 14px;font-size:12px;font-weight:600;border-bottom:1px solid var(--line-soft);
+  display:flex;align-items:center;gap:8px}
+.menu-h .c{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--gold)}
+.bull{display:flex;gap:10px;padding:11px 14px;border-bottom:1px solid var(--line-soft);cursor:pointer;transition:background .14s}
+.bull:hover{background:var(--hover)}
+.bull:last-child{border-bottom:none}
+.bull .tag{font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.04em;padding:2px 6px;border-radius:4px;height:fit-content;white-space:nowrap}
+.bull .bd{flex:1;min-width:0}
+.bull .ti{font-size:12.5px;line-height:1.4}
+.bull .mt{font-size:10.5px;color:var(--muted);margin-top:3px;font-family:var(--mono)}
+.bull .un{width:6px;height:6px;border-radius:999px;background:var(--danger);flex:none;margin-top:6px}
+.mi{display:flex;align-items:center;gap:9px;width:100%;text-align:left;padding:9px 11px;border:none;background:transparent;
+  color:var(--fg);font-size:12.5px;cursor:pointer;border-radius:8px;font-family:var(--sans)}
+.mi svg{width:15px;height:15px;color:var(--muted)}
+.mi:hover{background:var(--hover)}
+.mi.danger{color:var(--danger)}
+.mi.danger svg{color:var(--danger)}
+.menu-sep{height:1px;background:var(--line-soft);margin:4px 0}
+
+/* ===== NX00 shell additions ===== */
+.dock-trigger{width:46px;height:46px;flex:none;display:grid;place-items:center;border:none;background:transparent;cursor:pointer;border-radius:12px;padding:0;position:relative}
+.dock-trigger:hover{background:var(--hover)}
+.dock-trigger .logo{width:46px;height:46px}
+.wm-btn{border:none;background:transparent;cursor:pointer;padding:0;color:var(--fg);white-space:nowrap}
+.set-row{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:9px 12px;border:none;background:transparent;color:var(--fg);font-size:12.5px;cursor:pointer;font-family:var(--sans)}
+.set-row>span:first-child{flex:1}
+.set-row:hover{background:var(--hover)}
+.set-row.off{cursor:default;color:var(--muted)}
+.set-row.off:hover{background:transparent}
+.set-v{font-size:11.5px;color:var(--faint);font-family:var(--mono)}
+.set-row .sw{width:34px;height:19px;border-radius:999px;background:var(--chip);border:1px solid var(--panel-bd);position:relative;transition:.18s;flex:none}
+.set-row .sw::after{content:"";position:absolute;top:1.5px;left:1.5px;width:14px;height:14px;border-radius:50%;background:var(--muted);transition:.18s}
+.set-row[aria-checked="true"] .sw{background:color-mix(in srgb,var(--gold) 55%,transparent);border-color:var(--gold)}
+.set-row[aria-checked="true"] .sw::after{left:16px;background:var(--gold-bright)}
+.menu.ymp{left:auto;right:0;width:236px;padding:10px}
+.ymp-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.ymp-top .ymp-y{font-size:13px;font-weight:600;font-family:var(--mono)}
+.ymp-top button{width:28px;height:28px;border-radius:7px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer;display:grid;place-items:center}
+.ymp-top button:hover{background:var(--hover);color:var(--fg)}
+.ymp-top button svg{width:15px;height:15px}
+.ymp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.ymp-m{padding:8px 0;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--fg);font-size:12.5px;cursor:pointer;font-family:var(--sans)}
+.ymp-m:hover{background:var(--hover)}
+.ymp-m.on{background:color-mix(in srgb,var(--gold) 18%,transparent);border-color:var(--gold);color:var(--gold-bright);font-weight:600}
+.dock-panel{position:fixed;top:66px;left:14px;z-index:120;width:250px;border-radius:16px;border:1px solid var(--panel-bd);
+  background:color-mix(in oklch,#10161a 94%,transparent);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  box-shadow:0 28px 70px -24px rgba(0,0,0,.85);overflow:hidden;
+  opacity:0;transform:translateY(-8px) scale(.97);transform-origin:top left;pointer-events:none;transition:opacity .2s ease, transform .2s cubic-bezier(.2,.8,.3,1)}
+html.light .dock-panel{background:rgba(255,255,255,.97)}
+.dock-panel.open{opacity:1;transform:none;pointer-events:auto}
+.dock-h{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line-soft);font-size:12px;font-weight:600}
+.dock-h .kbd{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--gold);border:1px solid color-mix(in srgb,var(--gold) 40%,transparent);border-radius:5px;padding:1px 5px}
+.dock-h .dock-back{margin-left:auto;display:none;align-items:center;gap:3px;background:transparent;border:none;color:var(--muted);font-size:11px;cursor:pointer;font-family:var(--sans)}
+.dock-h .dock-back svg{width:14px;height:14px}
+.dock-panel.lvl1 .dock-h .kbd{display:none}
+.dock-panel.lvl1 .dock-h .dock-back{display:inline-flex}
+.dock-viewport{overflow:hidden}
+.dock-rail{display:flex;transition:transform .28s cubic-bezier(.3,.8,.3,1)}
+.dock-col{flex:0 0 auto;padding:6px;display:flex;flex-direction:column;gap:2px}
+.dock-item{display:flex;align-items:center;gap:11px;width:100%;text-align:left;padding:10px 12px;border:none;background:transparent;color:var(--fg);font-size:13px;cursor:pointer;border-radius:9px;font-family:var(--sans)}
+.dock-item svg{width:17px;height:17px;color:var(--muted);flex:none}
+.dock-item .chev{margin-left:auto;color:var(--faint)}
+.dock-item:hover,.dock-item.kfocus{background:var(--hover)}
+.dock-item.kfocus{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--gold) 45%,transparent)}
+.dock-item.on{color:var(--gold-bright)}
+.dock-item.on svg{color:var(--gold)}
+
+/* ===== calendar header buttons ===== */
+.cal-top{position:relative}
+.cal-mo-btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:transparent;color:var(--fg);font-size:16px;font-weight:600;letter-spacing:.02em;padding:6px 12px;border-radius:10px;cursor:pointer;font-family:var(--sans)}
+.cal-mo-btn:hover{background:var(--hover);border-color:var(--panel-bd)}
+.cal-mo-btn svg{width:15px;height:15px;color:var(--muted)}
+.cal-actions{margin-left:auto;display:flex;gap:6px}
+.cal-ico{width:34px;height:34px;display:grid;place-items:center;border-radius:9px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer;transition:.14s}
+.cal-ico:hover{background:var(--hover);color:var(--fg);border-color:var(--panel-bd)}
+.cal-ico svg{width:17px;height:17px}
+#cal-add{color:var(--gold-bright);border-color:color-mix(in srgb,var(--gold) 40%,transparent)}
+#cal-add:hover{background:color-mix(in srgb,var(--gold) 14%,transparent)}
+.cal-top .menu.ymp{left:14px;right:auto;top:48px}
+
+/* ===== event book + attendance split (3:2) ===== */
+.col-l>.card.eb-split{display:grid!important;grid-template-columns:3fr 2fr!important;min-height:0}
+.eb-col{display:flex;flex-direction:column;min-height:0;min-width:0}
+.eb-col.eb-main{border-right:1px solid var(--line-soft)}
+.eb-col #eb-body,.eb-col #attend-body{flex:1;min-height:0;overflow-y:auto}
+#attend-body::-webkit-scrollbar,#eb-body::-webkit-scrollbar{width:7px}
+#attend-body::-webkit-scrollbar-thumb,#eb-body::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px}
+.att-list{padding:6px 8px;display:flex;flex-direction:column;gap:2px}
+.att{display:flex;align-items:center;gap:9px;padding:8px 8px;border-radius:10px;transition:background .14s}
+.att:hover{background:var(--hover)}
+.att-av{width:28px;height:28px;border-radius:999px;display:grid;place-items:center;font-size:12px;font-weight:600;flex:none;background:color-mix(in srgb,var(--gold) 18%,transparent);color:var(--gold-bright)}
+.att-bd{flex:1;min-width:0}
+.att-n{font-size:13px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.att-r{font-size:11px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.att-s{flex:none;display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.att-s i{width:5px;height:5px;border-radius:999px}
+.ev{width:100%;text-align:left;border:none;background:transparent;font-family:var(--sans);cursor:pointer}
+
+/* ===== modal ===== */
+.nx-modal{position:fixed;inset:0;z-index:300;display:grid;place-items:center}
+.nx-modal[hidden]{display:none}
+.nx-modal-bg{position:absolute;inset:0;background:rgba(4,7,10,.6);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);opacity:0;transition:opacity .2s}
+.nx-modal.open .nx-modal-bg{opacity:1}
+.nx-modal-card{position:relative;width:380px;max-width:92vw;border-radius:18px;border:1px solid var(--panel-bd);background:color-mix(in oklch,#10161a 95%,transparent);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:0 40px 90px -30px rgba(0,0,0,.9);padding:20px;opacity:0;transform:translateY(10px) scale(.97);transition:opacity .2s,transform .2s cubic-bezier(.2,.8,.3,1)}
+html.light .nx-modal-card{background:rgba(255,255,255,.98)}
+.nx-modal.open .nx-modal-card{opacity:1;transform:none}
+.md-h{display:flex;align-items:center;margin-bottom:14px}
+.md-typ{font-size:11px;font-weight:600;letter-spacing:.04em;padding:3px 10px;border-radius:999px}
+.md-x{margin-left:auto;width:30px;height:30px;display:grid;place-items:center;border:none;background:transparent;color:var(--muted);cursor:pointer;border-radius:8px}
+.md-x:hover{background:var(--hover);color:var(--fg)}.md-x svg{width:16px;height:16px}
+.md-title{font-size:19px;font-weight:600;margin-bottom:16px;line-height:1.35}
+.md-rows{display:flex;flex-direction:column;gap:1px}
+.md-row{display:flex;gap:12px;padding:9px 0;border-bottom:1px solid var(--line-soft)}
+.md-k{width:88px;flex:none;font-size:12.5px;color:var(--muted)}
+.md-v{font-size:13px;color:var(--fg)}
+.md-form{display:flex;flex-direction:column;gap:11px;margin-bottom:18px}
+.md-f{display:flex;flex-direction:column;gap:5px}
+.md-f span{font-size:12px;color:var(--muted)}
+.md-f input,.md-f select{height:38px;background:var(--chip);border:1px solid var(--panel-bd);border-radius:9px;padding:0 12px;color:var(--fg);font-size:13.5px;font-family:var(--sans);outline:none}
+.md-f input:focus,.md-f select:focus{border-color:color-mix(in srgb,var(--gold) 55%,transparent);box-shadow:0 0 0 3px color-mix(in srgb,var(--gold) 13%,transparent)}
+.md-foot{display:flex;gap:10px;justify-content:flex-end;margin-top:4px}
+.md-btn{height:38px;padding:0 18px;border-radius:9px;border:none;background:linear-gradient(180deg,#e9e9ee,#c3c4cb);color:#1a1a1f;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans)}
+.md-btn.ghost{background:transparent;border:1px solid var(--line);color:var(--fg)}
+.md-btn:hover{filter:brightness(1.04)}
+
+/* ============ MAIN ============ */
+.main{flex:1;min-height:0;width:100%;margin:0;padding:16px 22px 16px;display:flex;flex-direction:column}
+.nx-view{flex:1;min-height:0;display:flex;flex-direction:column}
+.nx-view[hidden]{display:none!important}
+#view-home{max-width:1320px;width:100%;margin:0 auto}
+.greet{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:14px;flex:none}
+.greet h1{margin:0;font-size:27px;font-weight:600;letter-spacing:.01em}
+.greet h1 b{color:var(--gold-bright);font-weight:600}
+.greet .sub{margin-top:9px;font-size:14px;color:var(--muted);display:flex;align-items:center;gap:7px}
+.greet .sub svg{width:16px;height:16px;color:var(--gold)}
+.greet .sub b{color:var(--gold-bright);font-weight:600}
+.summ{display:flex;gap:11px}
+.summ .s{display:flex;align-items:center;gap:11px;padding:11px 16px;border-radius:13px;
+  background:var(--panel);border:1px solid var(--panel-bd)}
+.summ .s .ic{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;flex:none}
+.summ .s .ic svg{width:17px;height:17px}
+.summ .s .v{font-family:var(--mono);font-size:21px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
+.summ .s .l{font-size:11px;color:var(--muted);margin-top:4px}
+
+.grid{display:grid;grid-template-columns:1.72fr 1fr;gap:18px;align-items:stretch;flex:1;min-height:0}
+.grid>.card{display:flex;flex-direction:column;min-height:0}
+@media(max-width:980px){.grid{grid-template-columns:1fr}}
+
+.card{background:var(--panel);border:1px solid var(--panel-bd);border-radius:16px;
+  box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 26px 60px -34px rgba(0,0,0,.7);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.card-h{display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--line-soft)}
+.card-h .ti{font-size:14px;font-weight:600;letter-spacing:.01em}
+.card-h>svg{width:17px;height:17px;color:var(--gold)}
+.card-h .meta{margin-left:auto;font-size:11.5px;color:var(--muted);font-family:var(--mono)}
+.col-l{display:flex;flex-direction:column;gap:14px;height:100%;min-height:0}
+.col-l>.card:first-child{flex:none}
+.col-l>.card:last-child{flex:1;min-height:0;display:flex;flex-direction:column}
+.col-l>.card:last-child #eb-body{flex:1;min-height:0;overflow-y:auto}
+#eb-body::-webkit-scrollbar{width:7px}#eb-body::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px}
+
+/* ---- calendar ---- */
+.cal-top{display:flex;align-items:center;gap:12px;padding:14px 18px 8px}
+.cal-top .mo{font-size:16px;font-weight:600;letter-spacing:.02em}
+.cal-top .mo span{font-family:var(--mono);color:var(--gold);margin-left:7px;font-size:14px}
+.cal-nav{margin-left:auto;display:flex;gap:4px}
+.cal-nav button,.today-btn{width:32px;height:32px;display:grid;place-items:center;border-radius:8px;border:1px solid var(--line);
+  background:transparent;color:var(--muted);cursor:pointer;transition:.14s}
+.cal-nav button:hover,.today-btn:hover{background:var(--hover);color:var(--fg);border-color:var(--panel-bd)}
+.cal-nav button svg{width:16px;height:16px}
+.today-btn{width:auto;padding:0 12px;font-size:12px;font-family:var(--sans);gap:6px;display:inline-flex;align-items:center}
+.cal-grid{padding:4px 14px 14px}
+.cal-wd{display:none}
+#cal-days{position:relative;display:flex;align-items:center;justify-content:center;height:206px;
+  perspective:1200px;overflow:hidden}
+.cc-card{position:absolute;left:50%;top:50%;width:104px;height:150px;margin:-75px 0 0 -52px;
+  transform-origin:center center;border:1px solid var(--panel-bd);border-radius:16px;background:var(--panel);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;
+  backface-visibility:hidden;will-change:transform,opacity;color:var(--fg);box-shadow:0 10px 26px -16px rgba(0,0,0,.7)}
+.cc-card .cc-wd{font-size:12px;color:var(--muted);letter-spacing:.04em}
+.cc-card .cc-d{font-family:var(--mono);font-size:30px;font-weight:600;line-height:1;color:var(--fg)}
+.cc-card .cc-mo{font-size:11px;color:var(--faint);font-family:var(--mono)}
+.cc-card .cc-dots{display:flex;gap:3px;height:6px;align-items:center;margin-top:3px}
+.cc-card .cc-dots i{width:5px;height:5px;border-radius:999px}
+.cc-card .cc-cnt{font-size:10.5px;color:var(--muted);margin-top:3px}
+.cc-card .cc-cnt.cc-none{color:var(--faint)}
+.cc-card .cc-today{margin-top:5px;font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--gold-bright);
+  border:1px solid color-mix(in srgb,var(--gold) 50%,transparent);border-radius:999px;padding:1px 7px}
+.cc-card.center{border-color:var(--gold);
+  background:linear-gradient(180deg, color-mix(in srgb,var(--gold) 13%,var(--panel)), var(--panel));
+  box-shadow:0 0 0 1px var(--gold), 0 22px 48px -18px color-mix(in srgb,var(--gold) 55%,transparent), inset 0 1px 0 rgba(255,255,255,.07)}
+.cc-card.center .cc-d{font-size:36px;color:var(--gold-bright)}
+.cc-card.center .cc-wd{color:var(--fg);font-weight:600}
+
+/* ---- event book ---- */
+.eb-h{padding:15px 18px;display:flex;align-items:baseline;gap:10px;border-bottom:1px solid var(--line-soft)}
+.eb-h .dt{font-size:15px;font-weight:600;white-space:nowrap}
+.eb-h .wd{font-size:12px;color:var(--muted);white-space:nowrap}
+.eb-h .c{margin-left:auto;font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.eb-list{padding:8px;display:flex;flex-direction:column;gap:4px}
+.ev{display:flex;gap:13px;padding:11px 12px;border-radius:11px;cursor:default;transition:background .14s;position:relative}
+.ev:hover{background:var(--hover)}
+.ev .time{font-family:var(--mono);font-size:12px;color:var(--muted);width:46px;flex:none;padding-top:1px;text-align:right;font-variant-numeric:tabular-nums}
+.ev .bar{width:3px;border-radius:3px;flex:none}
+.ev .bd{flex:1;min-width:0}
+.ev .tt{font-size:13.5px;line-height:1.45;color:var(--fg)}
+.ev .mt{font-size:11.5px;color:var(--muted);margin-top:3px;display:flex;align-items:center;gap:6px}
+.ev .mt svg{width:12px;height:12px;color:var(--faint)}
+.ev .typ{font-size:10px;font-weight:600;letter-spacing:.04em;padding:2px 7px;border-radius:5px;height:fit-content;align-self:center;white-space:nowrap}
+.eb-empty{padding:38px 18px;text-align:center;color:var(--faint);font-size:13px}
+.eb-empty svg{width:30px;height:30px;margin-bottom:10px;opacity:.5}
+
+/* ---- tasks ---- */
+.tk-filters{display:flex;gap:6px;padding:12px 16px 4px;flex-wrap:wrap}
+.fchip{font-size:12px;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;
+  color:var(--muted);cursor:pointer;font-family:var(--sans);transition:.14s;white-space:nowrap}
+.fchip:hover{color:var(--fg);border-color:var(--panel-bd)}
+.fchip.on{background:color-mix(in srgb,var(--gold) 16%,transparent);border-color:color-mix(in srgb,var(--gold) 50%,transparent);color:var(--gold-bright);font-weight:500}
+.tk-list{padding:8px;display:flex;flex-direction:column;gap:5px;flex:1;min-height:0;overflow-y:auto}
+.tk-list::-webkit-scrollbar{width:7px}
+.tk-list::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px}
+.task{display:flex;gap:11px;padding:12px;border-radius:12px;background:var(--chip);border:1px solid transparent;
+  transition:background .14s,border-color .14s,opacity .2s;align-items:flex-start}
+.task:hover{background:var(--hover);border-color:var(--line)}
+.task .cb{width:19px;height:19px;border-radius:6px;border:1.5px solid var(--faint);flex:none;margin-top:1px;
+  cursor:pointer;display:grid;place-items:center;transition:.14s;background:transparent}
+.task .cb:hover{border-color:var(--gold)}
+.task .cb svg{width:12px;height:12px;color:#0a1014;opacity:0}
+.task.done .cb{background:var(--gold);border-color:var(--gold)}
+.task.done .cb svg{opacity:1}
+.task .bd{flex:1;min-width:0}
+.task .r1{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.task .typ{font-size:10px;font-weight:600;letter-spacing:.04em;padding:2px 7px;border-radius:5px;white-space:nowrap}
+.task .code{font-family:var(--mono);font-size:12px;letter-spacing:.04em;color:var(--fg)}
+.task .amt{margin-left:auto;font-family:var(--mono);font-size:13px;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.task .r2{display:flex;align-items:center;gap:9px;margin-top:7px}
+.task .pt{font-size:12.5px;color:var(--muted)}
+.task .due{font-size:11px;color:var(--muted);font-family:var(--mono);margin-left:auto;display:flex;align-items:center;gap:5px}
+.task .due svg{width:12px;height:12px}
+.task .due.over{color:var(--danger)}
+.task .st{font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.task.done .bd{opacity:.45}
+.task.done .code,.task.done .pt{text-decoration:line-through}
+.tk-empty{padding:34px;text-align:center;color:var(--faint);font-size:13px}
+
+.foot{max-width:1320px;margin:0 auto;padding:8px 22px 30px;text-align:right;
+  font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--faint)}
+.foot b{color:var(--gold)}
+/* ===== shared planet (login spot <-> TopBar logo) ===== */
+#planet-stage{position:fixed;inset:0;z-index:60;pointer-events:none}
+.planetWrap{position:fixed;left:50%;top:50%;width:440px;height:440px;margin:-220px 0 0 -220px;
+  transform-origin:center center;will-change:transform;z-index:60}
+.halo-outer{position:absolute;left:50%;top:50%;width:62%;height:62%;border-radius:50%;
+  transform:translate(-50%,-50%);pointer-events:none;z-index:0;
+  background:radial-gradient(circle,rgba(244,170,40,.22),rgba(244,170,40,.06) 44%,transparent 68%);
+  animation:breathe 5.6s ease-in-out infinite}
+.sphere{position:absolute;left:50%;top:50%;width:46%;height:46%;transform:translate(-50%,-50%);
+  z-index:2;border-radius:50%;overflow:hidden;background:#161b21;
+  box-shadow:inset 10px 12px 26px -16px rgba(255,255,255,.38),0 0 56px -6px rgba(217,164,49,.45),0 16px 44px -12px rgba(0,0,0,.62)}
+.hexsphere{position:absolute;inset:0;width:100%;height:100%}
+.hexcell{transform-box:fill-box;transform-origin:center;fill:#c4d2e4;opacity:0;filter:drop-shadow(0 0 2px rgba(200,220,248,.7))}
+@keyframes hexwave{0%,100%{opacity:0;transform:scale(.85)}3%{opacity:.5;transform:scale(1.22)}10%{opacity:0;transform:scale(1)}}
+.sphere .spec{position:absolute;inset:0;border-radius:50%;z-index:3;mix-blend-mode:screen;
+  background:radial-gradient(circle at 34% 27%, rgba(255,250,235,.7), rgba(255,250,235,0) 20%)}
+.reactor{position:absolute;left:50%;top:50%;width:24%;height:24%;transform:translate(-50%,-50%);z-index:4;
+  border-radius:50%;pointer-events:none;mix-blend-mode:screen;
+  background:radial-gradient(circle, #fff7e2 0%, #ffd368 26%, #f4a92a 50%, rgba(180,110,10,0) 76%);
+  box-shadow:0 0 22px 4px rgba(244,170,40,.6);animation:breatheCore 3.8s ease-in-out infinite}
+@keyframes breathe{0%,100%{opacity:.5;transform:translate(-50%,-50%) scale(.94)}50%{opacity:.95;transform:translate(-50%,-50%) scale(1.06)}}
+@keyframes breatheCore{0%,100%{opacity:.6;transform:translate(-50%,-50%) scale(.86)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.12)}}
+.satdot{position:absolute;left:50%;top:50%;width:17px;height:17px;margin:-8.5px 0 0 -8.5px;border-radius:50%;
+  pointer-events:none;will-change:transform;
+  background:radial-gradient(circle at 38% 36%, #ffffff, #dfe4ec 46%, #9aa2af 100%);
+  box-shadow:0 0 10px 2px rgba(222,232,246,.9), 0 0 22px 5px rgba(180,200,232,.42)}
+
+/* ===== login layer ===== */
+#login-layer{position:fixed;inset:0;z-index:30;display:flex;transition:opacity .5s ease}
+.lg-left{flex:1.12;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:40px}
+#lg-slot{width:min(42vw,440px);aspect-ratio:1;margin-bottom:6px;pointer-events:none}
+.lg-brand{display:flex;flex-direction:column;align-items:center;transition:opacity .45s ease, transform .5s ease}
+.lg-kicker{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.lg-kicker .ln{width:46px;height:1px;background:linear-gradient(90deg,transparent,var(--gold))}
+.lg-kicker .ln.r{background:linear-gradient(90deg,var(--gold),transparent)}
+.lg-kicker span{font-size:11px;letter-spacing:.42em;color:var(--gold);font-weight:500;text-transform:uppercase}
+.lg-wm{font-size:clamp(32px,4.4vw,56px);font-weight:700;letter-spacing:.04em;line-height:.95;color:#fff;text-align:center}
+.lg-wm .g{display:block;font-size:.42em;font-weight:400;letter-spacing:.56em;color:#c6c7cd;margin-top:11px;margin-left:.56em}
+.lg-tagline{margin-top:22px;font-size:15px;color:var(--muted);letter-spacing:.08em}
+.lg-right{flex:1;display:flex;align-items:center;justify-content:center;padding:40px;transition:opacity .5s ease, transform .65s cubic-bezier(.5,0,.2,1)}
+.lg-panel{width:100%;max-width:392px}
+.lg-welcome{display:flex;align-items:center;justify-content:center;gap:13px;margin-bottom:14px}
+.lg-welcome .ln{width:34px;height:1px;background:linear-gradient(90deg,transparent,var(--gold))}
+.lg-welcome .ln.r{background:linear-gradient(90deg,var(--gold),transparent)}
+.lg-welcome span{font-size:11px;letter-spacing:.4em;color:var(--gold);font-weight:500}
+.lg-title{font-size:30px;font-weight:700;text-align:center;letter-spacing:.04em}
+.lg-subtitle{margin:10px 0 28px;text-align:center;font-size:13.5px;color:var(--muted);letter-spacing:.03em}
+.lg-card{padding:30px 28px;border-radius:18px;background:linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.015));
+  border:1px solid rgba(255,255,255,.08);box-shadow:0 1px 0 rgba(255,255,255,.06) inset, 0 30px 70px -34px rgba(0,0,0,.85);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.lg-field{margin-bottom:18px}
+.lg-lbl{display:block;font-size:13px;color:var(--muted);margin-bottom:9px;letter-spacing:.06em}
+.lg-inp{position:relative;display:flex;align-items:center}
+.lg-inp>svg{position:absolute;left:14px;width:16px;height:16px;color:var(--faint);pointer-events:none}
+.lg-inp input{width:100%;height:48px;background:rgba(120,230,220,.045);border:1px solid rgba(120,230,220,.12);border-radius:10px;
+  padding:0 44px;color:var(--fg);font-size:14.5px;font-family:var(--sans);outline:none;transition:border-color .18s, box-shadow .18s, background .18s}
+.lg-inp input::placeholder{color:var(--faint)}
+.lg-inp input:focus{border-color:rgba(217,164,49,.6);background:rgba(217,164,49,.05);box-shadow:0 0 0 3px rgba(217,164,49,.13)}
+.lg-inp .eye{position:absolute;right:11px;background:none;border:none;color:var(--faint);cursor:pointer;width:30px;height:30px;display:grid;place-items:center;border-radius:7px}
+.lg-inp .eye:hover{color:var(--gold-bright)}
+.lg-forgot-row{text-align:right;margin:-2px 0 22px}
+.lg-forgot{font-size:13px;color:var(--muted);text-decoration:none;transition:.16s}
+.lg-forgot:hover{color:var(--gold-bright)}
+.lg-submit{width:100%;height:50px;border:none;border-radius:10px;cursor:pointer;font-family:var(--sans);font-size:14.5px;font-weight:600;letter-spacing:.12em;color:#1a1a1f;
+  display:flex;align-items:center;justify-content:center;gap:10px;background:linear-gradient(180deg,#e9e9ee,#c3c4cb);
+  box-shadow:0 1px 0 rgba(255,255,255,.6) inset, 0 12px 30px -14px rgba(0,0,0,.7);transition:transform .12s, filter .18s, box-shadow .18s}
+.lg-submit:hover{filter:brightness(1.04)}
+.lg-submit:active{transform:translateY(1px)}
+.lg-submit svg{width:16px;height:16px}
+.lg-submit.busy{cursor:wait;opacity:.8}
+.lg-ver{margin-top:20px;text-align:right;font-family:var(--mono);font-size:12px;letter-spacing:.16em;color:var(--faint);transition:opacity .4s ease}
+.lg-ver b{color:var(--gold);font-weight:500}
+@media(max-width:880px){#login-layer{flex-direction:column}.lg-left{flex:none;padding:36px 24px 4px}.lg-right{flex:none;padding:16px 24px 40px}#lg-slot{width:min(58vw,300px)}}
+
+/* ===== state machine: login -> dashboard ===== */
+.logo{opacity:0}                               /* static TopBar logo is a spacer; the shared planet docks over it */
+body:not(.state-app){overflow:hidden}
+#app-layer{opacity:0;transition:opacity .6s ease}
+body.state-app #app-layer{opacity:1}
+body.state-leaving .lg-right{opacity:0;transform:translateX(64px) scale(.98);pointer-events:none}
+body.state-leaving .lg-brand{opacity:0;transform:translateY(8px)}
+body.state-leaving .lg-welcome,body.state-leaving .lg-title,body.state-leaving .lg-subtitle,body.state-leaving .lg-ver{opacity:0}
+body.state-app #login-layer{opacity:0;pointer-events:none}
+.greet,.main .card{transition:opacity .6s ease, transform .7s cubic-bezier(.2,.75,.2,1)}
+body:not(.state-app) .greet,body:not(.state-app) .main .card{opacity:0;transform:translateY(28px)}
+body.state-app .greet{transition-delay:.15s}
+body.state-app .col-l>.card:nth-of-type(1){transition-delay:.30s}
+body.state-app .col-l>.card:nth-of-type(2){transition-delay:.46s}
+body.state-app .grid>.card{transition-delay:.38s}
+@media (prefers-reduced-motion: reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+
+<!-- ===== shared planet (lives in one DOM; flies from login into the TopBar) ===== -->
+<div id="planet-stage">
+  <div class="planetWrap" id="planetWrap">
+    <div class="halo-outer"></div>
+    <div class="sphere">
+      <svg class="hexsphere" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="metalG" cx="38%" cy="33%" r="64%">
+            <stop offset="0" stop-color="#d6dbe3"/><stop offset=".34" stop-color="#9aa0ab"/><stop offset=".62" stop-color="#5e646e"/><stop offset=".86" stop-color="#363c45"/><stop offset="1" stop-color="#242a33"/>
+          </radialGradient>
+          <radialGradient id="shadeG" cx="38%" cy="33%" r="66%">
+            <stop offset=".5" stop-color="rgba(0,0,0,0)"/><stop offset=".88" stop-color="rgba(8,10,14,.26)"/><stop offset="1" stop-color="rgba(8,10,14,.5)"/>
+          </radialGradient>
+          <radialGradient id="coreG" cx="50%" cy="50%" r="50%">
+            <stop offset="0" stop-color="#fff8e6"/><stop offset=".34" stop-color="#ffd368"/><stop offset=".68" stop-color="#f4a92a"/><stop offset="1" stop-color="rgba(180,110,10,0)"/>
+          </radialGradient>
+          <radialGradient id="coreHaloG" cx="50%" cy="50%" r="50%">
+            <stop offset="0" stop-color="rgba(255,210,110,.6)"/><stop offset="1" stop-color="rgba(244,170,40,0)"/>
+          </radialGradient>
+          <radialGradient id="fadeG" cx="50%" cy="50%" r="50%">
+            <stop offset="0" stop-color="#fff"/><stop offset=".62" stop-color="#fff"/><stop offset=".92" stop-color="rgba(0,0,0,0)"/>
+          </radialGradient>
+          <mask id="hexfade"><circle cx="100" cy="100" r="100" fill="url(#fadeG)"/></mask>
+          <pattern id="rings" width="20" height="23" patternUnits="userSpaceOnUse">
+            <g fill="none" stroke="#c4cad4" stroke-width="1.1">
+              <circle cx="10" cy="5.75" r="6"/><circle cx="0" cy="17.25" r="6"/><circle cx="20" cy="17.25" r="6"/><circle cx="10" cy="28.75" r="6"/>
+            </g>
+          </pattern>
+          <clipPath id="sphereClip"><circle cx="100" cy="100" r="99"/></clipPath>
+        </defs>
+        <g clip-path="url(#sphereClip)">
+          <circle cx="100" cy="100" r="99" fill="url(#metalG)"/>
+          <g mask="url(#hexfade)" opacity=".5">
+            <rect x="0" y="0" width="200" height="200" fill="url(#rings)"/>
+            <animateTransform attributeName="transform" type="rotate" from="0 100 100" to="360 100 100" dur="140s" repeatCount="indefinite"/>
+          </g>
+          <circle cx="100" cy="100" r="99" fill="url(#shadeG)"/>
+          <g class="hexwave-layer"></g>
+          <circle cx="100" cy="100" r="42" fill="url(#coreHaloG)"><animate attributeName="opacity" values=".55;.95;.55" dur="3.8s" repeatCount="indefinite"/></circle>
+          <circle cx="100" cy="100" r="15" fill="url(#coreG)"><animate attributeName="r" values="13;17;13" dur="3.8s" repeatCount="indefinite"/></circle>
+          <circle cx="100" cy="100" r="5.5" fill="#fff8e6"/>
+        </g>
+        <circle cx="100" cy="100" r="98" fill="none" stroke="rgba(255,222,150,.32)" stroke-width="1.4"/>
+      </svg>
+      <div class="spec"></div>
+    </div>
+    <div class="satdot" id="sat0"></div>
+    <div class="satdot" id="sat1"></div>
+    <div class="satdot" id="sat2"></div>
+  </div>
+</div>
+
+<!-- ===== login layer ===== -->
+<div id="login-layer">
+  <div class="lg-left">
+    <div id="lg-slot"></div>
+    <div class="lg-brand">
+      <div class="lg-kicker"><span class="ln"></span><span>Enterprise Resource Planning</span><span class="ln r"></span></div>
+      <div class="lg-wm">NEXORA<span class="g">GRID</span></div>
+      <div class="lg-tagline">汽車零件零售 ERP 企業管理平台</div>
+    </div>
+  </div>
+  <div class="lg-right">
+    <div class="lg-panel">
+      <div class="lg-welcome"><span class="ln"></span><span>WELCOME</span><span class="ln r"></span></div>
+      <div class="lg-title">系統登入</div>
+      <div class="lg-subtitle">請輸入您的帳號資訊以存取系統</div>
+      <form class="lg-card" id="lg-form" autocomplete="off">
+        <div class="lg-field">
+          <label class="lg-lbl">公司帳號</label>
+          <div class="lg-inp">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M6 21V7l6-4 6 4v14M10 9h.01M14 9h.01M10 13h.01M14 13h.01M10 17h.01M14 17h.01"/></svg>
+            <input type="text" placeholder="Company ID">
+          </div>
+        </div>
+        <div class="lg-field">
+          <label class="lg-lbl">員工編號</label>
+          <div class="lg-inp">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            <input type="text" placeholder="Employee ID">
+          </div>
+        </div>
+        <div class="lg-field">
+          <label class="lg-lbl">使用者密碼</label>
+          <div class="lg-inp">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+            <input type="password" id="lg-pw" placeholder="Password">
+            <button type="button" class="eye" id="lg-eye" aria-label="顯示密碼">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="lg-forgot-row"><a href="#" class="lg-forgot">忘記密碼？</a></div>
+        <button type="submit" class="lg-submit" id="lg-submit">
+          <span>登入系統</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+      </form>
+      <div class="lg-ver">NEXORA GRID&nbsp;&nbsp;|&nbsp;&nbsp;<b>v1.5.1</b></div>
+    </div>
+  </div>
+</div>
+
+<div class="app" id="app-layer">
+
+  <!-- ============ TOPBAR ============ -->
+  <header class="topbar">
+    <div class="tb-row">
+      <!-- 小星球 Dock（全域導覽 · Alt+X）— 星球停泊於此 -->
+      <button class="dock-trigger" id="dock-trigger" aria-label="導覽選單，快捷鍵 Alt+X" title="導覽 · Alt+X">
+        <svg class="logo" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="lmetal" cx="38%" cy="32%" r="66%">
+              <stop offset="0" stop-color="#d6dbe3"/><stop offset=".5" stop-color="#7c828d"/><stop offset="1" stop-color="#2a3038"/>
+            </radialGradient>
+            <radialGradient id="lcore" cx="50%" cy="50%" r="50%">
+              <stop offset="0" stop-color="#fff8e6"/><stop offset=".4" stop-color="#ffd368"/><stop offset=".8" stop-color="#f4a92a"/><stop offset="1" stop-color="rgba(180,110,10,0)"/>
+            </radialGradient>
+          </defs>
+          <circle cx="20" cy="20" r="16.5" fill="url(#lmetal)"/>
+          <g stroke="#aeb4be" stroke-width=".6" opacity=".4" fill="none"><path d="M12 14h7M11 20h9M12 26h7"/></g>
+          <circle cx="20" cy="20" r="15.5" fill="none" stroke="rgba(255,222,150,.4)" stroke-width="1"/>
+          <circle cx="20" cy="20" r="6.5" fill="url(#lcore)"/>
+          <circle cx="20" cy="20" r="2.4" fill="#fff8e6"/>
+          <circle cx="33" cy="13" r="1.7" fill="#f4c862"/>
+        </svg>
+      </button>
+      <button class="wm-btn" id="home-btn" title="回首頁"><span class="wm">NEXORA <b>GRID</b></span></button>
+      <span class="tenant"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16M10 9h.01M14 9h.01M10 13h.01M14 13h.01M10 17h.01M14 17h.01"/></svg>亞羅汽材行</span>
+
+      <div class="tb-spacer"></div>
+
+      <div class="clock"><div class="d" id="clk-d">—</div><div class="t" id="clk-t">—</div></div>
+
+      <!-- 公告（喇叭）-->
+      <div style="position:relative">
+        <button class="iconbtn" id="bell-btn" aria-label="公告">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 15-6v14L3 13zM3 11v3M7 13.2V19l3.2 1.1"/></svg>
+          <span class="dot-badge" id="bell-badge">2</span>
+        </button>
+        <div class="menu" id="bell-menu" hidden>
+          <div class="menu-h">公告通知<span class="c" id="bell-c">未讀 2</span></div>
+          <div id="bull-list"></div>
+        </div>
+      </div>
+
+      <!-- 通知（鈴鐸，待辦驅動）-->
+      <div style="position:relative">
+        <button class="iconbtn" id="noti-btn" aria-label="通知">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10 21a2 2 0 0 0 4 0"/></svg>
+          <span class="dot-badge" id="noti-badge">4</span>
+        </button>
+        <div class="menu" id="noti-menu" hidden>
+          <div class="menu-h">通知 · 待我處理<span class="c" id="noti-c"></span></div>
+          <div id="noti-list"></div>
+        </div>
+      </div>
+
+      <!-- 環境設定（齒輪）-->
+      <div style="position:relative">
+        <button class="iconbtn" id="settings-btn" aria-label="環境設定">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.6-2-3.4-2.3 1a7 7 0 0 0-1.7-1l-.3-2.5H9.4l-.3 2.5a7 7 0 0 0-1.7 1l-2.3-1-2 3.4 2 1.6a7 7 0 0 0 0 2l-2 1.6 2 3.4 2.3-1a7 7 0 0 0 1.7 1l.3 2.5h5.2l.3-2.5a7 7 0 0 0 1.7-1l2.3 1 2-3.4-2-1.6a7 7 0 0 0 .1-1Z"/></svg>
+        </button>
+        <div class="menu" id="settings-menu" hidden>
+          <div class="menu-h">環境設定</div>
+          <button class="set-row" data-set="theme" role="switch" aria-checked="false"><span>深淺主題</span><span class="sw"></span></button>
+          <button class="set-row" data-set="2fa" role="switch" aria-checked="false"><span>雙重驗證 2FA</span><span class="sw"></span></button>
+          <div class="set-row off"><span>語言</span><span class="set-v">繁體中文</span></div>
+          <div class="set-row off"><span>字級密度</span><span class="set-v">標準</span></div>
+          <div class="set-row off"><span>快捷鍵</span><span class="set-v">Alt+X / Alt+A</span></div>
+          <div class="menu-sep"></div>
+          <div class="set-row off"><span>版本</span><span class="set-v">v1.5.1</span></div>
+          <div class="set-row off"><span>關於 NEXORA GRID</span><span class="set-v">›</span></div>
+        </div>
+      </div>
+
+      <!-- 使用者 -->
+      <div style="position:relative">
+        <button class="userbtn" id="user-btn">
+          <span class="avatar">陳</span>
+          <span class="nm"><b>陳柏宏</b><span>E-10428</span></span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="menu user" id="user-menu" hidden>
+          <button class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>個人儀表板</button>
+          <button class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>修改密碼</button>
+          <div class="menu-sep"></div>
+          <button class="mi danger" onclick="window.nxLogout&&window.nxLogout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3M16 17l5-5-5-5M21 12H9"/></svg>登出</button>
+        </div>
+      </div>
+    </div>
+  </header>
+  <div id="dock-panel" class="dock-panel" hidden></div>
+
+  <!-- ============ MAIN ============ -->
+  <main class="main">
+    <div class="nx-view" id="view-home">
+    <div class="grid">
+      <div class="col-l">
+        <!-- calendar -->
+        <section class="card">
+          <div class="cal-top">
+            <button class="cal-mo-btn" id="cal-mo-btn"><span id="cal-mo">2026 年 6 月</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+            <div class="cal-actions">
+              <button class="cal-ico" id="cal-add" aria-label="新增事件" title="新增事件"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></button>
+              <button class="cal-ico" id="cal-today" aria-label="回到今天" title="回到今天"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 12V8M12 12l3 1.6"/></svg></button>
+            </div>
+            <div class="menu ymp" id="cal-ym-pop" hidden>
+              <div class="ymp-top"><button class="ymp-prev" aria-label="上一年"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><span class="ymp-y">2026 年</span><button class="ymp-next" aria-label="下一年"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button></div>
+              <div class="ymp-grid">
+                <button class="ymp-m" data-m="1">1月</button><button class="ymp-m" data-m="2">2月</button><button class="ymp-m" data-m="3">3月</button><button class="ymp-m" data-m="4">4月</button>
+                <button class="ymp-m" data-m="5">5月</button><button class="ymp-m" data-m="6">6月</button><button class="ymp-m" data-m="7">7月</button><button class="ymp-m" data-m="8">8月</button>
+                <button class="ymp-m" data-m="9">9月</button><button class="ymp-m" data-m="10">10月</button><button class="ymp-m" data-m="11">11月</button><button class="ymp-m" data-m="12">12月</button>
+              </div>
+            </div>
+          </div>
+          <div class="cal-grid">
+            <div class="cal-wd"><span class="we">日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span class="we">六</span></div>
+            <div class="cal-days" id="cal-days"></div>
+          </div>
+        </section>
+
+        <!-- event book + attendance (3:2) -->
+        <section class="card eb-split">
+          <div class="eb-col eb-main">
+            <div class="eb-h">
+              <span class="dt" id="eb-dt">6 月 11 日</span>
+              <span class="wd" id="eb-wd">星期四</span>
+              <span class="c" id="eb-c"></span>
+            </div>
+            <div id="eb-body"></div>
+          </div>
+          <div class="eb-col eb-side">
+            <div class="eb-h">
+              <span class="dt" style="font-size:14px">全體出勤</span>
+              <span class="c" id="attend-c"></span>
+            </div>
+            <div id="attend-body"></div>
+          </div>
+        </section>
+      </div>
+
+      <!-- tasks -->
+      <section class="card" style="position:sticky;top:118px">
+        <div class="card-h">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v5h5M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM8 13h6M8 17h5"/></svg>
+          <span class="ti">任務</span>
+          <span class="meta" id="tk-meta"></span>
+        </div>
+        <div class="tk-filters" id="tk-filters"></div>
+        <div class="tk-list" id="tk-list"></div>
+      </section>
+    </div>
+    </div><!-- /#view-home -->
+
+    <!-- 核心主檔 — 同頁切換的第二視圖（由 NXMaster 引擎渲染） -->
+    <div class="nx-view" id="view-master" hidden>
+      <div class="nx-page-host" id="nx-master-host"></div>
+    </div><!-- /#view-master -->
+
+    <!-- 進貨模組 — 同頁切換的第三視圖（由 NXPurchase 引擎渲染） -->
+    <div class="nx-view" id="view-purchase" hidden>
+      <div class="nx-page-host" id="nx-purchase-host"></div>
+    </div><!-- /#view-purchase -->
+  </main>
+</div>
+
+<div id="nx-modal" class="nx-modal" hidden>
+  <div class="nx-modal-bg"></div>
+  <div class="nx-modal-card" id="nx-modal-card"></div>
+</div>
+
+<script>window.NX_EMBED=true;</script>
+<script src="dashboard-data.js"></script>
+<script src="dashboard.js"></script>
+<script src="nx-master-spec.js"></script>
+<script src="nx-master-data.js"></script>
+<script src="nx-table-engine.js"></script>
+<script src="nx-assign-engine.js"></script>
+<script src="nx-batch-engine.js"></script>
+<script src="nx-matrix-engine.js"></script>
+<script src="nx-page-configs.js"></script>
+<script src="nx-page-skeletons.js"></script>
+<script src="nx-purchase-data.js"></script>
+<script src="nx-purchase-spec.js"></script>
+<script src="nx-purchase-engine.js"></script>
+<script src="nx-purchase-itemedit.js"></script>
+<script src="nx-purchase-flow.js"></script>
+<script src="system-engine.js"></script>
+<script src="system-integrate.js"></script>
+</body>
+</html>

@@ -1,0 +1,102 @@
+/* ==========================================================================
+   NEXORA GRID — Effects: shadows, glass, glow, gradients
+   --------------------------------------------------------------------------
+   The NEXORA surface language is "glass on a dark reactor sky": frosted cards
+   with an inset top highlight, a soft gold glow on focal elements, and the
+   signature flowing-green EXP bar. These are the reusable effect tokens.
+   ========================================================================== */
+
+:root {
+  /* Elevation (light-on-dark friendly) */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.28);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.32), 0 1px 2px rgba(0, 0, 0, 0.24);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.36);
+  --shadow-lg: 0 12px 30px rgba(0, 0, 0, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --shadow-xl: 0 22px 50px -14px rgba(0, 0, 0, 0.62);
+
+  /* Inset top highlight — defines the "raised glass" look on cards/toolbars */
+  --highlight-top: inset 0 1px 0 rgba(255, 255, 255, 0.09); /* @kind shadow */
+
+  /* Gold glow — focus rings, brand mark, active KPI */
+  --nx-glow-primary: 0 0 12px rgba(244, 180, 0, 0.55), 0 0 24px rgba(244, 180, 0, 0.28);
+
+  /* Scrollbars (thin, gold-tinted thumb in dark) */
+  --nx-scroll-track: oklch(0.22 0.012 258);
+  --nx-scroll-thumb: rgba(232, 160, 32, 0.4);
+  --nx-scroll-thumb-hover: rgba(232, 160, 32, 0.7);
+
+  /* Brand gradients */
+  --nx-exp-gradient: linear-gradient(90deg, oklch(0.68 0.12 75), oklch(0.82 0.14 75)); /* @kind color */
+  --nx-exp-flow: linear-gradient(
+    90deg,
+    #0c5c3e 0%, #147a52 22%, #1d9e75 40%, #45d4a8 50%,
+    #1d9e75 60%, #147a52 78%, #0c5c3e 100%
+  ); /* @kind color */
+  --nx-goal-gradient: linear-gradient(90deg, #0f6b4a 0%, #1d9e75 45%, #34d399 100%); /* @kind color */
+
+  /* Glass recipe — frosted card over the reactor sky */
+  --nx-glass-bg: rgba(14, 18, 28, 0.78);
+  --nx-glass-border: rgba(255, 255, 255, 0.12);
+  --nx-glass-blur: blur(12px); /* @kind other */
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1); /* @kind other */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1); /* @kind other */
+  --dur-fast: 150ms; /* @kind other */
+  --dur-base: 250ms; /* @kind other */
+  --dur-slow: 300ms; /* @kind other */
+}
+
+[data-nx-palette='steel'] {
+  --nx-glow-primary: 0 0 14px rgba(255, 184, 0, 0.48), 0 0 30px rgba(255, 184, 0, 0.2);
+  --nx-scroll-thumb: rgba(255, 184, 0, 0.4);
+  --nx-scroll-thumb-hover: rgba(255, 184, 0, 0.7);
+  --nx-exp-gradient: linear-gradient(90deg, #cc8400 0%, #ffb800 52%, #ffd54a 100%); /* @kind color */
+}
+
+html.light {
+  --shadow-sm: 0 1px 3px oklch(0.2 0.02 258 / 0.07), inset 0 1px 0 oklch(1 0 0 / 0.9);
+  --shadow-lg: 0 10px 24px rgba(17, 24, 39, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --highlight-top: inset 0 1px 0 rgba(255, 255, 255, 0.9); /* @kind shadow */
+  --nx-glass-bg: rgba(255, 255, 255, 0.78);
+  --nx-glass-border: rgba(17, 24, 39, 0.12);
+  --nx-glow-primary: 0 0 10px rgba(200, 150, 20, 0.35), 0 0 20px rgba(200, 150, 20, 0.18);
+  --nx-scroll-track: oklch(0.93 0.006 258);
+  --nx-scroll-thumb: oklch(0.78 0.008 258);
+  --nx-scroll-thumb-hover: oklch(0.68 0.012 258);
+}
+
+/* ---- Reusable effect utility classes ----------------------------------- */
+
+.nx-glass {
+  background: var(--nx-glass-bg);
+  border: 1px solid var(--nx-glass-border);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: var(--nx-glass-blur);
+  -webkit-backdrop-filter: var(--nx-glass-blur);
+}
+
+.nx-glass-raised {
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.34),
+    var(--shadow-xl),
+    var(--highlight-top);
+}
+
+.nx-glow {
+  box-shadow: var(--nx-glow-primary);
+}
+
+.nx-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--nx-scroll-thumb) var(--nx-scroll-track);
+}
+.nx-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+.nx-scroll::-webkit-scrollbar-track { background: var(--nx-scroll-track); border-radius: 999px; }
+.nx-scroll::-webkit-scrollbar-thumb {
+  background: var(--nx-scroll-thumb);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.nx-scroll::-webkit-scrollbar-thumb:hover { background: var(--nx-scroll-thumb-hover); }

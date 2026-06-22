@@ -1,0 +1,165 @@
+/* ==========================================================================
+   NEXORA GRID — Color Tokens
+   --------------------------------------------------------------------------
+   Dark-first ERP palette. The product ships dark by default ("經典 / classic"
+   冷灰深色底 + 瑪瑙金 amber-gold primary). A `.light` class on <html> flips to
+   light. An optional `[data-nx-palette='steel']` swaps to the 鋼鐵星球 (steel
+   planet) palette — pure black + reactor-yellow #FFB800.
+
+   Base ramps are authored in oklch (perceptually even). Semantic business
+   tokens (success / danger / warning / info) are fixed hex for cross-theme
+   stability.
+   ========================================================================== */
+
+:root {
+  color-scheme: dark;
+
+  /* --- Surfaces (classic dark, the product default) --- */
+  --background: oklch(0.145 0.012 258);
+  --foreground: oklch(0.96 0.006 258);
+  --card: oklch(0.225 0.014 258);
+  --card-foreground: oklch(0.96 0.006 258);
+  --popover: oklch(0.24 0.014 258);
+  --popover-foreground: oklch(0.96 0.006 258);
+
+  /* --- Brand primary: 瑪瑙金 amber-gold --- */
+  --primary: oklch(0.78 0.14 75);
+  --primary-foreground: oklch(0.12 0 0);
+  --accent: oklch(0.78 0.14 75);
+  --accent-foreground: oklch(0.12 0 0);
+
+  /* --- Neutrals --- */
+  --secondary: oklch(0.32 0.012 258);
+  --secondary-foreground: oklch(0.95 0.006 258);
+  --muted: oklch(0.3 0.012 258);
+  --muted-foreground: oklch(0.8 0.012 258);
+  --border: oklch(0.46 0.014 258);
+  --input: oklch(0.28 0.014 258);
+  --ring: oklch(0.78 0.14 75);
+
+  /* --- Status / destructive --- */
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.95 0 0);
+
+  /* --- Sidebar / chrome --- */
+  --sidebar: oklch(0.125 0.012 258);
+  --sidebar-foreground: oklch(0.95 0.006 258);
+  --sidebar-primary: oklch(0.78 0.14 75);
+  --sidebar-primary-foreground: oklch(0.12 0 0);
+  --sidebar-accent: oklch(0.3 0.012 258);
+  --sidebar-accent-foreground: oklch(0.95 0.006 258);
+  --sidebar-border: oklch(0.42 0.014 258);
+  --sidebar-ring: oklch(0.78 0.14 75);
+
+  /* --- Charts (recharts series) --- */
+  --chart-1: oklch(0.78 0.14 75);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+
+  /* --- Fixed business semantics (stable across themes) --- */
+  --color-primary-light: #f5c842;       /* hover / highlight gold */
+  --color-primary-bg: rgba(232, 160, 32, 0.15);
+  --color-success: #1d9e75;             /* 完成 / 過帳 / 啟用 */
+  --color-danger: #e24b4a;              /* 作廢 / 刪除 / 警示徽章 */
+  --warning: #e8a020;                   /* 操作問題 / 登入失敗 (橘, 非紅) */
+  --color-meeting: #378add;             /* 行事曆會議 / info 藍 */
+
+  /* --- Master-table accent (single source for amber row selection) --- */
+  --nx-amber: #e8a020;
+  --nx-amber-bright: #f5c842;
+}
+
+/* Explicit dark class (parity with :root default) ------------------------- */
+.dark {
+  --background: oklch(0.145 0.012 258);
+  --foreground: oklch(0.96 0.006 258);
+  --card: oklch(0.225 0.014 258);
+  --card-foreground: oklch(0.96 0.006 258);
+  --popover: oklch(0.24 0.014 258);
+  --popover-foreground: oklch(0.96 0.006 258);
+  --primary: oklch(0.78 0.14 75);
+  --primary-foreground: oklch(0.12 0 0);
+  --secondary: oklch(0.32 0.012 258);
+  --secondary-foreground: oklch(0.95 0.006 258);
+  --muted: oklch(0.3 0.012 258);
+  --muted-foreground: oklch(0.8 0.012 258);
+  --accent: oklch(0.78 0.14 75);
+  --accent-foreground: oklch(0.12 0 0);
+  --destructive: oklch(0.396 0.141 25.723);
+  --destructive-foreground: oklch(0.637 0.237 25.331);
+  --border: oklch(0.46 0.014 258);
+  --input: oklch(0.28 0.014 258);
+  --ring: oklch(0.78 0.14 75);
+  --sidebar: oklch(0.125 0.012 258);
+  --sidebar-foreground: oklch(0.95 0.006 258);
+  --sidebar-border: oklch(0.42 0.014 258);
+}
+
+/* ==========================================================================
+   STEEL PLANET — 鋼鐵星球 (pure black / iron-grey / reactor-yellow #FFB800)
+   Dark only. Opt in with html[data-nx-palette='steel'].
+   ========================================================================== */
+[data-nx-palette='steel'] {
+  --background: #0a0a0a;
+  --foreground: #d6dae3;
+  --card: color-mix(in srgb, #1e1e1e 78%, #2a2621 22%);
+  --card-foreground: #d6dae3;
+  --popover: #121212;
+  --popover-foreground: #d6dae3;
+  --primary: #ffb800;
+  --primary-foreground: #0a0a0a;
+  --secondary: #2a2824;
+  --secondary-foreground: #d8dce4;
+  --muted: #252525;
+  --muted-foreground: #9ca8b8;
+  --accent: #cc8400;
+  --accent-foreground: #0a0a0a;
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: #ffffff;
+  --border: #3d3d3d;
+  --input: #252525;
+  --ring: #ffb800;
+  --sidebar: #050505;
+  --sidebar-foreground: #d6dae3;
+  --sidebar-border: #333333;
+  --color-primary-light: #ffd54a;
+  --color-primary-bg: rgba(255, 184, 0, 0.14);
+  --warning: #ffb800;
+  --color-meeting: #8e8e8e;
+  --nx-amber: #ffb800;
+  --nx-amber-bright: #ffd54a;
+}
+
+/* ==========================================================================
+   LIGHT THEME — html.light (classic). Warm-neutral surfaces, muted gold.
+   ========================================================================== */
+html.light,
+html.light[data-nx-palette='classic'],
+html.light:not([data-nx-palette]) {
+  color-scheme: light;
+  --background: oklch(0.963 0.004 258);
+  --foreground: oklch(0.245 0.008 258);
+  --card: oklch(0.985 0.003 258);
+  --card-foreground: oklch(0.238 0.008 258);
+  --popover: oklch(0.992 0.003 258);
+  --popover-foreground: oklch(0.238 0.008 258);
+  --primary: oklch(0.695 0.128 73);
+  --primary-foreground: oklch(0.2 0.01 73);
+  --secondary: oklch(0.93 0.005 258);
+  --secondary-foreground: oklch(0.29 0.01 258);
+  --muted: oklch(0.92 0.005 258);
+  --muted-foreground: oklch(0.4 0.014 258);
+  --accent: oklch(0.71 0.122 73);
+  --accent-foreground: oklch(0.2 0.01 73);
+  --destructive: oklch(0.62 0.18 25);
+  --destructive-foreground: oklch(0.99 0.002 260);
+  --border: oklch(0.8 0.008 258);
+  --input: oklch(0.88 0.008 258);
+  --ring: oklch(0.69 0.128 73);
+  --sidebar: oklch(0.95 0.004 258);
+  --sidebar-foreground: oklch(0.24 0.01 258);
+  --sidebar-border: oklch(0.85 0.006 258);
+  --warning: oklch(0.5 0.12 73);
+}

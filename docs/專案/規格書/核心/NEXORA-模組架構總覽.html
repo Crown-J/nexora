@@ -1,0 +1,442 @@
+<!-- 檔案位置：docs/專案/規格書/核心/NEXORA-模組架構總覽.html -->
+<!-- 檔案版本：v3.0 -->
+<!-- 檔案說明：NEXORA GRID 全系統地圖——以 Top Bar 為核心展開系統所有畫面，每個畫面連到其細分需求規格。
+     本份是「書的目錄／系統導覽圖」；各畫面的運作細節在各自的細分需求規格。 -->
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXORA 模組架構總覽 v3.0</title>
+<style>
+:root{
+  --navy:#1F3A5F; --navy-d:#15293f; --amber:#C8941F; --amber-l:#E0B24A;
+  --bg:#F7F5F0; --paper:#FFFFFF; --ink:#1c2430; --sub:#6b7686; --line:#e3e0d8;
+  --core:#1F3A5F; --core-bg:#eef3f9; --mod:#8a6d1f; --mod-bg:#fdf8ea;
+  --hold:#b5762a; --hold-bg:#fbf3e7;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  font-size:14.5px;line-height:1.75;-webkit-font-smoothing:antialiased;
+}
+.wrap{display:grid;grid-template-columns:248px 1fr;max-width:1240px;margin:0 auto;gap:0;}
+
+/* ── 側邊導覽 ── */
+#sidenav{position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto;
+  background:var(--navy-d);color:#cdd6e2;padding:26px 0 40px;}
+#sidenav .brand{padding:0 22px 18px;border-bottom:1px solid rgba(255,255,255,.09);margin-bottom:14px;}
+#sidenav .brand .logo{font-size:11px;letter-spacing:.32em;color:var(--amber-l);font-weight:700;}
+#sidenav .brand .ttl{font-size:17px;color:#fff;font-weight:700;margin-top:5px;line-height:1.35;}
+#sidenav .brand .sub{font-size:11.5px;color:#8595aa;margin-top:5px;}
+#sidenav .grp{font-size:10.5px;letter-spacing:.22em;color:#6f7f96;padding:14px 22px 6px;font-weight:700;}
+#sidenav a{display:block;padding:7px 22px 7px 20px;color:#b9c4d3;text-decoration:none;
+  font-size:13px;border-left:3px solid transparent;transition:.15s;}
+#sidenav a:hover{color:#fff;background:rgba(255,255,255,.05);}
+#sidenav a.active{color:#fff;border-left-color:var(--amber);background:rgba(200,148,31,.12);font-weight:600;}
+#sidenav a .n{color:var(--amber-l);font-weight:700;margin-right:7px;font-variant-numeric:tabular-nums;}
+
+/* ── 主內容 ── */
+#main{background:var(--paper);min-height:100vh;padding:0;}
+.doc-head{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-d) 100%);
+  color:#fff;padding:46px 54px 40px;position:relative;overflow:hidden;}
+.doc-head::after{content:"GRID";position:absolute;right:30px;bottom:-26px;font-size:130px;
+  font-weight:800;color:rgba(255,255,255,.045);letter-spacing:.1em;line-height:1;}
+.doc-head .ey{font-size:11.5px;letter-spacing:.34em;color:var(--amber-l);font-weight:700;}
+.doc-head h1{font-size:30px;margin:12px 0 6px;font-weight:800;letter-spacing:.01em;}
+.doc-head .desc{font-size:14px;color:#c4d0e0;max-width:660px;line-height:1.7;}
+.doc-head .meta{margin-top:22px;display:flex;flex-wrap:wrap;gap:8px 22px;font-size:12px;color:#9fb0c6;
+  border-top:1px solid rgba(255,255,255,.12);padding-top:16px;}
+.doc-head .meta b{color:#dfe7f1;font-weight:600;}
+
+.body{padding:40px 54px 70px;}
+
+/* 章節 */
+.chap{margin-bottom:14px;padding-top:14px;}
+.chap-tag{display:inline-flex;align-items:center;gap:9px;font-size:11px;letter-spacing:.2em;
+  color:var(--amber);font-weight:700;text-transform:uppercase;margin-bottom:8px;}
+.chap-tag .bar{width:26px;height:2px;background:var(--amber);display:inline-block;}
+.chap h2{font-size:23px;font-weight:800;color:var(--navy);margin:0 0 4px;letter-spacing:.01em;}
+.chap .lead{font-size:14.5px;color:#3a4150;background:var(--bg);border-left:4px solid var(--amber);
+  padding:13px 18px;border-radius:0 7px 7px 0;margin:14px 0 26px;line-height:1.78;}
+.chap .lead b{color:var(--navy);}
+
+/* 小節 */
+h3.sec{font-size:16.5px;font-weight:700;color:var(--navy);margin:34px 0 12px;
+  padding-bottom:7px;border-bottom:2px solid var(--line);display:flex;align-items:baseline;gap:10px;}
+h3.sec .num{font-size:12px;color:#fff;background:var(--navy);min-width:23px;height:23px;border-radius:5px;
+  display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex:none;padding:0 6px;}
+h4.sub{font-size:14px;font-weight:700;color:var(--navy);margin:20px 0 8px;}
+
+p{margin:9px 0;} .mut{color:var(--sub);font-size:13px;}
+
+/* 表格 */
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13px;background:var(--paper);}
+th{background:var(--navy);color:#fff;text-align:left;padding:9px 12px;font-weight:600;font-size:12.5px;}
+td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top;}
+tr:nth-child(even) td{background:#faf9f6;}
+td.k{font-weight:600;color:var(--navy);white-space:nowrap;}
+td.code{font-family:"SFMono-Regular",Consolas,monospace;font-size:11.5px;color:#6a4a12;white-space:nowrap;}
+a.spec{color:var(--navy);text-decoration:none;border-bottom:1px dashed var(--amber);}
+a.spec:hover{color:var(--amber);}
+
+.pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:11px;white-space:nowrap;}
+.pill.core{background:var(--core-bg);color:var(--core);}
+.pill.mod{background:var(--mod-bg);color:var(--mod);}
+.pill.hold{background:var(--hold-bg);color:var(--hold);}
+
+/* 入口卡 */
+.entry{border:1px solid var(--line);border-left:4px solid var(--amber);border-radius:9px;
+  padding:14px 18px;margin:12px 0;background:var(--paper);}
+.entry .eh{font-weight:700;font-size:15px;color:var(--navy);margin-bottom:3px;display:flex;align-items:center;gap:9px;}
+.entry .ed{font-size:13px;color:var(--sub);margin-bottom:9px;}
+.icn{width:22px;height:22px;border-radius:6px;background:var(--navy);color:var(--amber-l);
+  display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:none;}
+
+/* 卡片 */
+.card{border-radius:9px;padding:15px 18px;margin:11px 0;border:1px solid;border-left-width:4px;}
+.card .ch{font-weight:700;font-size:14px;margin-bottom:5px;display:flex;align-items:center;gap:8px;}
+.card p{margin:5px 0;font-size:13.5px;}
+.card.note{background:var(--core-bg);border-color:#cfddee;border-left-color:var(--core);}
+.card.note .ch{color:var(--core);}
+.card.hold{background:var(--hold-bg);border-color:#ecd9bb;border-left-color:var(--hold);}
+.card.hold .ch{color:var(--hold);}
+
+footer{margin-top:50px;padding:22px 54px 40px;border-top:1px solid var(--line);
+  color:var(--sub);font-size:12px;line-height:1.7;background:var(--bg);}
+footer b{color:var(--navy);}
+
+@media(max-width:880px){
+  .wrap{grid-template-columns:1fr;}
+  #sidenav{position:static;height:auto;}
+  .doc-head,.body,footer{padding-left:24px;padding-right:24px;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ───── 側邊導覽 ───── -->
+<nav id="sidenav">
+  <div class="brand">
+    <div class="logo">NEXORA GRID</div>
+    <div class="ttl">模組架構總覽</div>
+    <div class="sub">系統地圖 · Top Bar 全展開</div>
+  </div>
+
+  <div class="grp">總覽</div>
+  <a href="#intro"><span class="n">—</span>怎麼讀這套規格書</a>
+  <a href="#topbar"><span class="n">★</span>Top Bar 全貌</a>
+
+  <div class="grp">小星球・八大模組</div>
+  <a href="#m-home"><span class="n">00</span>首頁</a>
+  <a href="#m-me"><span class="n">00</span>個人</a>
+  <a href="#m-master"><span class="n">01</span>主檔</a>
+  <a href="#m-purchase"><span class="n">02</span>進貨</a>
+  <a href="#m-sales"><span class="n">04</span>銷貨</a>
+  <a href="#m-stock"><span class="n">03</span>庫存</a>
+  <a href="#m-finance"><span class="n">05</span>財務</a>
+  <a href="#m-report"><span class="n">08</span>報表</a>
+
+  <div class="grp">Top Bar・其他入口</div>
+  <a href="#t-user"><span class="n">00</span>使用者 / 設定 / 通知 / 公告</a>
+
+  <div class="grp">加購</div>
+  <a href="#addon"><span class="n">＋</span>加購模組</a>
+</nav>
+
+<!-- ───── 主內容 ───── -->
+<main id="main">
+
+  <header class="doc-head">
+    <div class="ey">NEXORA GRID · SYSTEM MAP</div>
+    <h1>模組架構總覽</h1>
+    <div class="desc">整套系統有哪些畫面、使用者怎麼到達、各畫面對應哪一本規格書。
+    本份以使用者真正的入口 <b>Top Bar</b> 為核心展開——這顆元件能通往系統的每一個角落，
+    順著它就能看完整張系統地圖。</div>
+    <div class="meta">
+      <span><b>檔案：</b>docs/專案/規格書/核心/NEXORA-模組架構總覽.html</span>
+      <span><b>版本：</b>v3.0</span>
+      <span><b>維護：</b>CTO（Alex）</span>
+      <span><b>定位：</b>系統地圖 / 規格書目錄</span>
+    </div>
+  </header>
+
+  <div class="body">
+
+  <!-- 導讀 -->
+  <section class="chap" id="intro">
+    <div class="chap-tag"><span class="bar"></span>導讀</div>
+    <h2>怎麼讀這套規格書</h2>
+    <div class="lead">
+      NEXORA 的規格書分<b>三層、由粗到細</b>。先看這張總覽抓全貌，
+      再依需要鑽進某個畫面的細分規格，最後對照手冊看怎麼操作。
+      <b>本份只講「架構」——系統長什麼樣、畫面怎麼分、各自連到哪</b>；
+      畫面的實際運作（欄位、流程、規則）一律在各自的細分規格書裡。
+    </div>
+
+    <table>
+      <tr><th style="width:150px;">層級</th><th>回答什麼問題</th><th style="width:170px;">文件</th></tr>
+      <tr><td class="k">① 架構總覽</td><td>系統有哪些畫面？我從哪進去？這畫面歸哪一本？</td><td>本份</td></tr>
+      <tr><td class="k">② 細分需求規格</td><td>這一個畫面該做成怎樣？有哪些欄位、按了會怎樣？</td><td>各畫面一本（見下）</td></tr>
+      <tr><td class="k">③ 操作手冊</td><td>使用者實際上怎麼操作這個畫面？</td><td>各模組手冊</td></tr>
+    </table>
+
+    <div class="card note">
+      <div class="ch">📐 一畫面一規格</div>
+      <p>系統的每一個畫面，都有一本專屬的細分需求規格書。本總覽的每個畫面名稱，
+      都連到它對應的那一本。<b>命名規則：</b><code>需求規格-[模組碼][序]-[畫面名]</code>
+      （例：<code>需求規格-02-01-缺貨簿</code>）。模組碼沿用 NX 編號，畫面顯示順序則依使用者習慣排列，兩者不衝突。</p>
+    </div>
+
+    <h4 class="sub">兩種模組分類</h4>
+    <p>
+      <span class="pill core">核心</span> LITE 即內含、每家都用；
+      　<span class="pill mod">加購</span> 按需選購的套件；
+      　<span class="pill hold">待補</span> 畫面已在版圖上、細分規格尚未撰寫。
+    </p>
+  </section>
+
+  <!-- Top Bar 全貌 -->
+  <section class="chap" id="topbar">
+    <div class="chap-tag"><span class="bar"></span>核心元件</div>
+    <h2>Top Bar 全貌</h2>
+    <div class="lead">
+      Top Bar 橫跨系統每一頁、不隨模組改變，是使用者到達任何畫面的<b>唯一入口</b>。
+      左側是導覽、右側是工具。整套系統地圖，就是把這條列上的每顆按鈕展開。
+    </div>
+
+    <table>
+      <tr><th style="width:46px;">位</th><th style="width:130px;">元件</th><th>通往</th></tr>
+      <tr><td class="k">左 1</td><td class="k">小星球</td><td>全域導覽——八大模組的單一入口（下方逐一展開）</td></tr>
+      <tr><td class="k">左 2</td><td class="k">NEXORA 品牌</td><td>點擊回首頁</td></tr>
+      <tr><td class="k">左 3</td><td class="k">租戶名稱</td><td>顯示登入公司（不可互動）</td></tr>
+      <tr><td class="k">右 1</td><td class="k">使用者按鈕</td><td>個人儀表板 / 修改密碼 / 登出</td></tr>
+      <tr><td class="k">右 2</td><td class="k">設定齒輪</td><td>環境設定（個人偏好）</td></tr>
+      <tr><td class="k">右 3</td><td class="k">通知鈴鐺</td><td>通知列表（待辦驅動）</td></tr>
+      <tr><td class="k">右 4</td><td class="k">公告喇叭</td><td>佈告欄</td></tr>
+      <tr><td class="k">右 5</td><td class="k">日期時間</td><td>顯示日期時間星期（不可互動）</td></tr>
+    </table>
+    <p class="mut">※ Top Bar 與小星球本身的規格屬外殼層 NX00，見
+    <a class="spec" href="需求規格-00-登入與首頁.html">需求規格-00-登入與首頁</a>。</p>
+  </section>
+
+  <!-- ═══ 小星球：八大模組 ═══ -->
+  <section class="chap">
+    <div class="chap-tag"><span class="bar"></span>小星球 · 八大模組</div>
+    <h2>從小星球展開的系統</h2>
+    <div class="lead">
+      小星球是全系統唯一的導覽元件。喚醒後是八個固定主選單，順序為
+      <b>首頁 / 個人 / 主檔 / 進貨 / 銷貨 / 庫存 / 財務 / 報表</b>。
+      以下依此順序，逐一列出每個模組底下的所有畫面。
+    </div>
+
+    <!-- 首頁 -->
+    <h3 class="sec" id="m-home"><span class="num">00</span>首頁 <span class="pill core">核心</span></h3>
+    <div class="entry">
+      <div class="eh"><span class="icn">⌂</span>首頁儀表板</div>
+      <div class="ed">登入後落地頁，聚焦「我近期要處理的事」。</div>
+      <table>
+        <tr><th>畫面</th><th style="width:130px;">細分規格</th></tr>
+        <tr><td class="k">首頁儀表板</td><td class="code"><a class="spec" href="需求規格-00-登入與首頁.html">NX00-登入與首頁</a></td></tr>
+      </table>
+    </div>
+
+    <!-- 個人 -->
+    <h3 class="sec" id="m-me"><span class="num">00</span>個人 <span class="pill hold">待補</span></h3>
+    <div class="entry">
+      <div class="eh"><span class="icn">◔</span>個人儀表板</div>
+      <div class="ed">與使用者按鈕的「個人儀表板」為同一頁、兩入口（遊戲化伏筆，細分規格待撰）。</div>
+      <table>
+        <tr><th>畫面</th><th style="width:150px;">細分規格</th></tr>
+        <tr><td class="k">個人儀表板</td><td><span class="pill hold">待補</span></td></tr>
+      </table>
+    </div>
+
+    <!-- 主檔 -->
+    <h3 class="sec" id="m-master"><span class="num">01</span>主檔 <span class="pill core">核心</span></h3>
+    <div class="entry">
+      <div class="eh"><span class="icn">▦</span>核心主檔 · 六大分區</div>
+      <div class="ed">所有單據的資料底座。採三層導覽：主檔 → 六大分區 → 各主檔畫面。</div>
+      <table>
+        <tr><th style="width:110px;">分區</th><th>畫面</th><th style="width:130px;">細分規格</th></tr>
+        <tr><td class="k">組織架構</td><td>員工 / 職務 / 部門 / 組別</td><td class="code">NX01-01～04</td></tr>
+        <tr><td class="k">權限管理</td><td>組織架構圖 / 職務權限設定</td><td class="code">NX01-05～06</td></tr>
+        <tr><td class="k">據點倉庫</td><td>據點架構圖 / 據點 / 倉庫 / 庫位</td><td class="code">NX01-07～10</td></tr>
+        <tr><td class="k">往來對象</td><td>往來對象 / 客戶分級 / 供應商分級 / 供應商供貨對應</td><td class="code">NX01-11～14</td></tr>
+        <tr><td class="k">產品與廠牌</td><td>零件 / 廠牌 / 零件群組 / 通用件群組</td><td class="code">NX01-15～18</td></tr>
+        <tr><td class="k">字典主檔</td><td>地區 / 國家 / 幣別 / 注音字典</td><td class="code">NX01-19～22</td></tr>
+      </table>
+      <p class="mut">※ 細分前可先參照
+      <a class="spec" href="需求規格-01-核心主檔.html">需求規格-01-核心主檔</a>。</p>
+    </div>
+
+    <!-- 進貨 -->
+    <h3 class="sec" id="m-purchase"><span class="num">02</span>進貨 <span class="pill core">核心</span></h3>
+    <div class="entry">
+      <div class="eh"><span class="icn">⇲</span>進貨作業</div>
+      <div class="ed">採購前段鏈到驗收入庫，含國內外進貨、退貨與保固。</div>
+      <table>
+        <tr><th>畫面</th><th style="width:150px;">細分規格</th></tr>
+        <tr><td class="k">缺貨簿</td><td class="code">NX02-01</td></tr>
+        <tr><td class="k">詢價</td><td class="code">NX02-02</td></tr>
+        <tr><td class="k">採購</td><td class="code">NX02-03</td></tr>
+        <tr><td class="k">國內進貨</td><td class="code">NX02-04</td></tr>
+        <tr><td class="k">國外進貨</td><td class="code">NX02-05</td></tr>
+        <tr><td class="k">進貨退回</td><td class="code">NX02-06</td></tr>
+        <tr><td class="k">保固申請</td><td class="code">NX02-07</td></tr>
+        <tr><td class="k">產品管理</td><td class="code">NX02-08</td></tr>
+        <tr><td class="k">供應商管理</td><td class="code">NX02-09</td></tr>
+      </table>
+      <p class="mut">※ 細分前可先參照
+      <a class="spec" href="需求規格-02-進貨.html">需求規格-02-進貨</a>。</p>
+    </div>
+
+    <!-- 銷貨 -->
+    <h3 class="sec" id="m-sales"><span class="num">04</span>銷貨 <span class="pill core">核心</span></h3>
+    <div class="entry">
+      <div class="eh"><span class="icn">⇱</span>銷貨作業</div>
+      <div class="ed">報價到出單、退回，含「跟同行調貨」的對外調貨鏈。優惠價併入產品管理。</div>
+      <table>
+        <tr><th>畫面</th><th style="width:150px;">細分規格</th></tr>
+        <tr><td class="k">報價單</td><td class="code">NX04-01</td></tr>
+        <tr><td class="k">銷貨單</td><td class="code">NX04-02</td></tr>
+        <tr><td class="k">銷貨退回</td><td class="code">NX04-03</td></tr>
+        <tr><td class="k">調貨詢價</td><td class="code">NX04-04</td></tr>
+        <tr><td class="k">調貨單</td><td class="code">NX04-05</td></tr>
+        <tr><td class="k">調貨退回</td><td class="code">NX04-06</td></tr>
+        <tr><td class="k">產品管理</td><td class="code">NX04-07</td></tr>
+        <tr><td class="k">客戶管理</td><td class="code">NX04-08</td></tr>
+      </table>
+      <p class="mut">※ 細分前可先參照
+      <a class="spec" href="需求規格-04-銷貨.html">需求規格-04-銷貨</a>。調貨＝跟同行借貨（對外），與庫存內部「調撥」不同。</p>
+    </div>
+
+    <!-- 庫存 -->
+    <h3 class="sec" id="m-stock"><span class="num">03</span>庫存 <span class="pill core">核心</span></h3>
+    <div class="entry">
+      <div class="eh"><span class="icn">▤</span>庫存作業</div>
+      <div class="ed">出貨履行（撿/包/取/寄/送）、盤點、重組與異常處置。</div>
+      <table>
+        <tr><th>畫面</th><th style="width:150px;">細分規格</th></tr>
+        <tr><td class="k">撿貨</td><td class="code">NX03-01</td></tr>
+        <tr><td class="k">包貨</td><td class="code">NX03-02</td></tr>
+        <tr><td class="k">自取</td><td class="code">NX03-03</td></tr>
+        <tr><td class="k">寄貨</td><td class="code">NX03-04</td></tr>
+        <tr><td class="k">送貨</td><td class="code">NX03-05</td></tr>
+        <tr><td class="k">盤點</td><td class="code">NX03-06</td></tr>
+        <tr><td class="k">重組分解</td><td class="code">NX03-07</td></tr>
+        <tr><td class="k">異常處理</td><td class="code">NX03-08</td></tr>
+        <tr><td class="k">產品管理</td><td class="code">NX03-09</td></tr>
+        <tr><td class="k">倉位及庫位</td><td class="code">NX03-10</td></tr>
+      </table>
+      <p class="mut">※ 細分前可先參照
+      <a class="spec" href="需求規格-03-庫存.html">需求規格-03-庫存</a>。</p>
+    </div>
+
+    <!-- 財務 -->
+    <h3 class="sec" id="m-finance"><span class="num">05</span>財務 <span class="pill core">核心</span></h3>
+    <div class="entry">
+      <div class="eh"><span class="icn">$</span>財務作業</div>
+      <div class="ed">應收應付、收付款票據、折讓核可、月關帳，與往來對象的財務面管理。</div>
+      <table>
+        <tr><th>畫面</th><th style="width:150px;">細分規格</th></tr>
+        <tr><td class="k">應收</td><td class="code">NX05-01</td></tr>
+        <tr><td class="k">應付</td><td class="code">NX05-02</td></tr>
+        <tr><td class="k">收付款票據</td><td class="code">NX05-03</td></tr>
+        <tr><td class="k">折讓核可</td><td class="code">NX05-04</td></tr>
+        <tr><td class="k">月關帳</td><td class="code">NX05-05</td></tr>
+        <tr><td class="k">客戶管理</td><td class="code">NX05-06</td></tr>
+        <tr><td class="k">供應商管理</td><td class="code">NX05-07</td></tr>
+      </table>
+      <p class="mut">※ 細分前可先參照
+      <a class="spec" href="需求規格-05-財務.html">需求規格-05-財務</a>。</p>
+    </div>
+
+    <!-- 報表 -->
+    <h3 class="sec" id="m-report"><span class="num">08</span>報表 <span class="pill core">核心</span></h3>
+    <div class="entry">
+      <div class="eh"><span class="icn">▣</span>報表選取頁</div>
+      <div class="ed">單一入口頁，於頁內挑選並產出各張經營報表。</div>
+      <table>
+        <tr><th>畫面</th><th style="width:150px;">細分規格</th></tr>
+        <tr><td class="k">報表選取頁</td><td class="code">NX08-01</td></tr>
+      </table>
+      <p class="mut">※ 細分前可先參照
+      <a class="spec" href="需求規格-08-報表.html">需求規格-08-報表</a>。</p>
+    </div>
+  </section>
+
+  <!-- Top Bar 其他入口 -->
+  <section class="chap" id="t-user">
+    <div class="chap-tag"><span class="bar"></span>Top Bar · 其他入口</div>
+    <h2>使用者 / 設定 / 通知 / 公告</h2>
+    <div class="lead">
+      除了小星球，Top Bar 右側四顆按鈕也各自通往畫面。這些都屬外殼層 NX00，
+      規格見 <a class="spec" href="需求規格-00-登入與首頁.html">需求規格-00-登入與首頁</a>。
+    </div>
+    <table>
+      <tr><th style="width:130px;">入口</th><th>展開的畫面</th></tr>
+      <tr><td class="k">使用者按鈕</td><td>個人儀表板（同小星球「個人」）/ 修改密碼 / 登出</td></tr>
+      <tr><td class="k">設定齒輪</td><td>環境設定：深淺主題 / 2FA / 語言 / 字級密度 / 快捷鍵 / 版本 / 關於</td></tr>
+      <tr><td class="k">通知鈴鐺</td><td>通知列表（待辦驅動，點一則跳對應單據）</td></tr>
+      <tr><td class="k">公告喇叭</td><td>佈告欄</td></tr>
+    </table>
+    <div class="card note">
+      <div class="ch">⚙️ 設定齒輪只放「個人偏好」</div>
+      <p>齒輪只影響「我自己用起來的樣子」，不含任何會動到全公司的設定（稅率、單據編號規則、簽核流程等仍歸主檔與各模組）。</p>
+    </div>
+  </section>
+
+  <!-- 加購 -->
+  <section class="chap" id="addon">
+    <div class="chap-tag"><span class="bar"></span>加購</div>
+    <h2>加購模組</h2>
+    <div class="lead">
+      核心之外、按需選購的套件。三版（LITE / PLUS / PRO）<b>只差人數上限</b>，
+      功能全模組化自由加購，<b>不設版本功能閘門</b>。各加購套件另有獨立的套件需求規格。
+    </div>
+    <table>
+      <tr><th style="width:130px;">套件</th><th>範疇</th><th style="width:90px;">NX 碼</th></tr>
+      <tr><td class="k">人資</td><td>打卡出勤、KPI 業績績效</td><td class="code">NX06</td></tr>
+      <tr><td class="k">物流</td><td>配送、第三方串接（Lalamove 等）</td><td class="code">NX07</td></tr>
+      <tr><td class="k">汽車資料庫</td><td>編碼規則引擎、品牌/車型/引擎字典、TecDoc 對照</td><td class="code">待定</td></tr>
+      <tr><td class="k">電子發票</td><td>發票開立</td><td class="code">待定</td></tr>
+      <tr><td class="k">401 上傳</td><td>營業稅申報上傳</td><td class="code">待定</td></tr>
+      <tr><td class="k">EIP 資訊平台</td><td>企業知識/資訊平台（重點主打）</td><td class="code">待定</td></tr>
+      <tr><td class="k">多據點</td><td>多分店/倉（PLUS 免費、LITE 亦可加購）</td><td class="code">待定</td></tr>
+    </table>
+    <div class="card hold">
+      <div class="ch">🟡 待產品決策</div>
+      <p>加購模組的 NX 碼分配（除已定 NX06 人資、NX07 物流外）尚待拍板。各加購套件需求規格置於 規格書/選購套件/。</p>
+    </div>
+  </section>
+
+  </div><!-- /body -->
+
+  <footer>
+    <b>NEXORA 模組架構總覽 v3.0</b>　·　系統地圖 / 規格書目錄　·　維護：CTO（Alex）<br>
+    v3.0 改版：改以 Top Bar 為核心展開全系統畫面；建立「一畫面一規格」結構，各畫面連向其細分需求規格；
+    小星球主選單順序更新為 首頁/個人/主檔/進貨/銷貨/庫存/財務/報表。<br>
+    畫面增減、改名、或細分規格生成時更新本份並升版。
+  </footer>
+
+</main>
+</div>
+
+<script>
+const links=[...document.querySelectorAll('#sidenav a')];
+const targets=links.map(a=>({a,el:document.querySelector(a.getAttribute('href'))})).filter(x=>x.el);
+function spy(){
+  let cur=null;
+  for(const t of targets){ if(t.el.getBoundingClientRect().top<160) cur=t; }
+  links.forEach(a=>a.classList.remove('active'));
+  if(cur) cur.a.classList.add('active');
+}
+window.addEventListener('scroll',spy,{passive:true});
+spy();
+</script>
+</body>
+</html>

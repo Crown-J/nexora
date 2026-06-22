@@ -1,20 +1,21 @@
 <!-- 檔案位置：docs/專案/規格書/核心/需求規格-02-進貨.html -->
-<!-- 檔案版本：v1.0 -->
-<!-- 檔案說明：進貨模組（NX02）完整功能需求（施工級藍圖）。逐單據列欄位、狀態流轉、規則、關聯。
-     對應《操作手冊-03》。落差/待釐清以 ⚠️ 標示，待 Hank 對 schema 驗證。 -->
+<!-- 檔案版本：v3.10 -->
+<!-- 檔案說明：進貨模組（NX02）完整功能需求（施工級藍圖）。
+     v3.6 骨架重組：依「模組概述 → 單據頁面型態（單據/清單/主檔三模板）→ 作業入口（每作業拆 單據列表/單據明細，
+     各含 畫面欄位＋操作說明）」三層結構重排，讓每張單據的列表頁與明細頁細節都有明確容器（解決 Hana 反映「雛型對、
+     細節不到位」）。內容沿用 v3.5、僅重新歸位；列表頁欄位先搭框架、部分標 ⚠️待施工填（含對照恆迎舊系統）。 -->
 <!DOCTYPE html><html lang="zh-Hant"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>需求規格 02 — 進貨 v1.0</title>
+<title>需求規格 02 — 進貨 v3.10</title>
 <style>
-:root{--navy:#1F3A5F;--amber:#c8881f;--sub:#5d6675;--line:#e3e7ee;--warn:#962d2d;--bg:#fafbfc;--star:#7a4e09;}
+:root{--navy:#1F3A5F;--amber:#c8881f;--sub:#5d6675;--line:#e3e7ee;--warn:#962d2d;--bg:#fafbfc;--star:#7a4e09;--ok:#2d6a2d;}
 *{box-sizing:border-box;}
 body{font-family:'PingFang TC','Microsoft JhengHei','Noto Sans TC',sans-serif;color:#26303d;line-height:1.7;max-width:1000px;margin:0 auto;padding:38px 26px 80px;background:#fff;}
 header.doc{border-bottom:3px solid var(--navy);padding-bottom:16px;margin-bottom:6px;}
 header.doc h1{color:var(--navy);font-size:24px;margin:0 0 6px;}
 .meta{color:var(--sub);font-size:12.5px;line-height:1.6;} .meta b{color:var(--navy);}
-h2{color:#fff;background:var(--navy);font-size:17px;margin:32px 0 8px;padding:7px 13px;border-radius:5px;}
-h3.sub{color:var(--navy);font-size:14px;margin:16px 0 4px;border-bottom:1px dashed var(--line);padding-bottom:2px;}
-h3.ent{color:var(--navy);font-size:15.5px;margin:20px 0 3px;padding-left:10px;border-left:4px solid var(--amber);}
+h2{color:#fff;background:var(--navy);font-size:17px;margin:34px 0 10px;padding:7px 13px;border-radius:5px;}
+h3.ent{color:var(--navy);font-size:15.5px;margin:22px 0 3px;padding-left:10px;border-left:4px solid var(--amber);}
 .mt{display:inline-block;font-size:10.5px;font-weight:700;background:#eef2f8;color:var(--navy);border-radius:3px;padding:0 6px;margin-left:5px;vertical-align:middle;}
 .ent-menu{color:var(--sub);font-size:12px;margin:0 0 6px;}
 p{margin:6px 0;font-size:13.5px;}
@@ -33,116 +34,475 @@ td.prop{white-space:nowrap;color:#6a4a12;font-size:11.5px;}
 .cal b{color:var(--navy);}
 .lead{background:var(--bg);border-left:4px solid var(--amber);border-radius:6px;padding:10px 14px;margin:8px 0;font-size:13.5px;}
 ul{margin:6px 0;padding-left:22px;font-size:13.5px;} li{margin:4px 0;}
+code{background:#eef2f8;border-radius:4px;padding:1px 5px;font-size:12px;}
+h3.sub{color:var(--navy);font-size:14px;margin:16px 0 4px;border-bottom:1px dashed var(--line);padding-bottom:2px;}
+td.num{text-align:center;font-weight:700;color:var(--navy);white-space:nowrap;}
+.tag{display:inline-block;font-size:10.5px;font-weight:700;border-radius:3px;padding:0 6px;margin-left:5px;vertical-align:middle;}
+.t-now{background:#e3f0e3;color:#2d6a2d;} .t-later{background:#fdf3e3;color:var(--star);} .t-ro{background:#eef2f8;color:var(--navy);}
+table.ops{border-collapse:collapse;width:100%;font-size:12.5px;margin:0 0 8px;}
+table.ops th,table.ops td{border:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:top;}
+table.ops th{background:#33507a;color:#fff;font-weight:600;}
+table.ops tr:nth-child(even) td{background:var(--bg);}
+table.ops td.act{font-weight:700;color:var(--navy);white-space:nowrap;}
+.flow{display:flex;flex-wrap:wrap;align-items:flex-start;gap:4px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:14px 12px;margin:8px 0;}
+.flow .stage{display:flex;flex-direction:column;align-items:center;min-width:74px;}
+.flow .dot{width:13px;height:13px;border-radius:50%;background:#c2cbd8;border:2px solid #9aa7ba;margin-bottom:4px;}
+.flow .stage.cur .dot{background:var(--amber);border-color:var(--amber);box-shadow:0 0 0 4px rgba(200,136,31,.22);}
+.flow .stage .nm{font-size:11.5px;font-weight:700;color:var(--navy);text-align:center;line-height:1.3;}
+.flow .stage .sub{font-size:10px;color:var(--sub);text-align:center;line-height:1.25;margin-top:2px;}
+.flow .arr{align-self:flex-start;margin-top:2px;color:#9aa7ba;font-size:13px;}
+.flow .branch{font-size:10.5px;color:var(--warn);align-self:center;border:1px dashed #e6c4c4;border-radius:4px;padding:1px 6px;}
 footer{margin-top:46px;padding-top:14px;border-top:1px solid var(--line);color:var(--sub);font-size:12px;}
-</style></head><body>
+
+/* 側邊導覽 */
+body{max-width:none;margin:0;padding:0;display:flex;}
+#sidenav{position:fixed;top:0;left:0;width:226px;height:100vh;overflow-y:auto;background:#16243c;padding:18px 0 40px;z-index:100;}
+#sidenav .nav-title{color:#c8881f;font-size:13px;font-weight:700;padding:0 18px 10px;border-bottom:1px solid #2a3c5a;margin-bottom:8px;}
+#sidenav a{display:block;color:#c2ccda;text-decoration:none;font-size:12.5px;padding:5px 18px;line-height:1.4;border-left:3px solid transparent;}
+#sidenav a:hover{background:#1f3050;color:#fff;}
+#sidenav a.lv1{font-weight:700;color:#e8edf4;margin-top:8px;}
+#sidenav a.lv2{padding-left:30px;font-size:12px;color:#9fb0c8;}
+#sidenav a.active{border-left-color:#c8881f;background:#1f3050;color:#fff;}
+#main{margin-left:226px;flex:1;max-width:1000px;padding:38px 26px 80px;}
+@media(max-width:820px){#sidenav{transform:translateX(-100%);transition:transform .25s;}#sidenav.open{transform:translateX(0);}#main{margin-left:0;}#navtoggle{display:block;}}
+#navtoggle{display:none;position:fixed;top:12px;left:12px;z-index:101;background:#16243c;color:#fff;border:none;border-radius:6px;padding:8px 12px;font-size:16px;cursor:pointer;}
+</style></head>
+<body>
+<button id="navtoggle" onclick="document.getElementById('sidenav').classList.toggle('open')">☰ 目錄</button>
+<nav id="sidenav">
+<div class="nav-title">NX02 進貨 v3.10 目錄</div>
+<a class="lv1" href="#s1">壹、模組概述</a>
+<a class="lv1" href="#s2">貳、單據頁面型態</a>
+<a class="lv1" href="#s3">參、作業入口</a>
+<a class="lv2" href="#a1">1 缺貨簿</a>
+<a class="lv2" href="#a2">2 詢價作業</a>
+<a class="lv2" href="#a3">3 採購作業</a>
+<a class="lv2" href="#a4">4 國內進貨作業</a>
+<a class="lv2" href="#a5">5 國外進貨作業</a>
+<a class="lv2" href="#a6">6 進貨退回作業</a>
+<a class="lv2" href="#a7">7 保固申請作業</a>
+<a class="lv2" href="#a8">8 產品管理</a>
+<a class="lv2" href="#a9">9 供應商管理</a>
+<a class="lv1" href="#s4">肆、補做與連帶事項</a>
+<a class="lv1" href="#s5">伍、未來增強</a>
+</nav>
+<div id="main">
 <header class="doc"><h1>需求規格 02 — 進貨</h1>
-<div class="meta"><b>檔案位置：</b>docs/專案/規格書/核心/需求規格-02-進貨.html　|　<b>版本：</b>v1.0　|　<b>維護：</b>CTO（Alex）　|　<b>NX 碼：</b>NX02（核心 / LITE）<br>
-<b>說明：</b>進貨模組「該做成怎樣」的施工級需求——逐單據列欄位、狀態流轉、規則、關聯。操作步驟見《操作手冊-03》；工程慣例見《核心系統規格》。</div></header>
-<p class="lead">進貨模組涵蓋<b>採購全流程</b>：採購需求單 → 詢價比價 → 採購單 → 進貨單（驗收入庫），外加退貨單、國外進貨追蹤（六階段）、特殊採購、保固申請。單據引用核心主檔（產品/供應商/供貨對應），驗收入庫連動庫存，廠商確認與驗收連動財務應付。</p>
+<div class="meta"><b>檔案位置：</b>docs/專案/規格書/核心/需求規格-02-進貨.html　|　<b>版本：</b>v3.10　|　<b>維護：</b>CTO（Alex）　|　<b>NX 碼：</b>NX02（核心 / LITE）<br>
+<b>說明：</b>進貨模組「該做成怎樣」的施工級需求。三層結構：模組概述 → 單據頁面型態（三模板）→ 作業入口（九作業，每作業拆單據列表/單據明細，各含畫面欄位＋操作說明）。操作步驟見《操作手冊-03》；工程慣例見《核心系統規格》；主檔定義見《需求規格-01 核心主檔》。</div></header>
 
-<h2>通用操作</h2>
-<p>進貨在 NEXORA 是一套有先後順序的流程：先看「採購需求」、再去「詢價」比價、選定供應商開「採購單」、送主管核准、寄給廠商確認、貨到開「進貨單」驗收入庫，過程中可能開「退貨單」或「保固申請」。這一章先講所有進貨作業共通的操作。</p>
-<h3 class="sub">怎麼進到進貨作業</h3>
-<p>按左上角的星球選單鈕（快速鍵 Alt+X）→ 選「進貨」，或從下方工具列（dock）的「進貨」項展開進入。進貨底下分四類作業：採購需求、詢價單、採購單、進貨單；另有退貨單、保固申請、國外進貨追蹤。</p>
-<div class="cal note">【說明】 進貨沒有「採購中心」這種中間頁；每一種單據都是獨立入口，從星球選單或 dock 直接進。</div>
-<h3 class="sub">三種畫面版面</h3>
-<p>進貨的畫面分三種版面，看到時就知道怎麼操作：</p>
-<div class="ep"><div class="ep-h">三種版面</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">清單頁</td><td class="prop">選填</td><td>一張清單列出某類單據（例如所有採購單），上方可依狀態、日期、廠商過濾，點一筆進詳細頁。</td></tr><tr><td class="fnm">單據詳細頁</td><td class="prop">選填</td><td>一張單據分「表頭」（單號、廠商、日期等）＋「明細」（一筆筆料件）。表頭在上、明細表在下；依單據目前的狀態，畫面會顯示對應的動作按鈕（例如草稿才有「送審」）。</td></tr><tr><td class="fnm">流程追蹤頁</td><td class="prop">選填</td><td>國外進貨用。一張單據用「階段時間軸」呈現，從備貨到驗收一步步推進，每階段填當階段的資料（如船號、到港日）。</td></tr></table></div>
-<h3 class="sub">單據狀態怎麼看</h3>
-<p>採購單會經過多個狀態，畫面用徽章顯示目前走到哪。完整狀態順序：</p>
-<table class="fields stt"><tr><th>狀態</th><th>意思</th><th>誰來推進</th></tr><tr><td>草稿</td><td>剛建立、還在編輯</td><td>採購員</td></tr><tr><td>待核准</td><td>已送審、等主管看</td><td>採購員送審</td></tr><tr><td>已核准</td><td>主管核准通過</td><td>主管核准</td></tr><tr><td>已寄廠商</td><td>已寄給廠商</td><td>採購員寄出</td></tr><tr><td>廠商確認</td><td>廠商確認接單（系統同時產生應付帳）</td><td>採購員（依廠商回覆）</td></tr><tr><td>部分驗收</td><td>已收一部分、還沒收完</td><td>系統（轉進貨後）</td></tr><tr><td>全部驗收</td><td>全部收完</td><td>系統</td></tr><tr><td>已結案／作廢</td><td>單據終結</td><td>採購員</td></tr></table>
-<div class="cal warn">【注意】 「廠商確認」這一步會自動產生應付帳款（先款後貨的語意）；確認前請先比對好金額與條件。</div>
-<h3 class="sub">欄位徽章說明</h3>
-<p>每個欄位旁可能有小徽章，意思固定如下：</p>
-<div class="ep"><div class="ep-h">徽章意思</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">必填</td><td class="prop">選填</td><td>不填不能存檔。</td></tr><tr><td class="fnm">建立後不可改</td><td class="prop">選填</td><td>存檔後就鎖住（多半是當索引、或牽動下游單據）。</td></tr><tr><td class="fnm">系統自動</td><td class="prop">選填</td><td>系統自動帶或自動算，通常不用手動填（例如批號、保固到期）。</td></tr><tr><td class="fnm">進階</td><td class="prop">選填</td><td>進階／少用欄位，平常可不理。</td></tr></table></div>
+<div class="lead"><b>本文件結構：</b><br>
+壹、模組概述（通用需求／價格鏈）<br>
+貳、單據頁面型態（單據模板／清單模板／主檔模板）<br>
+參、作業入口（1缺貨簿 2詢價作業 3採購作業 4國內進貨 5國外進貨 6進貨退回 7保固申請 8產品管理 9供應商管理）<br>
+肆、補做與連帶事項　·　伍、未來增強（暫不做）</div>
 
-<h2>主檔管理（採購視角）</h2>
-<p>採購作業會用到三張主檔：產品、供應商、供應商供貨對應。它們和主檔中心是同一筆資料（同一張表），這裡只列「採購人員會用到、看得到」的欄位，方便不必跑去主檔中心就能維護進貨相關資料。完整欄位請見《核心主檔》操作手冊。</p>
-<div class="cal note">【說明】 採購視角只露採購相關欄位（進貨成本、付款條件、廠牌料號等），不會顯示售價、客戶分級加成率這類銷售敏感資料。要不要讓某職務看得到，由「職務權限設定」控制。</div>
+<h2 id="s1">壹、模組概述</h2>
+<p>進貨模組以<b>九項作業</b>呈現：缺貨簿、詢價作業、採購作業、國內進貨作業、國外進貨作業、進貨退回作業、保固申請作業，外加兩個採購的模組管理頁（產品管理、供應商管理）。DOCK 點「進貨」展開九項作業入口；DOCK 三層導覽的圖示與全域排序見 NX00。標記：<span class="tag t-now">本次</span> 此版實作；<span class="tag t-later">伏筆</span> 預留；<span class="tag t-ro">唯讀</span> 僅瀏覽。</p>
+<div class="cal note"><b>主檔依賴：</b>零件、供應商、供應商供貨對應皆為《核心主檔 NX01》既有主檔，<b>資料只有一份、歸核心主檔</b>。進貨的「產品管理／供應商管理」是同一張主檔的<b>採購視角</b>——只露採購可編欄位，不另存一份資料。各單據欄位「來源」欄註明引用自哪張主檔哪個分頁。</p></div>
 
-<h3 class="ent">產品（採購視角） <span class="mt">一般表格</span> <span class="mt">LITE</span></h3>
-<div class="ent-menu">選單位置 主檔 → 進貨相關 → 產品</div>
-<div class="ep"><div class="ep-h">採購視角看得到的產品欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">我方料號</td><td class="prop">選填</td><td>我們自己的料號（主碼）。</td></tr><tr><td class="fnm">廠牌料號</td><td class="prop">選填</td><td>該廠牌對這顆料件使用的料號（可能原廠或副廠），詢價、比對用。</td></tr><tr><td class="fnm">品名</td><td class="prop">選填</td><td>料件名稱。</td></tr><tr><td class="fnm">廠牌</td><td class="prop">選填</td><td>品牌（如 VW、BOSCH）。</td></tr><tr><td class="fnm">車型 / 年份</td><td class="prop">選填</td><td>適用車型與年份。</td></tr><tr><td class="fnm">最近進價 / 平均進價</td><td class="prop">系統自動</td><td>系統依進貨紀錄維護，採購比價時參考。</td></tr><tr><td class="fnm">安全量 / 最高量</td><td class="prop">選填</td><td>每個倉的安全存量與上限，補貨判斷用。</td></tr><tr><td class="fnm">建議保存期限</td><td class="prop">選填</td><td>新增時自動繼承所屬族群的預設值、可覆寫。</td></tr></table></div>
-
-<h3 class="ent">供應商（採購視角） <span class="mt">一般表格</span> <span class="mt">LITE</span></h3>
-<div class="ent-menu">選單位置 主檔 → 進貨相關 → 供應商</div>
-<div class="ep"><div class="ep-h">採購視角看得到的供應商欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">供應商編號 / 名稱</td><td class="prop">選填</td><td>往來對象中類型為「供應商」的廠商。</td></tr><tr><td class="fnm">付款條件</td><td class="prop">選填</td><td>如 NET30 / NET60 / NET90 / 預付。</td></tr><tr><td class="fnm">供應商分級</td><td class="prop">選填</td><td>可在供應商頁一鍵依付款條件重算分級（A／B／C／D）。</td></tr><tr><td class="fnm">聯絡窗口</td><td class="prop">選填</td><td>對接的窗口與電話。</td></tr></table></div>
-
-<h3 class="ent">供應商供貨對應 <span class="mt">一般表格</span> <span class="mt">LITE</span></h3>
-<div class="ent-menu">選單位置 主檔 → 交易對象 → 供應商供貨對應基本資料</div>
-<p>記錄「哪家供應商賣哪些料件」，是詢價的基礎——詢價時系統依此帶出「這料件可以跟哪些供應商詢價」。</p>
-<div class="ep"><div class="ep-h">供應商供貨對應欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">供應商</td><td class="prop">必填 / 建立後不可改</td><td>這筆對應是哪家供應商。</td></tr><tr><td class="fnm">料件</td><td class="prop">必填 / 建立後不可改</td><td>這家供應商賣的料件。</td></tr><tr><td class="fnm">主要供應商</td><td class="prop">選填</td><td>標記這家是不是這料件的主要（首選）供應商。</td></tr><tr><td class="fnm">廠商料號</td><td class="prop">選填</td><td>這家供應商對這料件的料號。</td></tr><tr><td class="fnm">預設單價 / 預設交期 / 最低訂購量</td><td class="prop">選填</td><td>詢價、開採購單時帶入參考。</td></tr><tr><td class="fnm">生效起期 / 迄期</td><td class="prop">選填</td><td>這筆對應的有效期間；迄期留空表示持續有效。</td></tr></table></div>
-<div class="cal star">【重點】 完整內容見《核心主檔》操作手冊的「供應商供貨對應基本資料」。</div>
-
-<h2>國內採購</h2>
-<p>國內採購是一條從「需求」到「驗收入庫」的流程。先看全貌：</p>
-
-<h3 class="ent">第 1 步：採購需求單 <span class="mt">清單頁＋詳細頁</span> <span class="mt">LITE</span></h3>
-<div class="ent-menu">選單位置 進貨 → 採購需求</div>
-<p>先看哪些料件需要進貨。系統會依各料件的安全量，自動把低於安全量的缺料列進缺貨簿；也可能是客戶要的、或臨時手動要進的。</p>
-<div class="ep"><div class="ep-h">採購需求欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">來源</td><td class="prop">選填</td><td>缺貨補貨（系統依安全量）／客戶要的（從銷貨來）／手動新增，三種來源用顏色區分。</td></tr><tr><td class="fnm">料件</td><td class="prop">必填</td><td>要詢價進貨的料件。</td></tr><tr><td class="fnm">需求數量</td><td class="prop">必填</td><td>要進多少。</td></tr><tr><td class="fnm">備註</td><td class="prop">選填</td><td>說明用途、急不急。</td></tr></table></div>
-
-<h3 class="ent">第 2 步：詢價單・比價 <span class="mt">詳細頁（並排比價）</span> <span class="mt">LITE</span></h3>
-<div class="ent-menu">選單位置 進貨 → 詢價單</div>
-<p>針對要進的料件，跟「可供貨的廠商」詢價，多家報價並排比較，選最好的一家直接帶出採購單。</p>
-<div class="ep"><div class="ep-h">詢價單表頭欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">單號</td><td class="prop">系統自動</td><td>詢價單號。</td></tr><tr><td class="fnm">開單日期 / 開單人員</td><td class="prop">系統自動</td><td>建立的日期與人。</td></tr><tr><td class="fnm">狀態</td><td class="prop">系統自動</td><td>草稿 → 已發出 → 已回覆 → 已關閉。</td></tr></table></div>
-<div class="ep"><div class="ep-h">詢價明細與比價欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">料件</td><td class="prop">必填</td><td>要詢價的料件；系統依「供應商供貨對應」帶出可詢價的廠商。</td></tr><tr><td class="fnm">數量</td><td class="prop">必填</td><td>詢價數量。</td></tr><tr><td class="fnm">各家報價</td><td class="prop">選填</td><td>每家供應商一欄，填單價、交期，並排比較。</td></tr></table></div>
-<div class="cal star">【重點】 「採用」一鍵就把比價結果變成採購單草稿，料件、數量、單價自動帶過去，不用重打。</div>
-
-<h3 class="ent">第 3 步：採購單 <span class="mt">詳細頁（表頭＋明細）</span> <span class="mt">LITE</span></h3>
-<div class="ent-menu">選單位置 進貨 → 採購單</div>
-<p>採購單是向廠商正式下單的單據。表頭記下單對象、付款與交貨安排，明細記要買的料件。建立後走「送審 → 核准 → 寄廠商 → 廠商確認」流程。</p>
-<div class="ep"><div class="ep-h">採購單表頭欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">單號</td><td class="prop">系統自動</td><td>採購單號。</td></tr><tr><td class="fnm">開單日期 / 開單人員</td><td class="prop">系統自動</td><td>建立的日期與人。</td></tr><tr><td class="fnm">供應商</td><td class="prop">必填</td><td>向哪家廠商採購。</td></tr><tr><td class="fnm">付款對象</td><td class="prop">選填</td><td>錢付給誰；留空＝跟供應商同（例如集團採購：母公司付款）。</td></tr><tr><td class="fnm">指送對象</td><td class="prop">選填</td><td>貨送給誰；留空＝跟供應商同（例如分店收貨）。</td></tr><tr><td class="fnm">收貨地址</td><td class="prop">選填</td><td>送到哪個地址（依指送對象或供應商的地址挑選）。</td></tr><tr><td class="fnm">交貨地點</td><td class="prop">選填</td><td>自由填的地址，直送客戶現場、不進倉時用。</td></tr><tr><td class="fnm">預計到貨日</td><td class="prop">選填</td><td>預估到貨日（草稿階段可改）。</td></tr><tr><td class="fnm">帳款年月</td><td class="prop">選填</td><td>這筆算哪個月的帳（月結用，例如 5 月帳 vs 6 月帳）。</td></tr><tr><td class="fnm">付款條件</td><td class="prop">選填</td><td>可逐單覆寫供應商的預設付款條件。</td></tr><tr><td class="fnm">國內物流追蹤編號</td><td class="prop">選填</td><td>出貨後填物流單號（黑貓／嘉里／大榮），用來估到貨。</td></tr><tr><td class="fnm">國內付款里程碑</td><td class="prop">選填</td><td>記「廠商通知付款 / 已付」的狀態。</td></tr><tr><td class="fnm">總金額</td><td class="prop">系統自動</td><td>明細加總（含稅）。</td></tr><tr><td class="fnm">備註</td><td class="prop">選填</td><td>備註。</td></tr></table></div>
-<div class="ep"><div class="ep-h">採購單明細欄位（逐筆料件）</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">項次</td><td class="prop">系統自動</td><td>明細順序。</td></tr><tr><td class="fnm">我方料號 / 廠牌料號</td><td class="prop">選填</td><td>料件的我方料號（主碼）與廠牌料號並列顯示。</td></tr><tr><td class="fnm">品名</td><td class="prop">系統自動</td><td>料件名稱（帶自主檔）。</td></tr><tr><td class="fnm">數量</td><td class="prop">必填</td><td>採購數量。</td></tr><tr><td class="fnm">已進量 / 取消量</td><td class="prop">系統自動</td><td>已收多少、取消多少（分批進貨時追蹤；缺貨剩餘可取消）。</td></tr><tr><td class="fnm">單價 / 金額</td><td class="prop">選填</td><td>單價與小計。</td></tr><tr><td class="fnm">預交貨日</td><td class="prop">選填</td><td>這一筆料件的預計到貨日（可逐筆設）。</td></tr></table></div>
-<div class="cal warn">【注意】 「核准／退件」要有「核准」權限的職務才能按（在職務權限設定的「核准」欄開放）。這樣就能做到「採購員送審、主管才能核准」。</div>
-
-<h3 class="ent">第 4 步：進貨單・驗收入庫 <span class="mt">詳細頁（表頭＋明細）</span> <span class="mt">LITE</span></h3>
-<div class="ent-menu">選單位置 進貨 → 進貨單</div>
-<p>貨到後開進貨單驗收，狀態經過「草稿 → 驗收中 → 過帳完成」。系統從採購單帶出料件與數量，驗收人填實收、瑕疵等，過帳後庫存就增加。</p>
-<div class="ep"><div class="ep-h">進貨單表頭欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">單號</td><td class="prop">系統自動</td><td>進貨單號。</td></tr><tr><td class="fnm">供應商 / 對應採購單</td><td class="prop">系統自動</td><td>從採購單帶來。</td></tr><tr><td class="fnm">提貨單號</td><td class="prop">選填</td><td>進口時填報關行給的提貨單號（D/O No）。</td></tr><tr><td class="fnm">總金額</td><td class="prop">系統自動</td><td>明細加總。</td></tr></table></div>
-<div class="ep"><div class="ep-h">進貨單明細欄位（逐筆驗收）</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">我方料號 / 廠牌料號</td><td class="prop">選填</td><td>料件的我方料號與廠牌料號並列。</td></tr><tr><td class="fnm">目前庫存</td><td class="prop">系統自動</td><td>旁邊用燈號顯示此料目前庫存量：赤字紅／0 黃／少量淡黃／充足綠，一眼判斷要不要收。</td></tr><tr><td class="fnm">預期量</td><td class="prop">系統自動</td><td>採購單上應收的數量。</td></tr><tr><td class="fnm">實際量</td><td class="prop">必填</td><td>實際收到多少。</td></tr><tr><td class="fnm">瑕疵數量</td><td class="prop">選填</td><td>其中有幾顆是瑕疵。</td></tr><tr><td class="fnm">瑕疵類型</td><td class="prop">選填</td><td>瑕疵數量大於 0 時必填：外觀損壞／功能異常／規格不符／其他。</td></tr><tr><td class="fnm">瑕疵描述</td><td class="prop">選填</td><td>瑕疵數量大於 0 時必填，說明狀況。</td></tr><tr><td class="fnm">批號</td><td class="prop">系統自動</td><td>系統自動產（進貨年月＋流水），可留空。</td></tr><tr><td class="fnm">保固到期日</td><td class="prop">系統自動</td><td>依進貨日＋保固月數自動算，可留空。</td></tr><tr><td class="fnm">入庫成本</td><td class="prop">系統自動</td><td>實際入庫單位成本（國外含換匯與進口費攤分）。</td></tr></table></div>
-<div class="cal star">【重點】 過帳會一次做四件事：①庫存增加 ②更新移動平均成本 ③產生應付帳 ④更新該料件的「最後進貨時間」。</div>
-<div class="ep"><div class="ep-h">業務規則（系統會擋）</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">瑕疵必填</td><td class="prop">選填</td><td>瑕疵數量大於 0，就一定要填瑕疵類型與描述。</td></tr><tr><td class="fnm">不可超收</td><td class="prop">選填</td><td>瑕疵數量不可超過實際量；實際量不可為負。</td></tr></table></div>
-
-<h3 class="ent">退貨單 <span class="mt">詳細頁</span> <span class="mt">LITE</span></h3>
-<div class="ent-menu">選單位置 進貨 → 退貨單</div>
-<p>進貨後發現問題要退回供應商時開退貨單，對應到原進貨單。</p>
-<div class="ep"><div class="ep-h">退貨單欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">對應進貨單</td><td class="prop">必填</td><td>退的是哪張進貨單的貨。</td></tr><tr><td class="fnm">退貨料件 / 數量</td><td class="prop">必填</td><td>退哪些、退多少。</td></tr><tr><td class="fnm">處置方式</td><td class="prop">選填</td><td>走保固／壞品／一般退貨三種處置。</td></tr><tr><td class="fnm">原因</td><td class="prop">選填</td><td>退貨原因。</td></tr></table></div>
-
-<h2>國外採購</h2>
-<p>國外採購大致和國內相同（需求 → 詢價 → 採購單 → 進貨驗收），差別在「物流與到貨」這段：要追船期、聯繫報關行、拿提貨單，而且進貨成本要把運費、關稅等進口費用攤分進去。國外進貨用「流程追蹤頁」以六個階段推進。</p>
-
-<h3 class="ent">國外進貨追蹤（六階段） <span class="mt">流程追蹤頁</span> <span class="mt">LITE</span></h3>
-<div class="ent-menu">選單位置 進貨 → 國外進貨追蹤</div>
-<table class="fields stt"><tr><th>階段</th><th>意思</th><th>這階段要填／做的</th></tr><tr><td>1 備貨中</td><td>剛下單、供應商備貨</td><td>—</td></tr><tr><td>2 要求付款</td><td>廠商通知可付款</td><td>依貿易條件付款</td></tr><tr><td>3 待出貨</td><td>付款完成、等排船</td><td>—</td></tr><tr><td>4 出貨上船</td><td>貨櫃已上船</td><td>填船號、貨櫃號</td></tr><tr><td>5 已到港</td><td>報關行通知到港</td><td>填實際到港日、提貨單號</td></tr><tr><td>6 驗收完成</td><td>海關放行、到倉驗收</td><td>建進口進貨單、驗收入庫</td></tr></table>
-<div class="ep"><div class="ep-h">國外採購／進口進貨額外欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">幣別</td><td class="prop">選填</td><td>外幣採購時可切換幣別。</td></tr><tr><td class="fnm">報關行</td><td class="prop">選填</td><td>哪家報關行（往來對象中的外包物流）。</td></tr><tr><td class="fnm">船號 / 貨櫃號</td><td class="prop">選填</td><td>追蹤船期用。</td></tr><tr><td class="fnm">實際到港日</td><td class="prop">選填</td><td>報關行通知到港時填。</td></tr><tr><td class="fnm">提貨單號（D/O No）</td><td class="prop">選填</td><td>報關行給的提貨單據。</td></tr><tr><td class="fnm">包裹規格</td><td class="prop">進階</td><td>長寬高重，進口計費／報關用。</td></tr></table></div>
-<div class="ep"><div class="ep-h">進口費用攤分（影響入庫成本）</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">運費 / 關稅 / 報關費 / 倉儲費 / 其他費用</td><td class="prop">選填</td><td>五項進口費用。</td></tr><tr><td class="fnm">匯率</td><td class="prop">選填</td><td>外幣換台幣的匯率。</td></tr><tr><td class="fnm">攤分後入庫成本</td><td class="prop">系統自動</td><td>系統把進口費用依各料件金額比例攤分、加上換匯，算出每顆的實際入庫成本。</td></tr></table></div>
-<div class="cal note">【說明】 國外採購的下單、核准、廠商確認流程和國內採購相同（見上一章），這裡只列國外多出來的物流與費用部分。</div>
-
-<h2>特殊採購</h2>
-
-<h3 class="ent">特殊採購（跳過詢價） <span class="mt">詳細頁</span> <span class="mt">LITE</span></h3>
-<div class="ent-menu">選單位置 進貨 → 採購單（特殊）</div>
-<p>已經知道要跟誰買、不需要比價時，可以跳過詢價、直接開採購單。流程與一般採購單相同（送審 → 核准 → 寄廠商 → 廠商確認 → 進貨驗收），只是少了前面的詢價比價。</p>
-
-<h2>進貨延伸功能</h2>
-
-<h3 class="ent">保固申請單 <span class="mt">詳細頁</span> <span class="mt">LITE</span></h3>
-<div class="ent-menu">選單位置 進貨 → 保固申請</div>
-<p>料件壞掉要跟供應商主張保固時開保固申請單。分兩種來源：客戶反映的、或自己庫存發現的。</p>
-<div class="ep"><div class="ep-h">保固申請單欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">單號</td><td class="prop">系統自動</td><td>保固單號。</td></tr><tr><td class="fnm">類型</td><td class="prop">必填</td><td>客訴型（客戶反映壞掉、要連到銷貨單）／自用型（庫存自己發現、無客戶）。</td></tr><tr><td class="fnm">來源銷貨單</td><td class="prop">選填</td><td>客訴型必填：是哪張銷貨的客戶反映的；自用型不顯示。</td></tr><tr><td class="fnm">供應商</td><td class="prop">必填</td><td>這料件當初向哪家買的、要向誰主張保固。</td></tr><tr><td class="fnm">零件</td><td class="prop">必填</td><td>壞掉的料件（料號＋品名）。</td></tr><tr><td class="fnm">狀態</td><td class="prop">系統自動</td><td>申請的處理進度。</td></tr><tr><td class="fnm">處理結果</td><td class="prop">選填</td><td>保固的判定結果。</td></tr><tr><td class="fnm">退款方式</td><td class="prop">選填</td><td>退錢／換貨等處理方式。</td></tr><tr><td class="fnm">附件</td><td class="prop">選填</td><td>佐證照片或文件。</td></tr></table></div>
-
-<h2>業績指標</h2>
-
-<h3 class="ent">最後進貨時間 / 最後銷售時間 <span class="mt">唯讀顯示</span> <span class="mt">LITE</span></h3>
-<div class="ent-menu">選單位置 主檔 → 產品</div>
-<p>每顆料件會記錄「最後進貨時間」（驗收入庫時更新）與「最後銷售時間」（出貨過帳時更新），在產品主檔的採購分頁與銷貨分頁分別顯示，用來判斷哪些料件呆滯。完整說明見《核心主檔》操作手冊。</p>
-<h2>待釐清 / 待驗證</h2>
+<h3 class="sub">一、通用需求（所有進貨作業共通）</h3>
+<div class="cal star"><b>欄位性質定義（與核心主檔一致）：</b><br>· <b>必填</b>＝不填不能存　· <b>建立後不可改</b>＝存檔後鎖定　· <b>純顯示</b>＝系統自動帶或算、唯讀　· <b>進階</b>＝列表預設隱藏、需要才展開　· 未標示＝選填。</div>
 <ul>
-<li>① <b>在途量／預進量：</b>採購單「已核准未入庫」的在途數量，系統是否記錄、是否計入「可用庫存」供下單參考。待 Hank 查現況（系統有沒有＋該不該有）。</li>
-<li>② <b>廠商確認自動產生應付：</b>「廠商確認」即產生應付帳（先款後貨語意）——此過帳時點、科目、與驗收/發票的勾稽，連動財務 NX05，須與財務需求規格對齊。</li>
-<li>③ <b>採購核准流程：</b>送審→核准依核心主檔「職務權限·核准」控制；哪些單據強制走核准（採購單、保固、盤點）需明列。</li>
-<li>④ <b>國外進貨追蹤六階段：</b>各階段的觸發、應記欄位（船期、報關、稅費）與成本歸集規則待細列。</li>
+<li>進貨單據一律<b>底層綁零件內碼（A）</b>、不綁對外料號（B），料號改號時歷史單據不斷（見核心主檔零件編碼設計）。</li>
+<li>單號類欄位皆<b>系統自動給號、建立後鎖定</b>；客戶端介面/URL 只用業務中文名與單號，不外露內部代碼或表名。</li>
+<li>單據明細的料號/品名一律<b>引用零件主檔</b>，不手打品名；查詢沿用核心主檔「注音快搜、忽略空格星號點大小寫」規則。</li>
+<li>軟刪除原則沿用核心主檔：單據作廢＝狀態終結，非實體刪除。</li>
+<li><b>供應商驅動分流：</b>國內/國外不設手選開關，由供應商國別自動判定；下單前段（詢價/採購作業）國內外共用，分流只在進貨/退回作業。</li>
 </ul>
-<footer>需求規格 02 進貨 v1.0　·　來源：操作手冊-03（as-built，逐欄抽取）　·　待 Hank 對 schema 驗證落差項後升版。</footer>
+
+<h3 class="sub">二、價格鏈（成本 → 公司定價 → ABCD 價）</h3>
+<p>進貨負責價格鏈<b>上半段</b>：把採購成本，經利潤率，算出「公司定價（公司底價）」。下半段「公司定價→ABCD 價」屬銷貨 NX04，本章只定到接口。</p>
+<div class="cal star"><b>價格鏈一條龍：</b>採購成本（僅採購可見，其他模組看不到）→ ×(1＋利潤率) → 公司定價（公司底價，下游唯讀可見）→ 銷貨依公司定價為地板加成 → ABCD 價（銷貨模組設定）。</div>
+<div class="ep"><div class="ep-h">公司定價 / 利潤率（雙向換算）</div><table class="fields"><tr><th>項目</th><th>規則</th></tr>
+<tr><td class="fnm">雙向換算</td><td>填利潤率→系統算公司定價給採購確認；填公司定價→系統反算利潤率。存檔時兩欄一起有值。</td></tr>
+<tr><td class="fnm">兩欄皆空</td><td>吃系統：用全公司預設利潤率算，顯示自動值（區別樣式）；成本變動自動跟。</td></tr>
+<tr><td class="fnm">兩欄皆有值</td><td>吃值、整組凍結：系統不覆蓋；成本變動不動值，但跳提醒。</td></tr>
+<tr><td class="fnm">想回自動</td><td>清空兩欄。沿用本系統「特價商品」空值吃系統的同款邏輯。</td></tr></table></div>
+<div class="ep"><div class="ep-h">凍結品成本變動提醒</div><table class="fields"><tr><th>項目</th><th>定義</th></tr>
+<tr><td class="fnm">觸發</td><td>凍結品成本因新進貨過帳更新後，較「當初設定價時的成本」變動超門檻。</td></tr>
+<tr><td class="fnm">門檻</td><td>系統參數、可設、預設 10%。</td></tr>
+<tr><td class="fnm">提醒點</td><td>①過帳時後台貼標 ②產品管理/缺貨簿清單列掛 ⚠️徽章 ③開採購單選到該零件時即時提示。</td></tr>
+<tr><td class="fnm">處理</td><td>採購點開比對當初vs現在成本/利潤率，重設或清空回自動，標記消失。</td></tr></table></div>
+<div class="cal warn">【注意】 凍結品的值永遠<b>不被系統默默覆蓋</b>，只用提醒讓採購自行決定。</div>
+
+<h2 id="s2">貳、單據頁面型態</h2>
+<p>進貨各作業套用三種<b>模板</b>之一。模板定義版面結構與通用互動，<b>可被後續模組複用</b>（故稱「模板」，非僅本模組「統一」）。各作業只描述自己的欄位與差異，框架引用本章。沿用《核心主檔》列表/明細版型，全系統一致。</p>
+
+<h3 class="sub">模板一：單據模板（列表＋明細＋四型態工作列）</h3>
+<p>有「表頭＋明細」單據的作業共用（詢價、採購、國內外進貨、進貨退回、保固）。分<b>單據列表頁（Alt+1）</b>與<b>單據明細頁（Alt+2）</b>。</p>
+<div class="ep"><div class="ep-h">單據列表頁（Alt+1）— 由上而下版面</div><table class="fields"><tr><th>區塊</th><th>內容與行為</th></tr>
+<tr><td class="fnm">全域頂欄</td><td>引用全域框架（Logo｜租戶名｜日期時間｜通知鈴鐺｜設定｜使用者），非本頁專屬、不重述。定義見 NX00。</td></tr>
+<tr><td class="fnm">麵包屑</td><td>進貨 ＞ [作業名] ●。</td></tr>
+<tr><td class="fnm">頁籤＋狀態流程列（同一排）</td><td>左：頁籤 <b>Alt+1 資料瀏覽｜Alt+2 明細資料</b>（切換列表/明細頁）。右：<b>狀態流程列</b>（見下方獨立定義）。</td></tr>
+<tr><td class="fnm">工作列</td><td>分頁器 ◀ 頁次 ▶ ＋ 單據動作按鈕（見下方「工作列按鈕行為」）。每個按鈕＝<b>快速鍵字母＋圖示＋中文名</b>三件套（如 A 新增、F 查詢）。</td></tr>
+<tr><td class="fnm">資料表格</td><td>表頭固定欄名；資料逐筆列出。<b>選中列左側金色高亮條</b>。<b>預設停第一筆單據</b>，可上下鍵切換或點列；點列或 Alt+2 進該筆明細頁。各作業的列表欄位另定。</td></tr>
+<tr><td class="fnm">頁尾</td><td>共 X 張。</td></tr>
+</table></div>
+<div class="ep"><div class="ep-h">狀態流程列（列表頁頂部・取代舊「流程圖功能鍵」說法）</div><table class="fields"><tr><th>元素</th><th>行為</th></tr>
+<tr><td class="fnm">全部(n)</td><td>顯示全部單據筆數；點擊＝不篩選、顯示全部。預設選中。</td></tr>
+<tr><td class="fnm">各狀態階段</td><td>依該作業狀態流轉，橫排呈現 ①狀態A(n) → ②狀態B(n) → …，每個帶<b>即時筆數徽章</b>、以<b>箭頭</b>連接成流程。點某狀態＝列表只顯示該狀態的單；當前選中高亮。</td></tr>
+<tr><td class="fnm">狀態徽章樣式</td><td>資料列的「狀態」欄以<b>彩色圓點徽章</b>顯示（每狀態一色，與狀態流程列一致）。</td></tr>
+</table>
+<div class="cal note">此狀態流程列即各作業「狀態流轉」的視覺化＋篩選器，常駐於列表頁頂部（非彈出）。各作業只需提供自己的狀態階段清單，框架引用本定義。</div></div>
+<div class="ep"><div class="ep-h">工作列按鈕行為（所有單據作業列表頁通用）</div><table class="fields"><tr><th>按鈕</th><th>按下去的行為</th></tr>
+<tr><td class="fnm">A 新增</td><td>切到明細頁(Alt+2)、進「新增模式」：表頭空白可填、游標停第一個必填欄（如對象）。填表頭→存檔→自動跳明細層。</td></tr>
+<tr><td class="fnm">E 更正</td><td>對選中單據進「表頭編輯態」：表頭解鎖可改、出現「編輯明細」鈕（編輯三態）。</td></tr>
+<tr><td class="fnm">F 查詢</td><td>彈出<b>查詢 modal</b>（通用框架見下）：填條件→「查詢」→列表只顯示符合者；「清除條件」→清空欄位。</td></tr>
+<tr><td class="fnm">D 刪除</td><td>對選中單據彈<b>確認刪除對話框</b>（顯示單號、警示文字、取消/確認）→ 確認後軟刪除（狀態終結、非實體刪）。</td></tr>
+<tr><td class="fnm">P 印表</td><td>彈<b>列印 modal</b>：選格式（PDF／直接列印）→ 輸出選中單據/當前列表。</td></tr>
+<tr><td class="fnm">L 欄位</td><td>彈<b>欄位顯示設定 modal</b>：勾選列表要顯示/隱藏哪些欄、可拖曳排序 → 套用。</td></tr>
+<tr><td class="fnm">O 匯出</td><td>彈<b>匯出 modal</b>：選格式（CSV／Excel）、範圍（當前頁/全部符合）→ 匯出。</td></tr>
+<tr><td class="fnm">R 重新整理</td><td>重載列表資料（不彈窗）。</td></tr>
+</table></div>
+<div class="ep"><div class="ep-h">查詢 modal 通用框架（各作業只換查詢欄位）</div><table class="fields"><tr><th>區塊</th><th>內容</th></tr>
+<tr><td class="fnm">標題列</td><td>[查詢徽章] [單據名] 查詢　…　[✕ 關閉]。</td></tr>
+<tr><td class="fnm">說明列</td><td>一句說明可依哪些條件查、哪些支援區間（起~迄，留白不限）。</td></tr>
+<tr><td class="fnm">查詢欄位區</td><td>網格排列的查詢欄位（各作業自定，見各作業）。區間型欄位（單號、日期）以「起 ~ 迄」兩框呈現。</td></tr>
+<tr><td class="fnm">底部動作</td><td>[清除條件]（次按鈕）　[🔍 查詢]（主按鈕、金色）。</td></tr>
+</table>
+<div class="cal note">刪除確認、列印、欄位設定、匯出 modal 的版型亦為通用；各作業除查詢欄位外，通常不需重新定義 modal 內容。</div></div>
+<div class="ep"><div class="ep-h">單據明細頁（Alt+2）</div><table class="fields"><tr><th>區塊</th><th>內容與行為</th></tr>
+<tr><td class="fnm">上方工作列</td><td>同列表頁的單據動作（新增/更正/存檔/取消/刪除/印表/結束）＋明細動作（項次重排/明細複製/<b>編輯明細</b>/異動）。分頁籤：Alt+1 資料瀏覽｜Alt+2 詳細資料。</td></tr>
+<tr><td class="fnm">表頭欄位區</td><td>單據表頭欄位（雙欄網格，手機單欄）。必填欄 label 加「*」。</td></tr>
+<tr><td class="fnm">明細子表</td><td>逐筆料件。<b>預設停第一個品項</b>。明細欄位依各作業定義。</td></tr>
+<tr><td class="fnm">異動紀錄</td><td>底部顯示建立/最後修改時間人員、狀態流轉歷程（唯讀）。</td></tr>
+</table></div>
+<div class="ep"><div class="ep-h">四種版面型態（工作列隨型態而變）</div><table class="fields"><tr><th>型態</th><th>面板</th><th>可做什麼</th></tr>
+<tr><td class="fnm">①單據瀏覽</td><td>列表（Alt+1）</td><td>瀏覽單據列表、唯讀</td></tr>
+<tr><td class="fnm">②明細瀏覽</td><td>明細（Alt+2）</td><td>看單張單據的表頭＋明細、唯讀</td></tr>
+<tr><td class="fnm">③表頭編輯</td><td>明細（Alt+2）</td><td>只能編輯表頭</td></tr>
+<tr><td class="fnm">④明細編輯</td><td>明細（Alt+2）</td><td>只能編輯明細（透過彈窗逐筆）</td></tr>
+</table>
+<div class="cal note">①在列表面板；②③④同在明細面板切換。<b>四種型態各有不同工作列</b>（下表），且<b>同一快速鍵在不同型態代表不同功能</b>（同鍵不同義）。</div></div>
+<div class="ep"><div class="ep-h">①單據瀏覽 工作列</div><table class="fields"><tr><th>鍵</th><th>動作 → 結果</th></tr>
+<tr><td class="fnm">A 新增</td><td>新增單據 → 進明細面板、切③表頭編輯態。</td></tr>
+<tr><td class="fnm">E 更正</td><td>對選中單據編輯 → 進明細面板、切③表頭編輯態。</td></tr>
+<tr><td class="fnm">F 查詢</td><td>彈查詢 modal，依欄位篩選找單據。</td></tr>
+<tr><td class="fnm">D 刪除</td><td>軟刪除該單據，彈確認訊息。</td></tr>
+<tr><td class="fnm">P 印表</td><td>彈列印 modal、顯示列印預覽。</td></tr>
+<tr><td class="fnm">L 欄位</td><td>彈欄位顯示設定 modal（顯示/隱藏＋排序，<b>列表欄位</b>）。</td></tr>
+<tr><td class="fnm">O 匯出</td><td>彈匯出 modal（選格式，匯出<b>單據列表</b>）。</td></tr>
+<tr><td class="fnm">R 重新整理</td><td>重載列表資料。</td></tr>
+</table></div>
+<div class="ep"><div class="ep-h">②明細瀏覽 工作列</div><table class="fields"><tr><th>鍵</th><th>動作 → 結果</th></tr>
+<tr><td class="fnm">A 新增</td><td>新增單據 → 切③表頭編輯態。</td></tr>
+<tr><td class="fnm">E 更正</td><td>對此單據編輯 → 切③表頭編輯態。</td></tr>
+<tr><td class="fnm">D 刪除</td><td>軟刪除此單據，彈確認訊息。</td></tr>
+<tr><td class="fnm">P 印表</td><td>彈列印 modal、顯示列印預覽。</td></tr>
+<tr><td class="fnm">L 欄位</td><td>彈欄位顯示設定 modal（<b>明細欄位</b>）。</td></tr>
+<tr><td class="fnm">O 匯出</td><td>彈匯出 modal（匯出<b>單據明細</b>）。</td></tr>
+<tr><td class="fnm">R 重新整理</td><td>重載資料。</td></tr>
+</table></div>
+<div class="ep"><div class="ep-h">③表頭編輯 工作列</div><table class="fields"><tr><th>鍵</th><th>動作 → 結果</th></tr>
+<tr><td class="fnm">S 存檔</td><td>儲存表頭。<b>新增單→切④明細編輯態</b>；<b>編輯單→回②明細瀏覽態</b>。</td></tr>
+<tr><td class="fnm">C 取消</td><td>取消編輯 → 回②明細瀏覽態。</td></tr>
+<tr><td class="fnm">E 編輯明細</td><td><b>僅編輯單有此鈕</b>（新增單無）→ 切④明細編輯態。</td></tr>
+<tr><td class="fnm">R 重新排序</td><td><b>僅編輯單有此鈕</b> → 明細項目依料號 A-Z 重新排序。</td></tr>
+</table></div>
+<div class="ep"><div class="ep-h">④明細編輯 工作列</div><table class="fields"><tr><th>鍵</th><th>動作 → 結果</th></tr>
+<tr><td class="fnm">A 新增</td><td><b>新增品項</b>（非新增單據！）→ 開<b>品項編輯彈窗</b>（內含料號即時查詢，可看庫存、比價等）。</td></tr>
+<tr><td class="fnm">T 批次匯入</td><td>開<b>批次匯入 modal</b> → 一次帶入多筆品項（詢價單從缺貨簿匯入、採購單從詢價單匯入；亦可整張匯入再編輯）。匯入後逐筆進下方明細清單。</td></tr>
+<tr><td class="fnm">S 存檔</td><td>儲存明細。<b>新增單：明細不能為空</b>——若為空＝放棄建檔、單據狀態變<b>失效</b>；不為空→回②明細瀏覽態。<b>編輯單→回②明細瀏覽態</b>。</td></tr>
+<tr><td class="fnm">E 更正</td><td>對選取品項編輯 → 開品項編輯彈窗、帶出該筆內容。</td></tr>
+<tr><td class="fnm">D 刪除</td><td>軟刪除此品項，彈確認訊息。</td></tr>
+<tr><td class="fnm">C 取消</td><td>取消編輯 → 回②明細瀏覽態。</td></tr>
+<tr><td class="fnm">R 重新排序</td><td>明細項目依料號 A-Z 重新排序。</td></tr>
+</table></div>
+<div class="cal star">【同鍵不同義】 同一快速鍵依型態綁不同動作，Hana/Hank 須依型態切換工作列：<br>· <b>A</b>：①②＝新增單據｜④＝新增品項　· <b>E</b>：①②＝更正單據(進表頭編輯)｜③＝編輯明細｜④＝更正品項　· <b>R</b>：①②＝重新整理｜③④＝重新排序(料號A-Z)　· <b>D</b>：①②＝刪單據｜④＝刪品項　· <b>S/C</b>：③④＝存檔/取消。</div>
+<div class="cal star">【明細用彈窗逐筆編輯，非表格直接改】 ④明細編輯態下，下方明細清單為<b>唯讀展示</b>；新增/編輯品項都在<b>品項編輯彈窗</b>裡做（沿用恆迎舊系統作業習慣）。彈窗內：品項欄位（使用料號/品名/廠牌/車型/年份/數量/庫位/備註…）＋料號即時查詢入口；填好存檔→該筆進下方清單→可續加下一筆。</div>
+<div class="ep"><div class="ep-h">料號即時查詢元件（全模組共用・明細選料號的入口）</div><table class="fields"><tr><th>項目</th><th>內容</th></tr>
+<tr><td class="fnm">觸發</td><td>品項編輯彈窗中，於「使用料號」欄按 <b>F2</b>（或查詢鈕）開啟。詢價/採購/進貨等明細選料號皆共用此元件。</td></tr>
+<tr><td class="fnm">查詢主鍵</td><td>多種查法：全部／使用料號（依基準料號排序）／使用料號（依使用料號排序）／中文品名+車型／車型+中文品名／族群+車型／廠牌；可勾「顯示停用料」。</td></tr>
+<tr><td class="fnm">顯示資訊</td><td>選定料號即顯示該料：庫存數量、本倉總量、可出貨量、不可出量、<b>預進量</b>、預設庫位、<b>最近進價</b>、<b>A/B/C 價</b>、單位、盤點日、進料日、參考資訊。<b>（即規格所稱「查零件可看庫存、比價等資訊」的實體）</b>。</td></tr>
+<tr><td class="fnm">選定</td><td>選料號→帶回品項彈窗（自動帶品名/廠牌/車型/年份/單位等），採購續填數量等。</td></tr>
+</table>
+<div class="cal note">⚠️ 料號即時查詢顯示「成本/進價/ABCD價」屬敏感欄，須依<b>使用者模組權限</b>控制可見性（採購見成本/進價、不見ABCD售價）。待對齊跨模組欄位歸屬表，見補做專區。</div></div>
+<div class="cal star">【關鍵互動總結】 ① 新增單：①A→③表頭編輯→S存檔→④明細編輯（明細空則放棄=失效）。② 編輯單：②E→③表頭編輯→E編輯明細→④明細編輯。③ 存檔/取消一律回②明細瀏覽。此四型態與工作列為所有單據作業<b>通用</b>，各作業不重述。</div>
+<div class="cal note">【建單順序】 先選對象（詢價/採購對象）＋入庫地完成表頭，再編明細；明細可逐筆手 Key 或導入（詢價單從缺貨簿、採購單從詢價單）。</div>
+<div class="cal note">【欄位藍本】 各單據欄位以<b>恆迎舊系統為藍本＋補新欄位</b>（30年實戰欄位）；車型/年份/英文品名等汽車欄位於<b>車輛套件啟用時才顯示</b>（汽車特化抽成加購、核心 ERP 不綁車型）。</div>
+
+<h3 class="sub">模板二：清單模板</h3>
+<p>不適用「表頭＋明細」的純清單作業（缺貨簿）。單層清單，可就地編輯特定欄、設定篩選，無明細頁。上方工作列：查詢/篩選/欄位/匯出/重整。</p>
+
+<h3 class="sub">模板三：主檔模板</h3>
+<p>產品管理、供應商管理用。引用主檔中心、只露本模組可編欄位、可新建、含待辦收件匣。分<b>列表頁</b>與<b>詳細資料頁</b>（多分頁主檔）。編輯互動同單據模板（瀏覽→更正→存檔）。</p>
+<div class="cal note">【跨模組狀態回寫】 部分狀態（進貨的待驗收/待處置、退回的待撿/待包/待取）實體動作在<b>庫存模組</b>做，完成後回寫進貨單狀態；進貨只讀自己單據狀態值供流程圖功能鍵篩選，不碰庫存單據。此接點由 NX03 驅動、見補做專區。</div>
+
+<h2 id="s3">參、作業入口</h2>
+
+<h3 id="a1" class="ent">作業 1：缺貨簿 <span class="mt">清單模板</span> <span class="mt">LITE</span></h3>
+<div class="ent-menu">選單位置 進貨 → 缺貨簿</div>
+<p>採購的即時戰情看板：低於安全量的零件自動列入、補足自動移除（靠庫存說話、無狀態欄）。純缺料監看＋就地改安全量、設忽略；缺貨簿為資料來源，由「詢價作業」建單時導入，本身不發起詢價。</p>
+<h4 style="color:#1F3A5F;font-size:13px;margin:10px 0 2px;">畫面欄位</h4>
+<div class="ep"><div class="ep-h">缺貨簿欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr>
+<tr><td class="fnm">料號</td><td class="prop">純顯示</td><td>我方料號＋廠牌料號＋品名（引用零件主檔）。</td></tr>
+<tr><td class="fnm">客訂註記</td><td class="prop">純顯示</td><td>是否有客戶指定。可點開→哪張客訂單/客戶/數量（跨讀 NX04 唯讀）。</td></tr>
+<tr><td class="fnm">目前庫存</td><td class="prop">純顯示</td><td>含燈號：赤字紅／0黃／少量淡黃／充足綠。</td></tr>
+<tr><td class="fnm">安全量</td><td class="prop">選填</td><td><b>就地可編、即時寫回零件主檔</b>（採購依銷售狀況定）。⚠️ 採購視角編輯權限待 Hank 確認。</td></tr>
+<tr><td class="fnm">最高量</td><td class="prop">純顯示</td><td><b>唯讀</b>（倉管依坪效定、歸庫存）。預設顯示全公司；按鈕展開各倉。來源：零件主檔庫存分頁。</td></tr>
+<tr><td class="fnm">是否忽略 / 忽略期間</td><td class="prop">選填</td><td>可設「忽略 N（期間）」暫時不顯示；到期自動重新出現。⚠️ 存放與到期重現待 Hank 確認。</td></tr>
+<tr><td class="fnm">需求數量</td><td class="prop">選填</td><td>旁顯示系統算的建議數量（依安全量/最高量）。</td></tr>
+<tr><td class="fnm">歷史數據</td><td class="prop">純顯示</td><td>按鈕→彈窗：近12月每月進/銷/月底庫存＋周轉率＋可撐多久（算法對齊 NX08）。詢價/報價不在此。</td></tr>
+<tr><td class="fnm">備註</td><td class="prop">選填</td><td>說明。</td></tr></table></div>
+<h4 style="color:#1F3A5F;font-size:13px;margin:10px 0 2px;">操作說明</h4>
+<table class="ops"><tr><th>動作</th><th>結果</th></tr>
+<tr><td class="act">系統自動列入/移除</td><td>掃庫存：低於安全量列入、補足移除；客訂帶註記。</td></tr>
+<tr><td class="act">改安全量</td><td>就地編輯→即時寫回零件主檔；達標自動移除。</td></tr>
+<tr><td class="act">設忽略</td><td>設忽略期間暫時隱藏；到期重現。</td></tr>
+<tr><td class="act">看最高量各倉 / 客訂 / 歷史數據</td><td>展開各倉最高量（唯讀）／客訂明細（跨讀NX04）／周轉率彈窗。</td></tr>
+<tr><td class="act">供詢價作業導入</td><td>缺貨料件於詢價作業建單時可導入。缺貨簿本身不發起詢價。</td></tr>
+</table>
+<div class="cal star">【新品/待建檔不在缺貨簿】 查無此料的客訂、產品資訊待修正等，歸<b>產品管理頁</b>待辦收件匣（見作業 8）。缺貨簿只管「有料號、低於安全量」的補貨。</div>
+
+<h3 id="a2" class="ent">作業 2：詢價作業 <span class="mt">單據模板</span> <span class="mt">LITE</span></h3>
+<div class="ent-menu">選單位置 進貨 → 詢價作業　|　Alt+1 列表、Alt+2 明細</div>
+<p>只管<b>詢價單</b>。<b>非必經</b>（要比價才詢、熟廠急單可跳過直接採購作業開單）、國內外共用。流程圖（待詢價→詢價中→已回覆）為列表頁功能鍵。</p>
+<h4 style="color:#1F3A5F;font-size:13px;margin:12px 0 2px;">▌單據列表</h4>
+<div class="ep"><div class="ep-h">列表畫面欄位（逐欄，對齊實際畫面）</div><table class="fields"><tr><th>欄位</th><th>內容／樣式</th></tr>
+<tr><td class="fnm">詢價單號</td><td>RFQ-yyyy-nnnn（金色文字、可點進明細）。</td></tr>
+<tr><td class="fnm">詢價對象</td><td>供應商名稱 ＋ 後綴<b>國內/進口徽章</b>（國內綠、進口藍）。</td></tr>
+<tr><td class="fnm">入庫地</td><td>表頭選的入庫倉名（如 台中良品倉）。</td></tr>
+<tr><td class="fnm">料件</td><td>明細料件數，顯示「N 項」。</td></tr>
+<tr><td class="fnm">日期</td><td>開單日期 yyyy-mm-dd。</td></tr>
+<tr><td class="fnm">狀態</td><td><b>彩色圓點徽章</b>：●待詢價(灰) / ●詢價中(藍) / ●已回覆(綠)。</td></tr></table></div>
+<div class="ep"><div class="ep-h">狀態流程列（本作業）</div><table class="fields"><tr><th>項</th><th>內容</th></tr>
+<tr><td class="fnm">階段</td><td>全部(n) ｜ ①待詢價(n) → ②詢價中(n) → ③已回覆(n)，各帶筆數徽章、點擊篩選。</td></tr></table></div>
+<div class="ep"><div class="ep-h">查詢 modal 的查詢欄位（本作業，框架引用單據模板）</div><table class="fields"><tr><th>欄位</th><th>說明</th></tr>
+<tr><td class="fnm">零件料號</td><td>單框，可輸我方料號/廠牌料號/品名。</td></tr>
+<tr><td class="fnm">供應商</td><td>下拉，預設「全部供應商」。</td></tr>
+<tr><td class="fnm">單號（起~迄）</td><td>起始單號 ~ 結束單號兩框，留白不限。</td></tr>
+<tr><td class="fnm">開單日期（起~迄）</td><td>兩日期框，留白不限。</td></tr></table>
+<div class="cal note">說明列文案：「可依零件料號、供應商、單號、開單日期查詢；單號與日期支援區間（起~迄，留白則不限）。」工作列按鈕（A新增/E更正/F查詢/D刪除/P印表/L欄位/O匯出/R重新整理）行為見單據模板、不重述。</div></div>
+<h4 style="color:#1F3A5F;font-size:13px;margin:12px 0 2px;">▌單據明細</h4>
+<div class="cal star"><b>詢價單鎖單一供應商：</b>一張詢價單只對一家（一家供得齊自己那張單，從源頭避免比價時供貨範圍不一）。先選供應商，明細只能加這家供貨對應有的料件（防呆）。</div>
+<div class="ep"><div class="ep-h">明細・表頭欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr>
+<tr><td class="fnm">單號</td><td class="prop">建立後不可改</td><td>系統自動給號。</td></tr>
+<tr><td class="fnm">開單日期 / 開單人員</td><td class="prop">純顯示</td><td>系統記。</td></tr>
+<tr><td class="fnm">詢價對象（供應商）</td><td class="prop">必填</td><td>表頭先選；鎖定後明細只能加這家供貨對應料件。</td></tr>
+<tr><td class="fnm">入庫地</td><td class="prop">選填</td><td>預設帶供應商預設入庫倉。</td></tr>
+<tr><td class="fnm">總金額 / 備註</td><td class="prop">純顯示 / 選填</td><td>明細加總；備註。</td></tr></table></div>
+<div class="ep"><div class="ep-h">明細・明細欄位（逐筆料件）</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr>
+<tr><td class="fnm">項次</td><td class="prop">純顯示</td><td>順序。</td></tr>
+<tr><td class="fnm">使用料號 / 品名 / 廠牌</td><td class="prop">純顯示</td><td>引用零件主檔帶出。</td></tr>
+<tr><td class="fnm">數量 / 單位</td><td class="prop">必填 / 純顯示</td><td>詢價數量；單位帶自主檔。</td></tr>
+<tr><td class="fnm">報價（原幣）/ 交期</td><td class="prop">選填</td><td>回填最終敲定價（議價只記結果）；國外依預設幣別報原幣。</td></tr>
+<tr><td class="fnm">換算台幣</td><td class="prop">純顯示</td><td>報外幣時依匯率自動換台幣。匯率來源見補做。</td></tr>
+<tr><td class="fnm">整單折讓/優惠</td><td class="prop">選填</td><td>量大優惠，併入本單總價。</td></tr>
+<tr><td class="fnm">[車型/年份/英文品名]</td><td class="prop">純顯示</td><td><b>車輛套件啟用才顯示</b>，引用零件主檔。</td></tr></table></div>
+<div class="ep"><div class="ep-h">明細操作說明（狀態流轉）</div><table class="ops"><tr><th>動作</th><th>結果</th></tr>
+<tr><td class="act">建詢價單</td><td>新增→先選供應商＋入庫地（表頭）→存檔→自動跳明細層→編明細（手Key或缺貨簿導入）。</td></tr>
+<tr><td class="act">發出（待詢價→詢價中）</td><td>發給供應商。</td></tr>
+<tr><td class="act">回填報價（詢價中→已回覆）</td><td>填最終敲定價（國外原幣＋自動換台幣、整單優惠併入）。詢價中可改明細、<b>不能改供應商</b>。</td></tr>
+<tr><td class="act">轉採購</td><td>已回覆的詢價單可在採購作業「從詢價單導入」開採購單。</td></tr></table></div>
+<div class="cal note">【比價】 本版業界標準：採購自行對照各家詢價單判斷。智能比價系統見「未來增強」。</div>
+
+<h3 id="a3" class="ent">作業 3：採購作業 <span class="mt">單據模板</span> <span class="mt">LITE</span></h3>
+<div class="ent-menu">選單位置 進貨 → 採購作業　|　Alt+1 列表、Alt+2 明細</div>
+<p>只管<b>採購單</b>。國內外共用（選供應商後系統依國別自動判國內/進口、進口長出幣別/匯率/貿易條件欄）。含特殊採購（免詢價直接開）。流程圖（採購編輯→採購審核→採購確認）為列表頁功能鍵。</p>
+<h4 style="color:#1F3A5F;font-size:13px;margin:12px 0 2px;">▌單據列表</h4>
+<div class="ep"><div class="ep-h">列表畫面欄位</div><table class="fields"><tr><th>欄位</th><th>說明</th></tr>
+<tr><td class="fnm">單號 / 採購對象 / 開單日期 / 採購類別 / 總金額 / 預計到貨日 / 狀態</td><td>列表每列顯示；狀態徽章（採購編輯/採購審核/採購確認/部分驗收/已完成）。⚠️ 其餘欄位施工時對照舊系統補（付款對象、帳款年月…）。</td></tr></table></div>
+<div class="ep"><div class="ep-h">列表操作說明</div><table class="ops"><tr><th>動作</th><th>結果</th></tr>
+<tr><td class="act">新增</td><td>建採購單（進明細頁先填表頭）；含特殊採購直接開。</td></tr>
+<tr><td class="act">流程圖功能鍵</td><td>依狀態篩選列表。</td></tr></table></div>
+<h4 style="color:#1F3A5F;font-size:13px;margin:12px 0 2px;">▌單據明細</h4>
+<div class="ep"><div class="ep-h">明細・表頭欄位（國內外共用）</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr>
+<tr><td class="fnm">單號</td><td class="prop">建立後不可改</td><td>系統給號。</td></tr>
+<tr><td class="fnm">開單日期 / 開單人員</td><td class="prop">純顯示</td><td>系統記。</td></tr>
+<tr><td class="fnm">採購對象（供應商）</td><td class="prop">必填</td><td>表頭先選；依國別判國內/進口，帶預設付款條件與預設入庫倉；進口長出國外欄。</td></tr>
+<tr><td class="fnm">採購類別</td><td class="prop">純顯示</td><td>依國別自動顯示國內／進口。</td></tr>
+<tr><td class="fnm">付款對象 / 指送對象</td><td class="prop">選填</td><td>留空＝跟供應商同（集團採購用）。</td></tr>
+<tr><td class="fnm">收貨地址 / 交貨地點</td><td class="prop">選填</td><td>送到哪；交貨地點自由填（直送客戶不進倉）。</td></tr>
+<tr><td class="fnm">入庫地</td><td class="prop">選填</td><td>預設帶供應商預設入庫倉，多港口可改。</td></tr>
+<tr><td class="fnm">交貨方式 / 交易條件</td><td class="prop">選填</td><td>對照舊系統表頭欄位。</td></tr>
+<tr><td class="fnm">預計到貨日 / 帳款年月 / 付款條件</td><td class="prop">選填</td><td>預估到貨、算哪月帳、付款條件（預設帶供應商、可覆寫）。</td></tr>
+<tr><td class="fnm">總金額 / 結案日期 / 備註 / 建檔日期</td><td class="prop">純顯示 / 選填</td><td>明細加總（進口同顯原幣與台幣）；結案日；備註；建檔日。</td></tr></table></div>
+<div class="ep"><div class="ep-h">明細・表頭・國外額外欄位（進口才顯示）</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>說明</th></tr>
+<tr><td class="fnm">幣別 / 匯率</td><td class="prop">選填</td><td>預設帶供應商預設幣別；匯率供換算（來源見補做）。</td></tr>
+<tr><td class="fnm">貿易條件 / 進口付款條件</td><td class="prop">選填</td><td>CIF/FOB/EXW；TT/LC/DP/DA。預設帶供應商。</td></tr></table></div>
+<div class="ep"><div class="ep-h">明細・明細欄位（逐筆料件）</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr>
+<tr><td class="fnm">項次</td><td class="prop">純顯示</td><td>順序。</td></tr>
+<tr><td class="fnm">使用料號 / 品名 / 廠牌</td><td class="prop">純顯示</td><td>引用零件主檔。</td></tr>
+<tr><td class="fnm">數量 / 單位</td><td class="prop">必填 / 純顯示</td><td>採購量；單位帶自主檔。</td></tr>
+<tr><td class="fnm">單價 / 金額</td><td class="prop">選填</td><td>單價小計（進口為原幣）。</td></tr>
+<tr><td class="fnm">已進量 / 取消量</td><td class="prop">純顯示</td><td>分批進貨追蹤；缺貨剩餘可取消。</td></tr>
+<tr><td class="fnm">預交貨日 / 備註</td><td class="prop">選填</td><td>逐筆預計到貨日；備註。</td></tr>
+<tr><td class="fnm">[車型/年份/英文品名]</td><td class="prop">純顯示</td><td><b>車輛套件啟用才顯示</b>。</td></tr></table></div>
+<div class="ep"><div class="ep-h">明細操作說明（狀態流轉）</div><table class="ops"><tr><th>動作</th><th>結果</th></tr>
+<tr><td class="act">建採購單</td><td>新增→先選供應商＋入庫地（表頭）→存檔→自動跳明細層→編明細（手Key、從詢價單導入、整張匯入）。特殊採購＝免詢價直接開。</td></tr>
+<tr><td class="act">送審（採購編輯→採購審核）</td><td>送審後表頭明細鎖定、不能改供應商。</td></tr>
+<tr><td class="act">簽核/退件</td><td>具「核准」權限主管簽核（→採購確認）或退件（退回採購編輯、附原因）。</td></tr>
+<tr><td class="act">寄廠商/廠商確認</td><td>寄出→廠商確認→結案轉進貨，依供應商國別分流國內/國外進貨作業。⚠️ 應付認列時點待定，見補做。</td></tr></table></div>
+<div class="cal warn">【注意】 核准/退件需「核准」權限。核心主檔已定：採購單、保固申請、盤點 走核准流程。</div>
+
+<h3 id="a4" class="ent">作業 4：國內進貨作業 <span class="mt">單據模板</span> <span class="mt">LITE</span></h3>
+<div class="ent-menu">選單位置 進貨 → 國內進貨作業　|　Alt+1 列表、Alt+2 明細</div>
+<p>採購確認後國內到貨的進貨單。倉庫驗收回報、<b>入帳由進貨做</b>（無問題→入帳、有問題→處置完入帳）。流程圖（待到貨→待驗收→待處置→已完成）為列表頁功能鍵。</p>
+<div class="cal star"><b>驗收 vs 入帳：</b>實體驗收與庫存數量增加＝庫存模組；財務性入帳（移動平均成本/應付帳/最後進貨時間）＝進貨模組，依庫存回報時機觸發。</div>
+<h4 style="color:#1F3A5F;font-size:13px;margin:12px 0 2px;">▌單據列表</h4>
+<div class="ep"><div class="ep-h">列表畫面欄位</div><table class="fields"><tr><th>欄位</th><th>說明</th></tr><tr><td class="fnm">單號 / 供應商 / 對應採購單 / 入庫倉 / 到貨日 / 狀態</td><td>狀態徽章（待到貨/待驗收/待處置/已完成）。⚠️ 其餘列表欄施工補。</td></tr></table></div>
+<div class="ep"><div class="ep-h">列表操作說明</div><table class="ops"><tr><th>動作</th><th>結果</th></tr><tr><td class="act">流程圖功能鍵</td><td>依狀態篩選列表。</td></tr><tr><td class="act">由採購單開進貨</td><td>採購確認後可開進貨單。</td></tr></table></div>
+<h4 style="color:#1F3A5F;font-size:13px;margin:12px 0 2px;">▌單據明細</h4>
+<div class="ep"><div class="ep-h">明細・表頭欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>說明</th></tr>
+<tr><td class="fnm">單號</td><td class="prop">建立後不可改</td><td>系統給號。</td></tr>
+<tr><td class="fnm">供應商 / 對應採購單</td><td class="prop">純顯示</td><td>從採購單帶來。</td></tr>
+<tr><td class="fnm">入庫倉</td><td class="prop">必填</td><td>預設帶採購單預設入庫倉，可改。</td></tr>
+<tr><td class="fnm">國內物流追蹤編號</td><td class="prop">選填</td><td>出貨後填（黑貓/嘉里/大榮）估到貨。</td></tr>
+<tr><td class="fnm">總金額</td><td class="prop">純顯示</td><td>明細加總。</td></tr></table></div>
+<div class="ep"><div class="ep-h">明細・明細欄位（逐筆驗收，國內外共用）</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr>
+<tr><td class="fnm">使用料號 / 品名 / 廠牌</td><td class="prop">純顯示</td><td>引用零件主檔。</td></tr>
+<tr><td class="fnm">目前庫存</td><td class="prop">純顯示</td><td>燈號顯示。</td></tr>
+<tr><td class="fnm">預期量 / 實際量</td><td class="prop">純顯示</td><td>採購應收量；庫存驗收回報實收量。</td></tr>
+<tr><td class="fnm">瑕疵數量 / 類型 / 描述</td><td class="prop">純顯示</td><td>庫存回報帶入；瑕疵大於0含類型（外觀損壞/功能異常/規格不符/其他）與描述。進貨端唯讀檢視作入帳依據。</td></tr>
+<tr><td class="fnm">批號 / 保固到期日</td><td class="prop">純顯示</td><td>批號（進貨年月＋流水）；保固到期日＝進貨日＋保固月數。</td></tr>
+<tr><td class="fnm">入庫成本 / 單位</td><td class="prop">純顯示</td><td>實際入庫單位成本；單位帶自主檔。</td></tr></table></div>
+<div class="ep"><div class="ep-h">明細操作說明（狀態流轉）</div><table class="ops"><tr><th>動作</th><th>結果</th></tr>
+<tr><td class="act">到貨登記（待到貨）</td><td>填物流追蹤編號估到貨；貨到轉待驗收。</td></tr>
+<tr><td class="act">（庫存）驗收回報</td><td>沒問題→可入帳；有問題→待處置。⚠️ 由 NX03 庫存驗收單驅動、回寫進貨單狀態。</td></tr>
+<tr><td class="act">處置</td><td>有問題者處置後方可入帳。</td></tr>
+<tr><td class="act">入帳（→已完成）</td><td>更新移動平均成本、產生應付帳、更新最後進貨時間、回寫採購單已進量。（實體庫存增加由庫存驗收入庫時完成。）</td></tr></table></div>
+
+<h3 id="a5" class="ent">作業 5：國外進貨作業 <span class="mt">單據模板</span> <span class="mt">LITE</span></h3>
+<div class="ent-menu">選單位置 進貨 → 國外進貨作業　|　Alt+1 列表、Alt+2 明細</div>
+<p>進口物流追蹤，狀態依<b>我方掌握資訊</b>推進（系統未連對方）。流程圖（待出貨→待提貨→待到貨→待驗收→待處置→已完成）為列表頁功能鍵。</p>
+<h4 style="color:#1F3A5F;font-size:13px;margin:12px 0 2px;">▌單據列表</h4>
+<div class="ep"><div class="ep-h">列表畫面欄位</div><table class="fields"><tr><th>欄位</th><th>說明</th></tr><tr><td class="fnm">單號 / 供應商 / 報關行 / 幣別 / 總金額 / 狀態</td><td>狀態徽章（待出貨…已完成）。⚠️ 其餘列表欄施工補。</td></tr></table></div>
+<div class="ep"><div class="ep-h">列表操作說明</div><table class="ops"><tr><th>動作</th><th>結果</th></tr><tr><td class="act">流程圖功能鍵</td><td>依狀態篩選列表。</td></tr></table></div>
+<h4 style="color:#1F3A5F;font-size:13px;margin:12px 0 2px;">▌單據明細</h4>
+<div class="ep"><div class="ep-h">明細・表頭・國外額外欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr>
+<tr><td class="fnm">報關行</td><td class="prop">選填</td><td>往來對象外包物流 T 類型。</td></tr>
+<tr><td class="fnm">船號</td><td class="prop">選填</td><td>付款後對方提供（可有可無）。</td></tr>
+<tr><td class="fnm">貨號</td><td class="prop">選填</td><td>轉待提貨硬條件之一。</td></tr>
+<tr><td class="fnm">提貨單號（D/O No）</td><td class="prop">選填</td><td>報關行給；轉待提貨硬條件之一。</td></tr>
+<tr><td class="fnm">物流編號</td><td class="prop">選填</td><td>提貨後取得；轉待到貨硬條件。</td></tr>
+<tr><td class="fnm">包裹規格</td><td class="prop">進階</td><td>長寬高重，進口計費/報關用。</td></tr></table></div>
+<div class="ep"><div class="ep-h">明細・進口費用攤分（影響入庫成本）</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>說明</th></tr>
+<tr><td class="fnm">運費/關稅/報關費/倉儲費/其他費用</td><td class="prop">選填</td><td>五項進口費用。</td></tr>
+<tr><td class="fnm">匯率</td><td class="prop">選填</td><td>外幣換台幣匯率（來源見補做）。</td></tr>
+<tr><td class="fnm">攤分後入庫成本</td><td class="prop">純顯示</td><td>系統依各料件金額比例攤分＋換匯，算每顆入庫成本。</td></tr></table></div>
+<div class="ep"><div class="ep-h">明細操作說明（狀態流轉，系統擋未填硬條件）</div><table class="ops"><tr><th>動作</th><th>結果</th></tr>
+<tr><td class="act">付款（待出貨）</td><td>依貿易條件與進口付款條件付款記錄。</td></tr>
+<tr><td class="act">填貨號+提貨號（→待提貨）</td><td>湊齊後轉待提貨（未填擋）；請報關行提貨。</td></tr>
+<tr><td class="act">填物流編號（→待到貨）</td><td>提貨後填，轉待到貨（未填擋）。</td></tr>
+<tr><td class="act">驗收入帳（待驗收→待處置→已完成）</td><td>貨到、庫存驗收回報後，填進口費用與匯率→攤分算入庫成本→進貨入帳（同國內）。</td></tr></table></div>
+<div class="cal note">【說明】 下單、核准、廠商確認在「採購作業」已涵蓋（國內外共用）。驗收歸庫存、入帳歸進貨同國內。明細的逐筆驗收欄位同國內進貨作業。</div>
+
+<h3 id="a6" class="ent">作業 6：進貨退回作業 <span class="mt">單據模板</span> <span class="mt">LITE</span></h3>
+<div class="ent-menu">選單位置 進貨 → 進貨退回作業　|　Alt+1 列表、Alt+2 明細</div>
+<p>退貨回供應商＝反向出貨，走撿貨→包貨→取貨（實體動作由<b>庫存模組</b>做、進貨看狀態）。流程圖（申請中→待撿貨→待包貨→待取貨→已完成）為列表頁功能鍵。</p>
+<h4 style="color:#1F3A5F;font-size:13px;margin:12px 0 2px;">▌單據列表</h4>
+<div class="ep"><div class="ep-h">列表畫面欄位</div><table class="fields"><tr><th>欄位</th><th>說明</th></tr><tr><td class="fnm">單號 / 對應進貨單 / 供應商 / 處置方式 / 狀態</td><td>狀態徽章（申請中…已完成）。⚠️ 其餘列表欄施工補。</td></tr></table></div>
+<div class="ep"><div class="ep-h">列表操作說明</div><table class="ops"><tr><th>動作</th><th>結果</th></tr><tr><td class="act">流程圖功能鍵</td><td>依狀態篩選列表。</td></tr></table></div>
+<h4 style="color:#1F3A5F;font-size:13px;margin:12px 0 2px;">▌單據明細</h4>
+<div class="ep"><div class="ep-h">明細・表頭＋明細欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr>
+<tr><td class="fnm">單號</td><td class="prop">建立後不可改</td><td>系統給號。</td></tr>
+<tr><td class="fnm">對應進貨單</td><td class="prop">必填</td><td>退哪張進貨單；帶出可退料件與上限。</td></tr>
+<tr><td class="fnm">退貨料件 / 數量</td><td class="prop">必填</td><td>退哪些、退多少（不可超原實收量）。</td></tr>
+<tr><td class="fnm">處置方式 / 原因</td><td class="prop">選填</td><td>走保固/壞品/一般退貨；原因。</td></tr></table></div>
+<div class="ep"><div class="ep-h">明細操作說明（狀態流轉）</div><table class="ops"><tr><th>動作</th><th>結果</th></tr>
+<tr><td class="act">建退貨單（申請中）</td><td>選對應進貨單→帶出可退料件與上限→填數量原因送出。</td></tr>
+<tr><td class="act">（庫存）撿貨/包貨/出貨</td><td>庫存執行撿→包→出，狀態同步回退貨單。⚠️ 由 NX03 庫存出貨單驅動、回寫退貨單狀態。</td></tr>
+<tr><td class="act">入帳沖回（→已完成）</td><td>送回供應商後，扣減庫存、沖回對應應付。沖回規則對齊財務 NX05、見補做。</td></tr></table></div>
+<div class="cal note">【說明】 退貨「能不能退、走哪種處置」由零件主檔庫存分頁「退貨政策」決定（F廠保/S自保/R整新/N不退/W保固）。</div>
+
+<h3 id="a7" class="ent">作業 7：保固申請作業 <span class="mt">單據模板</span> <span class="mt">LITE</span></h3>
+<div class="ent-menu">選單位置 進貨 → 保固申請作業　|　Alt+1 列表、Alt+2 明細</div>
+<p>向供應商主張保固。兩來源：銷售客訴型、庫存自用型。是否在保固內依零件主檔「退貨政策＋保固月數」判定。流程圖（待送審→申請中→已完成）為列表頁功能鍵。</p>
+<h4 style="color:#1F3A5F;font-size:13px;margin:12px 0 2px;">▌單據列表</h4>
+<div class="ep"><div class="ep-h">列表畫面欄位</div><table class="fields"><tr><th>欄位</th><th>說明</th></tr><tr><td class="fnm">單號 / 類型 / 供應商 / 零件 / 保固判定 / 狀態</td><td>狀態徽章（待送審/申請中/已完成）。⚠️ 其餘列表欄施工補。</td></tr></table></div>
+<div class="ep"><div class="ep-h">列表操作說明</div><table class="ops"><tr><th>動作</th><th>結果</th></tr><tr><td class="act">流程圖功能鍵</td><td>依狀態篩選列表。</td></tr></table></div>
+<h4 style="color:#1F3A5F;font-size:13px;margin:12px 0 2px;">▌單據明細</h4>
+<div class="ep"><div class="ep-h">明細・表頭＋明細欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr>
+<tr><td class="fnm">單號</td><td class="prop">建立後不可改</td><td>系統給號。</td></tr>
+<tr><td class="fnm">類型</td><td class="prop">必填</td><td>客訴型（銷售提出、連銷貨單）／自用型（庫存發現、無客戶）。</td></tr>
+<tr><td class="fnm">來源銷貨單</td><td class="prop">選填</td><td>客訴型必填；自用型不顯示。</td></tr>
+<tr><td class="fnm">供應商 / 零件</td><td class="prop">必填</td><td>向誰主張；壞掉料件（引用零件主檔）。</td></tr>
+<tr><td class="fnm">保固判定</td><td class="prop">純顯示</td><td>依退貨政策＋保固月數＋批號保固到期日，顯示在保/逾保。來源：零件主檔庫存分頁。</td></tr>
+<tr><td class="fnm">處理結果 / 退款方式 / 附件</td><td class="prop">選填</td><td>判定結果；退錢/換貨；佐證。</td></tr></table></div>
+<div class="ep"><div class="ep-h">明細操作說明（狀態流轉）</div><table class="ops"><tr><th>動作</th><th>結果</th></tr>
+<tr><td class="act">選類型</td><td>客訴型→要求來源銷貨單；自用型→隱藏。</td></tr>
+<tr><td class="act">選零件</td><td>系統顯示保固判定（在保/逾保）。</td></tr>
+<tr><td class="act">送審/核准（待送審→申請中）</td><td>走核准流程；具「核准」權限職務核准。</td></tr>
+<tr><td class="act">結案（→已完成）</td><td>填處理結果與退款方式。⚠️ 換貨/退款連動庫存與應付，見補做。</td></tr></table></div>
+
+<h3 id="a8" class="ent">作業 8：產品管理（採購） <span class="mt">主檔模板</span> <span class="mt">LITE</span></h3>
+<div class="ent-menu">選單位置 進貨 → 產品管理</div>
+<div class="cal star"><b>主檔中心 vs 模組管理頁：</b>《核心主檔 NX01》是所有主檔總集中地、全欄位、高權限。各模組管理頁只維護自己職責那塊：採購＝產品部門，維護<b>基本資料＋進貨/採購資料</b>；庫存歸庫存（最高量/儲位）、銷售歸銷售（售價/ABCD）。資料一份、歸 NX01，各頁是視角。</div>
+<h4 style="color:#1F3A5F;font-size:13px;margin:12px 0 2px;">▌產品列表</h4>
+<div class="ep"><div class="ep-h">列表畫面欄位</div><table class="fields"><tr><th>欄位</th><th>說明</th></tr><tr><td class="fnm">料號 / 品名 / 廠牌 / 公司定價 / 安全量 / 成本變動標記</td><td>列表顯示；凍結品成本變動掛 ⚠️徽章。⚠️ 其餘列表欄施工補。</td></tr></table></div>
+<div class="ep"><div class="ep-h">列表操作說明</div><table class="ops"><tr><th>動作</th><th>結果</th></tr>
+<tr><td class="act">新建零件</td><td>採購市場調查後建新零件；寫進核心零件主檔。</td></tr>
+<tr><td class="act">待建檔/待更新收件匣</td><td>頁上「待建檔/待更新」按鈕，有項目掛數字/驚嘆號。來源：客訂查無此料、銷售/庫存回報產品資訊有異。業務可填草稿，<b>僅採購能寫入主檔</b>。⚠️ 完整跨模組派工機制依賴欄位歸屬表、標伏筆另議。</td></tr></table></div>
+<h4 style="color:#1F3A5F;font-size:13px;margin:12px 0 2px;">▌產品詳細資料（可編欄位界線：基本資料＋進貨/採購分頁）</h4>
+<div class="ep"><div class="ep-h">採購可編欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／說明</th></tr>
+<tr><td class="fnm">零件料號/廠牌料號/品名/品牌/規格/產地</td><td class="prop">建立後不可改/選填</td><td>基本資料分頁，採購可編。</td></tr>
+<tr><td class="fnm">採購成本</td><td class="prop">選填</td><td><b>僅採購可見</b>。價格鏈基準。</td></tr>
+<tr><td class="fnm">利潤率 / 公司定價</td><td class="prop">選填</td><td>雙向換算；兩空吃系統、兩有值凍結。公司定價對下游唯讀。詳見價格鏈章。</td></tr>
+<tr><td class="fnm">安全量</td><td class="prop">選填</td><td>採購可編；缺貨簿也可就地改寫回此。</td></tr>
+<tr><td class="fnm">退貨政策 / 保固月數</td><td class="prop">必填</td><td>F廠保/S自保/R整新/N不退/W保固；保固判定依此。</td></tr>
+<tr><td class="fnm">預設供應商 / 最後進貨時間</td><td class="prop">選填 / 純顯示</td><td>主要跟誰買；最後進貨時間驗收過帳時更新。</td></tr>
+<tr><td class="fnm">最高量 / 儲位</td><td class="prop">純顯示</td><td><b>唯讀</b>——歸庫存模組（倉管定）。</td></tr>
+<tr><td class="fnm">售價 / ABCD 價</td><td class="prop">純顯示</td><td><b>不可見</b>——歸銷售模組。</td></tr></table></div>
+
+<h3 id="a9" class="ent">作業 9：供應商管理（採購） <span class="mt">主檔模板</span> <span class="mt">LITE</span></h3>
+<div class="ent-menu">選單位置 進貨 → 供應商管理</div>
+<p>採購視角的供應商主檔（往來對象供應商類型濾鏡視圖）。露採購可編欄位；不顯示售價、客戶分級加成等銷售敏感資料。</p>
+<h4 style="color:#1F3A5F;font-size:13px;margin:12px 0 2px;">▌供應商列表</h4>
+<div class="ep"><div class="ep-h">列表畫面欄位</div><table class="fields"><tr><th>欄位</th><th>說明</th></tr><tr><td class="fnm">公司代碼 / 全名 / 國別 / 供應商分級 / 付款條件</td><td>列表顯示。⚠️ 其餘列表欄施工補。</td></tr></table></div>
+<div class="ep"><div class="ep-h">列表操作說明</div><table class="ops"><tr><th>動作</th><th>結果</th></tr><tr><td class="act">新建/編輯供應商</td><td>維護採購可編欄位（資料歸往來對象主檔）。</td></tr></table></div>
+<h4 style="color:#1F3A5F;font-size:13px;margin:12px 0 2px;">▌供應商詳細資料</h4>
+<div class="ep"><div class="ep-h">採購可編欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr>
+<tr><td class="fnm">公司代碼 / 全名</td><td class="prop">建立後不可改/必填</td><td>供應商（代碼如 S0001）。</td></tr>
+<tr><td class="fnm">國別</td><td class="prop">必填</td><td>採購分流依據：台灣＝國內、其他＝進口。</td></tr>
+<tr><td class="fnm">母公司</td><td class="prop">選填</td><td>集團歸戶（如台灣BOSCH母公司指向德國BOSCH）。分流看各筆自己國別、不看母公司。⚠️ 此欄對供應商開放待 Hank 查證。</td></tr>
+<tr><td class="fnm">國內/進口付款條件</td><td class="prop">必填/選填</td><td>PREPAY/NET30/60/90；進口 TT/LC/DP/DA。可採購單覆寫。</td></tr>
+<tr><td class="fnm">貿易條件 / 預設幣別</td><td class="prop">選填</td><td>CIF/FOB/EXW；外幣採購預設幣別。</td></tr>
+<tr><td class="fnm">供應商分級</td><td class="prop">選填</td><td>A/B/C/D（半開放）；可「依付款條件重算」（往來對象財務分頁）。</td></tr>
+<tr><td class="fnm">預設入庫倉</td><td class="prop">選填</td><td>向這家進貨時採購單/進貨單預設收此倉，多港口手動改。</td></tr>
+<tr><td class="fnm">供貨對應</td><td class="prop">選填</td><td>供哪些料件、廠商料號、預設單價/交期/最低量、生效期間。詳見核心主檔供應商供貨對應。</td></tr></table></div>
+<div class="cal note">【同品牌雙來源】 德國/台灣 BOSCH 為兩筆獨立供應商，各有國別/幣別/付款條件；台灣 BOSCH 母公司指向德國 BOSCH 做集團報表歸戶。分流看各筆自己國別。集團共用供貨對應/料號列伏筆 <span class="tag t-later">伏筆</span>、本版不做。</div>
+
+<h2 id="s4">肆、補做與連帶事項</h2>
+<p>本規格為權威來源。以下為定案需求與跨模組連帶，Hank 應據此<b>檢查系統是否一致並回報落差</b>；技術無法實作再與 CTO 討論調整需求（規格不主動配合現況修改）。</p>
+<table class="ops"><tr><th>類</th><th>需求 / 連帶</th></tr>
+<tr><td class="act">跨模組 🔴</td><td><b>庫存→進貨狀態同步：</b>進貨單「待驗收/待處置」、退貨單「待撿貨/待包貨/待取貨」實體動作在庫存做，完成後回寫進貨/退貨單狀態。待 NX03 定義驗收單、出貨單何時回寫（NX02↔NX03 接點）。</td></tr>
+<tr><td class="act">跨模組 🔴</td><td><b>驗收/入帳分工：</b>實體驗收與庫存數量增加＝庫存；財務性入帳（移動平均成本/應付帳/最後進貨時間）＝進貨，依庫存回報觸發。待 Hank 確認切點與「入帳前須庫存回報無問題或處置完」擋關。</td></tr>
+<tr><td class="act">跨模組 🔴</td><td><b>應付認列時點未定：</b>採購單「廠商確認」與進貨「入帳」都可能是認列點，核心主檔未定義。認列時點、會計科目、與驗收/發票勾稽須與《財務 NX05》對齊。</td></tr>
+<tr><td class="act">跨模組 🔴</td><td><b>退貨/保固沖回規則：</b>退貨沖回應付、保固換貨/退款連動庫存與應付的科目時點，須與《財務 NX05》《庫存 NX03》對齊。</td></tr>
+<tr><td class="act">跨模組 🔴</td><td><b>匯率來源未定：</b>詢價換算台幣、採購單總金額換算、進口攤分換匯都依賴匯率。建檔/逐單/即時串接未定，攤分時點須對齊 NX05。本版匯率欄暫可手填。</td></tr>
+<tr><td class="act">跨模組 🔴</td><td><b>公司定價→ABCD 接口：</b>進貨負責「成本→公司定價」上半段；下半段屬《銷貨 NX04》，須確認以公司定價為加成基準。</td></tr>
+<tr><td class="act">需求 🔴</td><td><b>跨模組欄位可編歸屬表：</b>「同一主檔各模組露自己可編欄位」需一張總表定義哪欄哪模組可編/可見（成本僅採購、最高量主庫存、售價/ABCD銷貨）。建議定案補進 NX01 權限矩陣。亦為「主檔異動申請」派工依據。</td></tr>
+<tr><td class="act">需求 🔴</td><td><b>在途量／預進量：</b>採購單「已核准未入庫」在途量，是否計入「可用庫存」供下單/缺貨簿參考。CTO 認為「該有」——可用庫存＝現庫存＋在途－已配。待 Hank 查現況。</td></tr>
+<tr><td class="act">需求 🟡</td><td><b>缺貨簿「忽略多久」：</b>設忽略期間、到期自動重現。待 Hank 確認存放與重現邏輯。</td></tr>
+<tr><td class="act">需求 🟡</td><td><b>國外狀態硬條件擋關：</b>待出貨→待提貨需「貨號＋提貨號」、待提貨→待到貨需「物流編號」，系統擋未填者。待 Hank 確認。</td></tr>
+<tr><td class="act">需求 🟡</td><td><b>成本變動提醒參數＋快照：</b>門檻參數預設10%；需留存「當初設定價時的成本」快照供比對。待 Hank 確認。</td></tr>
+<tr><td class="act">需求 🟡</td><td><b>母公司欄對供應商開放：</b>集團歸戶需母公司欄在供應商類型可選另一筆供應商。核心主檔該欄原以客戶為例，待 Hank 查證。</td></tr>
+<tr><td class="act">需求 🟡</td><td><b>待建檔暫存區：</b>產品管理收件匣的草稿需暫存區（未進主檔、不佔料號），待採購正式化才寫入。待 Hank 確認。</td></tr>
+<tr><td class="act">需求 🟡</td><td><b>列表頁欄位施工填齊：</b>本版各作業「單據列表→畫面欄位」僅列主要欄，完整列表欄位（對照恆迎舊系統）於施工時逐作業補齊。</td></tr>
+</table>
+
+<h2 id="s5">伍、未來增強（暫不做・待統一模板完成後討論）</h2>
+<p>本版採業界標準成熟作法先落地。下列為先前設計過、因「過度理想化」暫收起的增強，待模板完成、系統站穩後再討論，現階段不實作。</p>
+<table class="ops"><tr><th>增強構想</th><th>說明（暫不做）</th></tr>
+<tr><td class="act">智能比價系統</td><td>跨多張詢價單以料件為主軸自動並排比（明細層料件比＋單據層整張總價、量大優惠內含、料號天然綁品牌不混比），採購逐料件選定。待模板完成後單獨設計。</td></tr>
+<tr><td class="act">採購批次容器</td><td>一次採購作業＝一個批次，串起 整理→分類→多張詢價單→比價→拆單，讓一波進貨可追溯。</td></tr>
+<tr><td class="act">依供應商自動分類 + 自動生成/拆單</td><td>選一批料件後自動依供貨對應分群、每家生詢價單；比價選定後依供應商自動拆採購單（分廠下單）。取代人工逐張開單。</td></tr>
+<tr><td class="act">主檔異動申請完整機制</td><td>任何模組發現不歸自己管的主檔欄位有誤→送件給權責模組處理，依欄位歸屬表派工。本版只做採購端收件匣＋草稿建檔。</td></tr>
+</table>
+<div class="cal note">【為何先不做】 自動化與智能比價雖省力但相依度高、易過度設計；先以業界標準人工開單把系統跑起來、貼合採購熟悉操作，自動化等模板穩定後再加，風險與工時較可控。</div>
+
+<footer>需求規格 02 進貨 v3.10　·　NX02 核心 / LITE　·　來源：操作手冊-03（as-built）＋ 恆迎舊系統介面 ＋ 體例對齊 NX01 核心主檔 v3.9。<br>
+v3.10 變更：④明細編輯工作列補 <b>T 批次匯入</b>（開批次匯入 modal，一次帶入多筆品項：詢價單從缺貨簿、採購單從詢價單）。<br>v3.9 變更：補<b>四型態工作列＋同鍵不同義＋明細彈窗編輯＋料號即時查詢</b>（依 Hana 實作回饋與恆迎舊系統操作演示）——單據模板定義四種版面型態（①單據瀏覽②明細瀏覽③表頭編輯④明細編輯），<b>各型態各有不同工作列</b>、同一快速鍵在不同型態代表不同功能（A/E/R/D/S/C 同鍵不同義）；明細採<b>品項編輯彈窗逐筆</b>（非表格直接改、沿用恆迎習慣），下方清單唯讀；新增單明細空＝放棄建檔→單據失效；新增/編輯單存檔去向不同；料號選取走<b>料號即時查詢元件</b>（多查法＋顯示庫存/預進量/最近進價/ABCD價，全模組共用、敏感欄依權限）。<br>v3.8 變更：補<b>列表頁施工級細節＋按鈕互動行為</b>（依 Hana 實作回饋）——單據模板補：頁籤列、<b>狀態流程列</b>（全部/各狀態+筆數徽章+箭頭+點擊篩選，取代舊「流程圖功能鍵」抽象說法）、<b>工作列按鈕行為</b>（A新增/E更正/F查詢/D刪除/P印表/L欄位/O匯出/R重新整理 每個按下去彈什麼/做什麼）、<b>查詢 modal 通用框架</b>（標題/說明/查詢欄位/清除/查詢鈕）＋刪除確認/列印/欄位/匯出 modal；詢價作業列表頁補成<b>施工級範本</b>（對齊實際畫面：詢價單號/對象+國內進口徽章/入庫地/料件N項/日期/狀態彩色圓點徽章＋查詢欄位）。體例：共用行為寫模板、各作業只補差異。其餘八作業列表/明細施工級細節待逐作業比照補。<br>v3.7 變更：新增<b>左側固定導覽清單</b>（側邊目錄＋錨點跳轉＋滾動高亮，窄螢幕收合為☰），改善一頁式長文件閱讀；純呈現層、不動規格內容。<br>v3.6 變更（骨架重組）：依 Hana 測試回饋（雛型對、細節不到位），改為三層結構——<b>壹模組概述</b>（通用需求/價格鏈）<b>貳單據頁面型態</b>（單據模板/清單模板/主檔模板，模板可供後續模組複用）<b>參作業入口</b>（九作業，每作業拆<b>單據列表</b>與<b>單據明細</b>、各含「畫面欄位＋操作說明」）<b>肆補做 伍未來增強</b>。內容沿用 v3.5 重新歸位；補編輯三態於單據模板；列表頁欄位先列主要欄、完整欄位（對照恆迎舊系統）於施工時逐作業補齊（標 ⚠️）。<br>
+v3.x 沿革：v3.5 編輯三態。v3.4 詢價/採購拆分。v3.3 業界標準統一套版、入帳歸進貨、自動化收進未來增強。v3.2 採購批次（已收未來增強）。v3.1 缺貨簿簡化、產品管理正名。v3.0 以作業為入口、價格鏈、採購視角主檔。v2.x 體例對齊 NX01。<br>
+待 Hank 對 schema 驗證落差項（庫存↔進貨狀態同步、驗收/入帳分工、缺貨簿忽略、國外硬條件擋關、在途量、應付認列、匯率、母公司欄、成本快照、待建檔暫存區、跨模組欄位歸屬、列表欄位施工補齊）後升版。</footer>
+</div>
+<script>
+const links=[...document.querySelectorAll('#sidenav a')];
+const map=links.map(a=>({a,el:document.querySelector(a.getAttribute('href'))})).filter(x=>x.el);
+const main=document.getElementById('main');
+function spy(){let cur=null;for(const m of map){if(m.el.getBoundingClientRect().top<140)cur=m;}links.forEach(a=>a.classList.remove('active'));if(cur)cur.a.classList.add('active');}
+window.addEventListener('scroll',spy);spy();
+links.forEach(a=>a.addEventListener('click',()=>document.getElementById('sidenav').classList.remove('open')));
+</script>
 </body></html>
