@@ -21,6 +21,8 @@ const SEL = {
   tenantId: true,
   warehouseId: true,
   siteId: true,
+  // 2026-06-22 執行長拍板新增 zone 層 FK
+  zoneId: true,
   code: true,
   name: true,
   zone: true,
@@ -109,6 +111,7 @@ export class LocationService {
         tenantId,
         warehouseId: dto.warehouseId,
         siteId: dto.siteId?.trim() || null,
+        zoneId: dto.zoneId?.trim() || null,
         code,
         name: dto.name?.trim() || null,
         zone: dto.zone?.trim() || null,
@@ -147,6 +150,7 @@ export class LocationService {
       data: {
         ...(dto.warehouseId !== undefined ? { warehouseId: dto.warehouseId } : {}),
         ...(dto.siteId !== undefined ? { siteId: dto.siteId } : {}),
+        ...(dto.zoneId !== undefined ? { zoneId: dto.zoneId } : {}),
         ...(dto.name !== undefined ? { name: dto.name } : {}),
         ...(dto.zone !== undefined ? { zone: dto.zone } : {}),
         ...(dto.rack !== undefined ? { rack: dto.rack } : {}),

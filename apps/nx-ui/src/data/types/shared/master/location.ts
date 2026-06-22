@@ -13,6 +13,9 @@ export type LocationDto = {
     warehouseCode?: string | null;
     warehouseName?: string | null;
 
+    /** 2026-06-22 執行長拍板新增四層架構 zone FK */
+    zoneId?: string | null;
+
     code: string;
     name: string | null;
 
@@ -46,6 +49,8 @@ export type PagedResult<T> = {
 
 export type CreateLocationBody = {
     warehouseId: string;
+    /** 2026-06-22 執行長拍板新增四層架構 zone FK */
+    zoneId?: string | null;
 
     code: string;
     name?: string | null;
@@ -65,6 +70,8 @@ export type CreateLocationBody = {
 
 export type UpdateLocationBody = {
     warehouseId?: string;
+    /** 2026-06-22 執行長拍板新增四層架構 zone FK */
+    zoneId?: string | null;
 
     code?: string;
     name?: string | null;

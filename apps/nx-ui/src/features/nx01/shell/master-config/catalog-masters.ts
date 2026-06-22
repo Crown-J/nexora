@@ -478,9 +478,11 @@ export const LOCATION_MASTER: EntityMasterConfig = {
   fields: [
     { key: 'siteId', label: '所屬據點', type: 'ref', refBasePath: 'nx01/sites', minWidthClass: 'min-w-[140px]' },
     { key: 'warehouseId', label: '所屬倉庫', type: 'ref', refBasePath: 'nx01/warehouses', required: true, minWidthClass: 'min-w-[140px]' },
+    // 2026-06-22 執行長拍板：新四層架構 site→warehouse→zone→location、zoneId 主、舊 zone 字串保留相容
+    { key: 'zoneId', label: '所屬分區', type: 'ref', refBasePath: 'nx01/warehouse-zones', minWidthClass: 'min-w-[140px]' },
     { key: 'code', label: '庫位代碼', required: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[110px]' },
     { key: 'name', label: '名稱', minWidthClass: 'min-w-[120px]' },
-    { key: 'zone', label: '區', inList: false },
+    { key: 'zone', label: '區（舊欄、棄用）', inList: false },
     { key: 'rack', label: '架號', inList: false },
     { key: 'levelNo', label: '層', type: 'number', inList: false },
     { key: 'binNo', label: '格', inList: false },

@@ -22,6 +22,12 @@ export class CreateLocationDto {
   @MaxLength(15)
   siteId?: string;
 
+  /** 2026-06-22 執行長拍板新增四層架構 site→warehouse→zone→location */
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  zoneId?: string;
+
   @IsString()
   @MinLength(1)
   @MaxLength(30)
@@ -78,6 +84,12 @@ export class UpdateLocationDto {
   @IsString()
   @MaxLength(15)
   siteId?: string | null;
+
+  /** 2026-06-22 執行長拍板新增四層架構 site→warehouse→zone→location */
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  zoneId?: string | null;
 
   @IsOptional()
   @IsString()

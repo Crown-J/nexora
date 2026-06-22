@@ -11,7 +11,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Building2, FolderTree, Map as MapIcon, Package, Users2, Warehouse } from 'lucide-react';
+import { Building2, FolderTree, Layers, Map as MapIcon, Package, Users2, Warehouse } from 'lucide-react';
 
 import { MasterBatchShell } from '@design/components/master-batch';
 import type { MasterBatchConfig } from '@design/components/master-batch';
@@ -33,10 +33,14 @@ import {
   setUserWarehousePrimary,
   type UserWarehouseDto,
 } from '@data/endpoints/nx01/api/user-warehouse';
+import {
+  listWarehouseZones,
+  type WarehouseZoneRow,
+} from '@data/endpoints/nx01/api/warehouse-zone';
 
 import { EmployeeAssignmentSection, type EmployeeAssignmentRow } from './EmployeeAssignmentSection';
 
-type LocationNodeType = 'site' | 'warehouse' | 'location';
+type LocationNodeType = 'site' | 'warehouse' | 'zone' | 'location';
 
 type LocationNode = {
   id: string;
@@ -44,12 +48,14 @@ type LocationNode = {
   label: string;
   siteId?: string;
   warehouseId?: string;
+  zoneId?: string;
   locationId?: string;
 };
 
 export function LocationStructurePage() {
   const [sites, setSites] = useState<SiteDto[]>([]);
   const [warehouses, setWarehouses] = useState<WarehouseDto[]>([]);
+  const [zones, setZones] = useState<WarehouseZoneRow[]>([]);
   const [locations, setLocations] = useState<LocationDto[]>([]);
   /** Map<warehouseId, EmployeeAssignmentRow[]> */
   const [warehouseEmployees, setWarehouseEmployees] = useState<Map<string, EmployeeAssignmentRow[]>>(
@@ -66,14 +72,16 @@ export function LocationStructurePage() {
     (async () => {
       setLoading(true);
       try {
-        const [siteRes, whRes, locRes] = await Promise.all([
+        const [siteRes, whRes, zoneRes, locRes] = await Promise.all([
           listSites({ pageSize: 100, isActive: true }),
           listWarehouses({ pageSize: 200, isActive: true }),
+          listWarehouseZones({ pageSize: 500, isActive: true }),
           listLocation({ page: 1, pageSize: 500, isActive: true }),
         ]);
         if (cancelled) return;
         setSites(siteRes.items);
         setWarehouses(whRes.items);
+        setZones(zoneRes.rows);
         setLocations(locRes.items);
 
         // 對每個倉庫並行 fetch active 員工歸屬
@@ -137,8 +145,19 @@ export function LocationStructurePage() {
           }));
       }
       if (n.type === 'warehouse') {
+        return zones
+          .filter((z) => z.warehouseId === n.warehouseId)
+          .map((z) => ({
+            id: `zone:${z.id}`,
+            type: 'zone',
+            label: `${z.code} · ${z.name}`,
+            warehouseId: z.warehouseId,
+            zoneId: z.id,
+          }));
+      }
+      if (n.type === 'zone') {
         return locations
-          .filter((l) => l.warehouseId === n.warehouseId)
+          .filter((l) => (l as LocationDto & { zoneId?: string | null }).zoneId === n.zoneId)
           .map((l) => ({
             id: `location:${l.id}`,
             type: 'location',
@@ -149,7 +168,7 @@ export function LocationStructurePage() {
       }
       return [];
     },
-    [warehouses, locations],
+    [warehouses, zones, locations],
   );
 
   // 員工聯集（site 層 distinct by userId）
@@ -219,7 +238,7 @@ export function LocationStructurePage() {
     () => ({
       title: '據點架構圖',
       category: '據點與倉庫',
-      desc: '據點 → 倉庫 → 庫位。員工指派到「倉庫」、據點透過倉庫推導員工。倉庫節點可設定負責人。',
+      desc: '據點 → 倉庫 → 分區 → 庫位。員工指派到「倉庫」、據點透過倉庫推導員工。倉庫節點可設定負責人。',
       subjectIcon: FolderTree,
       subjectNoun: '組織節點',
       memberNoun: '子節點',
@@ -240,8 +259,11 @@ export function LocationStructurePage() {
       subjectTitle: (n) => n.label,
       subjectCount: (n) => {
         if (n.type === 'site') return warehouses.filter((w) => w.siteId === n.siteId).length;
-        if (n.type === 'warehouse')
-          return locations.filter((l) => l.warehouseId === n.warehouseId).length;
+        if (n.type === 'warehouse') return zones.filter((z) => z.warehouseId === n.warehouseId).length;
+        if (n.type === 'zone')
+          return locations.filter(
+            (l) => (l as LocationDto & { zoneId?: string | null }).zoneId === n.zoneId,
+          ).length;
         return undefined;
       },
 
@@ -293,7 +315,12 @@ export function LocationStructurePage() {
           };
         if (n.type === 'warehouse')
           return {
-            title: `「${n.label}」尚未設置庫位`,
+            title: `「${n.label}」尚未設置分區`,
+            desc: '從倉庫分區主檔加入分區（每倉至少要有一個分區、現有資料已預建「Z00 主區」）。',
+          };
+        if (n.type === 'zone')
+          return {
+            title: `「${n.label}」分區尚未設置庫位`,
             desc: '從庫位主檔加入庫位節點。',
           };
         return {
@@ -420,7 +447,22 @@ export function LocationStructurePage() {
 
 /* ============ 子節點列渲染（上半 list） ============ */
 function ChildNodeRow({ node }: { node: LocationNode }) {
-  const Icon = node.type === 'warehouse' ? Warehouse : node.type === 'location' ? Package : Building2;
+  const Icon =
+    node.type === 'warehouse'
+      ? Warehouse
+      : node.type === 'zone'
+      ? Layers
+      : node.type === 'location'
+      ? Package
+      : Building2;
+  const typeLabel =
+    node.type === 'warehouse'
+      ? '倉庫'
+      : node.type === 'zone'
+      ? '分區'
+      : node.type === 'location'
+      ? '庫位'
+      : '據點';
   return (
     <div className="flex items-center gap-3">
       <span className="grid size-9 flex-none place-items-center rounded-md bg-[#E8A020]/14 text-[#E8A020]">
@@ -428,9 +470,7 @@ function ChildNodeRow({ node }: { node: LocationNode }) {
       </span>
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm text-foreground">{node.label}</div>
-        <div className="text-[11px] text-muted-foreground">
-          {node.type === 'warehouse' ? '倉庫' : node.type === 'location' ? '庫位' : '據點'}
-        </div>
+        <div className="text-[11px] text-muted-foreground">{typeLabel}</div>
       </div>
     </div>
   );
