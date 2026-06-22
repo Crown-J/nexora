@@ -51,6 +51,12 @@ export class ListPartQueryDto extends Nx01ListQueryDto {
   @IsString()
   @MaxLength(100)
   phonetic?: string;
+
+  /** 2026-06-22：依品牌篩選（供應商供貨對應「按品牌批次加入」用） */
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  brandId?: string;
 }
 
 /**

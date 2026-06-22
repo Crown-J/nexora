@@ -282,6 +282,8 @@ export class PartService {
     const skip = (page - 1) * pageSize;
     const where: Prisma.Nx01PartWhereInput = { tenantId };
     if (q.isActive !== undefined) where.isActive = q.isActive;
+    // 2026-06-22：依品牌篩選（供應商供貨對應「按品牌批次加入」用）
+    if (q.brandId?.trim()) where.brandId = q.brandId.trim();
 
     // 02 對齊第二批 C 軌 CP2-b：注音搜尋（先取 ids、再 filter；跟主料號 search 並存可疊加）
     if (q.phonetic?.trim()) {
