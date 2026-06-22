@@ -1,10 +1,8 @@
 // apps/nx-ui/src/features/nx01/partner/supplier-supply/SelectBrandModal.tsx
 // 加入品牌 — 「先選品牌 → 全品項匯入」modal
+// 2026-06-22 改：接真 BrandDto、不再讀 mock partsInBrand
 //
-// 範式：單選 modal（vs EntityPickerDialog 多選）
-// 設計：parent conditional mount（{open && <Modal />}）、modal 內 state 每次
-// mount 自然 reset、避免 set-state-in-effect lint warning。
-//
+// 範式：單選 modal、parent conditional mount
 // 鍵盤：↑↓ 走、Enter/Space 選、Esc 關
 'use client';
 
@@ -13,12 +11,12 @@ import { Check, Filter } from 'lucide-react';
 
 import { cn } from '@design/utils/cn';
 
-import { partsInBrand, type BrandMock } from './mock-data';
+import type { BrandDto } from '@data/endpoints/nx01/api/brand';
 
 export type SelectBrandModalProps = {
   onClose: () => void;
-  availableBrands: BrandMock[];
-  onConfirm: (brand: BrandMock) => void;
+  availableBrands: BrandDto[];
+  onConfirm: (brand: BrandDto) => void;
 };
 
 export function SelectBrandModal({ onClose, availableBrands, onConfirm }: SelectBrandModalProps) {
@@ -72,7 +70,6 @@ export function SelectBrandModal({ onClose, availableBrands, onConfirm }: Select
         onClick={(e) => e.stopPropagation()}
         style={{ maxHeight: '80vh' }}
       >
-        {/* Header */}
         <div className="flex items-center gap-2.5 border-b border-[#2A2A30] px-5 py-3">
           <span className="size-2 rounded-full bg-[#E8A020] shadow-[0_0_10px_#E8A020]" />
           <Filter className="size-4 text-[#E8A020]" />
@@ -82,23 +79,20 @@ export function SelectBrandModal({ onClose, availableBrands, onConfirm }: Select
           </span>
         </div>
 
-        {/* Hint */}
         <div className="border-b border-[#2A2A30] px-5 py-2 text-xs text-[#888892]">
           選一個品牌 → 該品牌全品項自動匯入。加入後可在 accordion 內逐個剔除不供的品項。
         </div>
 
-        {/* List */}
         <div className="min-h-0 flex-1 overflow-auto">
           {availableBrands.length === 0 ? (
             <div className="px-5 py-8 text-center text-xs text-[#5A5A60]">
-              所有品牌都已對應、可在現有品牌組內加減品項
+              所有零件品牌都已對應、可在現有品牌組內加減品項
             </div>
           ) : (
             <ul className="divide-y divide-[#1A1A1F]">
               {availableBrands.map((b, index) => {
                 const isSelected = selectedId === b.id;
                 const isFocused = index === focusedIdx;
-                const partsCount = partsInBrand(b.id).length;
                 return (
                   <li key={b.id}>
                     <button
@@ -131,7 +125,7 @@ export function SelectBrandModal({ onClose, availableBrands, onConfirm }: Select
                           {b.name}
                         </span>
                         <span className="truncate text-[11px] text-[#5A5A60]">
-                          將匯入 {partsCount} 個品項
+                          代碼 {b.code} · 將匯入該品牌全部品項
                         </span>
                       </span>
                     </button>
@@ -142,7 +136,6 @@ export function SelectBrandModal({ onClose, availableBrands, onConfirm }: Select
           )}
         </div>
 
-        {/* Actions */}
         <div className="flex items-center justify-between border-t border-[#2A2A30] bg-[#0A0A0C]/40 px-5 py-3">
           <span className="text-[10px] text-[#5A5A60]">
             ESC 取消 · 已選 <span className="font-mono text-[#E8A020]">{selectedId ? 1 : 0}</span> 個品牌
@@ -164,7 +157,7 @@ export function SelectBrandModal({ onClose, availableBrands, onConfirm }: Select
                 !selectedId ? 'cursor-not-allowed opacity-50' : 'hover:bg-[#E8A020]/25',
               )}
             >
-              匯入全品項
+              加入品牌
             </button>
           </div>
         </div>

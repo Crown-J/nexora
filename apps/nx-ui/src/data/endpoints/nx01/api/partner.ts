@@ -134,6 +134,7 @@ export async function listPartners(params: {
   partnerType?: PartnerType;
   page?: number;
   pageSize?: number;
+  isActive?: boolean;
 }): Promise<PagedResult<PartnerDto>> {
   const pageSize = clampNx01ListPageSize(params.pageSize, 20);
   const qs = buildQueryString({
@@ -141,6 +142,7 @@ export async function listPartners(params: {
     partnerType: params.partnerType,
     page: params.page != null ? String(params.page) : undefined,
     pageSize: String(pageSize),
+    isActive: params.isActive === undefined ? undefined : String(params.isActive),
   });
   const res = await apiFetch(`${BASE}${qs}`, { method: 'GET' });
   await assertOk(res, 'nxui_base_partner_list');

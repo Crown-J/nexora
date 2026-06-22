@@ -139,7 +139,14 @@ export class PartnerPartService {
         select: {
           ...PP_SEL,
           partner: { select: { code: true, name: true, partnerType: true } },
-          part: { select: { code: true, name: true } },
+          part: {
+          select: {
+            code: true,
+            name: true,
+            brandId: true,
+            brand: { select: { code: true, name: true } },
+          },
+        },
         },
       }),
     ]);
@@ -153,7 +160,14 @@ export class PartnerPartService {
       select: {
         ...PP_SEL,
         partner: { select: { code: true, name: true, partnerType: true } },
-        part: { select: { code: true, name: true } },
+        part: {
+          select: {
+            code: true,
+            name: true,
+            brandId: true,
+            brand: { select: { code: true, name: true } },
+          },
+        },
       },
     });
     if (!row) throw new NotFoundException('PartnerPart not found');
