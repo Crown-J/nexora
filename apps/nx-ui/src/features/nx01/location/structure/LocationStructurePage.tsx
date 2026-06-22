@@ -1,34 +1,40 @@
 // apps/nx-ui/src/features/nx01/location/structure/LocationStructurePage.tsx
-// 據點架構圖（案例 2 / Step 4 Commit B）
+// 據點架構圖 B-1（接真 API、2026-06-22 重寫）
 //
 // 結構：tree 三層（據點 → 倉庫 → 庫位）+ list-with-extra
-//   - 所有節點皆可選（isSelectable = true）
-//   - 上半 list：子節點瀏覽（site→倉庫列表 / warehouse→庫位列表 / location→空）
-//   - 下半 extra：員工副區（僅 site 層渲染）
+//   - site 層：list = 子倉庫；extra = 員工聯集（read-only）+ 加上「指派員工」按鈕灰
+//   - warehouse 層：list = 子庫位；extra = 倉庫負責人 + 員工歸屬（可指派/換主要/移除）
+//   - location 層：list = []；extra = null
 //
-// 互動：
-//   - shell add 鈕「指派員工」：僅 site 層啟用（isAddEnabled）、按了開 picker
-//   - 員工副區內部「指派員工」鈕：同樣開 picker（同 picker state）
-//   - 員工 ✕ 鈕：從 employee.siteIds 移除該據點（員工本身不刪）
+// 執行長 2026-06-22 拍板 B-1 案：員工指派到「倉庫」、據點透過 user_warehouse 推導
+// 倉庫負責人露出（warehouse.managerUserId）+ 換負責人按鈕
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
-import { Building2, FolderTree, Map, Package, Warehouse } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Building2, FolderTree, Map as MapIcon, Package, Users2, Warehouse } from 'lucide-react';
 
 import { MasterBatchShell } from '@design/components/master-batch';
 import type { MasterBatchConfig } from '@design/components/master-batch';
 import { EntityPickerDialog } from '@design/components/multi-select-modal/EntityPickerDialog';
 import type { PagedResult } from '@data/types/nx01/api';
-
-import { EmployeeAssignmentSection } from './EmployeeAssignmentSection';
+import { listSites, type SiteDto } from '@data/endpoints/nx01/api/site';
 import {
-  BINS,
-  EMPLOYEES_SEED,
-  SITES,
-  WAREHOUSES,
-  siteName,
-  type SiteEmployeeMock,
-} from './mock-data';
+  listWarehouses,
+  updateWarehouse,
+  type WarehouseDto,
+} from '@data/endpoints/nx01/api/warehouse';
+import { listLocation } from '@data/endpoints/shared/master/location/api/location';
+import type { LocationDto } from '@data/types/shared/master/location';
+import { listUsers, type UserDto } from '@data/endpoints/nx01/api/user';
+import {
+  assignUserWarehouse,
+  listUserWarehouses,
+  revokeUserWarehouse,
+  setUserWarehousePrimary,
+  type UserWarehouseDto,
+} from '@data/endpoints/nx01/api/user-warehouse';
+
+import { EmployeeAssignmentSection, type EmployeeAssignmentRow } from './EmployeeAssignmentSection';
 
 type LocationNodeType = 'site' | 'warehouse' | 'location';
 
@@ -42,69 +48,178 @@ type LocationNode = {
 };
 
 export function LocationStructurePage() {
-  const [employees, setEmployees] = useState<SiteEmployeeMock[]>(EMPLOYEES_SEED);
-  const [pickerSiteId, setPickerSiteId] = useState<string | null>(null);
+  const [sites, setSites] = useState<SiteDto[]>([]);
+  const [warehouses, setWarehouses] = useState<WarehouseDto[]>([]);
+  const [locations, setLocations] = useState<LocationDto[]>([]);
+  /** Map<warehouseId, EmployeeAssignmentRow[]> */
+  const [warehouseEmployees, setWarehouseEmployees] = useState<Map<string, EmployeeAssignmentRow[]>>(
+    new Map(),
+  );
+  const [loading, setLoading] = useState(true);
+  const [pickerWarehouseId, setPickerWarehouseId] = useState<string | null>(null);
+  const [managerPickerWarehouseId, setManagerPickerWarehouseId] = useState<string | null>(null);
+  const [reloadTick, setReloadTick] = useState(0);
+
+  // ---------- 載入主資料 ----------
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      try {
+        const [siteRes, whRes, locRes] = await Promise.all([
+          listSites({ pageSize: 100, isActive: true }),
+          listWarehouses({ pageSize: 200, isActive: true }),
+          listLocation({ page: 1, pageSize: 500, isActive: true }),
+        ]);
+        if (cancelled) return;
+        setSites(siteRes.items);
+        setWarehouses(whRes.items);
+        setLocations(locRes.items);
+
+        // 對每個倉庫並行 fetch active 員工歸屬
+        const empMap = new Map<string, EmployeeAssignmentRow[]>();
+        await Promise.all(
+          whRes.items.map(async (w) => {
+            const r = await listUserWarehouses({
+              warehouseId: w.id,
+              isActive: true,
+              pageSize: 100,
+            }).catch(() => null);
+            if (!r) return;
+            empMap.set(
+              w.id,
+              r.items.map((uw: UserWarehouseDto) => ({
+                assignmentId: uw.id,
+                userId: uw.userId,
+                userAccount: uw.userAccount,
+                userDisplayName: uw.userDisplayName,
+                isPrimary: uw.isPrimary,
+              })),
+            );
+          }),
+        );
+        if (cancelled) return;
+        setWarehouseEmployees(empMap);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [reloadTick]);
+
+  const triggerReload = useCallback(() => setReloadTick((t) => t + 1), []);
 
   // ---------- 樹結構 ----------
   const treeRoots = useCallback(
     (): LocationNode[] =>
-      SITES.map((s) => ({
+      sites.map((s) => ({
         id: `site:${s.id}`,
         type: 'site',
         label: s.name + (s.isMain ? '（總部）' : ''),
         siteId: s.id,
       })),
-    [],
+    [sites],
   );
 
-  const treeChildren = useCallback((n: LocationNode): LocationNode[] => {
-    if (n.type === 'site') {
-      return WAREHOUSES.filter((w) => w.siteId === n.siteId).map((w) => ({
-        id: `warehouse:${w.id}`,
-        type: 'warehouse',
-        label: w.name,
-        siteId: w.siteId,
-        warehouseId: w.id,
-      }));
-    }
-    if (n.type === 'warehouse') {
-      return BINS.filter((b) => b.warehouseId === n.warehouseId).map((b) => ({
-        id: `location:${b.id}`,
-        type: 'location',
-        label: b.code,
-        warehouseId: b.warehouseId,
-        locationId: b.id,
-      }));
-    }
-    return [];
-  }, []);
+  const treeChildren = useCallback(
+    (n: LocationNode): LocationNode[] => {
+      if (n.type === 'site') {
+        return warehouses
+          .filter((w) => w.siteId === n.siteId)
+          .map((w) => ({
+            id: `warehouse:${w.id}`,
+            type: 'warehouse',
+            label: w.name,
+            siteId: w.siteId ?? undefined,
+            warehouseId: w.id,
+          }));
+      }
+      if (n.type === 'warehouse') {
+        return locations
+          .filter((l) => l.warehouseId === n.warehouseId)
+          .map((l) => ({
+            id: `location:${l.id}`,
+            type: 'location',
+            label: l.code,
+            warehouseId: l.warehouseId,
+            locationId: l.id,
+          }));
+      }
+      return [];
+    },
+    [warehouses, locations],
+  );
 
-  // ---------- 右欄 ----------
-  // members(n) = 上半 list：顯示子節點瀏覽
+  // 員工聯集（site 層 distinct by userId）
+  const employeesOfSite = useCallback(
+    (siteId: string): EmployeeAssignmentRow[] => {
+      const seen = new Map<string, EmployeeAssignmentRow>();
+      for (const w of warehouses) {
+        if (w.siteId !== siteId) continue;
+        const list = warehouseEmployees.get(w.id) ?? [];
+        for (const e of list) {
+          if (!seen.has(e.userId)) seen.set(e.userId, e);
+        }
+      }
+      return Array.from(seen.values());
+    },
+    [warehouses, warehouseEmployees],
+  );
+
   const membersOf = useCallback(
     (n: LocationNode): LocationNode[] => treeChildren(n),
     [treeChildren],
   );
 
-  const siteEmployees = useCallback(
-    (siteId: string): SiteEmployeeMock[] => employees.filter((e) => e.siteIds.includes(siteId)),
-    [employees],
+  // ---------- 倉庫負責人操作 ----------
+  const handleChangeManager = useCallback(
+    async (warehouseId: string, newManagerId: string | null) => {
+      try {
+        await updateWarehouse(warehouseId, { managerUserId: newManagerId });
+        triggerReload();
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        alert(`換負責人失敗：${msg}`);
+      }
+    },
+    [triggerReload],
   );
 
-  const handleRemoveSiteEmployee = useCallback((siteId: string, employeeId: string) => {
-    setEmployees((prev) =>
-      prev.map((e) =>
-        e.id === employeeId ? { ...e, siteIds: e.siteIds.filter((s) => s !== siteId) } : e,
-      ),
-    );
-  }, []);
+  // ---------- 員工歸屬操作 ----------
+  const handleRevoke = useCallback(
+    async (assignmentId: string) => {
+      try {
+        await revokeUserWarehouse(assignmentId);
+        triggerReload();
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        alert(`移除失敗：${msg}`);
+      }
+    },
+    [triggerReload],
+  );
+
+  const handleTogglePrimary = useCallback(
+    async (assignmentId: string, currentPrimary: boolean) => {
+      try {
+        await setUserWarehousePrimary(assignmentId, !currentPrimary);
+        triggerReload();
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        alert(`切換主要倉失敗：${msg}`);
+      }
+    },
+    [triggerReload],
+  );
 
   // ---------- config ----------
   const config = useMemo<MasterBatchConfig<LocationNode, LocationNode>>(
     () => ({
       title: '據點架構圖',
       category: '據點與倉庫',
-      desc: '據點 → 倉庫 → 庫位，三層結構瀏覽；下方副區管理員工歸屬。員工可多歸據點。',
+      desc: '據點 → 倉庫 → 庫位。員工指派到「倉庫」、據點透過倉庫推導員工。倉庫節點可設定負責人。',
       subjectIcon: FolderTree,
       subjectNoun: '組織節點',
       memberNoun: '子節點',
@@ -117,16 +232,16 @@ export function LocationStructurePage() {
       treeChildren,
       isSelectable: () => true,
       defaultExpandedIds: () =>
-        SITES.flatMap((s) => [
+        sites.flatMap((s) => [
           `site:${s.id}`,
-          ...WAREHOUSES.filter((w) => w.siteId === s.id).map((w) => `warehouse:${w.id}`),
+          ...warehouses.filter((w) => w.siteId === s.id).map((w) => `warehouse:${w.id}`),
         ]),
       subjectId: (n) => n.id,
       subjectTitle: (n) => n.label,
       subjectCount: (n) => {
-        if (n.type === 'site') return WAREHOUSES.filter((w) => w.siteId === n.siteId).length;
+        if (n.type === 'site') return warehouses.filter((w) => w.siteId === n.siteId).length;
         if (n.type === 'warehouse')
-          return BINS.filter((b) => b.warehouseId === n.warehouseId).length;
+          return locations.filter((l) => l.warehouseId === n.warehouseId).length;
         return undefined;
       },
 
@@ -136,29 +251,45 @@ export function LocationStructurePage() {
       renderMember: (m) => <ChildNodeRow node={m} />,
 
       renderExtra: (n) => {
-        if (n.type !== 'site') return null;
-        const sid = n.siteId!;
-        return (
-          <EmployeeAssignmentSection
-            siteName={siteName(sid)}
-            employees={siteEmployees(sid)}
-            onAddClick={() => setPickerSiteId(sid)}
-            onRemove={(empId) => handleRemoveSiteEmployee(sid, empId)}
-          />
-        );
+        if (n.type === 'site') {
+          return (
+            <EmployeeAssignmentSection
+              variant="site"
+              siteName={n.label}
+              employees={employeesOfSite(n.siteId!)}
+            />
+          );
+        }
+        if (n.type === 'warehouse') {
+          const w = warehouses.find((x) => x.id === n.warehouseId);
+          return (
+            <EmployeeAssignmentSection
+              variant="warehouse"
+              warehouseName={n.label}
+              managerName={w?.managerUserName ?? null}
+              managerAccount={w?.managerUserAccount ?? null}
+              employees={warehouseEmployees.get(n.warehouseId!) ?? []}
+              onAddClick={() => setPickerWarehouseId(n.warehouseId!)}
+              onChangeManagerClick={() => setManagerPickerWarehouseId(n.warehouseId!)}
+              onRemove={handleRevoke}
+              onTogglePrimary={handleTogglePrimary}
+            />
+          );
+        }
+        return null;
       },
 
       onAdd: (n, ctx) => {
-        if (n.type === 'site') setPickerSiteId(n.siteId!);
-        else ctx.showToast('此層級不可指派員工、請選擇據點', 'info');
+        if (n.type === 'warehouse') setPickerWarehouseId(n.warehouseId!);
+        else ctx.showToast('員工指派到倉庫層、請展開據點選擇倉庫', 'info');
       },
-      isAddEnabled: (n) => n.type === 'site',
+      isAddEnabled: (n) => n.type === 'warehouse',
 
       emptyText: (n) => {
         if (n.type === 'site')
           return {
             title: `「${n.label}」尚未設置倉庫`,
-            desc: '從倉庫主檔加入倉庫；下方可指派員工歸屬此據點。',
+            desc: '從倉庫主檔加入倉庫；下方可看見此據點所有倉的員工聯集。',
           };
         if (n.type === 'warehouse')
           return {
@@ -171,62 +302,117 @@ export function LocationStructurePage() {
         };
       },
     }),
-    [handleRemoveSiteEmployee, membersOf, siteEmployees, treeChildren, treeRoots],
+    [
+      sites,
+      warehouses,
+      locations,
+      warehouseEmployees,
+      employeesOfSite,
+      handleRevoke,
+      handleTogglePrimary,
+      membersOf,
+      treeChildren,
+      treeRoots,
+    ],
   );
 
-  // ---------- Picker：client array 包 fake search ----------
+  // ---------- 員工 picker（指派員工到倉） ----------
   const pickerSearch = useCallback(
-    async (q: string): Promise<PagedResult<SiteEmployeeMock>> => {
-      if (!pickerSiteId) return { items: [], page: 1, pageSize: 0, total: 0 };
-      const qq = q.trim().toLowerCase();
-      const alreadyIds = new Set(siteEmployees(pickerSiteId).map((e) => e.id));
-      const items = employees.filter((e) => {
-        if (alreadyIds.has(e.id)) return false;
-        if (!qq) return true;
-        return e.name.includes(q) || e.id.toLowerCase().includes(qq);
-      });
+    async (q: string): Promise<PagedResult<UserDto>> => {
+      if (!pickerWarehouseId) return { items: [], page: 1, pageSize: 0, total: 0 };
+      const existing = new Set((warehouseEmployees.get(pickerWarehouseId) ?? []).map((e) => e.userId));
+      const res = await listUsers({ q: q.trim() || undefined, pageSize: 50, isActive: true });
+      const items = res.items.filter((u) => !existing.has(u.id));
       return { items, page: 1, pageSize: items.length, total: items.length };
     },
-    [employees, pickerSiteId, siteEmployees],
+    [pickerWarehouseId, warehouseEmployees],
   );
 
   const handlePickerConfirm = useCallback(
-    async (selected: SiteEmployeeMock[]) => {
-      if (!pickerSiteId) return;
-      const sid = pickerSiteId;
-      setEmployees((prev) =>
-        prev.map((e) => {
-          const isAdded = selected.some((s) => s.id === e.id);
-          if (!isAdded) return e;
-          if (e.siteIds.includes(sid)) return e;
-          return { ...e, siteIds: [...e.siteIds, sid] };
-        }),
-      );
+    async (selected: UserDto[]) => {
+      if (!pickerWarehouseId) return;
+      try {
+        for (const u of selected) {
+          await assignUserWarehouse({ userId: u.id, warehouseId: pickerWarehouseId });
+        }
+        triggerReload();
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        alert(`指派失敗：${msg}`);
+      }
     },
-    [pickerSiteId],
+    [pickerWarehouseId, triggerReload],
   );
 
-  const pickerTitle = pickerSiteId
-    ? `指派員工到「${siteName(pickerSiteId)}」`
-    : '指派員工';
+  // ---------- 負責人 picker ----------
+  const managerPickerSearch = useCallback(
+    async (q: string): Promise<PagedResult<UserDto>> => {
+      const res = await listUsers({ q: q.trim() || undefined, pageSize: 50, isActive: true });
+      return res;
+    },
+    [],
+  );
+
+  const handleManagerPickerConfirm = useCallback(
+    async (selected: UserDto[]) => {
+      if (!managerPickerWarehouseId) return;
+      const newManager = selected[0];
+      if (!newManager) return;
+      await handleChangeManager(managerPickerWarehouseId, newManager.id);
+      setManagerPickerWarehouseId(null);
+    },
+    [handleChangeManager, managerPickerWarehouseId],
+  );
+
+  const pickerWarehouseName =
+    warehouses.find((w) => w.id === pickerWarehouseId)?.name ?? '';
+  const managerWarehouseName =
+    warehouses.find((w) => w.id === managerPickerWarehouseId)?.name ?? '';
+
+  if (loading) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center text-sm text-muted-foreground">
+        載入中…
+      </div>
+    );
+  }
 
   return (
     <>
       <MasterBatchShell config={config} />
 
-      <EntityPickerDialog<SiteEmployeeMock>
-        open={pickerSiteId !== null}
-        onClose={() => setPickerSiteId(null)}
-        title={pickerTitle}
-        subtitle="Assign Site Members"
-        icon={Map}
+      {/* 指派員工到倉 picker */}
+      <EntityPickerDialog<UserDto>
+        open={pickerWarehouseId !== null}
+        onClose={() => setPickerWarehouseId(null)}
+        title={pickerWarehouseId ? `指派員工到「${pickerWarehouseName}」` : '指派員工'}
+        subtitle="Assign Warehouse Members"
+        icon={MapIcon}
         searchPlaceholder="搜尋姓名或員工編號…"
         search={pickerSearch}
-        getId={(e) => e.id}
-        getLabel={(e) => `${e.id} · ${e.name}`}
-        getDescription={(e) => `部門：${e.dept}`}
+        getId={(u) => u.id}
+        getLabel={(u) => `${u.username} · ${u.displayName}`}
+        getDescription={(u) => u.email ?? u.phone ?? ''}
         onConfirm={handlePickerConfirm}
         confirmLabel="指派"
+      />
+
+      {/* 換負責人 picker（單選、用多選 picker 但取首筆） */}
+      <EntityPickerDialog<UserDto>
+        open={managerPickerWarehouseId !== null}
+        onClose={() => setManagerPickerWarehouseId(null)}
+        title={
+          managerPickerWarehouseId ? `指定「${managerWarehouseName}」負責人` : '指定倉庫負責人'
+        }
+        subtitle="Set Warehouse Manager"
+        icon={Users2}
+        searchPlaceholder="搜尋姓名或員工編號…"
+        search={managerPickerSearch}
+        getId={(u) => u.id}
+        getLabel={(u) => `${u.username} · ${u.displayName}`}
+        getDescription={(u) => u.email ?? u.phone ?? ''}
+        onConfirm={handleManagerPickerConfirm}
+        confirmLabel="設為負責人"
       />
     </>
   );
