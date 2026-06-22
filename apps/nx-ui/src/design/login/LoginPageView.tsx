@@ -12,13 +12,11 @@
 
 'use client';
 
-import { useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Eye, EyeOff, Building2, User, Lock, ArrowRight, XCircle } from 'lucide-react';
 
 import type { NexoraClientError } from '@data/errors/nexora-error';
-import { ParticleField } from '@design/login/planet-orbit';
-import { NxAppBackdrop } from '@design/layout/NxAppBackdrop';
-import { PlanetSlot } from '@design/home/SharedPlanetRoot';
+import { PlanetSlot, usePlanet } from '@design/home/SharedPlanetRoot';
 
 /** 表單欄位（含 rememberMe UI slot、邏輯層目前 noop） */
 export type LoginFields = {
@@ -71,6 +69,17 @@ export function LoginPageView({
   });
   const [showPassword, setShowPassword] = useState(false);
 
+  // 進場淡入：登出回 /login 時等星球飛到 login slot 再顯示文字內容、避免「星球還在飛、字已經出來」
+  // 直接打 /login（非從 dashboard 登出）時 isFlying=false、即刻顯示
+  // lazy init 讀星球當前狀態決定初值、避免「先顯示再隱藏」的閃爍
+  const { isFlying } = usePlanet();
+  const [contentReady, setContentReady] = useState(() => !isFlying());
+  useEffect(() => {
+    if (contentReady) return;
+    const t = setTimeout(() => setContentReady(true), 950);
+    return () => clearTimeout(t);
+  }, [contentReady]);
+
   const canSubmit = useMemo(() => {
     if (isSubmitting) return false;
     if (!formData.companyAccount.trim()) return false;
@@ -85,13 +94,13 @@ export function LoginPageView({
         isLeaving ? 'opacity-0 scale-[0.96]' : 'opacity-100 scale-100'
       }`}
     >
-      {/* 兩主題底色 backdrop（與全 app 一致、跨登入/dashboard 連續） */}
-      <NxAppBackdrop />
-      <div className="login-stars absolute inset-0 z-0">
-        <ParticleField className="w-full h-full" />
-      </div>
+      {/* 底色 backdrop + 互動層（深色粒子 / 淺色六角凸出）由 root layout 統一掛、本層不重 mount */}
 
-      <div className="relative z-10 h-full flex flex-col lg:min-h-screen lg:flex-row">
+      <div
+        className={`relative z-10 h-full flex flex-col lg:min-h-screen lg:flex-row transition-opacity duration-500 ease-out ${
+          contentReady ? 'opacity-100' : 'opacity-0'
+        }`}
+      >
         {/* Mobile：品牌字 NEXORA + GRID + amber kicker 線條 */}
         <div className="lg:hidden shrink-0 flex flex-col items-center pt-4 pb-1 px-6">
           <div className="flex items-center gap-3 mb-2">

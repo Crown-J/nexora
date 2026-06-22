@@ -10,9 +10,27 @@
 
 import {
   createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState,
+  useSyncExternalStore,
   type ReactNode,
 } from 'react';
 import { usePathname } from 'next/navigation';
+
+// 監聽 html.light class、給星球球體 / 衛星等需要跟主題切色票的元件用
+function subscribeLight(cb: () => void): () => void {
+  if (typeof document === 'undefined') return () => {};
+  const obs = new MutationObserver(cb);
+  obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+  return () => obs.disconnect();
+}
+function getLight(): boolean {
+  return typeof document !== 'undefined' && document.documentElement.classList.contains('light');
+}
+function getLightServer(): boolean {
+  return false;
+}
+function useIsLight(): boolean {
+  return useSyncExternalStore(subscribeLight, getLight, getLightServer);
+}
 
 // 支援同 id 多 element（LoginPage mobile + desktop 兩處都用 login slot、依 viewport 顯示一個）
 type SlotMap = Record<string, HTMLElement[]>;
@@ -146,6 +164,8 @@ type PlanetCtx = {
   flyToCenter: (durationMs?: number) => Promise<void>;
   /** 第二段：飛到指定 slot rect、預設 .95s easing；TopBar slot 自動放大 ×2 */
   flyTo: (slotId: string, durationMs?: number) => Promise<void>;
+  /** 當前是否星球飛行中（登入頁進場用：判斷是否要等星球定位再淡入內容）*/
+  isFlying: () => boolean;
 };
 
 const Ctx = createContext<PlanetCtx | null>(null);
@@ -158,6 +178,7 @@ export function usePlanet(): PlanetCtx {
       registerSlot: () => () => {},
       flyToCenter: async () => {},
       flyTo: async () => {},
+      isFlying: () => false,
     };
   }
   return c;
@@ -181,6 +202,7 @@ function PlanetSVG({ uid }: { uid: string }) {
   const layerRef = useRef<SVGGElement>(null);
   const reduce = typeof window !== 'undefined'
     && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const light = useIsLight();
 
   // hexwave 漣漪：mount 後注入 SVG circles + CSS animation
   useEffect(() => {
@@ -220,11 +242,23 @@ function PlanetSVG({ uid }: { uid: string }) {
     <svg className="nx-sp-sphere-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <radialGradient id={M} cx="38%" cy="33%" r="64%">
-          <stop offset="0" stopColor="#d6dbe3" />
-          <stop offset=".34" stopColor="#9aa0ab" />
-          <stop offset=".62" stopColor="#5e646e" />
-          <stop offset=".86" stopColor="#363c45" />
-          <stop offset="1" stopColor="#242a33" />
+          {light ? (
+            <>
+              <stop offset="0" stopColor="#ffffff" />
+              <stop offset=".34" stopColor="#f7f9fc" />
+              <stop offset=".62" stopColor="#e6ebf2" />
+              <stop offset=".86" stopColor="#cdd4de" />
+              <stop offset="1" stopColor="#b6bdc8" />
+            </>
+          ) : (
+            <>
+              <stop offset="0" stopColor="#d6dbe3" />
+              <stop offset=".34" stopColor="#9aa0ab" />
+              <stop offset=".62" stopColor="#5e646e" />
+              <stop offset=".86" stopColor="#363c45" />
+              <stop offset="1" stopColor="#242a33" />
+            </>
+          )}
         </radialGradient>
         <radialGradient id={S} cx="38%" cy="33%" r="66%">
           <stop offset=".5" stopColor="rgba(0,0,0,0)" />
@@ -232,13 +266,13 @@ function PlanetSVG({ uid }: { uid: string }) {
           <stop offset="1" stopColor="rgba(8,10,14,.5)" />
         </radialGradient>
         <radialGradient id={C} cx="50%" cy="50%" r="50%">
-          <stop offset="0" stopColor="#fff8e6" />
-          <stop offset=".34" stopColor="#ffd368" />
-          <stop offset=".68" stopColor="#f4a92a" />
-          <stop offset="1" stopColor="rgba(180,110,10,0)" />
+          <stop offset="0" stopColor="#fff0dc" />
+          <stop offset=".34" stopColor="#ffae52" />
+          <stop offset=".68" stopColor="#e88424" />
+          <stop offset="1" stopColor="rgba(180,90,10,0)" />
         </radialGradient>
         <radialGradient id={CH} cx="50%" cy="50%" r="50%">
-          <stop offset="0" stopColor="rgba(255,210,110,.6)" />
+          <stop offset="0" stopColor="rgba(255,210,110,.4)" />
           <stop offset="1" stopColor="rgba(244,170,40,0)" />
         </radialGradient>
         <radialGradient id={FA} cx="50%" cy="50%" r="50%">
@@ -280,10 +314,10 @@ function PlanetSVG({ uid }: { uid: string }) {
         <circle cx="100" cy="100" r="99" fill={`url(#${S})`} />
         {/* hexwave 漣漪動態注入 */}
         <g ref={layerRef} />
-        {/* core halo 3.8s 呼吸 */}
-        <circle cx="100" cy="100" r="42" fill={`url(#${CH})`}>
+        {/* core halo 3.8s 呼吸（縮小 + 降亮：避免淹蓋反應爐中心）*/}
+        <circle cx="100" cy="100" r="24" fill={`url(#${CH})`}>
           {!reduce && (
-            <animate attributeName="opacity" values=".55;.95;.55" dur="3.8s" repeatCount="indefinite" />
+            <animate attributeName="opacity" values=".3;.55;.3" dur="3.8s" repeatCount="indefinite" />
           )}
         </circle>
         {/* reactor core 3.8s 半徑跳動 */}
@@ -412,10 +446,13 @@ export function SharedPlanetRoot({ children }: { children: ReactNode }) {
     modeRef.current = 'idle';
   }, [placeAt]);
 
+  const isFlying = useCallback(() => modeRef.current === 'flight', []);
+
   const ctxValue: PlanetCtx = {
     registerSlot,
     flyToCenter,
     flyTo,
+    isFlying,
   };
 
   return (
@@ -427,8 +464,8 @@ export function SharedPlanetRoot({ children }: { children: ReactNode }) {
           50% { opacity: .95; transform: translate(-50%, -50%) scale(1.06); }
         }
         @keyframes nx-sp-breathe-core {
-          0%, 100% { opacity: .6; transform: translate(-50%, -50%) scale(.86); }
-          50% { opacity: 1; transform: translate(-50%, -50%) scale(1.12); }
+          0%, 100% { opacity: .4; transform: translate(-50%, -50%) scale(.86); }
+          50% { opacity: .72; transform: translate(-50%, -50%) scale(1.12); }
         }
         @keyframes nx-sp-hexwave {
           0%, 100% { opacity: 0; transform: scale(.85); }
@@ -452,6 +489,9 @@ export function SharedPlanetRoot({ children }: { children: ReactNode }) {
           z-index: 60;
           pointer-events: none;
           will-change: transform;
+          /* TopBar dock 縮到 ~0.18x、複雜 SVG + box-shadow 下採樣易破、強制 GPU 合成層 */
+          backface-visibility: hidden;
+          -webkit-backface-visibility: hidden;
         }
         /* 修正：原 inset:0 + translate(-50%,-50%) keyframe 撞、halo 被推到左上角。
            改回 left/top 50% + width/height 62% 的 Hana .halo-outer 範式、translate 才會正確置中。
@@ -487,6 +527,8 @@ export function SharedPlanetRoot({ children }: { children: ReactNode }) {
           inset: 0;
           width: 100%;
           height: 100%;
+          /* TopBar dock 小尺寸下強制矢量精度、避免 hex 紋理被拉糊 */
+          shape-rendering: geometricPrecision;
         }
         .nx-sp-spec {
           position: absolute;
@@ -500,18 +542,18 @@ export function SharedPlanetRoot({ children }: { children: ReactNode }) {
           position: absolute;
           left: 50%;
           top: 50%;
-          width: 24%;
-          height: 24%;
+          width: 14%;
+          height: 14%;
           transform: translate(-50%, -50%);
           z-index: 4;
           border-radius: 50%;
           pointer-events: none;
           mix-blend-mode: screen;
-          background: radial-gradient(circle, #fff7e2 0%, #ffd368 26%, #f4a92a 50%, rgba(180,110,10,0) 76%);
-          box-shadow: 0 0 22px 4px rgba(244,170,40,.6);
+          background: radial-gradient(circle, #fff0dc 0%, #ffae52 26%, #e88424 50%, rgba(180,90,10,0) 76%);
+          box-shadow: 0 0 10px 1px rgba(232,132,36,.32);
           animation: nx-sp-breathe-core 3.8s ease-in-out infinite;
         }
-        /* 三顆守護衛星樣式 */
+        /* 三顆守護衛星樣式（深色：銀白 / 淺色：橘 — 銀白白底會看不到）*/
         .nx-sp-satdot {
           position: absolute;
           left: 50%;
@@ -525,6 +567,10 @@ export function SharedPlanetRoot({ children }: { children: ReactNode }) {
           background: radial-gradient(circle at 38% 36%, #ffffff, #dfe4ec 46%, #9aa2af 100%);
           box-shadow: 0 0 10px 2px rgba(222,232,246,.9), 0 0 22px 5px rgba(180,200,232,.42);
           transition: opacity .4s ease;
+        }
+        html.light .nx-sp-satdot {
+          background: radial-gradient(circle at 38% 36%, #fff2dc, #ffae52 46%, #d56712 100%);
+          box-shadow: 0 0 10px 2px rgba(255,180,90,.85), 0 0 22px 5px rgba(232,116,42,.45);
         }
         @media (prefers-reduced-motion: reduce) {
           .nx-sp-halo, .nx-sp-reactor { animation: none; }

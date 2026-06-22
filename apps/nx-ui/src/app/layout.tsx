@@ -16,6 +16,7 @@ import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { NxPaletteHydration } from '@design/theme/NxPaletteHydration';
 import { PwaRegister } from '@design/framework/pwa-register';
+import { NxAppBackdrop } from '@design/layout/NxAppBackdrop';
 import { SharedPlanetRoot } from '@design/home/SharedPlanetRoot';
 import '@design/styles/globals.css';
 
@@ -83,6 +84,8 @@ export default function RootLayout({
       >
         <PwaRegister />
         <NxPaletteHydration />
+        {/* 全 app 共用底色 backdrop：root layout 掛一次、跨路由不重 mount、避免切頁瞬間露 body bg */}
+        <NxAppBackdrop />
         {/* NX00 單一星球 + Provider：在 login 與 TopBar slot 之間飛行（對齊 Hana A/B 段轉場） */}
         <SharedPlanetRoot>{children}</SharedPlanetRoot>
       </body>

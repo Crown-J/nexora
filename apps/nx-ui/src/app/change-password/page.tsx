@@ -44,7 +44,7 @@ export default function ChangePasswordPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-6">
+    <div className="relative z-[70] flex min-h-screen items-center justify-center bg-background p-6">
       <div className="w-full max-w-md rounded-lg border bg-card p-8 shadow-lg">
         <header className="space-y-2">
           <h1 className="text-2xl font-bold">⚠️ 首次登入、請改密碼</h1>
