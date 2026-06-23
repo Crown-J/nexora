@@ -15,6 +15,7 @@ import {
 } from 'recharts';
 
 import { cn } from '@design/utils/cn';
+import { FadeInOnScroll } from '@design/motion/gsap';
 import { getPoStats, getPriceCompare, getSupplierGrade } from '@data/endpoints/nx08/api';
 import { useExportExcel } from '@/features/nx08/hooks/useExportExcel';
 
@@ -136,9 +137,10 @@ export function PurchaseReport() {
         </div>
       ) : null}
 
+      <FadeInOnScroll className="space-y-6" triggerKey={`${!!poStats}-${!!supplierGrade}-${!!priceCompare}`}>
       {/* PO 狀態統計 */}
       {poStats ? (
-        <section className="space-y-3">
+        <section data-fade className="space-y-3">
           <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#888892]">採購單統計</h2>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <StatCard
@@ -181,7 +183,7 @@ export function PurchaseReport() {
 
       {/* 供應商排行 */}
       {supplierGrade && supplierGrade.topSuppliers?.length > 0 ? (
-        <section className="space-y-3">
+        <section data-fade className="space-y-3">
           <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#888892]">
             供應商排行（{supplierGrade.period}）
           </h2>
@@ -240,7 +242,7 @@ export function PurchaseReport() {
 
       {/* 比價分析 */}
       {priceCompare && priceCompare.items?.length > 0 ? (
-        <section className="space-y-3">
+        <section data-fade className="space-y-3">
           <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#888892]">
             比價分析（樣本 {priceCompare.sampleSize}）
           </h2>
@@ -300,6 +302,7 @@ export function PurchaseReport() {
           尚無進貨資料
         </div>
       ) : null}
+      </FadeInOnScroll>
     </div>
   );
 }

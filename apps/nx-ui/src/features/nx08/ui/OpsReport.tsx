@@ -19,6 +19,7 @@ import {
 } from 'recharts';
 
 import { cn } from '@design/utils/cn';
+import { FadeInOnScroll } from '@design/motion/gsap';
 import {
   getBcgMatrix,
   getDeptPerf,
@@ -190,25 +191,32 @@ export function OpsReport() {
         </div>
       ) : null}
 
+      <FadeInOnScroll className="space-y-6" triggerKey={`${!!dept}-${!!kpi}-${!!bcg}`}>
       {/* 全公司 4 KPI */}
-      <section className="space-y-2">
+      <section data-fade className="space-y-2">
         <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#888892]">全公司指標</h2>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
           <KpiCard
             label="部門數"
-            value={String(dept?.depts?.length ?? 0)}
+            numericValue={dept?.depts?.length ?? 0}
             hint="有業績的部門"
           />
-          <KpiCard label="部門業績合計" value={fmtMoney(totalDeptAmount)} tone="amber" />
+          <KpiCard
+            label="部門業績合計"
+            numericValue={totalDeptAmount}
+            format={fmtMoney}
+            tone="amber"
+          />
           <KpiCard
             label="KPI 平均達成"
-            value={`${kpiAvgAchieve.toFixed(1)}%`}
+            numericValue={kpiAvgAchieve}
+            format={(n) => `${n.toFixed(1)}%`}
             tone={kpiAvgAchieve >= 100 ? 'green' : kpiAvgAchieve >= 80 ? 'amber' : 'red'}
             hint={`共 ${kpi?.items?.length ?? 0} 人`}
           />
           <KpiCard
             label="商品定位"
-            value={String(bcg?.items?.length ?? 0)}
+            numericValue={bcg?.items?.length ?? 0}
             hint="BCG matrix 已分類"
             tone="muted"
           />
@@ -217,7 +225,7 @@ export function OpsReport() {
 
       {/* 部門業績 */}
       {dept?.depts && dept.depts.length > 0 ? (
-        <section className="space-y-3">
+        <section data-fade className="space-y-3">
           <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#888892]">部門業績排行</h2>
           <ChartWrapper title="部門總業績" height={260}>
             <ResponsiveContainer width="100%" height="100%">
@@ -243,7 +251,7 @@ export function OpsReport() {
 
       {/* KPI 達成 */}
       {kpi?.items && kpi.items.length > 0 ? (
-        <section className="space-y-3">
+        <section data-fade className="space-y-3">
           <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#888892]">員工 KPI 達成率</h2>
           <ResponsiveTable
             columns={[
@@ -302,7 +310,7 @@ export function OpsReport() {
 
       {/* BCG matrix */}
       {bcg?.items && bcg.items.length > 0 ? (
-        <section className="space-y-3">
+        <section data-fade className="space-y-3">
           <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#888892]">
             BCG 商品定位（市佔 × 成長率）
           </h2>
@@ -373,6 +381,7 @@ export function OpsReport() {
           目前無營運資料
         </div>
       ) : null}
+      </FadeInOnScroll>
     </div>
   );
 }

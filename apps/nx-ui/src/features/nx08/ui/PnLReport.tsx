@@ -15,6 +15,7 @@ import {
 } from 'recharts';
 
 import { cn } from '@design/utils/cn';
+import { FadeInOnScroll } from '@design/motion/gsap';
 import { getPnL, type PnL } from '@data/endpoints/nx08/api';
 import { useExportExcel } from '@/features/nx08/hooks/useExportExcel';
 
@@ -123,17 +124,36 @@ export function PnLReport() {
       <PeriodPicker value={period} onChange={setPeriod} />
 
       {data ? (
-        <>
+        <FadeInOnScroll className="space-y-6">
           {/* 三大數字 KPI */}
-          <section className="space-y-2">
+          <section data-fade className="space-y-2">
             <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#888892]">關鍵指標</h2>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
-              <KpiCard label="銷貨淨額" value={fmtMoney(data.revenue.net)} tone="amber" hint="銷貨 − 銷退" />
-              <KpiCard label="毛利" value={fmtMoney(data.grossProfit)} tone="green" hint={`毛利率 ${gm.toFixed(1)}%`} />
-              <KpiCard label="營業費用" value={fmtMoney(data.opex.total)} tone="red" hint="費用合計" />
+              <KpiCard
+                label="銷貨淨額"
+                numericValue={Number(data.revenue.net) || 0}
+                format={fmtMoney}
+                tone="amber"
+                hint="銷貨 − 銷退"
+              />
+              <KpiCard
+                label="毛利"
+                numericValue={Number(data.grossProfit) || 0}
+                format={fmtMoney}
+                tone="green"
+                hint={`毛利率 ${gm.toFixed(1)}%`}
+              />
+              <KpiCard
+                label="營業費用"
+                numericValue={Number(data.opex.total) || 0}
+                format={fmtMoney}
+                tone="red"
+                hint="費用合計"
+              />
               <KpiCard
                 label="營業淨利"
-                value={fmtMoney(operatingIncome)}
+                numericValue={operatingIncome}
+                format={fmtMoney}
                 tone={operatingIncome >= 0 ? 'green' : 'red'}
                 hint={`淨利率 ${op.toFixed(1)}%`}
               />
@@ -141,7 +161,7 @@ export function PnLReport() {
           </section>
 
           {/* 損益表結構（瀑布視覺） */}
-          <section className="space-y-3">
+          <section data-fade className="space-y-3">
             <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#888892]">損益結構</h2>
             <ChartWrapper title="收入 → 毛利 → 淨利" height={280}>
               <ResponsiveContainer width="100%" height="100%">
@@ -166,7 +186,7 @@ export function PnLReport() {
           </section>
 
           {/* 表格式損益表（會計師看法） */}
-          <section className="space-y-3">
+          <section data-fade className="space-y-3">
             <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#888892]">損益表（會計式）</h2>
             <div className="overflow-hidden rounded-md border border-[#2A2A30]">
               <table className="w-full text-[11px] sm:text-xs">
@@ -231,7 +251,7 @@ export function PnLReport() {
 
           {/* 費用明細（按 5xxx 會計科目） */}
           {data.opex.detail && data.opex.detail.length > 0 ? (
-            <section className="space-y-3">
+            <section data-fade className="space-y-3">
               <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#888892]">
                 費用明細（按會計科目、排除 5100 銷貨成本）
               </h2>
@@ -269,7 +289,7 @@ export function PnLReport() {
           ) : null}
 
           <p className="text-[10px] text-[#5A5A60]">{data.note}</p>
-        </>
+        </FadeInOnScroll>
       ) : loading ? (
         <div className="py-12 text-center text-xs text-[#5A5A60]">載入中...</div>
       ) : null}

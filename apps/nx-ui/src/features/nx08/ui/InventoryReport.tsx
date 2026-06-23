@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { AlertTriangle, Boxes, RefreshCw, Timer } from 'lucide-react';
 
 import { cn } from '@design/utils/cn';
+import { FadeInOnScroll } from '@design/motion/gsap';
 import {
   getDormantParts,
   getInventoryTurnover,
@@ -131,8 +132,12 @@ export function InventoryReport() {
         </div>
       ) : null}
 
+      <FadeInOnScroll
+        className="space-y-6"
+        triggerKey={`${tab}-${!!turnover}-${!!dormant}-${!!lowStock}`}
+      >
       {/* 摘要 3 卡 */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div data-fade className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <StatCard label="週轉品項" value={String(turnoverCount)} hint="近期有出貨" tone="green" />
         <StatCard label="呆滯品項" value={String(dormantCount)} hint=">90 天無動向" tone="amber" />
         <StatCard label="低庫存警報" value={String(lowStockCount)} hint="低於安全庫存" tone="red" />
@@ -170,7 +175,7 @@ export function InventoryReport() {
 
       {/* 週轉明細 */}
       {tab === 'turnover' && turnover ? (
-        <section className="space-y-3">
+        <section data-fade className="space-y-3">
           <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#888892]">
             庫存週轉率 {turnover.period ? `（${turnover.period}）` : ''}
           </h2>
@@ -227,7 +232,7 @@ export function InventoryReport() {
 
       {/* 呆滯品 */}
       {tab === 'dormant' && dormant ? (
-        <section className="space-y-3">
+        <section data-fade className="space-y-3">
           <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#888892]">呆滯品（建議處置）</h2>
           <ResponsiveTable
             columns={[
@@ -277,7 +282,7 @@ export function InventoryReport() {
 
       {/* 低庫存警報 */}
       {tab === 'lowStock' && lowStock ? (
-        <section className="space-y-3">
+        <section data-fade className="space-y-3">
           <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#888892]">低庫存警報</h2>
           {(lowStock.items ?? []).length > 0 ? (
             <div className="rounded-md border border-[#E26060]/30 bg-[#E26060]/8 px-3 py-2 text-xs text-[#E26060]">
@@ -335,6 +340,7 @@ export function InventoryReport() {
           </p>
         </section>
       ) : null}
+      </FadeInOnScroll>
     </div>
   );
 }

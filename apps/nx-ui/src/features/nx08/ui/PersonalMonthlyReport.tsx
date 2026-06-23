@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { RefreshCw, User } from 'lucide-react';
 
 import { cn } from '@design/utils/cn';
+import { FadeInOnScroll } from '@design/motion/gsap';
 import {
   getPersonalMonthlyReport,
   listUsersForReport,
@@ -163,9 +164,9 @@ export function PersonalMonthlyReportView() {
       </div>
 
       {data ? (
-        <>
+        <FadeInOnScroll className="space-y-6">
           {/* 業績兩卡：銷貨額 + 毛利 */}
-          <section className="space-y-2">
+          <section data-fade className="space-y-2">
             <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#888892]">業績</h2>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
               <KpiCard
@@ -204,7 +205,7 @@ export function PersonalMonthlyReportView() {
           </section>
 
           {/* 開單數 3 卡 */}
-          <section className="space-y-2">
+          <section data-fade className="space-y-2">
             <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#888892]">開單數</h2>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <StatCard label="銷貨單 SO" value={String(data.orderCounts.so)} tone="green" />
@@ -214,7 +215,7 @@ export function PersonalMonthlyReportView() {
           </section>
 
           {/* 工作量 3 卡 */}
-          <section className="space-y-2">
+          <section data-fade className="space-y-2">
             <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#888892]">工作量</h2>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <StatCard
@@ -237,7 +238,7 @@ export function PersonalMonthlyReportView() {
           </section>
 
           <p className="text-[10px] text-[#5A5A60]">{data.note}</p>
-        </>
+        </FadeInOnScroll>
       ) : loading ? (
         <div className="py-12 text-center text-xs text-[#5A5A60]">載入中...</div>
       ) : null}

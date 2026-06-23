@@ -19,6 +19,8 @@ type Props = {
   stagger?: number;
   /** ScrollTrigger start 預設 'top 85%' */
   start?: string;
+  /** 變更時重新掃描；async-loaded 內容到位後觸發 batch 重建 */
+  triggerKey?: string | number;
   className?: string;
 };
 
@@ -29,6 +31,7 @@ export function FadeInOnScroll({
   duration = DURATION.slow,
   stagger = STAGGER.relaxed,
   start = 'top 85%',
+  triggerKey,
   className,
 }: Props) {
   const ref = useRef<HTMLDivElement>(null);
@@ -71,7 +74,7 @@ export function FadeInOnScroll({
       );
       return () => mm.revert();
     },
-    { scope: ref, dependencies: [selector, y, duration, stagger, start] },
+    { scope: ref, dependencies: [selector, y, duration, stagger, start, triggerKey], revertOnUpdate: true },
   );
 
   return (

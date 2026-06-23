@@ -15,6 +15,7 @@ import {
 } from 'recharts';
 
 import { cn } from '@design/utils/cn';
+import { FadeInOnScroll } from '@design/motion/gsap';
 import {
   getCustomerInsight,
   getProductSales,
@@ -178,9 +179,13 @@ export function SalesReport() {
         ))}
       </div>
 
+      <FadeInOnScroll
+        className="space-y-6"
+        triggerKey={`${angle}-${!!productData}-${!!customerData}-${!!employeeData}`}
+      >
       {/* 產品角度 */}
       {angle === 'product' && productData ? (
-        <section className="space-y-3">
+        <section data-fade className="space-y-3">
           <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#888892]">
             產品銷售排行（{productData.period}、Top 10）
           </h2>
@@ -257,7 +262,7 @@ export function SalesReport() {
 
       {/* 客戶角度（VIP + 流失預警） */}
       {angle === 'customer' && customerData ? (
-        <section className="space-y-3">
+        <section data-fade className="space-y-3">
           <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#888892]">客戶分析</h2>
           {customerData.vipCustomers && customerData.vipCustomers.length > 0 ? (
             <ChartWrapper title="VIP 客戶（採購金額 Top）" height={260}>
@@ -305,7 +310,7 @@ export function SalesReport() {
 
       {/* 員工角度（銷售排行） */}
       {angle === 'employee' && employeeData ? (
-        <section className="space-y-3">
+        <section data-fade className="space-y-3">
           <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#888892]">員工業績排行</h2>
           {employeeData.rankings && employeeData.rankings.length > 0 ? (
             <>
@@ -361,6 +366,7 @@ export function SalesReport() {
       {loading ? (
         <div className="py-12 text-center text-xs text-[#5A5A60]">載入中...</div>
       ) : null}
+      </FadeInOnScroll>
     </div>
   );
 }
