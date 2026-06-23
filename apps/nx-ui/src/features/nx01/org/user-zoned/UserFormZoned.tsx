@@ -287,6 +287,30 @@ export function UserFormZoned({
       return wrap(<FormField label={f.label} value={labelText || '—'} />);
     }
 
+    // gender 特殊：dropdown 顯示「男/女/其他」、底層仍 M/F/O
+    if (f.key === 'gender') {
+      const value = String(draft[f.key] ?? '');
+      const display =
+        value === 'M' ? '男' : value === 'F' ? '女' : value === 'O' ? '其他' : '—';
+      if (fieldEditable) {
+        return wrap(
+          <FieldShell label={f.label}>
+            <select
+              className="h-9 w-full rounded-md border border-[#E8A020]/30 bg-[var(--nx-surface-input)] px-2.5 text-sm text-foreground outline-none focus:border-[#E8A020]/60 focus:ring-1 focus:ring-[#E8A020]/40"
+              value={value}
+              onChange={(e) => setDraft({ ...draft, [f.key]: e.target.value })}
+            >
+              <option value="">（未指定）</option>
+              <option value="M">男</option>
+              <option value="F">女</option>
+              <option value="O">其他</option>
+            </select>
+          </FieldShell>,
+        );
+      }
+      return wrap(<FormField label={f.label} value={display} />);
+    }
+
     // countryId 特殊：ref dropdown（空白=台灣預設、其他選單列國家清單）
     if (f.key === 'countryId') {
       const value = String(draft[f.key] ?? '');
@@ -406,13 +430,10 @@ export function UserFormZoned({
 
   return (
     <div className="grid gap-4 lg:[grid-template-columns:180px_minmax(0,1fr)]">
-      {/* ─── 左欄：大頭照 ─── */}
+      {/* ─── 左欄：大頭照（執行長 2026-06-23 拍板：無標題無外框）─── */}
       <div>
         {!creating && selectedUserId ? (
-          <div className="rounded-lg border border-border/60 bg-card p-4">
-            <SectionTitle title="大頭照" />
-            <UserPhotoInline userId={selectedUserId} initialHasPhoto={selectedHasPhoto} />
-          </div>
+          <UserPhotoInline userId={selectedUserId} initialHasPhoto={selectedHasPhoto} />
         ) : null}
       </div>
 
@@ -467,23 +488,27 @@ export function UserFormZoned({
             {renderField('legacyCode')}
             {renderField('userName')}
             {renderField('userNameEn')}
-            {/* 性別 / 生日 / 身分證 3 欄各 125px（國籍移到地址 picker 內、執行長 2026-06-23 拍板）*/}
+            {/* 性別 125 / 生日 250 / 身分證 250（執行長 2026-06-23 拍板）*/}
             <div
               className="col-span-full grid gap-3"
-              style={{ gridTemplateColumns: 'repeat(3, 125px)' }}
+              style={{ gridTemplateColumns: '125px 250px 250px' }}
             >
               {renderField('gender')}
               {renderField('birthday')}
               {renderField('nationalId')}
             </div>
             {renderField('email')}
-            {renderField('phone')}
-            <div className="col-span-full">
-              <UserAddressSection editing={editing} draft={draft} setDraft={setDraft} />
+            {/* 電話 + 緊急聯絡 3 欄（執行長拍板「緊急聯絡放電話右邊」、關係 125px）*/}
+            <div
+              className="col-span-full grid gap-3"
+              style={{ gridTemplateColumns: '250px 250px 125px 250px' }}
+            >
+              {renderField('phone')}
+              {renderField('emergencyContact')}
+              {renderField('emergencyRelation')}
+              {renderField('emergencyPhone')}
             </div>
-            {renderField('emergencyContact')}
-            {renderField('emergencyRelation')}
-            {renderField('emergencyPhone')}
+            {/* 教育 + 到職離職（執行長拍板「移到信箱下方」）*/}
             {renderField('highestEducation')}
             {renderField('graduateSchool')}
             {renderField('militaryService')}
@@ -491,6 +516,9 @@ export function UserFormZoned({
             {renderField('healthCheckResult')}
             {renderField('hireDate')}
             {renderField('leftAt')}
+            <div className="col-span-full">
+              <UserAddressSection editing={editing} draft={draft} setDraft={setDraft} />
+            </div>
           </div>
         </div>
 
@@ -498,43 +526,29 @@ export function UserFormZoned({
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="rounded-lg border border-border/60 bg-card p-4">
             <SectionTitle title="職務" />
-            <div className="flex flex-col gap-3">
-              {renderField('departmentId')}
-              <TeamsInlineSection
-                editing={editing}
-                items={selectedUserTeams ?? []}
-                onOpenPicker={onOpenTeamPicker}
-                onSetPrimary={onSetTeamPrimary}
-                onToggleLeader={onToggleTeamLeader}
-                onRevoke={onRevokeTeam}
-              />
-              <RolesInlineSection
-                editing={editing}
-                items={selectedUserRoles ?? []}
-                stagedRemovedIds={stagedRemovedRoleIds ?? new Set()}
-                stagedAdded={stagedAddedRoles ?? []}
-                stagedPrimaryId={stagedPrimaryRoleId ?? null}
-                onOpenPicker={onOpenRolePicker}
-                onSetPrimary={onSetRolePrimary}
-                onRevoke={onRevokeRole}
-              />
-              {renderField('isTenantOwner')}
-            </div>
+            <RolesInlineSection
+              editing={editing}
+              items={selectedUserRoles ?? []}
+              stagedRemovedIds={stagedRemovedRoleIds ?? new Set()}
+              stagedAdded={stagedAddedRoles ?? []}
+              stagedPrimaryId={stagedPrimaryRoleId ?? null}
+              onOpenPicker={onOpenRolePicker}
+              onSetPrimary={onSetRolePrimary}
+              onRevoke={onRevokeRole}
+              primaryTeam={primaryTeam}
+            />
           </div>
 
           <div className="rounded-lg border border-border/60 bg-card p-4">
             <SectionTitle title="隸屬據點" />
-            <div className="flex flex-col gap-3">
-              {renderField('primarySiteId')}
-              <WarehousesInlineSection
-                editing={editing}
-                items={selectedUserWarehouses ?? []}
-                stagedRemovedIds={stagedRemovedWarehouseIds ?? new Set()}
-                stagedAdded={stagedAddedWarehouses ?? []}
-                onOpenPicker={onOpenWarehousePicker}
-                onRevoke={onRevokeWarehouse}
-              />
-            </div>
+            <WarehousesInlineSection
+              editing={editing}
+              items={selectedUserWarehouses ?? []}
+              stagedRemovedIds={stagedRemovedWarehouseIds ?? new Set()}
+              stagedAdded={stagedAddedWarehouses ?? []}
+              onOpenPicker={onOpenWarehousePicker}
+              onRevoke={onRevokeWarehouse}
+            />
           </div>
         </div>
 
@@ -874,8 +888,9 @@ function RolesInlineSection({
   stagedAdded,
   stagedPrimaryId,
   onOpenPicker,
-  onSetPrimary,
+  onSetPrimary: _onSetPrimary,
   onRevoke,
+  primaryTeam,
 }: {
   editing: boolean;
   items: UserRoleDto[];
@@ -885,6 +900,8 @@ function RolesInlineSection({
   onOpenPicker?: () => void;
   onSetPrimary?: (role: UserRoleDto) => void;
   onRevoke?: (role: UserRoleDto) => void;
+  /** 2026-06-23：員工主組（卡片顯示「部門 / 組別」用、執行長拍板卡片設計）*/
+  primaryTeam?: UserTeamDto | null;
 }) {
   // 計算當前「有效」 primary：有 staged 則用 staged、否則用 existing.isPrimary
   const effectivePrimaryId =
@@ -892,17 +909,15 @@ function RolesInlineSection({
   const visibleItems = items.filter((r) => !stagedRemovedIds.has(r.id));
   const totalActive = visibleItems.length + stagedAdded.length;
 
+  const deptText = primaryTeam?.departmentName ?? '—';
+  const teamText = primaryTeam?.teamName ?? '—';
+
   return (
-    <div className="rounded-md border border-border/60 bg-muted/30">
-      <div className="flex items-center justify-between border-b border-border/60 px-3 py-2">
-        <div>
-          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground">
-            擔任職務
-          </span>
-          <span className="ml-2 rounded bg-muted px-1.5 py-0.5 text-[10px] text-foreground/80">
-            {totalActive} 筆
-          </span>
-        </div>
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground">
+          職務（{totalActive}）
+        </span>
         {editing && onOpenPicker ? (
           <button
             type="button"
@@ -910,96 +925,104 @@ function RolesInlineSection({
             data-formchain="1"
             className="inline-flex h-7 items-center gap-1 rounded-md border border-[#E8A020]/40 bg-[#E8A020]/12 px-2.5 text-[11px] font-medium text-[#E8A020] hover:bg-[#E8A020]/20"
           >
-            設定職務
+            ＋ 新增職務
           </button>
         ) : null}
       </div>
-      <div className="px-3 py-2.5">
-        {totalActive === 0 ? (
-          <div className="text-xs text-muted-foreground">尚未指派職務</div>
-        ) : (
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
-                <th className="py-1.5 pr-3">職務代碼</th>
-                <th className="py-1.5 pr-3">職務名稱</th>
-                <th className="py-1.5 pr-3">主要</th>
-                <th className="py-1.5 pr-3">指派時間</th>
-                {editing ? <th className="py-1.5">操作</th> : null}
-              </tr>
-            </thead>
-            <tbody>
-              {visibleItems.map((ur) => {
-                const isPrimary = ur.id === effectivePrimaryId;
-                return (
-                  <tr key={ur.id} className="border-t border-border/40">
-                    <td className="py-1.5 pr-3 font-mono text-muted-foreground">{ur.roleCode ?? '—'}</td>
-                    <td className="py-1.5 pr-3">{ur.roleName ?? '—'}</td>
-                    <td className="py-1.5 pr-3">
-                      {isPrimary ? (
-                        <span className="rounded border border-[#E8A020]/40 bg-[#E8A020]/10 px-1.5 py-0.5 text-[10px] text-[#E8A020]">
-                          主要
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </td>
-                    <td className="py-1.5 pr-3 text-muted-foreground">
-                      {ur.assignedAt ? formatDateTimeZh(ur.assignedAt) : '—'}
-                    </td>
-                    {editing ? (
-                      <td className="py-1.5">
-                        <div className="flex gap-1.5">
-                          <button
-                            type="button"
-                            disabled={isPrimary}
-                            onClick={() => onSetPrimary?.(ur)}
-                            title={isPrimary ? '已是主要職務' : '設為主要職務'}
-                            className={cn(
-                              'inline-flex h-6 items-center rounded-md border px-2 text-[10px] font-medium transition-colors',
-                              isPrimary
-                                ? 'cursor-not-allowed border-[#E8A020]/30 bg-[#E8A020]/8 text-[#E8A020]/60'
-                                : 'border-border/60 bg-[var(--nx-surface-input)] text-foreground/80 hover:border-[#E8A020]/40 hover:bg-[#E8A020]/10 hover:text-[#E8A020]',
-                            )}
-                          >
-                            {isPrimary ? '主要' : '設為主要'}
-                          </button>
-                          <button
-                            type="button"
-                            disabled={isPrimary}
-                            onClick={() => onRevoke?.(ur)}
-                            title={isPrimary ? '主要職務不可撤銷（請先指派其他主要）' : '撤銷此職務（軟刪除）'}
-                            className={cn(
-                              'inline-flex h-6 items-center rounded-md border px-2 text-[10px] font-medium transition-colors',
-                              isPrimary
-                                ? 'cursor-not-allowed border-border/40 bg-popover text-muted-foreground'
-                                : 'border-[#5A2A2A] bg-[#1F1212] text-[#C84A4A] hover:border-[#7A3A3A] hover:bg-[#2A1818] hover:text-[#E26060]',
-                            )}
-                          >
-                            撤銷
-                          </button>
-                        </div>
-                      </td>
-                    ) : null}
-                  </tr>
-                );
-              })}
-              {/* staged 新增（尚未存檔）以反向高亮顯示 */}
-              {stagedAdded.map((r) => (
-                <tr key={`staged-${r.id}`} className="border-t border-[#E8A020]/20 bg-[#E8A020]/5">
-                  <td className="py-1.5 pr-3 font-mono text-[#E8A020]">{r.code}</td>
-                  <td className="py-1.5 pr-3 text-[#E8A020]">{r.name}</td>
-                  <td className="py-1.5 pr-3 text-muted-foreground">—</td>
-                  <td className="py-1.5 pr-3 text-muted-foreground">（待存檔）</td>
-                  {editing ? (
-                    <td className="py-1.5 text-[10px] text-[#E8A020]">staged 新增</td>
-                  ) : null}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+      {totalActive === 0 ? (
+        <div className="text-xs text-muted-foreground">尚未指派職務</div>
+      ) : (
+        <div className="grid gap-2 sm:grid-cols-2">
+          {visibleItems.map((ur) => {
+            const isPrimary = ur.id === effectivePrimaryId;
+            return (
+              <RolePositionCard
+                key={ur.id}
+                department={deptText}
+                team={teamText}
+                roleName={ur.roleName ?? '—'}
+                assignedAt={ur.assignedAt}
+                isPrimary={isPrimary}
+                onRemove={editing && !isPrimary ? () => onRevoke?.(ur) : undefined}
+              />
+            );
+          })}
+          {stagedAdded.map((r) => (
+            <RolePositionCard
+              key={`staged-${r.id}`}
+              department={deptText}
+              team={teamText}
+              roleName={r.name}
+              assignedAt={null}
+              isPrimary={false}
+              staged
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// 2026-06-23 職務卡片（執行長拍板：部門 / 組別 / 職務 / 指派日期 + 右上「主要」）
+function RolePositionCard({
+  department,
+  team,
+  roleName,
+  assignedAt,
+  isPrimary,
+  onRemove,
+  staged,
+}: {
+  department: string;
+  team: string;
+  roleName: string;
+  assignedAt: string | null;
+  isPrimary: boolean;
+  onRemove?: () => void;
+  staged?: boolean;
+}) {
+  return (
+    <div
+      className={cn(
+        'relative rounded-md border bg-card p-2.5',
+        staged ? 'border-[#E8A020]/30 bg-[#E8A020]/5' : 'border-border/60',
+      )}
+    >
+      {isPrimary ? (
+        <span className="absolute right-1.5 top-1.5 rounded border border-[#E8A020]/45 bg-[#E8A020]/15 px-1.5 py-0.5 text-[10px] font-semibold text-[#E8A020]">
+          主要
+        </span>
+      ) : null}
+      <div className="space-y-0.5 pr-12 text-xs">
+        <div>
+          <span className="text-muted-foreground">部門：</span>
+          {department}
+        </div>
+        <div>
+          <span className="text-muted-foreground">組別：</span>
+          {team}
+        </div>
+        <div>
+          <span className="text-muted-foreground">職務：</span>
+          <span className="font-medium text-foreground">{roleName}</span>
+        </div>
+        <div>
+          <span className="text-muted-foreground">指派：</span>
+          <span className="font-mono text-[10.5px] text-foreground/75">
+            {assignedAt ? formatDateTimeZh(assignedAt) : staged ? '（待存檔）' : '—'}
+          </span>
+        </div>
       </div>
+      {onRemove ? (
+        <button
+          type="button"
+          onClick={onRemove}
+          className="absolute bottom-1.5 right-1.5 inline-flex h-6 items-center rounded-md border border-[#5A2A2A]/60 bg-[#1F1212] px-1.5 text-[10px] text-[#C84A4A] hover:bg-[#2A1818] hover:text-[#E26060]"
+        >
+          移除
+        </button>
+      ) : null}
     </div>
   );
 }
@@ -1023,16 +1046,11 @@ function WarehousesInlineSection({
   const totalActive = visibleItems.length + stagedAdded.length;
 
   return (
-    <div className="rounded-md border border-border/60 bg-muted/30">
-      <div className="flex items-center justify-between border-b border-border/60 px-3 py-2">
-        <div>
-          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground">
-            隸屬倉庫
-          </span>
-          <span className="ml-2 rounded bg-muted px-1.5 py-0.5 text-[10px] text-foreground/80">
-            {totalActive} 筆
-          </span>
-        </div>
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground">
+          隸屬倉庫（{totalActive}）
+        </span>
         {editing && onOpenPicker ? (
           <button
             type="button"
@@ -1040,59 +1058,93 @@ function WarehousesInlineSection({
             data-formchain="2"
             className="inline-flex h-7 items-center gap-1 rounded-md border border-[#E8A020]/40 bg-[#E8A020]/12 px-2.5 text-[11px] font-medium text-[#E8A020] hover:bg-[#E8A020]/20"
           >
-            設定據點
+            ＋ 新增據點
           </button>
         ) : null}
       </div>
-      <div className="px-3 py-2.5">
-        {totalActive === 0 ? (
-          <div className="text-xs text-muted-foreground">尚未指派倉庫據點</div>
-        ) : (
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
-                <th className="py-1.5 pr-3">倉庫代碼</th>
-                <th className="py-1.5 pr-3">倉庫名稱</th>
-                <th className="py-1.5 pr-3">指派時間</th>
-                {editing ? <th className="py-1.5">操作</th> : null}
-              </tr>
-            </thead>
-            <tbody>
-              {visibleItems.map((uw) => (
-                <tr key={uw.id} className="border-t border-border/40">
-                  <td className="py-1.5 pr-3 font-mono text-muted-foreground">{uw.warehouseCode ?? '—'}</td>
-                  <td className="py-1.5 pr-3">{uw.warehouseName ?? '—'}</td>
-                  <td className="py-1.5 pr-3 text-muted-foreground">
-                    {uw.assignedAt ? formatDateTimeZh(uw.assignedAt) : '—'}
-                  </td>
-                  {editing ? (
-                    <td className="py-1.5">
-                      <button
-                        type="button"
-                        onClick={() => onRevoke?.(uw)}
-                        title="撤銷此倉庫據點（軟刪除）"
-                        className="inline-flex h-6 items-center rounded-md border border-[#5A2A2A] bg-[#1F1212] px-2 text-[10px] font-medium text-[#C84A4A] hover:border-[#7A3A3A] hover:bg-[#2A1818] hover:text-[#E26060]"
-                      >
-                        撤銷
-                      </button>
-                    </td>
-                  ) : null}
-                </tr>
-              ))}
-              {stagedAdded.map((w) => (
-                <tr key={`staged-${w.id}`} className="border-t border-[#E8A020]/20 bg-[#E8A020]/5">
-                  <td className="py-1.5 pr-3 font-mono text-[#E8A020]">{w.code}</td>
-                  <td className="py-1.5 pr-3 text-[#E8A020]">{w.name}</td>
-                  <td className="py-1.5 pr-3 text-muted-foreground">（待存檔）</td>
-                  {editing ? (
-                    <td className="py-1.5 text-[10px] text-[#E8A020]">staged 新增</td>
-                  ) : null}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+      {totalActive === 0 ? (
+        <div className="text-xs text-muted-foreground">尚未指派倉庫據點</div>
+      ) : (
+        <div className="grid gap-2 sm:grid-cols-2">
+          {visibleItems.map((uw) => (
+            <WarehousePositionCard
+              key={uw.id}
+              code={uw.warehouseCode ?? '—'}
+              name={uw.warehouseName ?? '—'}
+              assignedAt={uw.assignedAt}
+              isPrimary={Boolean(uw.isPrimary)}
+              onRemove={editing && !uw.isPrimary ? () => onRevoke?.(uw) : undefined}
+            />
+          ))}
+          {stagedAdded.map((w) => (
+            <WarehousePositionCard
+              key={`staged-${w.id}`}
+              code={w.code}
+              name={w.name}
+              assignedAt={null}
+              isPrimary={false}
+              staged
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// 2026-06-23 據點卡片（執行長拍板：倉庫代碼/名稱/指派日期 + 右上「主要」）
+function WarehousePositionCard({
+  code,
+  name,
+  assignedAt,
+  isPrimary,
+  onRemove,
+  staged,
+}: {
+  code: string;
+  name: string;
+  assignedAt: string | null;
+  isPrimary: boolean;
+  onRemove?: () => void;
+  staged?: boolean;
+}) {
+  return (
+    <div
+      className={cn(
+        'relative rounded-md border bg-card p-2.5',
+        staged ? 'border-[#E8A020]/30 bg-[#E8A020]/5' : 'border-border/60',
+      )}
+    >
+      {isPrimary ? (
+        <span className="absolute right-1.5 top-1.5 rounded border border-[#E8A020]/45 bg-[#E8A020]/15 px-1.5 py-0.5 text-[10px] font-semibold text-[#E8A020]">
+          主要
+        </span>
+      ) : null}
+      <div className="space-y-0.5 pr-12 text-xs">
+        <div>
+          <span className="text-muted-foreground">代碼：</span>
+          <span className="font-mono text-foreground/85">{code}</span>
+        </div>
+        <div>
+          <span className="text-muted-foreground">倉庫：</span>
+          <span className="font-medium text-foreground">{name}</span>
+        </div>
+        <div>
+          <span className="text-muted-foreground">指派：</span>
+          <span className="font-mono text-[10.5px] text-foreground/75">
+            {assignedAt ? formatDateTimeZh(assignedAt) : staged ? '（待存檔）' : '—'}
+          </span>
+        </div>
       </div>
+      {onRemove ? (
+        <button
+          type="button"
+          onClick={onRemove}
+          className="absolute bottom-1.5 right-1.5 inline-flex h-6 items-center rounded-md border border-[#5A2A2A]/60 bg-[#1F1212] px-1.5 text-[10px] text-[#C84A4A] hover:bg-[#2A1818] hover:text-[#E26060]"
+        >
+          移除
+        </button>
+      ) : null}
     </div>
   );
 }
