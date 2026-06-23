@@ -8,6 +8,29 @@
 
 ---
 
+## 0. 主檔分級（2026-06-23 執行長拍板）
+
+22 主檔複雜度差異大、不該用同一範本：
+
+| 級別 | 形態 | 範本 | 主檔 |
+|---|---|---|---|
+| **L0 純查表** | 列表 inline edit row（無 detail tab） | `InlineEditMasterPage` (`features/nx01/shell/inline-master/`) | country / region / department / phonetic-dictionary（4 個已套、2026-06-23）+ 候選：model-type / drivetrain / part-relation / part-model |
+| **L1 名詞表** | 列表 + 右側抽屜 detail（drawer） | 未建（規劃中） | currency / team / role / customer-grade / supplier-grade / brand 候選 |
+| **L2 中型** | 單頁長表 + 1-2 衛星 inline | UserZonedPage 縮減版 | warehouse / site / brand / location |
+| **L3 重型** | UserZonedPage 完整 | UserZonedPage / PartnerMasterPage / PartZonedPage | user / partner / part |
+| **特殊** | 圖表 / matrix | 各自 page | org-structure / role-view / location-structure / supplier-supply / universal-group |
+
+### L0 InlineEditMasterPage 行為差異
+
+- 取消 list/detail Tab、永遠 list 視圖
+- row 雙擊 / Enter / Alt+E → 該 row in-place 變 input cells
+- Tab/Shift+Tab 跳欄、Enter 存、Esc 取消（dirty 3-way confirm）
+- A 新增 = 列頂插空白 editing row（非切到 detail tab）
+- 工具列：A / F / D / R / O / T、無批次選取 / 排序 dropdown / 篩選面板
+- 共用 EntityMasterConfig 不擴展、共用 entity-master/config.ts helper
+
+---
+
 ## 1. 視覺結構（由上到下）
 
 ```
