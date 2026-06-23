@@ -24,6 +24,7 @@ import Link from 'next/link';
 import type { LucideIcon } from 'lucide-react';
 
 import { cn } from '@design/utils/cn';
+import { gsap, useGSAP } from '@design/motion/gsap';
 
 export type DockItem = {
   id: string;
@@ -55,6 +56,7 @@ export function NexoraBottomDock({
   ariaLabel = 'NEXORA 底部導覽',
   className,
 }: NexoraBottomDockProps) {
+  const navRef = useRef<HTMLElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const activeRef = useRef<HTMLAnchorElement | HTMLButtonElement | null>(null);
   const isSwipe = items.length > 6;
@@ -64,6 +66,45 @@ export function NexoraBottomDock({
   // 從 viewport 改為該 ancestor（CSS spec 行為、導致 dock 沒貼底）。
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+
+  // GSAP-FW-S6 dock item 點擊回饋：icon scale 1→1.18→1 bump
+  // matchMedia reduce-motion 直接跳過
+  // contextSafe 包 handler、unmount 後不執行
+  const reduceMotionRef = useRef(false);
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
+      mm.add(
+        {
+          reduceMotion: '(prefers-reduced-motion: reduce)',
+          normal: '(prefers-reduced-motion: no-preference)',
+        },
+        (ctx) => {
+          reduceMotionRef.current = !!ctx.conditions?.reduceMotion;
+        },
+      );
+      return () => mm.revert();
+    },
+    { scope: navRef },
+  );
+
+  const bumpIcon = (el: HTMLElement | null) => {
+    if (!el || reduceMotionRef.current) return;
+    const icon = el.querySelector<HTMLElement>('svg');
+    if (!icon) return;
+    gsap.fromTo(
+      icon,
+      { scale: 1 },
+      {
+        scale: 1.18,
+        duration: 0.1,
+        ease: 'power2.out',
+        yoyo: true,
+        repeat: 1,
+        overwrite: 'auto',
+      },
+    );
+  };
 
   // > 6 items：當前激活 item 自動 scroll 至可視中央（業界 SaaS 範式）
   useEffect(() => {
@@ -80,6 +121,7 @@ export function NexoraBottomDock({
 
   const dockContent = (
     <nav
+      ref={navRef}
       aria-label={ariaLabel}
       className={cn(
         'lg:hidden',
@@ -125,6 +167,7 @@ export function NexoraBottomDock({
                 aria-label={item.label}
                 aria-current={item.active ? 'page' : undefined}
                 title={item.label}
+                onClick={(e) => bumpIcon(e.currentTarget)}
                 className={slotClass}
               >
                 <Icon className="h-6 w-6" aria-hidden />
@@ -138,7 +181,10 @@ export function NexoraBottomDock({
               key={item.id}
               type="button"
               ref={item.active && isSwipe ? (activeRef as React.RefObject<HTMLButtonElement>) : undefined}
-              onClick={item.onClick}
+              onClick={(e) => {
+                bumpIcon(e.currentTarget);
+                item.onClick?.();
+              }}
               aria-label={item.label}
               aria-current={item.active ? 'page' : undefined}
               title={item.label}
