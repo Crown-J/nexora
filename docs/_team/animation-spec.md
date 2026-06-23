@@ -141,16 +141,22 @@ useGSAP(() => {
 ## 7. 檔案結構
 
 ```
-apps/nx-ui/src/shared/animation/
-  ├── tokens.ts              # duration / ease / stagger 常數
-  ├── register.ts            # gsap.registerPlugin 入口（client only）
-  ├── useReducedMotion.ts    # SSR-safe hook
-  ├── KPICounter.tsx         # 數字滾動共用元件
-  ├── FadeInOnScroll.tsx     # ScrollTrigger.batch 共用元件
-  └── index.ts               # barrel
+apps/nx-ui/src/design/motion/
+  ├── scatter/                # 既有 CSS 散開過場（保留、不動）
+  │   └── ScatterPageGate.tsx
+  └── gsap/                   # 本軌新增
+      ├── tokens.ts           # duration / ease / stagger 常數
+      ├── register.ts         # gsap.registerPlugin 入口（client only）
+      ├── useReducedMotion.ts # SSR-safe hook
+      ├── KPICounter.tsx      # 數字滾動共用元件
+      ├── FadeInOnScroll.tsx  # ScrollTrigger.batch 共用元件
+      └── index.ts            # barrel
 ```
 
-⚠️ `register.ts` 只在 client component 第一次 import 時跑、不要在 layout 上層 import。
+import：`@design/motion/gsap`（tsconfig 已設 `@design/*` → `design/*`）
+
+⚠️ `register.ts` 只在 client component 第一次 import 時跑、不要在 layout 上層 import（會打破 SSR）。
+⚠️ ScatterPageGate（頁切換 radial 散開）已用 CSS transition、本軌不替換、不重做頁切換。
 
 ---
 
