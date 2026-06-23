@@ -422,10 +422,16 @@ export function UserFormZoned({
             {renderField('legacyCode')}
             {renderField('userName')}
             {renderField('userNameEn')}
-            {renderField('gender')}
-            {renderField('birthday')}
-            {renderField('countryId')}
-            {renderField('nationalId')}
+            {/* 性別 / 生日 / 國籍 / 身分證：4 欄各 120px、執行長 2026-06-23 拍板 */}
+            <div
+              className="col-span-full grid gap-3"
+              style={{ gridTemplateColumns: 'repeat(4, 120px)' }}
+            >
+              {renderField('gender')}
+              {renderField('birthday')}
+              {renderField('countryId')}
+              {renderField('nationalId')}
+            </div>
             {renderField('email')}
             {renderField('phone')}
             <div className="col-span-full">
