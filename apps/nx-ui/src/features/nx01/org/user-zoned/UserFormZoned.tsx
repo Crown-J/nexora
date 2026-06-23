@@ -405,86 +405,66 @@ export function UserFormZoned({
   }, [selectedUserId]);
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="grid gap-4 lg:[grid-template-columns:300px_minmax(0,1fr)_320px]">
-        {/* ─── 左欄：大頭照 + 帳號狀況 ─── */}
-        <div className="flex flex-col gap-4">
-          {!creating && selectedUserId ? (
-            <div className="rounded-lg border border-border/60 bg-card p-4">
-              <SectionTitle title="大頭照" />
-              <UserPhotoInline userId={selectedUserId} initialHasPhoto={selectedHasPhoto} />
-            </div>
-          ) : null}
-
+    <div className="grid gap-4 lg:[grid-template-columns:180px_minmax(0,1fr)]">
+      {/* ─── 左欄：大頭照 ─── */}
+      <div>
+        {!creating && selectedUserId ? (
           <div className="rounded-lg border border-border/60 bg-card p-4">
-            <SectionTitle title="帳號狀況" />
-            <div className="flex flex-col gap-3">
-              {/* 帳號狀態 chip */}
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                  帳號狀態
-                </span>
-                <StatusChip label={accountStatus.label} tone={accountStatus.tone} />
-              </div>
-              <SwitchRow
-                label="是否啟用"
-                value={Boolean(draft.isActive)}
-                disabled={!editing || !FIELD_WRITABLE.has('isActive')}
-                onChange={(v) => setDraft({ ...draft, isActive: v })}
-              />
-              <SwitchRow
-                label="兩階段驗證"
-                value={Boolean(draft.twoFaEnabled)}
-                disabled={!editing || !FIELD_WRITABLE.has('twoFaEnabled')}
-                onChange={(v) => setDraft({ ...draft, twoFaEnabled: v })}
-              />
-              <FormField
-                label="最近登入時間"
-                value={draft.lastLoginAt ? formatDateTimeZh(String(draft.lastLoginAt)) : '—'}
-                dim
-              />
-              {!creating && selectedUserId ? (
-                <button
-                  type="button"
-                  disabled={resetting}
-                  onClick={handleResetPassword}
-                  className="mt-1 inline-flex h-9 items-center justify-center gap-1.5 rounded-md border border-[#E26060]/40 bg-[#E26060]/10 px-3 text-xs font-semibold text-[#E26060] transition-colors hover:bg-[#E26060]/20 disabled:opacity-50"
-                >
-                  <KeyRound className="size-3.5" />
-                  {resetting ? '重設中…' : '重設密碼'}
-                </button>
-              ) : null}
-
-              {/* 2026-06-23 audit 區搬到帳號狀況下方（執行長拍板）*/}
-              {auditData ? (
-                <div className="mt-3 grid grid-cols-1 gap-2 border-t border-border/60 pt-3">
-                  <FormField label="建立時間" value={formatDateTimeZh(auditData.createdAt)} mono dim />
-                  <FormField
-                    label="建立人員"
-                    value={auditPersonLabel(auditData.createdByUsername, auditData.createdByName)}
-                    dim
-                  />
-                  <FormField label="修改時間" value={formatDateTimeZh(auditData.updatedAt)} mono dim />
-                  <FormField
-                    label="修改人員"
-                    value={auditPersonLabel(auditData.updatedByUsername, auditData.updatedByName)}
-                    dim
-                  />
-                </div>
-              ) : null}
-            </div>
+            <SectionTitle title="大頭照" />
+            <UserPhotoInline userId={selectedUserId} initialHasPhoto={selectedHasPhoto} />
           </div>
-        </div>
+        ) : null}
+      </div>
 
-        {/* ─── 中欄：基本資料（合併地址 / 緊急 / 教育 / 到職離職）─── */}
+      {/* ─── 右欄：全部欄位 + 職務 / 據點兩卡片 ─── */}
+      <div className="flex flex-col gap-4">
+        {/* 主卡：帳號狀況橫排 + 基本資料 + 地址 + 緊急 + 教育 + 到職離職 */}
         <div className="rounded-lg border border-border/60 bg-card p-4">
-          <SectionTitle title="基本資料" />
+          {/* 帳號狀況橫排 */}
+          <div className="mb-3 flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-border/40 pb-3">
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                帳號狀態
+              </span>
+              <StatusChip label={accountStatus.label} tone={accountStatus.tone} />
+            </div>
+            <SwitchRow
+              label="啟用"
+              value={Boolean(draft.isActive)}
+              disabled={!editing || !FIELD_WRITABLE.has('isActive')}
+              onChange={(v) => setDraft({ ...draft, isActive: v })}
+            />
+            <SwitchRow
+              label="兩階段驗證"
+              value={Boolean(draft.twoFaEnabled)}
+              disabled={!editing || !FIELD_WRITABLE.has('twoFaEnabled')}
+              onChange={(v) => setDraft({ ...draft, twoFaEnabled: v })}
+            />
+            <span className="text-[11px] text-muted-foreground">
+              最近登入：
+              <span className="ml-1 font-mono text-foreground/85">
+                {draft.lastLoginAt ? formatDateTimeZh(String(draft.lastLoginAt)) : '—'}
+              </span>
+            </span>
+            {!creating && selectedUserId ? (
+              <button
+                type="button"
+                disabled={resetting}
+                onClick={handleResetPassword}
+                className="ml-auto inline-flex h-7 items-center justify-center gap-1 rounded-md border border-[#E26060]/40 bg-[#E26060]/10 px-2.5 text-[11px] font-semibold text-[#E26060] transition-colors hover:bg-[#E26060]/20 disabled:opacity-50"
+              >
+                <KeyRound className="size-3.5" />
+                {resetting ? '重設中…' : '重設密碼'}
+              </button>
+            ) : null}
+          </div>
+
+          {/* 基本資料欄位 */}
           <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(125px,1fr))]">
             {renderField('userAccount')}
             {renderField('legacyCode')}
             {renderField('userName')}
             {renderField('userNameEn')}
-            {/* 性別 / 生日 / 國籍 / 身分證：4 欄各 125px、執行長 2026-06-23 拍板 */}
             <div
               className="col-span-full grid gap-3"
               style={{ gridTemplateColumns: 'repeat(4, 125px)' }}
@@ -512,8 +492,8 @@ export function UserFormZoned({
           </div>
         </div>
 
-        {/* ─── 右欄：職務 + 隸屬據點 ─── */}
-        <div className="flex flex-col gap-4">
+        {/* 職務 + 據點：兩卡片並排（節省空間）*/}
+        <div className="grid gap-4 lg:grid-cols-2">
           <div className="rounded-lg border border-border/60 bg-card p-4">
             <SectionTitle title="職務" />
             <div className="flex flex-col gap-3">
@@ -555,6 +535,26 @@ export function UserFormZoned({
             </div>
           </div>
         </div>
+
+        {/* audit 一行精簡（執行長 2026-06-23 拍板）*/}
+        {auditData ? (
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-1 px-1 text-[11px] text-muted-foreground">
+            <span>
+              建立：
+              <span className="ml-1 font-mono text-foreground/85">
+                {formatDateTimeZh(auditData.createdAt)}
+              </span>
+              <span className="ml-1">· {auditPersonLabel(auditData.createdByUsername, auditData.createdByName)}</span>
+            </span>
+            <span>
+              修改：
+              <span className="ml-1 font-mono text-foreground/85">
+                {formatDateTimeZh(auditData.updatedAt)}
+              </span>
+              <span className="ml-1">· {auditPersonLabel(auditData.updatedByUsername, auditData.updatedByName)}</span>
+            </span>
+          </div>
+        ) : null}
       </div>
     </div>
   );
