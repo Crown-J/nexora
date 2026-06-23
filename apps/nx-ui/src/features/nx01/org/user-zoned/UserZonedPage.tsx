@@ -88,6 +88,8 @@ import {
 const DEFAULT_PASSWORD = 'changeme';
 
 import { UserFormZoned } from './UserFormZoned';
+import { PositionAddDialog } from './PositionAddDialog';
+import { WarehouseAddDialog } from './WarehouseAddDialog';
 import {
   emptyUserDraft,
   userDraftToBody,
@@ -1244,47 +1246,25 @@ export function UserZonedPage({
       {/* 2026-06-18 表頭拖拉重排（dnd-kit）取代 I 欄位 dialog、ColumnsConfigDialog 已退役 */}
       {/* 2026-06-18 M 排序 dropdown menu 直接掛在 ErpToolbar 內、不需獨立 mount */}
       {/* B2~B5：role / warehouse pickers */}
-      <EntityPickerDialog<RoleDto>
+      {/* 2026-06-23 執行長拍板：取代舊 EntityPickerDialog 改用單筆新增 dialog */}
+      <PositionAddDialog
         open={rolePickerOpen}
         onClose={() => setRolePickerOpen(false)}
-        title="管理職務"
-        subtitle="Manage Roles"
-        icon={Briefcase}
-        searchPlaceholder="搜尋職務代碼 / 名稱..."
-        search={handleRolePickerSearch}
-        getId={(r) => r.id}
-        getLabel={(r) => r.name}
-        getDescription={(r) => (r.description ? `${r.code} · ${r.description}` : r.code)}
-        preselectedIds={effectiveAssignedRoleIds}
-        lockedIds={lockedPrimaryRoleIds}
-        lockedHint="主要"
-        onApplyChanges={handleRoleManageApply}
-        onApplied={(addedCount, removedCount) =>
-          showToast(
-            `待存檔：新增 ${addedCount} · 撤銷 ${removedCount}（按 S 才寫入；主要職務不可撤銷）`,
-            'info',
-          )
-        }
+        userId={selected?.id ?? ''}
+        onSuccess={() => {
+          setReloadTick((t) => t + 1);
+          setTeamsReloadTick((t) => t + 1);
+          showToast('已新增職務', 'success');
+        }}
       />
-      <EntityPickerDialog<WarehouseDto>
+      <WarehouseAddDialog
         open={warehousePickerOpen}
         onClose={() => setWarehousePickerOpen(false)}
-        title="管理倉庫據點"
-        subtitle="Manage Warehouses"
-        icon={WarehouseIcon}
-        searchPlaceholder="搜尋倉庫代碼 / 名稱..."
-        search={handleWarehousePickerSearch}
-        getId={(w) => w.id}
-        getLabel={(w) => w.name}
-        getDescription={(w) => (w.remark ? `${w.code} · ${w.remark}` : w.code)}
-        preselectedIds={effectiveAssignedWarehouseIds}
-        onApplyChanges={handleWarehouseManageApply}
-        onApplied={(addedCount, removedCount) =>
-          showToast(
-            `待存檔：新增 ${addedCount} · 撤銷 ${removedCount}（按 S 才寫入）`,
-            'info',
-          )
-        }
+        userId={selected?.id ?? ''}
+        onSuccess={() => {
+          setReloadTick((t) => t + 1);
+          showToast('已新增隸屬據點', 'success');
+        }}
       />
       {/* 05 批 T3 2026-06-07：組 picker（即時 PATCH 範式、apply 後立即寫 DB） */}
       <EntityPickerDialog<TeamDto>
