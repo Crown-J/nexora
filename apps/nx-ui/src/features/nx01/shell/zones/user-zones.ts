@@ -22,20 +22,9 @@ export const USER_ZONES: ZoneDef<UserZone>[] = [
   { zone: 'account', label: '帳號狀況', description: '在職 / 帳號安全 / 啟用' },
 ];
 
-/** 2026-06-18 對齊 demo CFG.emp section 分組：
- *  當某 field.key 命中本 map、UserFormZoned 在該欄位前先插入一個 sub-section header */
-export const USER_FIELD_SECTIONS: Record<string, string> = {
-  // basic 6 段
-  userAccount: '編號',
-  userName: '姓名',
-  gender: '個人資料',
-  email: '聯絡方式',
-  householdCityId: '地址',
-  emergencyContact: '緊急聯絡',
-  // account 2 段
-  hireDate: '在職',
-  mustChangePassword: '帳號安全',
-};
+/** 2026-06-23 執行長拍板：sub-section header（編號/姓名/個資...）拿掉、太占空間。
+ *  保留 export 空物件、UserFormZoned 仍會檢查但永遠不會 push header item。 */
+export const USER_FIELD_SECTIONS: Record<string, string> = {};
 
 export const USER_FIELDS: FieldDef<UserZone>[] = [
   // ─── basic 基本資料區（編號 / 姓名 / 個資 / 聯絡 / 地址 / 緊急聯絡）───

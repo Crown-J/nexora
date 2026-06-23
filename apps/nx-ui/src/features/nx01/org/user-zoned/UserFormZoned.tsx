@@ -166,13 +166,6 @@ export function UserFormZoned({
       ]),
     [],
   );
-  // 2026-06-23 執行長拍板合併單頁：不再 filter by activeZone、全 fields 一次渲染。
-  // editableZones 仍用於「個別欄位可編判定」。
-  const allFields = useMemo(
-    () => USER_FIELDS.filter((f) => !ADDRESS_FIELD_KEYS.has(f.key)),
-    [ADDRESS_FIELD_KEYS],
-  );
-
   // 2026-06-23 執行長拍板：一般欄位 ~250px、信箱類較長標 wide ~500px
   const WIDE_FIELD_KEYS = useMemo(
     () =>
@@ -181,6 +174,32 @@ export function UserFormZoned({
         'graduateSchool',
       ]),
     [],
+  );
+
+  // 2026-06-23 執行長拍板：頂部區「大頭照 + 右側 3 排」放這 7 個欄位、main grid 不再渲染
+  const TOP_FIELD_KEYS = useMemo(
+    () =>
+      new Set<string>([
+        'userAccount',
+        'legacyCode',
+        'userName',
+        'userNameEn',
+        'gender',
+        'birthday',
+        'nationalId',
+      ]),
+    [],
+  );
+
+  // 2026-06-23 執行長拍板合併單頁：不再 filter by activeZone、全 fields 一次渲染。
+  // editableZones 仍用於「個別欄位可編判定」。
+  // 額外排除 TOP_FIELD_KEYS（已在頂部區渲染）。
+  const allFields = useMemo(
+    () =>
+      USER_FIELDS.filter(
+        (f) => !ADDRESS_FIELD_KEYS.has(f.key) && !TOP_FIELD_KEYS.has(f.key),
+      ),
+    [ADDRESS_FIELD_KEYS, TOP_FIELD_KEYS],
   );
 
   // 渲染序列：zone-header → (sub-section header)? → field …
@@ -218,14 +237,60 @@ export function UserFormZoned({
     return items;
   }, [allFields]);
 
+  // 頂部區欄位的渲染（簡化版、只處理一般文字欄位）
+  const renderTopField = (key: string) => {
+    const f = USER_FIELDS.find((x) => x.key === key);
+    if (!f) return null;
+    const isWritable = FIELD_WRITABLE.has(f.key);
+    const zoneEditable = editableZones ? editableZones.has(f.zone) : true;
+    const fieldEditable = editing && isWritable && zoneEditable;
+    if (fieldEditable) {
+      return (
+        <FormInput
+          key={f.key}
+          label={f.label + (f.required ? ' *' : '')}
+          value={String(draft[f.key] ?? '')}
+          onChange={(v) => setDraft({ ...draft, [f.key]: v })}
+        />
+      );
+    }
+    const raw = draft[f.key];
+    return (
+      <FormField
+        key={f.key}
+        label={f.label}
+        value={String(raw ?? '—') || '—'}
+        mono={f.key === 'userAccount'}
+      />
+    );
+  };
+
   return (
     <div className="flex flex-col gap-4">
-      {/* 大頭貼 inline（執行長 2026-06-23 拍板搬最上面、creating 不顯示因為還沒 userId）*/}
-      {!creating && selectedUserId ? (
-        <div className="max-w-[500px]">
+      {/* 頂部區：左側 2 吋大頭照、右側 3 排基本欄位（執行長 2026-06-23 拍板）*/}
+      <div className="flex items-stretch gap-4">
+        {!creating && selectedUserId ? (
           <UserPhotoInline userId={selectedUserId} initialHasPhoto={selectedHasPhoto} />
+        ) : null}
+        <div className="flex min-w-0 flex-1 flex-col gap-3">
+          {/* 第 1 排：員工編號 / 舊員工編號 */}
+          <div className="grid grid-cols-2 gap-3">
+            {renderTopField('userAccount')}
+            {renderTopField('legacyCode')}
+          </div>
+          {/* 第 2 排：中文姓名 / 英文姓名 */}
+          <div className="grid grid-cols-2 gap-3">
+            {renderTopField('userName')}
+            {renderTopField('userNameEn')}
+          </div>
+          {/* 第 3 排：性別 / 生日 / 身分證 */}
+          <div className="grid grid-cols-3 gap-3">
+            {renderTopField('gender')}
+            {renderTopField('birthday')}
+            {renderTopField('nationalId')}
+          </div>
         </div>
-      ) : null}
+      </div>
 
       {/* fields：執行長 2026-06-23 拍板 — 一般欄位 ~250px、wide 欄位 ~500px、用 auto-fill 動態分欄 */}
       <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(240px,1fr))]">
@@ -581,32 +646,28 @@ function UserPhotoInline({
   const hasPhoto = previewUrl !== null;
 
   return (
-    <div className="flex items-center gap-4 rounded-lg border border-border/60 bg-card p-4">
-      <div className="size-20 flex-none overflow-hidden rounded-full border border-border/60 bg-muted/30">
+    <div className="flex w-[110px] flex-none flex-col gap-2">
+      {/* 2 吋照片比例 35×45mm ≈ 90×115 (7:9)、執行長 2026-06-23 拍板 */}
+      <div className="h-[140px] w-[110px] overflow-hidden rounded-md border border-border/60 bg-muted/30">
         {previewUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={previewUrl} alt="大頭貼" className="size-full object-cover" />
         ) : (
           <div className="flex size-full items-center justify-center text-muted-foreground">
-            <ImageIcon className="size-7" />
+            <ImageIcon className="size-8" />
           </div>
         )}
       </div>
-      <div className="min-w-0 flex-1">
-        <div className="text-sm font-semibold text-foreground">大頭貼</div>
-        <div className="mt-0.5 text-[11px] text-muted-foreground">
-          {hasPhoto ? '已上傳、可重新上傳取代舊圖' : initialHasPhoto ? '載入中…' : '尚未上傳、點右方按鈕新增'}
-        </div>
-      </div>
-      <div className="flex flex-none items-center gap-2">
+      <div className="flex gap-1">
         <button
           type="button"
           disabled={busy}
           onClick={() => fileRef.current?.click()}
-          className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#E8A020]/40 bg-[#E8A020]/10 px-3 text-xs font-semibold text-[#E8A020] transition-colors hover:bg-[#E8A020]/20 disabled:opacity-50"
+          title={hasPhoto ? '重新上傳' : '上傳大頭貼'}
+          className="inline-flex h-7 flex-1 items-center justify-center gap-1 rounded-md border border-[#E8A020]/40 bg-[#E8A020]/10 px-2 text-[11px] font-semibold text-[#E8A020] transition-colors hover:bg-[#E8A020]/20 disabled:opacity-50"
         >
-          <Upload className="size-3.5" />
-          {hasPhoto ? '重新上傳' : '上傳大頭貼'}
+          <Upload className="size-3" />
+          {hasPhoto ? '重傳' : '上傳'}
         </button>
         {hasPhoto ? (
           <button
@@ -614,10 +675,9 @@ function UserPhotoInline({
             disabled={busy}
             onClick={handleDelete}
             title="移除大頭貼"
-            className="inline-flex h-8 items-center gap-1 rounded-md border border-[#E26060]/40 bg-[#E26060]/10 px-2.5 text-xs font-medium text-[#E26060] transition-colors hover:bg-[#E26060]/20 disabled:opacity-50"
+            className="grid size-7 flex-none place-items-center rounded-md border border-[#E26060]/40 bg-[#E26060]/10 text-[#E26060] transition-colors hover:bg-[#E26060]/20 disabled:opacity-50"
           >
             <Trash2 className="size-3.5" />
-            移除
           </button>
         ) : null}
         <input
@@ -628,6 +688,9 @@ function UserPhotoInline({
           onChange={(e) => void handleFiles(e.target.files)}
         />
       </div>
+      {initialHasPhoto && !hasPhoto ? (
+        <div className="text-[10px] text-muted-foreground">載入中…</div>
+      ) : null}
     </div>
   );
 }
