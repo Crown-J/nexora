@@ -186,11 +186,11 @@ export function UserFormZoned({
     [],
   );
   // 2026-06-23 執行長拍板：一般欄位 ~250px、信箱類較長標 wide ~500px
+  // 畢業學校從 wide 拿掉、調回 250px（執行長後續拍板）
   const WIDE_FIELD_KEYS = useMemo(
     () =>
       new Set<string>([
         'email',
-        'graduateSchool',
       ]),
     [],
   );
@@ -430,20 +430,17 @@ export function UserFormZoned({
 
   return (
     <div className="grid gap-4 lg:[grid-template-columns:180px_minmax(0,1fr)]">
-      {/* ─── 左欄：大頭照（執行長 2026-06-23 拍板：無標題無外框）─── */}
-      <div>
+      {/* ─── 左欄：大頭照 + 帳號狀況（執行長 2026-06-23 拍板搬回左欄）─── */}
+      <div className="flex flex-col gap-4">
         {!creating && selectedUserId ? (
           <UserPhotoInline userId={selectedUserId} initialHasPhoto={selectedHasPhoto} />
         ) : null}
-      </div>
 
-      {/* ─── 右欄：全部欄位 + 職務 / 據點兩卡片 ─── */}
-      <div className="flex flex-col gap-4">
-        {/* 主卡：帳號狀況橫排 + 基本資料 + 地址 + 緊急 + 教育 + 到職離職 */}
-        <div className="rounded-lg border border-border/60 bg-card p-4">
-          {/* 帳號狀況橫排：5 cell 均分（執行長 2026-06-23 拍板）*/}
-          <div className="mb-3 grid grid-cols-5 items-center gap-4 border-b border-border/40 pb-3">
-            <div className="flex flex-col gap-1">
+        <div className="rounded-lg border border-border/60 bg-card p-3">
+          <SectionTitle title="帳號狀況" />
+          <div className="flex flex-col gap-3">
+            {/* 帳號狀態 chip */}
+            <div className="flex items-center justify-between">
               <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                 帳號狀態
               </span>
@@ -461,27 +458,31 @@ export function UserFormZoned({
               disabled={!editing || !FIELD_WRITABLE.has('twoFaEnabled')}
               onChange={(v) => setDraft({ ...draft, twoFaEnabled: v })}
             />
-            <div className="flex flex-col gap-1">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                最近登入
-              </span>
-              <span className="font-mono text-xs text-foreground/85">
-                {draft.lastLoginAt ? formatDateTimeZh(String(draft.lastLoginAt)) : '—'}
-              </span>
-            </div>
+            <FormField
+              label="最近登入時間"
+              value={draft.lastLoginAt ? formatDateTimeZh(String(draft.lastLoginAt)) : '—'}
+              dim
+              mono
+            />
             {!creating && selectedUserId ? (
               <button
                 type="button"
                 disabled={resetting}
                 onClick={handleResetPassword}
-                className="inline-flex h-9 w-full items-center justify-center gap-1 rounded-md border border-[#E26060]/40 bg-[#E26060]/10 px-2.5 text-xs font-semibold text-[#E26060] transition-colors hover:bg-[#E26060]/20 disabled:opacity-50"
+                className="mt-1 inline-flex h-9 items-center justify-center gap-1.5 rounded-md border border-[#E26060]/40 bg-[#E26060]/10 px-3 text-xs font-semibold text-[#E26060] transition-colors hover:bg-[#E26060]/20 disabled:opacity-50"
               >
                 <KeyRound className="size-3.5" />
                 {resetting ? '重設中…' : '重設密碼'}
               </button>
-            ) : <div />}
+            ) : null}
           </div>
+        </div>
+      </div>
 
+      {/* ─── 右欄：全部欄位 + 職務 / 據點兩卡片 ─── */}
+      <div className="flex flex-col gap-4">
+        {/* 主卡：帳號狀況橫排 + 基本資料 + 地址 + 緊急 + 教育 + 到職離職 */}
+        <div className="rounded-lg border border-border/60 bg-card p-4">
           {/* 基本資料欄位（一般欄位 250px、wide 500px）*/}
           <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(250px,1fr))]">
             {renderField('userAccount')}
@@ -754,9 +755,9 @@ function UserPhotoInline({
   const hasPhoto = previewUrl !== null;
 
   return (
-    <div className="flex w-[110px] flex-none flex-col gap-2">
-      {/* 2 吋照片比例 35×45mm ≈ 90×115 (7:9)、執行長 2026-06-23 拍板 */}
-      <div className="h-[140px] w-[110px] overflow-hidden rounded-md border border-border/60 bg-muted/30">
+    <div className="flex w-full flex-col gap-2">
+      {/* 2 吋照片比例 7:9、寬度 fill 左欄、執行長 2026-06-23 拍板「再加大、貼右邊框框」 */}
+      <div className="w-full overflow-hidden rounded-md border border-border/60 bg-muted/30" style={{ aspectRatio: '7 / 9' }}>
         {previewUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={previewUrl} alt="大頭貼" className="size-full object-cover" />
