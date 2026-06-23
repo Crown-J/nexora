@@ -88,6 +88,15 @@ export type UserFormZonedProps = {
   onSetTeamPrimary?: (ut: UserTeamDto) => void;
   onToggleTeamLeader?: (ut: UserTeamDto) => void;
   onRevokeTeam?: (ut: UserTeamDto) => void;
+  // 2026-06-23 audit 資料：搬到帳號狀況區下方（執行長拍板）
+  auditData?: {
+    createdAt: string;
+    createdByUsername?: string | null;
+    createdByName?: string | null;
+    updatedAt: string;
+    updatedByUsername?: string | null;
+    updatedByName?: string | null;
+  };
 };
 
 export function UserFormZoned({
@@ -118,6 +127,7 @@ export function UserFormZoned({
   onSetTeamPrimary,
   onToggleTeamLeader,
   onRevokeTeam,
+  auditData,
 }: UserFormZonedProps) {
   const editing = mode === 'edit';
 
@@ -131,6 +141,12 @@ export function UserFormZoned({
   const [departmentOptions, setDepartmentOptions] = useState<SelectOption[]>([]);
   useEffect(() => {
     void fetchRefOptions('nx01/departments').then(setDepartmentOptions).catch(() => setDepartmentOptions([]));
+  }, []);
+
+  // 2026-06-23 國籍下拉選項（basic zone countryId 獨立 dropdown 用、不再合併進 UserAddressSection）
+  const [countriesForSelect, setCountriesForSelect] = useState<CountryRow[]>([]);
+  useEffect(() => {
+    void fetchCountries().then(setCountriesForSelect).catch(() => setCountriesForSelect([]));
   }, []);
 
   // 05 批 T3 2026-06-07：當前選中主組（決定 departmentId 是否走 readonly fallback）
@@ -153,12 +169,11 @@ export function UserFormZoned({
     ? activeZone
     : visibleZoneList[0]?.zone ?? 'basic';
 
-  // 2026-06-23 修：地址 9 欄（countryId + 4 戶籍 + 4 通訊）由 UserAddressSection 統一渲染、
-  // 不再讓 fields.map loop 用 FormField 顯示原始 cityId/districtId 內碼。
+  // 2026-06-23 修：地址 8 欄（4 戶籍 + 4 通訊）由 UserAddressSection 統一渲染。
+  // countryId 拿掉、改成 main grid 獨立 dropdown（執行長拍板）。
   const ADDRESS_FIELD_KEYS = useMemo(
     () =>
       new Set([
-        'countryId',
         'householdCityId',
         'householdDistrictId',
         'householdPostalCode',
@@ -214,7 +229,8 @@ export function UserFormZoned({
     if (f.isSatellite) return null; // 衛星表呼叫者另外渲染
 
     const isWide = WIDE_FIELD_KEYS.has(key);
-    const wideClass = isWide ? '[grid-column:span_2]' : '';
+    // 一般欄 125px、wide 跨 4 欄 ≈ 500px+gap（執行長 2026-06-23 拍板下修）
+    const wideClass = isWide ? '[grid-column:span_4]' : '';
     const wrap = (node: React.ReactNode) => (
       <div key={f.key} className={wideClass || undefined}>
         {node}
@@ -269,6 +285,34 @@ export function UserFormZoned({
         );
       }
       return wrap(<FormField label={f.label} value={labelText || '—'} />);
+    }
+
+    // countryId 特殊：ref dropdown（空白=台灣預設、其他選單列國家清單）
+    if (f.key === 'countryId') {
+      const value = String(draft[f.key] ?? '');
+      if (fieldEditable) {
+        return wrap(
+          <FieldShell label={f.label}>
+            <select
+              className="h-9 w-full rounded-md border border-[#E8A020]/30 bg-[var(--nx-surface-input)] px-2.5 text-sm text-foreground outline-none focus:border-[#E8A020]/60 focus:ring-1 focus:ring-[#E8A020]/40"
+              value={value}
+              onChange={(e) => setDraft({ ...draft, [f.key]: e.target.value })}
+            >
+              <option value="">台灣（預設）</option>
+              {countriesForSelect
+                .filter((c) => c.code !== 'TWN')
+                .map((c) => (
+                  <option key={c.id} value={c.id} className="bg-popover">
+                    {c.name} ({c.code})
+                  </option>
+                ))}
+            </select>
+          </FieldShell>,
+        );
+      }
+      const matched = countriesForSelect.find((c) => c.id === value);
+      const display = matched ? `${matched.name}（${matched.code}）` : value ? value : '台灣';
+      return wrap(<FormField label={f.label} value={display} />);
     }
 
     // primarySiteId 特殊：ref dropdown
@@ -410,6 +454,24 @@ export function UserFormZoned({
                   {resetting ? '重設中…' : '重設密碼'}
                 </button>
               ) : null}
+
+              {/* 2026-06-23 audit 區搬到帳號狀況下方（執行長拍板）*/}
+              {auditData ? (
+                <div className="mt-3 grid grid-cols-1 gap-2 border-t border-border/60 pt-3">
+                  <FormField label="建立時間" value={formatDateTimeZh(auditData.createdAt)} mono dim />
+                  <FormField
+                    label="建立人員"
+                    value={auditPersonLabel(auditData.createdByUsername, auditData.createdByName)}
+                    dim
+                  />
+                  <FormField label="修改時間" value={formatDateTimeZh(auditData.updatedAt)} mono dim />
+                  <FormField
+                    label="修改人員"
+                    value={auditPersonLabel(auditData.updatedByUsername, auditData.updatedByName)}
+                    dim
+                  />
+                </div>
+              ) : null}
             </div>
           </div>
         </div>
@@ -417,15 +479,15 @@ export function UserFormZoned({
         {/* ─── 中欄：基本資料（合併地址 / 緊急 / 教育 / 到職離職）─── */}
         <div className="rounded-lg border border-border/60 bg-card p-4">
           <SectionTitle title="基本資料" />
-          <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(220px,1fr))]">
+          <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(125px,1fr))]">
             {renderField('userAccount')}
             {renderField('legacyCode')}
             {renderField('userName')}
             {renderField('userNameEn')}
-            {/* 性別 / 生日 / 國籍 / 身分證：4 欄各 120px、執行長 2026-06-23 拍板 */}
+            {/* 性別 / 生日 / 國籍 / 身分證：4 欄各 125px、執行長 2026-06-23 拍板 */}
             <div
               className="col-span-full grid gap-3"
-              style={{ gridTemplateColumns: 'repeat(4, 120px)' }}
+              style={{ gridTemplateColumns: 'repeat(4, 125px)' }}
             >
               {renderField('gender')}
               {renderField('birthday')}
@@ -513,6 +575,14 @@ function fileToBase64(file: File): Promise<string> {
     reader.onerror = () => reject(reader.error);
     reader.readAsDataURL(file);
   });
+}
+
+// 2026-06-23 audit 人員顯示（複用 UserZonedPage 的 auditPerson 邏輯）
+function auditPersonLabel(username: unknown, name: unknown): string {
+  const n = (name as string) || '';
+  const u = (username as string) || '';
+  if (n && u) return `${n}（${u}）`;
+  return n || u || '—';
 }
 
 // 2026-06-23 三區塊 layout 共用元件：section 卡片標題
@@ -730,36 +800,14 @@ function UserAddressSection({
   setDraft: (next: UserDraft) => void;
 }) {
   const countryId = (draft.countryId as string | undefined) ?? null;
-  const [countries, setCountries] = useState<CountryRow[]>([]);
-  useEffect(() => {
-    void fetchCountries().then(setCountries);
-  }, []);
   return (
-    <div className="mt-4 space-y-4 rounded-lg border border-border/60 bg-card p-4">
+    <div className="mt-2 space-y-4 rounded-lg border border-border/60 bg-card p-4">
+      {/* 2026-06-23 國別 dropdown 已搬到 main grid 內、這邊只留地址 picker */}
       <div className="flex items-center justify-between">
         <h3 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
           地址（戶籍 + 通訊）
         </h3>
-        <span className="text-[10px] text-muted-foreground">空白國別 = 台灣（走字典）；其他國家 = 國外自由填</span>
-      </div>
-      <div>
-        <label className="mb-1 block text-[10px] uppercase tracking-wider text-muted-foreground">國別</label>
-        {/* 02 真正完工軌 2026-06-07：國別改 select dropdown、不用純 input 填 ID */}
-        <select
-          className="h-9 w-full rounded-md border border-border/60 bg-[var(--nx-surface-input)] px-3 text-sm text-foreground disabled:opacity-50"
-          value={countryId ?? ''}
-          onChange={(e) => setDraft({ ...draft, countryId: e.target.value || '' })}
-          disabled={!editing}
-        >
-          <option value="">台灣（預設）</option>
-          {countries
-            .filter((c) => c.code !== 'TWN')
-            .map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name} ({c.code})
-              </option>
-            ))}
-        </select>
+        <span className="text-[10px] text-muted-foreground">國別空白 / TWN = 走縣市鄉鎮字典；其他國家 = 自由填</span>
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>

@@ -1438,34 +1438,21 @@ function DetailPane({
             onSetTeamPrimary={onSetTeamPrimary}
             onToggleTeamLeader={onToggleTeamLeader}
             onRevokeTeam={onRevokeTeam}
+            // 2026-06-23 audit 區搬到帳號狀況下方（執行長拍板）
+            auditData={
+              !creating && selected
+                ? {
+                    createdAt: selected.createdAt,
+                    createdByUsername: selected.createdByUsername,
+                    createdByName: selected.createdByName,
+                    updatedAt: selected.updatedAt,
+                    updatedByUsername: selected.updatedByUsername,
+                    updatedByName: selected.updatedByName,
+                  }
+                : undefined
+            }
           />
         </div>
-        {!creating && selected ? (
-          <div className="mt-5 grid grid-cols-1 gap-3 border-t border-[#2A2A30] pt-4 sm:grid-cols-2">
-            <FormField
-              label="建立時間"
-              value={formatDateTimeZh(selected.createdAt)}
-              mono
-              dim
-            />
-            <FormField
-              label="建立人員"
-              value={auditPerson(selected.createdByUsername, selected.createdByName)}
-              dim
-            />
-            <FormField
-              label="修改時間"
-              value={formatDateTimeZh(selected.updatedAt)}
-              mono
-              dim
-            />
-            <FormField
-              label="修改人員"
-              value={auditPerson(selected.updatedByUsername, selected.updatedByName)}
-              dim
-            />
-          </div>
-        ) : null}
       </div>
     </MasterDetailScroll>
   );
