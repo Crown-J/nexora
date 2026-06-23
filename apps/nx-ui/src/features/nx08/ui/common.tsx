@@ -162,20 +162,39 @@ export function PeriodPicker({
 // KpiCard：報表頂端 KPI 卡（比 StatCard 更精簡、用於排行/比較）
 // ────────────────────────────────────────────────────────────
 
+import { KPICounter } from '@design/motion/gsap';
+
 export function KpiCard({
   label,
   value,
+  numericValue,
+  format,
   delta,
   tone,
   hint,
 }: {
   label: string;
-  value: string | number;
+  /** 字串值（向後相容、無動畫） */
+  value?: string | number;
+  /** 純數字值（會跑 KPICounter 0→target 滾動）；同時有則 numericValue 優先 */
+  numericValue?: number;
+  /** numericValue 的格式 fn；不傳預設 toLocaleString('zh-TW') */
+  format?: (n: number) => string;
   /** 增減幅、自動依正負加色 */
   delta?: { value: string; isPositive?: boolean };
   tone?: 'amber' | 'green' | 'red' | 'muted';
   hint?: string;
 }) {
+  const valueClass = cn(
+    'font-mono text-lg font-semibold',
+    tone === 'amber' && 'text-[#E8A020]',
+    tone === 'green' && 'text-[#22D88F]',
+    tone === 'red' && 'text-[#E26060]',
+    tone === 'muted' && 'text-[#888892]',
+    !tone && 'text-[#E8E8EB]',
+  );
+  const defaultFormat = (n: number) => n.toLocaleString('zh-TW');
+
   return (
     <div
       className={cn(
@@ -189,18 +208,17 @@ export function KpiCard({
     >
       <div className="text-[10px] uppercase tracking-[0.18em] text-[#5A5A60]">{label}</div>
       <div className="mt-1 flex items-baseline gap-2">
-        <div
-          className={cn(
-            'font-mono text-lg font-semibold',
-            tone === 'amber' && 'text-[#E8A020]',
-            tone === 'green' && 'text-[#22D88F]',
-            tone === 'red' && 'text-[#E26060]',
-            tone === 'muted' && 'text-[#888892]',
-            !tone && 'text-[#E8E8EB]',
-          )}
-        >
-          {typeof value === 'number' ? value.toLocaleString('zh-TW') : value}
-        </div>
+        {numericValue !== undefined ? (
+          <KPICounter
+            value={numericValue}
+            formatter={format ?? defaultFormat}
+            className={valueClass}
+          />
+        ) : (
+          <div className={valueClass}>
+            {typeof value === 'number' ? value.toLocaleString('zh-TW') : value}
+          </div>
+        )}
         {delta ? (
           <span
             className={cn(

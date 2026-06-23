@@ -170,19 +170,22 @@ export function PersonalMonthlyReportView() {
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
               <KpiCard
                 label="銷貨額"
-                value={fmtMoney(data.performance.salesAmount)}
+                numericValue={Number(data.performance.salesAmount) || 0}
+                format={fmtMoney}
                 tone="amber"
                 hint="SO 總額"
               />
               <KpiCard
                 label="毛利"
-                value={fmtMoney(data.performance.grossProfit)}
+                numericValue={Number(data.performance.grossProfit) || 0}
+                format={fmtMoney}
                 tone="green"
                 hint="銷貨額 − 成本"
               />
               <KpiCard
                 label="毛利率"
-                value={`${data.performance.grossMarginPct}%`}
+                numericValue={Number(data.performance.grossMarginPct) || 0}
+                format={(n) => `${n.toFixed(0)}%`}
                 tone={
                   Number(data.performance.grossMarginPct) >= 20
                     ? 'green'
@@ -191,7 +194,12 @@ export function PersonalMonthlyReportView() {
                       : 'red'
                 }
               />
-              <KpiCard label="銷貨成本" value={fmtMoney(data.performance.cogsAmount)} tone="muted" />
+              <KpiCard
+                label="銷貨成本"
+                numericValue={Number(data.performance.cogsAmount) || 0}
+                format={fmtMoney}
+                tone="muted"
+              />
             </div>
           </section>
 

@@ -9,6 +9,8 @@ import { DURATION, EASE } from './tokens';
 
 type Props = {
   value: number;
+  /** 自訂格式 fn；有給就忽略 decimals / thousands / prefix / suffix */
+  formatter?: (n: number) => string;
   /** 小數位數，預設 0 */
   decimals?: number;
   /** 是否加千分位逗號，預設 true */
@@ -24,7 +26,7 @@ type Props = {
   className?: string;
 };
 
-function format(n: number, decimals: number, thousands: boolean): string {
+function defaultFormat(n: number, decimals: number, thousands: boolean): string {
   const fixed = n.toFixed(decimals);
   if (!thousands) return fixed;
   const [intPart, decPart] = fixed.split('.');
@@ -34,6 +36,7 @@ function format(n: number, decimals: number, thousands: boolean): string {
 
 export function KPICounter({
   value,
+  formatter,
   decimals = 0,
   thousands = true,
   duration = DURATION.dramatic,
@@ -43,9 +46,9 @@ export function KPICounter({
   className,
 }: Props) {
   const ref = useRef<HTMLSpanElement>(null);
-  const [display, setDisplay] = useState<string>(
-    fromZero ? format(0, decimals, thousands) : format(value, decimals, thousands),
-  );
+  const fmt = (n: number) =>
+    formatter ? formatter(n) : `${prefix}${defaultFormat(n, decimals, thousands)}${suffix}`;
+  const [display, setDisplay] = useState<string>(fmt(fromZero ? 0 : value));
   const lastValueRef = useRef<number>(fromZero ? 0 : value);
 
   useGSAP(
@@ -58,7 +61,7 @@ export function KPICounter({
         },
         (ctx) => {
           if (ctx.conditions?.reduceMotion) {
-            setDisplay(format(value, decimals, thousands));
+            setDisplay(fmt(value));
             lastValueRef.current = value;
             return;
           }
@@ -68,25 +71,23 @@ export function KPICounter({
             duration,
             ease: EASE.standard,
             onUpdate: () => {
-              setDisplay(format(obj.v, decimals, thousands));
+              setDisplay(fmt(obj.v));
             },
             onComplete: () => {
               lastValueRef.current = value;
-              setDisplay(format(value, decimals, thousands));
+              setDisplay(fmt(value));
             },
           });
         },
       );
       return () => mm.revert();
     },
-    { scope: ref, dependencies: [value, decimals, thousands, duration] },
+    { scope: ref, dependencies: [value, formatter, decimals, thousands, duration, prefix, suffix] },
   );
 
   return (
     <span ref={ref} className={className}>
-      {prefix}
       {display}
-      {suffix}
     </span>
   );
 }
