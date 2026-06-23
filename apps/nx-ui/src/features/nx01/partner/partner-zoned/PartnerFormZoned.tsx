@@ -24,6 +24,7 @@ import {
 import { FormField, FormInput } from '@/features/nx01/shell/ui/FormField';
 import { KeyboardSelect } from '@/features/nx01/shell/ui/KeyboardSelect';
 import { SatelliteSection } from '@/features/nx01/shell/satellite/SatelliteSection';
+import { PartnerAddressSection } from './PartnerAddressSection';
 
 import {
   CREDIT_STATUS_OPTIONS,
@@ -59,6 +60,8 @@ export type PartnerFormZonedProps = {
     salesUserId?: RefOption[];
     defaultCurrencyId?: RefOption[];
   };
+  /** 2026-06-23：當前選中客戶 id（送貨/帳單地址衛星 picker 用） */
+  selectedPartnerId?: string | null;
 };
 
 const FK_REF_KEYS: Record<string, keyof PartnerFormZonedProps['refOptions']> = {
@@ -78,6 +81,7 @@ export function PartnerFormZoned({
   setActiveZone,
   editableZones,
   refOptions,
+  selectedPartnerId,
 }: PartnerFormZonedProps) {
   const editing = mode === 'edit';
   const partnerType = String(draft.partnerType ?? '').toUpperCase();
@@ -135,8 +139,24 @@ export function PartnerFormZoned({
       {/* 區內欄位 grid */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {fieldsForZone.map((f) => {
-          // 衛星表（v1.1 §3.3）：partner 兩個地址衛星後端 module 尚未建立
+          // 衛星表：partner 兩組地址（送貨多筆 / 帳單一筆）
+          // 2026-06-23 執行長拍板接通、PartnerAddressSection 接 nx01_partner_address。
           if (f.isSatellite) {
+            const addressType =
+              f.key === 'shippingAddresses' ? 'SHIPPING'
+              : f.key === 'billingAddress' ? 'BILLING'
+              : null;
+            if (addressType) {
+              return (
+                <div key={f.key} className="sm:col-span-2">
+                  <PartnerAddressSection
+                    partnerId={selectedPartnerId ?? null}
+                    addressType={addressType}
+                    editing={editing}
+                  />
+                </div>
+              );
+            }
             return (
               <div key={f.key} className="sm:col-span-2">
                 <SatelliteSection

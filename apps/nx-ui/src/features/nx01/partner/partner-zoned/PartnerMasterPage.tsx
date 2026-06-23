@@ -940,6 +940,7 @@ function DetailPane({
             setActiveZone={setActiveZone}
             editableZones={editableZones}
             refOptions={refOptions}
+            selectedPartnerId={selected?.id ?? null}
           />
         </div>
         {!creating && selected ? (
