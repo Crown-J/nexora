@@ -478,6 +478,21 @@ export function PartZonedPage({
     setOemCodesDraft(selected.oemCodes ?? []); // A2：載入既有 oemCodes
   }, [selected]);
 
+  // 2026-06-23 修瀏覽模式 detail 全 "—"：PartFormZoned 瀏覽欄位讀 draft、
+  // 但編輯才 setDraft、瀏覽 selected 時 draft 是空 → 全顯示 "—"。
+  // 在瀏覽模式下、selected 變動就同步 draft + oemCodes。
+  useEffect(() => {
+    if (mode === 'edit') return;
+    if (creating) return;
+    if (!selected) {
+      setDraft({});
+      setOemCodesDraft([]);
+      return;
+    }
+    setDraft(partRowToDraft(selected));
+    setOemCodesDraft(selected.oemCodes ?? []);
+  }, [selected, mode, creating]);
+
   const performSave = useCallback(async () => {
     // 必填驗證（就本頁可編欄位）
     const requiredFields = PART_FIELDS.filter((f) => {

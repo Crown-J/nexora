@@ -370,6 +370,19 @@ export function PartnerMasterPage({
     setTab('detail');
   }, [selected]);
 
+  // 2026-06-23 修瀏覽模式 detail 全 "—"：PartnerFormZoned 瀏覽欄位讀 draft、
+  // 但編輯才 setDraft、瀏覽 selected 時 draft 是空 → 全顯示 "—"。
+  // 在瀏覽模式下、selected 變動就同步把 selected → draft，讓欄位顯示真實值。
+  useEffect(() => {
+    if (mode === 'edit') return;
+    if (creating) return;
+    if (!selected) {
+      setDraft({});
+      return;
+    }
+    setDraft(partnerRowToDraft(selected));
+  }, [selected, mode, creating]);
+
   const performSave = useCallback(async () => {
     // 必填驗證（只就「目前要送的欄位」做、避免擋下其他區的空值）
     const requiredFields = PARTNER_FIELDS.filter((f) => {
