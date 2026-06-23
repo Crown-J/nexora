@@ -32,7 +32,8 @@
 |---|---|---|
 | 框架 | Next.js 16.1.6 + React 19 | 你的元件最終會是 `.tsx`、不是 `.html` |
 | CSS | Tailwind v4（`@tailwindcss/postcss`） | 樣式用 utility class、不要 inline `style="…"` |
-| 動畫 | **framer-motion 12.38**（已裝） | 元件動畫用 framer-motion 寫；CSS transition 也可，但要能 1:1 翻 |
+| 動畫（元件層） | **framer-motion 12.38**（已裝） | 元件動畫用 framer-motion 寫；CSS transition 也可，但要能 1:1 翻 |
+| 動畫（場景編排） | **GSAP 3.15 + @gsap/react**（已裝、2026-06-23 起） | timeline 序列 / ScrollTrigger / KPI 數字滾動 → **Hank 自己處理、你不用設計**。詳見 `docs/_team/animation-spec.md` |
 | CSS 動畫補充 | `tw-animate-css`（已裝、Tailwind 風格 keyframe utility） | 不要自寫 `@keyframes`、用 Tailwind class 或 framer-motion |
 | UI 基底 | `@radix-ui/*`（dialog / tabs / dropdown / scroll-area / avatar / label / slot） | 對話框、tab、下拉選單**請用 Radix 的結構**、不要從零做 |
 | 圖示 | `lucide-react` 1.7.0 | 圖示**只用 lucide**、不要塞 SVG sprite 或自己畫 |
