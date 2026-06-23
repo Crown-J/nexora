@@ -44,11 +44,17 @@ import {
   STAGGER,
 } from '@/design/motion/gsap';
 
+import { useRouter } from 'next/navigation';
+import { tryNavigate } from '@design/hooks/useDirtyGuard';
+
 import { MasterQuickNav } from '@/features/nx01/shell/master-nav/MasterQuickNav';
+import { MASTER_PAGES } from '@/features/nx01/shell/master-nav/master-pages';
 import {
   ConfirmDialog,
   type ConfirmState,
 } from '@/features/nx01/shell/ui/ConfirmDialog';
+
+import { MasterSwitcher } from './MasterSwitcher';
 
 import {
   type EntityMasterConfig,
@@ -88,6 +94,7 @@ type Mode = 'browse' | 'edit' | 'create';
 export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig }) {
   const { toasts, showToast } = useToast();
   const reduced = useReducedMotion();
+  const router = useRouter();
 
   // 資料
   const [rows, setRows] = useState<EntityRow[]>([]);
@@ -109,6 +116,7 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
   // overlay
   const [confirm, setConfirm] = useState<ConfirmState | null>(null);
   const [cheatOpen, setCheatOpen] = useState(false);
+  const [switcherOpen, setSwitcherOpen] = useState(false);
 
   // refs
   const gridRef = useRef<HTMLDivElement>(null);
@@ -332,9 +340,32 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
     [focusIdx, reduced],
   );
 
+  // ── A：[ / ] 同分區翻頁（其實是平鋪 MASTER_PAGES 中相鄰、跨分區自然進下分區） ──
+  const navigateAdjacent = useCallback(
+    (dir: 'prev' | 'next') => {
+      if (!config.pageId) return;
+      const pages = MASTER_PAGES.filter((p) => !p.disabled);
+      const idx = pages.findIndex((p) => p.id === config.pageId);
+      if (idx === -1) return;
+      const target = dir === 'next' ? pages[idx + 1] : pages[idx - 1];
+      if (!target) {
+        showToast(dir === 'next' ? '已是最後一個主檔' : '已是第一個主檔', 'info');
+        return;
+      }
+      tryNavigate(
+        () => router.push(target.href),
+        `card-master ${dir}: ${target.label} → ${target.href}`,
+      );
+    },
+    [config.pageId, router, showToast],
+  );
+
   // ── 鍵盤 handler（window listener） ──
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      // switcher 開啟時、所有鍵交給 switcher 內部 input 處理
+      if (switcherOpen) return;
+
       // 編輯中：只攔 Esc / Enter（讓 Tab/Shift+Tab 由瀏覽器原生跳）
       if (editing) {
         if (e.key === 'Escape') {
@@ -452,6 +483,21 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
         setCheatOpen((v) => !v);
         return;
       }
+      if (k === 'm' || k === 'M') {
+        e.preventDefault();
+        setSwitcherOpen(true);
+        return;
+      }
+      if (k === '[') {
+        e.preventDefault();
+        navigateAdjacent('prev');
+        return;
+      }
+      if (k === ']') {
+        e.preventDefault();
+        navigateAdjacent('next');
+        return;
+      }
       if (k === 'Escape') {
         if (cheatOpen) {
           e.preventDefault();
@@ -471,12 +517,14 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
     editing,
     searchOpen,
     cheatOpen,
+    switcherOpen,
     moveFocus,
     handleCancel,
     handleSave,
     handleToggleActive,
     startCreate,
     startEdit,
+    navigateAdjacent,
     rows,
     focusIdx,
     page,
@@ -718,11 +766,13 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
                 <Hk k="Enter / Space" t="進入編輯" />
                 <Hk k="N" t="新增一筆" />
                 <Hk k="X" t="停用 / 啟用" />
-                <Hk k="/" t="搜尋" />
+                <Hk k="/" t="搜尋此主檔" />
                 <Hk k="T" t="切換顯示停用" />
                 <Hk k="R" t="重新整理" />
                 <Hk k="Q / E" t="上一頁 / 下一頁" />
                 <Hk k="Home / End" t="第一張 / 最後一張" />
+                <Hk k="[ / ]" t="上 / 下個主檔" />
+                <Hk k="M" t="切換主檔（switcher）" />
                 <Hk k="?" t="本說明" />
                 <Hk k="Tab / Shift+Tab" t="編輯中跳欄" />
                 <Hk k="Esc" t="取消 / 退出" />
@@ -734,6 +784,12 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
           </motion.div>
         ) : null}
       </AnimatePresence>
+
+      <MasterSwitcher
+        open={switcherOpen}
+        currentPageId={config.pageId}
+        onClose={() => setSwitcherOpen(false)}
+      />
 
       {confirm ? <ConfirmDialog state={confirm} onClose={() => setConfirm(null)} /> : null}
       <ToastStack toasts={toasts} />
@@ -822,6 +878,7 @@ function StatusBar({
                 <kbd className="kb">N</kbd> 新增 ·{' '}
               </>
             ) : null}
+            <kbd className="kb">[ ]</kbd> 切主檔 · <kbd className="kb">M</kbd> 切換 ·{' '}
             <kbd className="kb">/</kbd> 搜尋 · <kbd className="kb">?</kbd> 熱鍵
           </>
         ) : null}
