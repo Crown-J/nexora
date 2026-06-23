@@ -1,27 +1,25 @@
 // apps/nx-ui/src/features/nx01/shell/zones/user-zones.ts
-// 2026-06-18 對齊 Hana demo CFG.emp 4 tabs（基本/教育/職務部門/帳號狀況）
-//   + 保留 hr (PRO) 第 5 區、人資主檔同步用
+// 2026-06-23 執行長拍板：合併全分頁、移除 hr 分頁（PRO 模組目前用不到）
+// 原 4 zones（basic/education/orgPosition/account）保留作為單頁長表的 section 分組
 //
 // Demo 對映（docs/專案/介面規格/ERP SYSTEM TEST/nx-page-configs.js line 30-104）：
-//   tab 1 基本資料  → basic       編號 / 姓名 / 個資 / 聯絡 / 地址 / 緊急聯絡
-//   tab 2 教育程度  → education   學歷 / 學校 / 兵役 / 體檢
-//   tab 3 職務部門  → orgPosition 部門 / 組 / 職務 / 據點 / 負責人
-//   tab 4 帳號狀況  → account     在職 / 安全 / 啟用
-//   (PRO 額外)      → hr          人資主檔同步
+//   section 1 基本資料  → basic       編號 / 姓名 / 個資 / 聯絡 / 地址 / 緊急聯絡
+//   section 2 教育程度  → education   學歷 / 學校 / 兵役 / 體檢
+//   section 3 職務部門  → orgPosition 部門 / 組 / 職務 / 據點 / 負責人
+//   section 4 帳號狀況  → account     在職 / 帳號安全 / 啟用
 //
 // ⚠️ 對齊 v1.1：本檔不寫死任何角色名（OWNER 等是系統內建角色 code）
 //    isTenantOwner 是 flag、不是角色名
 
 import type { FieldDef, ZoneDef } from '@data/types/master-zones';
 
-export type UserZone = 'basic' | 'education' | 'orgPosition' | 'account' | 'hr';
+export type UserZone = 'basic' | 'education' | 'orgPosition' | 'account';
 
 export const USER_ZONES: ZoneDef<UserZone>[] = [
   { zone: 'basic', label: '基本資料', description: '編號 / 姓名 / 個人資料 / 聯絡 / 地址 / 緊急聯絡' },
   { zone: 'education', label: '教育程度', description: '學歷 / 學校 / 兵役 / 體檢' },
   { zone: 'orgPosition', label: '職務部門', description: '部門 / 組 / 職務 / 據點 / 負責人' },
   { zone: 'account', label: '帳號狀況', description: '在職 / 帳號安全 / 啟用' },
-  { zone: 'hr', label: '人資（PRO）', description: '員工主檔關聯 / 人資職務' },
 ];
 
 /** 2026-06-18 對齊 demo CFG.emp section 分組：
@@ -112,8 +110,4 @@ export const USER_FIELDS: FieldDef<UserZone>[] = [
   { key: 'failedLoginCount', label: '登入失敗次數', zone: 'account' },
   { key: 'lockedUntil', label: '鎖定至', zone: 'account' },
   { key: 'isActive', label: '是否啟用', zone: 'account', notes: '啟用後才能登入、受席次上限管控' },
-
-  // ─── hr 人資區（PRO 加購）───
-  { key: 'employeeId', label: '員工主檔', zone: 'hr', notes: 'PRO 才啟用' },
-  { key: 'roleId', label: '人資主檔職務角色', zone: 'hr', notes: 'PRO、與 user_role 並存' },
 ];

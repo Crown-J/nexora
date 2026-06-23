@@ -1,12 +1,15 @@
 // apps/nx-ui/src/features/nx01/org/user-zoned/UserFormZoned.tsx
-// 2026-06-18 對齊 Hana demo CFG.emp 4 tabs：basic / education / orgPosition / account
-//   + hr (PRO) 保留
+// 2026-06-23 執行長拍板大改：
+//   - 所有 zones 合併單頁長表（取消 tabs）
+//   - 大頭貼搬最上面、inline 上傳按鈕
+//   - hr (PRO) 分頁移除（規格從 USER_ZONES / USER_FIELDS 拿掉）
 // inline 衛星:
-//   - orgPosition zone：roles / teams（即時 PATCH）
-//   - orgPosition zone 末尾：WarehousesInlineSection（隸屬倉庫）
+//   - orgPosition section：roles / teams（即時 PATCH）
+//   - orgPosition section 末尾：WarehousesInlineSection（隸屬倉庫）
+//   - basic section 末尾：UserAddressSection（戶籍 + 通訊）
 'use client';
 
-import { useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { cn } from '@design/utils/cn';
 import {
@@ -23,12 +26,14 @@ import { type RoleDto } from '@data/endpoints/nx01/api/role';
 import { type UserRoleDto } from '@data/endpoints/nx01/api/user-role';
 import { type UserWarehouseDto } from '@data/endpoints/nx01/api/user-warehouse';
 import { type WarehouseDto } from '@data/endpoints/nx01/api/warehouse';
-// 05 批 T3 2026-06-07：teams 即時範式 inline 渲染
 import { type UserTeamDto } from '@data/endpoints/nx01/api/user-team';
-import Link from 'next/link';
-import { ImageIcon } from 'lucide-react';
-
-import { useEffect, useState } from 'react';
+import { apiFetch } from '@data/api/client';
+import {
+  deleteUserPhoto,
+  uploadUserPhoto,
+  userPhotoRawPath,
+} from '@data/endpoints/shared/user-photo/user-photo-api';
+import { ImageIcon, Trash2, Upload } from 'lucide-react';
 
 import { FIELD_WRITABLE, type UserDraft } from './helpers';
 import { UserAddressMiniPicker } from '@/features/shared/address/UserAddressMiniPicker';
@@ -161,56 +166,94 @@ export function UserFormZoned({
       ]),
     [],
   );
-  const fieldsForZone = useMemo(
-    () =>
-      USER_FIELDS.filter(
-        (f) => f.zone === safeActiveZone && !ADDRESS_FIELD_KEYS.has(f.key),
-      ),
-    [safeActiveZone, ADDRESS_FIELD_KEYS],
+  // 2026-06-23 執行長拍板合併單頁：不再 filter by activeZone、全 fields 一次渲染。
+  // editableZones 仍用於「個別欄位可編判定」。
+  const allFields = useMemo(
+    () => USER_FIELDS.filter((f) => !ADDRESS_FIELD_KEYS.has(f.key)),
+    [ADDRESS_FIELD_KEYS],
   );
 
-  // 2026-06-18 對齊 demo CFG.emp section 分組：把 virtual section header 插入欄位序列前
+  // 渲染序列：zone-header → (sub-section header)? → field …
+  // basic zone 末尾插入 UserAddressSection
+  // orgPosition zone 末尾插入 WarehousesInlineSection
+  type FieldItem = (typeof allFields)[number];
   type RenderItem =
+    | { kind: 'zone-header'; label: string; key: string }
+    | { kind: 'address-section'; key: string }
+    | { kind: 'warehouse-section'; key: string }
     | { kind: 'header'; label: string; key: string }
-    | { kind: 'field'; field: (typeof fieldsForZone)[number] };
+    | { kind: 'field'; field: FieldItem };
   const renderItems = useMemo<RenderItem[]>(() => {
     const items: RenderItem[] = [];
-    for (const f of fieldsForZone) {
+    let prevZone: UserZone | null = null;
+    for (const f of allFields) {
+      if (f.zone !== prevZone) {
+        // 上一個 zone 末尾追加 inline section
+        if (prevZone === 'basic') items.push({ kind: 'address-section', key: 'address-section' });
+        if (prevZone === 'orgPosition') items.push({ kind: 'warehouse-section', key: 'warehouse-section' });
+        // 新 zone 開頭 header
+        const zoneInfo = USER_ZONES.find((z) => z.zone === f.zone);
+        if (zoneInfo) {
+          items.push({ kind: 'zone-header', label: zoneInfo.label, key: `zone-${f.zone}` });
+        }
+        prevZone = f.zone;
+      }
       const sectionLabel = USER_FIELD_SECTIONS[f.key];
       if (sectionLabel) items.push({ kind: 'header', label: sectionLabel, key: `sec-${f.key}` });
       items.push({ kind: 'field', field: f });
     }
+    // 最後一個 zone 末尾
+    if (prevZone === 'basic') items.push({ kind: 'address-section', key: 'address-section' });
+    if (prevZone === 'orgPosition') items.push({ kind: 'warehouse-section', key: 'warehouse-section' });
     return items;
-  }, [fieldsForZone]);
+  }, [allFields]);
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Zone Tabs */}
-      <div className="flex gap-[2px] overflow-x-auto border-b border-border/40 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {visibleZoneList.map((z) => {
-          const active = z.zone === safeActiveZone;
-          const isPlaceholderZone = z.zone === 'hr';
-          return (
-            <button
-              key={z.zone}
-              type="button"
-              onClick={() => setActiveZone(z.zone)}
-              className={cn(
-                '-mb-px whitespace-nowrap border-b-2 border-transparent px-[14px] py-[11px] text-[13px] font-semibold transition-colors',
-                active ? 'border-[#E8A020] text-[#E8A020]' : 'text-muted-foreground hover:text-foreground',
-                isPlaceholderZone && !active && 'text-muted-foreground/70',
-              )}
-            >
-              {z.label}
-            </button>
-          );
-        })}
-      </div>
+      {/* 大頭貼 inline（執行長 2026-06-23 拍板搬最上面、creating 不顯示因為還沒 userId）*/}
+      {!creating && selectedUserId ? (
+        <UserPhotoInline userId={selectedUserId} initialHasPhoto={selectedHasPhoto} />
+      ) : null}
 
       {/* fields */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {renderItems.map((item) => {
-          // 2026-06-18 對齊 demo：section header 分組（編號 / 姓名 / 個資 / 聯絡 / 緊急聯絡 等）
+          // 2026-06-23 zone-level section header（合併單頁時用、原本 tabs 拿掉）
+          if (item.kind === 'zone-header') {
+            return (
+              <div
+                key={item.key}
+                className="sm:col-span-2 mt-3 flex items-center gap-2.5 border-b border-[#E8A020]/40 pb-2 first:mt-0"
+              >
+                <span className="size-2 rounded-full bg-[#E8A020] shadow-[0_0_10px_#E8A020]" />
+                <h2 className="text-base font-bold tracking-wide text-foreground">{item.label}</h2>
+              </div>
+            );
+          }
+          // 2026-06-23：basic zone 末尾插入地址 section
+          if (item.kind === 'address-section') {
+            return (
+              <div key={item.key} className="sm:col-span-2">
+                <UserAddressSection editing={editing} draft={draft} setDraft={setDraft} />
+              </div>
+            );
+          }
+          // 2026-06-23：orgPosition zone 末尾插入隸屬倉庫 section
+          if (item.kind === 'warehouse-section') {
+            return (
+              <div key={item.key} className="sm:col-span-2">
+                <WarehousesInlineSection
+                  editing={editing}
+                  items={selectedUserWarehouses ?? []}
+                  stagedRemovedIds={stagedRemovedWarehouseIds ?? new Set()}
+                  stagedAdded={stagedAddedWarehouses ?? []}
+                  onOpenPicker={onOpenWarehousePicker}
+                  onRevoke={onRevokeWarehouse}
+                />
+              </div>
+            );
+          }
+          // 2026-06-18 對齊 demo：sub-section header 分組（編號 / 姓名 / 個資 / 聯絡 / 緊急聯絡 等）
           if (item.kind === 'header') {
             return (
               <div key={item.key} className="sm:col-span-2 mt-1 first:mt-0 border-b border-border/30 pb-1.5">
@@ -383,10 +426,9 @@ export function UserFormZoned({
             );
           }
 
-          // 非本軌支援欄位 → placeholder（hr / mustChangePassword / failedLoginCount 等 service 自動寫）
+          // 非本軌支援欄位 → placeholder（mustChangePassword / failedLoginCount 等 service 自動寫）
           if (!isWritable) {
             const placeholderHint =
-              f.zone === 'hr' ? 'PRO 啟用' :
               f.zone === 'account' ? '安全設定 service 自動寫、後台檢視' :
               f.zone === 'orgPosition' && f.key === 'isTenantOwner' ? '系統內建旗標、開戶時拍板' :
               '本軌不可編';
@@ -418,43 +460,157 @@ export function UserFormZoned({
         })}
       </div>
 
-      {/* 02 對齊第二批前端收尾軌 FE-CP3：basic zone 末尾兩組地址 picker（戶籍 + 通訊） */}
-      {safeActiveZone === 'basic' ? (
-        <UserAddressSection editing={editing} draft={draft} setDraft={setDraft} />
-      ) : null}
+      {/* 2026-06-23 註：原 basic 末尾 UserAddressSection / 大頭貼 link / orgPosition 末尾
+          WarehousesInlineSection 三段、合併單頁後改成在 renderItems 內 by-zone-end 插入。
+          大頭貼改為頂部 inline 上傳元件、不再連結子頁。 */}
+    </div>
+  );
+}
 
-      {/* 02 第四批 軌 1 2026-06-07：basic zone 大頭貼進入連結（編輯 / 瀏覽既有員工才顯示、新增中不顯示） */}
-      {safeActiveZone === 'basic' && !creating && selectedUserId ? (
-        <div className="mt-4 flex items-center justify-between rounded-lg border border-border/60 bg-card px-4 py-3">
-          <div className="flex items-center gap-3">
-            <ImageIcon className="size-4 text-muted-foreground" />
-            <div>
-              <div className="text-xs font-medium text-foreground">大頭貼</div>
-              <div className="text-[10px] text-muted-foreground">
-                {selectedHasPhoto ? '已上傳、點右方按鈕管理（取代 / 刪除）' : '尚未上傳、點右方按鈕新增'}
-              </div>
-            </div>
+// ──────────────────────────────────────────────────────────────
+// 2026-06-23 大頭貼 inline 上傳元件（執行長拍板搬詳細頁最上面）
+// 對齊 UserPhotoManager 範式：base64 上傳、單張、上傳即取代舊檔
+// ──────────────────────────────────────────────────────────────
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      const comma = result.indexOf(',');
+      resolve(comma >= 0 ? result.slice(comma + 1) : result);
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
+function UserPhotoInline({
+  userId,
+  initialHasPhoto,
+}: {
+  userId: string;
+  initialHasPhoto?: boolean;
+}) {
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const reloadPreview = useCallback(async () => {
+    try {
+      const res = await apiFetch(userPhotoRawPath(userId), { method: 'GET' });
+      if (res.ok) {
+        const blob = await res.blob();
+        setPreviewUrl((prev) => {
+          if (prev) URL.revokeObjectURL(prev);
+          return URL.createObjectURL(blob);
+        });
+      } else {
+        setPreviewUrl((prev) => {
+          if (prev) URL.revokeObjectURL(prev);
+          return null;
+        });
+      }
+    } catch {
+      // ignore: 沒大頭貼也是正常
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    void reloadPreview();
+    return () => {
+      setPreviewUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
+    };
+  }, [reloadPreview]);
+
+  const handleFiles = useCallback(
+    async (files: FileList | null) => {
+      if (!files || files.length === 0) return;
+      const file = files[0];
+      setBusy(true);
+      try {
+        const base64 = await fileToBase64(file);
+        await uploadUserPhoto(userId, {
+          base64Content: base64,
+          originalFilename: file.name,
+          mimeType: file.type || 'image/jpeg',
+        });
+        await reloadPreview();
+      } catch (e) {
+        alert(`上傳失敗：${e instanceof Error ? e.message : String(e)}`);
+      } finally {
+        setBusy(false);
+        if (fileRef.current) fileRef.current.value = '';
+      }
+    },
+    [userId, reloadPreview],
+  );
+
+  const handleDelete = useCallback(async () => {
+    if (!confirm('確認移除大頭貼？')) return;
+    setBusy(true);
+    try {
+      await deleteUserPhoto(userId);
+      await reloadPreview();
+    } catch (e) {
+      alert(`移除失敗：${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      setBusy(false);
+    }
+  }, [userId, reloadPreview]);
+
+  const hasPhoto = previewUrl !== null;
+
+  return (
+    <div className="flex items-center gap-4 rounded-lg border border-border/60 bg-card p-4">
+      <div className="size-20 flex-none overflow-hidden rounded-full border border-border/60 bg-muted/30">
+        {previewUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={previewUrl} alt="大頭貼" className="size-full object-cover" />
+        ) : (
+          <div className="flex size-full items-center justify-center text-muted-foreground">
+            <ImageIcon className="size-7" />
           </div>
-          <Link
-            href={`/dashboard/master/users/${selectedUserId}/photo`}
-            className="rounded-md border border-[#E8A020]/30 bg-[#E8A020]/10 px-3 py-1.5 text-xs font-medium text-[#E8A020] hover:bg-[#E8A020]/20"
-          >
-            {selectedHasPhoto ? '管理大頭貼' : '新增大頭貼'}
-          </Link>
+        )}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="text-sm font-semibold text-foreground">大頭貼</div>
+        <div className="mt-0.5 text-[11px] text-muted-foreground">
+          {hasPhoto ? '已上傳、可重新上傳取代舊圖' : initialHasPhoto ? '載入中…' : '尚未上傳、點右方按鈕新增'}
         </div>
-      ) : null}
-
-      {/* 2026-06-18：orgPosition zone 末尾插入「隸屬倉庫」inline 編輯區（warehouse 不在 USER_FIELDS） */}
-      {safeActiveZone === 'orgPosition' ? (
-        <WarehousesInlineSection
-          editing={editing}
-          items={selectedUserWarehouses ?? []}
-          stagedRemovedIds={stagedRemovedWarehouseIds ?? new Set()}
-          stagedAdded={stagedAddedWarehouses ?? []}
-          onOpenPicker={onOpenWarehousePicker}
-          onRevoke={onRevokeWarehouse}
+      </div>
+      <div className="flex flex-none items-center gap-2">
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => fileRef.current?.click()}
+          className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#E8A020]/40 bg-[#E8A020]/10 px-3 text-xs font-semibold text-[#E8A020] transition-colors hover:bg-[#E8A020]/20 disabled:opacity-50"
+        >
+          <Upload className="size-3.5" />
+          {hasPhoto ? '重新上傳' : '上傳大頭貼'}
+        </button>
+        {hasPhoto ? (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={handleDelete}
+            title="移除大頭貼"
+            className="inline-flex h-8 items-center gap-1 rounded-md border border-[#E26060]/40 bg-[#E26060]/10 px-2.5 text-xs font-medium text-[#E26060] transition-colors hover:bg-[#E26060]/20 disabled:opacity-50"
+          >
+            <Trash2 className="size-3.5" />
+            移除
+          </button>
+        ) : null}
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          hidden
+          onChange={(e) => void handleFiles(e.target.files)}
         />
-      ) : null}
+      </div>
     </div>
   );
 }
