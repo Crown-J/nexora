@@ -15,7 +15,10 @@ export async function fetchCountries(): Promise<CountryRow[]> {
   if (inflight) return inflight;
   inflight = (async () => {
     try {
-      const res = await apiFetch('/nx01/countries?pageSize=200&isActive=true', { method: 'GET' });
+      // 2026-06-23 修：原本 pageSize=200 撞後端 Nx01ListQueryDto max=100 → 400 →
+      // countries 回空 → findTaiwanId 為 null → cities 永遠拉不到 → 地址 picker 全空。
+      // 改成 pageSize=100（NEXORA 用戶國別不會超過 100 國、夠用）。
+      const res = await apiFetch('/nx01/countries?pageSize=100&isActive=true', { method: 'GET' });
       if (!res.ok) {
         inflight = null;
         return [];
