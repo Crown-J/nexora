@@ -479,7 +479,7 @@ export function UserFormZoned({
       <div className="flex flex-col gap-4">
         {/* 主卡：執行長 2026-06-23 拍板 F 方案 — 統一 5 欄 220px + section header */}
         <div className="rounded-lg border border-border/60 bg-card p-4">
-          <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(5, 220px)' }}>
+          <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(5, minmax(220px, 1fr))' }}>
             {/* ─── 個人資訊 ─── */}
             <div className="col-span-full">
               <SectionTitle title="個人資訊" />
