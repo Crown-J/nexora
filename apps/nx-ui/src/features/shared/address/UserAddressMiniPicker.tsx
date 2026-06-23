@@ -23,11 +23,14 @@ export function UserAddressMiniPicker({
   value,
   onChange,
   countryId,
+  onCountryChange,
   disabled,
 }: {
   value: UserMiniAddressValue;
   onChange: (next: UserMiniAddressValue) => void;
   countryId?: string | null;
+  /** 2026-06-23：執行長拍板每組地址加國家 select、本元件能改 country */
+  onCountryChange?: (next: string | null) => void;
   disabled?: boolean;
 }) {
   const [countries, setCountries] = useState<CountryRow[]>([]);
@@ -58,17 +61,44 @@ export function UserAddressMiniPicker({
 
   const update = (patch: Partial<UserMiniAddressValue>) => onChange({ ...value, ...patch });
 
+  // 2026-06-23 執行長拍板：每組地址加國家 select、和縣市/鄉鎮並列
+  const renderCountrySelect = () => (
+    <select
+      className={fieldCls}
+      value={countryId ?? ''}
+      onChange={(e) => {
+        const next = e.target.value || null;
+        if (onCountryChange) onCountryChange(next);
+        // 切國家時、清掉舊縣市 / 鄉鎮 / 郵遞區號（國外無字典）
+        update({ cityId: null, districtId: null, postalCode: null });
+      }}
+      disabled={disabled}
+    >
+      <option value="">台灣（預設）</option>
+      {countries
+        .filter((c) => c.code !== 'TWN')
+        .map((c) => (
+          <option key={c.id} value={c.id}>
+            {c.name}（{c.code}）
+          </option>
+        ))}
+    </select>
+  );
+
   if (!isTW) {
     return (
       <div className="space-y-2">
-        <input
-          type="text"
-          className={fieldCls}
-          value={value.postalCode ?? ''}
-          onChange={(e) => update({ postalCode: e.target.value || null })}
-          placeholder="郵遞區號（自由填）"
-          disabled={disabled}
-        />
+        <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(3, 125px)' }}>
+          {renderCountrySelect()}
+          <input
+            type="text"
+            className={fieldCls}
+            value={value.postalCode ?? ''}
+            onChange={(e) => update({ postalCode: e.target.value || null })}
+            placeholder="郵遞區號"
+            disabled={disabled}
+          />
+        </div>
         <textarea
           className={`${fieldCls} h-16 py-2`}
           value={value.detail ?? ''}
@@ -82,7 +112,8 @@ export function UserAddressMiniPicker({
 
   return (
     <div className="space-y-2">
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(3, 125px)' }}>
+        {renderCountrySelect()}
         <select
           className={fieldCls}
           value={value.cityId ?? ''}

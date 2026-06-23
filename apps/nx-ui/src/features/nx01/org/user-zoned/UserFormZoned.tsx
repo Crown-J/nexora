@@ -229,8 +229,8 @@ export function UserFormZoned({
     if (f.isSatellite) return null; // 衛星表呼叫者另外渲染
 
     const isWide = WIDE_FIELD_KEYS.has(key);
-    // 一般欄 125px、wide 跨 4 欄 ≈ 500px+gap（執行長 2026-06-23 拍板下修）
-    const wideClass = isWide ? '[grid-column:span_4]' : '';
+    // 一般欄 250px、wide 跨 2 欄 ≈ 500px+gap（執行長 2026-06-23 拍板回調）
+    const wideClass = isWide ? '[grid-column:span_2]' : '';
     const wrap = (node: React.ReactNode) => (
       <div key={f.key} className={wideClass || undefined}>
         {node}
@@ -420,9 +420,9 @@ export function UserFormZoned({
       <div className="flex flex-col gap-4">
         {/* 主卡：帳號狀況橫排 + 基本資料 + 地址 + 緊急 + 教育 + 到職離職 */}
         <div className="rounded-lg border border-border/60 bg-card p-4">
-          {/* 帳號狀況橫排 */}
-          <div className="mb-3 flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-border/40 pb-3">
-            <div className="flex items-center gap-2">
+          {/* 帳號狀況橫排：5 cell 均分（執行長 2026-06-23 拍板）*/}
+          <div className="mb-3 grid grid-cols-5 items-center gap-4 border-b border-border/40 pb-3">
+            <div className="flex flex-col gap-1">
               <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                 帳號狀態
               </span>
@@ -440,38 +440,40 @@ export function UserFormZoned({
               disabled={!editing || !FIELD_WRITABLE.has('twoFaEnabled')}
               onChange={(v) => setDraft({ ...draft, twoFaEnabled: v })}
             />
-            <span className="text-[11px] text-muted-foreground">
-              最近登入：
-              <span className="ml-1 font-mono text-foreground/85">
+            <div className="flex flex-col gap-1">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                最近登入
+              </span>
+              <span className="font-mono text-xs text-foreground/85">
                 {draft.lastLoginAt ? formatDateTimeZh(String(draft.lastLoginAt)) : '—'}
               </span>
-            </span>
+            </div>
             {!creating && selectedUserId ? (
               <button
                 type="button"
                 disabled={resetting}
                 onClick={handleResetPassword}
-                className="ml-auto inline-flex h-7 items-center justify-center gap-1 rounded-md border border-[#E26060]/40 bg-[#E26060]/10 px-2.5 text-[11px] font-semibold text-[#E26060] transition-colors hover:bg-[#E26060]/20 disabled:opacity-50"
+                className="inline-flex h-9 w-full items-center justify-center gap-1 rounded-md border border-[#E26060]/40 bg-[#E26060]/10 px-2.5 text-xs font-semibold text-[#E26060] transition-colors hover:bg-[#E26060]/20 disabled:opacity-50"
               >
                 <KeyRound className="size-3.5" />
                 {resetting ? '重設中…' : '重設密碼'}
               </button>
-            ) : null}
+            ) : <div />}
           </div>
 
-          {/* 基本資料欄位 */}
-          <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(125px,1fr))]">
+          {/* 基本資料欄位（一般欄位 250px、wide 500px）*/}
+          <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(250px,1fr))]">
             {renderField('userAccount')}
             {renderField('legacyCode')}
             {renderField('userName')}
             {renderField('userNameEn')}
+            {/* 性別 / 生日 / 身分證 3 欄各 125px（國籍移到地址 picker 內、執行長 2026-06-23 拍板）*/}
             <div
               className="col-span-full grid gap-3"
-              style={{ gridTemplateColumns: 'repeat(4, 125px)' }}
+              style={{ gridTemplateColumns: 'repeat(3, 125px)' }}
             >
               {renderField('gender')}
               {renderField('birthday')}
-              {renderField('countryId')}
               {renderField('nationalId')}
             </div>
             {renderField('email')}
@@ -829,6 +831,7 @@ function UserAddressSection({
               })
             }
             countryId={countryId}
+            onCountryChange={(next) => setDraft({ ...draft, countryId: next ?? '' })}
             disabled={!editing}
           />
         </div>
@@ -851,6 +854,7 @@ function UserAddressSection({
               })
             }
             countryId={countryId}
+            onCountryChange={(next) => setDraft({ ...draft, countryId: next ?? '' })}
             disabled={!editing}
           />
         </div>
