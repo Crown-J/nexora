@@ -185,15 +185,8 @@ export function UserFormZoned({
       ]),
     [],
   );
-  // 2026-06-23 執行長拍板：一般欄位 ~250px、信箱類較長標 wide ~500px
-  // 畢業學校從 wide 拿掉、調回 250px（執行長後續拍板）
-  const WIDE_FIELD_KEYS = useMemo(
-    () =>
-      new Set<string>([
-        'email',
-      ]),
-    [],
-  );
+  // 2026-06-23 執行長拍板 F 方案：統一 5 欄 220px、不再有 wide 欄位
+  const WIDE_FIELD_KEYS = useMemo(() => new Set<string>(), []);
 
   // 2026-06-23 執行長拍板：頂部區「大頭照 + 右側 3 排」放這 7 個欄位、main grid 不再渲染
   const TOP_FIELD_KEYS = useMemo(
@@ -484,53 +477,47 @@ export function UserFormZoned({
 
       {/* ─── 右欄：全部欄位 + 職務 / 據點兩卡片 ─── */}
       <div className="flex flex-col gap-4">
-        {/* 主卡：帳號狀況橫排 + 基本資料 + 地址 + 緊急 + 教育 + 到職離職 */}
+        {/* 主卡：執行長 2026-06-23 拍板 F 方案 — 統一 5 欄 220px + section header */}
         <div className="rounded-lg border border-border/60 bg-card p-4">
-          {/* 基本資料欄位（一般欄位 250px、wide 500px）*/}
-          <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(250px,1fr))]">
+          <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(5, 220px)' }}>
+            {/* ─── 個人資訊 ─── */}
+            <div className="col-span-full">
+              <SectionTitle title="個人資訊" />
+            </div>
             {renderField('userAccount')}
             {renderField('legacyCode')}
             {renderField('userName')}
             {renderField('userNameEn')}
-            {/* 性別 125 / 生日 250 / 身分證 250（執行長 2026-06-23 拍板）*/}
-            <div
-              className="col-span-full grid gap-3"
-              style={{ gridTemplateColumns: '125px 250px 250px' }}
-            >
-              {renderField('gender')}
-              {renderField('birthday')}
-              {renderField('nationalId')}
+            {renderField('gender')}
+            {renderField('birthday')}
+            {renderField('countryId')}
+            {renderField('nationalId')}
+
+            {/* ─── 聯絡 & 緊急聯絡 ─── */}
+            <div className="col-span-full">
+              <SectionTitle title="聯絡 & 緊急聯絡" />
             </div>
             {renderField('email')}
-            {/* 電話 + 緊急聯絡 3 欄（執行長拍板「緊急聯絡放電話右邊」、關係 125px）*/}
-            <div
-              className="col-span-full grid gap-3"
-              style={{ gridTemplateColumns: '250px 250px 125px 250px' }}
-            >
-              {renderField('phone')}
-              {renderField('emergencyContact')}
-              {renderField('emergencyRelation')}
-              {renderField('emergencyPhone')}
+            {renderField('phone')}
+            {renderField('emergencyContact')}
+            {renderField('emergencyRelation')}
+            {renderField('emergencyPhone')}
+
+            {/* ─── 教育 / 在職 ─── */}
+            <div className="col-span-full">
+              <SectionTitle title="教育 / 在職" />
             </div>
-            {/* 教育 + 在職（執行長 2026-06-23 拍板：到職離職移到最高學歷下面、體檢結果 125px）*/}
             {renderField('highestEducation')}
-            {/* 到職日 / 離職日：佔下一行兩格 */}
-            <div
-              className="col-span-full grid gap-3"
-              style={{ gridTemplateColumns: '250px 250px' }}
-            >
-              {renderField('hireDate')}
-              {renderField('leftAt')}
-            </div>
-            {/* 畢業學校 / 兵役 / 體檢日期 / 體檢結果（體檢結果 125px）*/}
-            <div
-              className="col-span-full grid gap-3"
-              style={{ gridTemplateColumns: '250px 250px 250px 125px' }}
-            >
-              {renderField('graduateSchool')}
-              {renderField('militaryService')}
-              {renderField('healthCheckDate')}
-              {renderField('healthCheckResult')}
+            {renderField('graduateSchool')}
+            {renderField('militaryService')}
+            {renderField('healthCheckDate')}
+            {renderField('healthCheckResult')}
+            {renderField('hireDate')}
+            {renderField('leftAt')}
+
+            {/* ─── 地址 ─── */}
+            <div className="col-span-full">
+              <SectionTitle title="地址" />
             </div>
             <div className="col-span-full">
               <UserAddressSection editing={editing} draft={draft} setDraft={setDraft} />
