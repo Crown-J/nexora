@@ -173,6 +173,16 @@ export function UserFormZoned({
     [ADDRESS_FIELD_KEYS],
   );
 
+  // 2026-06-23 執行長拍板：一般欄位 ~250px、信箱類較長標 wide ~500px
+  const WIDE_FIELD_KEYS = useMemo(
+    () =>
+      new Set<string>([
+        'email',
+        'graduateSchool',
+      ]),
+    [],
+  );
+
   // 渲染序列：zone-header → (sub-section header)? → field …
   // basic zone 末尾插入 UserAddressSection
   // orgPosition zone 末尾插入 WarehousesInlineSection
@@ -212,18 +222,20 @@ export function UserFormZoned({
     <div className="flex flex-col gap-4">
       {/* 大頭貼 inline（執行長 2026-06-23 拍板搬最上面、creating 不顯示因為還沒 userId）*/}
       {!creating && selectedUserId ? (
-        <UserPhotoInline userId={selectedUserId} initialHasPhoto={selectedHasPhoto} />
+        <div className="max-w-[500px]">
+          <UserPhotoInline userId={selectedUserId} initialHasPhoto={selectedHasPhoto} />
+        </div>
       ) : null}
 
-      {/* fields */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      {/* fields：執行長 2026-06-23 拍板 — 一般欄位 ~250px、wide 欄位 ~500px、用 auto-fill 動態分欄 */}
+      <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(240px,1fr))]">
         {renderItems.map((item) => {
           // 2026-06-23 zone-level section header（合併單頁時用、原本 tabs 拿掉）
           if (item.kind === 'zone-header') {
             return (
               <div
                 key={item.key}
-                className="sm:col-span-2 mt-3 flex items-center gap-2.5 border-b border-[#E8A020]/40 pb-2 first:mt-0"
+                className="col-span-full mt-3 flex items-center gap-2.5 border-b border-[#E8A020]/40 pb-2 first:mt-0"
               >
                 <span className="size-2 rounded-full bg-[#E8A020] shadow-[0_0_10px_#E8A020]" />
                 <h2 className="text-base font-bold tracking-wide text-foreground">{item.label}</h2>
@@ -233,7 +245,7 @@ export function UserFormZoned({
           // 2026-06-23：basic zone 末尾插入地址 section
           if (item.kind === 'address-section') {
             return (
-              <div key={item.key} className="sm:col-span-2">
+              <div key={item.key} className="col-span-full">
                 <UserAddressSection editing={editing} draft={draft} setDraft={setDraft} />
               </div>
             );
@@ -241,7 +253,7 @@ export function UserFormZoned({
           // 2026-06-23：orgPosition zone 末尾插入隸屬倉庫 section
           if (item.kind === 'warehouse-section') {
             return (
-              <div key={item.key} className="sm:col-span-2">
+              <div key={item.key} className="col-span-full">
                 <WarehousesInlineSection
                   editing={editing}
                   items={selectedUserWarehouses ?? []}
@@ -256,7 +268,7 @@ export function UserFormZoned({
           // 2026-06-18 對齊 demo：sub-section header 分組（編號 / 姓名 / 個資 / 聯絡 / 緊急聯絡 等）
           if (item.kind === 'header') {
             return (
-              <div key={item.key} className="sm:col-span-2 mt-1 first:mt-0 border-b border-border/30 pb-1.5">
+              <div key={item.key} className="col-span-full mt-1 first:mt-0 border-b border-border/30 pb-1.5">
                 <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/80">
                   {item.label}
                 </span>
@@ -264,6 +276,14 @@ export function UserFormZoned({
             );
           }
           const f = item.field;
+          const isWide = WIDE_FIELD_KEYS.has(f.key);
+          const wideClass = isWide ? '[grid-column:span_2]' : '';
+          // 統一 wrap 每個 field 到 grid cell（wide 自動跨 2 欄、~500px）
+          const wrap = (node: React.ReactNode) => (
+            <div key={f.key} className={wideClass || undefined}>
+              {node}
+            </div>
+          );
           // 02 對齊第二批前端收尾軌 FE-CP3：地址 9 keys 統一由 UserAddressSection 渲染
           if (ADDRESS_KEYS_HANDLED_BY_SECTION.has(f.key)) return null;
           // 衛星表
@@ -271,7 +291,7 @@ export function UserFormZoned({
             // 05 批 T3 2026-06-07：teams 衛星 inline 編輯（即時 PATCH 範式、主組決定員工部門）
             if (f.key === 'teams') {
               return (
-                <div key={f.key} className="sm:col-span-2">
+                <div key={f.key} className="col-span-full">
                   <TeamsInlineSection
                     editing={editing}
                     items={selectedUserTeams ?? []}
@@ -286,7 +306,7 @@ export function UserFormZoned({
             // B2~B5：roles 衛星改為 inline 編輯區（從舊版 UserMasterPage 移植）
             if (f.key === 'roles') {
               return (
-                <div key={f.key} className="sm:col-span-2">
+                <div key={f.key} className="col-span-full">
                   <RolesInlineSection
                     editing={editing}
                     items={selectedUserRoles ?? []}
@@ -300,14 +320,14 @@ export function UserFormZoned({
                 </div>
               );
             }
-            // hr zone 衛星（teams）：PRO 啟用、本軌 placeholder
+            // 未識別的衛星表：placeholder
             return (
-              <div key={f.key} className="sm:col-span-2">
+              <div key={f.key} className="col-span-full">
                 <SatelliteSection
                   title={f.label}
                   description={`衛星表 ${f.satelliteName ?? ''}；${f.notes ?? ''}`}
                   status="backend-missing"
-                  hint="PRO 啟用 / closure 後續軌"
+                  hint="closure 後續軌"
                 />
               </div>
             );
@@ -332,21 +352,21 @@ export function UserFormZoned({
             const labelText = matched?.label ?? (effectiveValue || '—');
             if (primaryTeam) {
               // 唯讀（顯示主組部門 + 來源徽章）
-              return (
-                <FieldShell key={f.key} label={f.label}>
+              return wrap(
+                <FieldShell label={f.label}>
                   <div className="flex items-center gap-2 rounded-md border border-border/60 bg-muted/30 px-2.5 py-1.5">
                     <span className="text-sm text-foreground">{primaryTeam.departmentName ?? labelText}</span>
                     <span className="ml-auto rounded border border-[#E8A020]/40 bg-[#E8A020]/10 px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-[#E8A020]">
                       自動帶（主組）
                     </span>
                   </div>
-                </FieldShell>
+                </FieldShell>,
               );
             }
             // 無主組 → fallback editable
             if (fieldEditable) {
-              return (
-                <FieldShell key={f.key} label={f.label}>
+              return wrap(
+                <FieldShell label={f.label}>
                   <select
                     className="h-9 w-full rounded-md border border-[#E8A020]/30 bg-[var(--nx-surface-input)] px-2.5 text-sm text-foreground outline-none focus:border-[#E8A020]/60 focus:ring-1 focus:ring-[#E8A020]/40"
                     value={draftValue}
@@ -360,18 +380,18 @@ export function UserFormZoned({
                     ))}
                   </select>
                   <span className="text-[10px] text-muted-foreground">無主組 fallback、行政員工手動設</span>
-                </FieldShell>
+                </FieldShell>,
               );
             }
-            return <FormField key={f.key} label={f.label} value={labelText || '—'} />;
+            return wrap(<FormField label={f.label} value={labelText || '—'} />);
           }
 
           // 02 第四批 軌 1 2026-06-07：primarySiteId 走「ref 下拉」、不走純文字 input
           if (f.key === 'primarySiteId') {
             const value = String(draft[f.key] ?? '');
             if (fieldEditable) {
-              return (
-                <FieldShell key={f.key} label={f.label}>
+              return wrap(
+                <FieldShell label={f.label}>
                   <select
                     className="h-9 w-full rounded-md border border-[#E8A020]/30 bg-[var(--nx-surface-input)] px-2.5 text-sm text-foreground outline-none focus:border-[#E8A020]/60 focus:ring-1 focus:ring-[#E8A020]/40"
                     value={value}
@@ -384,20 +404,20 @@ export function UserFormZoned({
                       </option>
                     ))}
                   </select>
-                </FieldShell>
+                </FieldShell>,
               );
             }
             const matched = siteOptions.find((o) => String(o.value) === value);
-            return (
-              <FormField key={f.key} label={f.label} value={matched?.label ?? (value || '—')} />
+            return wrap(
+              <FormField label={f.label} value={matched?.label ?? (value || '—')} />,
             );
           }
 
           // isActive toggle（account 區）
           if (f.key === 'isActive' && fieldEditable) {
             const on = Boolean(draft[f.key]);
-            return (
-              <FieldShell key={f.key} label={f.label}>
+            return wrap(
+              <FieldShell label={f.label}>
                 <button
                   type="button"
                   onClick={() => setDraft({ ...draft, [f.key]: !on })}
@@ -410,19 +430,18 @@ export function UserFormZoned({
                 >
                   {on ? '啟用' : '停用'}
                 </button>
-              </FieldShell>
+              </FieldShell>,
             );
           }
 
           // 一般文字輸入
           if (fieldEditable) {
-            return (
+            return wrap(
               <FormInput
-                key={f.key}
                 label={f.label + (f.required ? ' *' : '')}
                 value={String(draft[f.key] ?? '')}
                 onChange={(v) => setDraft({ ...draft, [f.key]: v })}
-              />
+              />,
             );
           }
 
@@ -432,21 +451,19 @@ export function UserFormZoned({
               f.zone === 'account' ? '安全設定 service 自動寫、後台檢視' :
               f.zone === 'orgPosition' && f.key === 'isTenantOwner' ? '系統內建旗標、開戶時拍板' :
               '本軌不可編';
-            return (
+            return wrap(
               <FormField
-                key={f.key}
                 label={f.label}
                 value={`${placeholderHint}：${f.notes ?? '—'}`}
                 dim
-              />
+              />,
             );
           }
 
           // 瀏覽 / locked
           const raw = draft[f.key];
-          return (
+          return wrap(
             <FormField
-              key={f.key}
               label={f.label}
               value={String(raw ?? '—') || '—'}
               mono={f.key === 'userAccount'}
@@ -455,7 +472,7 @@ export function UserFormZoned({
                   ? (raw ? 'green' : 'red')
                   : undefined
               }
-            />
+            />,
           );
         })}
       </div>
