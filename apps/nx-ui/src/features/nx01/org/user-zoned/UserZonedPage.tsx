@@ -375,6 +375,20 @@ export function UserZonedPage({
     setPendingWarehouseOps([]);
   }, [selectedId, mode]);
 
+  // 2026-06-23 修瀏覽模式 detail 全 "—"：UserFormZoned 瀏覽欄位讀 draft、
+  // 但編輯才 setDraft、瀏覽 selected 時 draft 是空 → 全顯示 "—"。
+  // 在瀏覽模式下、selected 變動就同步把 selected → draft，讓欄位顯示真實值。
+  useEffect(() => {
+    if (mode === 'edit') return;
+    if (creating) return;
+    if (!selected) {
+      setDraft({});
+      return;
+    }
+    const d = userRowToDraft(selected as unknown as Parameters<typeof userRowToDraft>[0]);
+    setDraft(d);
+  }, [selected, mode, creating]);
+
   // B2~B5：staged ops derived state
   const stagedRemovedRoleIds = useMemo(
     () =>
