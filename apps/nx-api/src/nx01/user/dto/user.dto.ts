@@ -213,6 +213,12 @@ export class UpdateUserDto {
   @IsBoolean()
   isActive?: boolean;
 
+  // 2026-06-23：admin 重設密碼時要帶 mustChangePassword=true、員工首次登入強制改
+  @IsOptional()
+  @Type(() => Boolean)
+  @IsBoolean()
+  mustChangePassword?: boolean;
+
   // ── W3 [3-3] basic zone 7 欄位 ────────────────────────────
   @IsOptional() @IsString() @IsIn(['M', 'F', 'O']) gender?: string | null;
   @IsOptional() @IsDateString() birthday?: string | null;

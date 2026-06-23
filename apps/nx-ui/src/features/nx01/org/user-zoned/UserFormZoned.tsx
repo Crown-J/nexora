@@ -33,7 +33,11 @@ import {
   uploadUserPhoto,
   userPhotoRawPath,
 } from '@data/endpoints/shared/user-photo/user-photo-api';
-import { ImageIcon, Trash2, Upload } from 'lucide-react';
+import { updateUser } from '@data/endpoints/nx01/api/user';
+import { ImageIcon, KeyRound, Lock, Trash2, Upload } from 'lucide-react';
+
+/** 2026-06-23 admin 重設密碼後的預設密碼（員工首次登入要改） */
+const RESET_PASSWORD_DEFAULT = 'CHANGEME';
 
 import { FIELD_WRITABLE, type UserDraft } from './helpers';
 import { UserAddressMiniPicker } from '@/features/shared/address/UserAddressMiniPicker';
@@ -202,349 +206,288 @@ export function UserFormZoned({
     [ADDRESS_FIELD_KEYS, TOP_FIELD_KEYS],
   );
 
-  // 渲染序列：zone-header → (sub-section header)? → field …
-  // basic zone 末尾插入 UserAddressSection
-  // orgPosition zone 末尾插入 WarehousesInlineSection
-  type FieldItem = (typeof allFields)[number];
-  type RenderItem =
-    | { kind: 'zone-header'; label: string; key: string }
-    | { kind: 'address-section'; key: string }
-    | { kind: 'warehouse-section'; key: string }
-    | { kind: 'header'; label: string; key: string }
-    | { kind: 'field'; field: FieldItem };
-  const renderItems = useMemo<RenderItem[]>(() => {
-    const items: RenderItem[] = [];
-    let prevZone: UserZone | null = null;
-    for (const f of allFields) {
-      if (f.zone !== prevZone) {
-        // 上一個 zone 末尾追加 inline section
-        if (prevZone === 'basic') items.push({ kind: 'address-section', key: 'address-section' });
-        if (prevZone === 'orgPosition') items.push({ kind: 'warehouse-section', key: 'warehouse-section' });
-        // 新 zone 開頭 header
-        const zoneInfo = USER_ZONES.find((z) => z.zone === f.zone);
-        if (zoneInfo) {
-          items.push({ kind: 'zone-header', label: zoneInfo.label, key: `zone-${f.zone}` });
-        }
-        prevZone = f.zone;
-      }
-      const sectionLabel = USER_FIELD_SECTIONS[f.key];
-      if (sectionLabel) items.push({ kind: 'header', label: sectionLabel, key: `sec-${f.key}` });
-      items.push({ kind: 'field', field: f });
-    }
-    // 最後一個 zone 末尾
-    if (prevZone === 'basic') items.push({ kind: 'address-section', key: 'address-section' });
-    if (prevZone === 'orgPosition') items.push({ kind: 'warehouse-section', key: 'warehouse-section' });
-    return items;
-  }, [allFields]);
-
-  // 頂部區欄位的渲染（簡化版、只處理一般文字欄位）
-  const renderTopField = (key: string) => {
+  // 2026-06-23 三區塊 layout：renderField 通用 helper、處理所有 special case
+  const renderField = (key: string): React.ReactNode => {
     const f = USER_FIELDS.find((x) => x.key === key);
     if (!f) return null;
+    if (ADDRESS_FIELD_KEYS.has(key)) return null;
+    if (f.isSatellite) return null; // 衛星表呼叫者另外渲染
+
+    const isWide = WIDE_FIELD_KEYS.has(key);
+    const wideClass = isWide ? '[grid-column:span_2]' : '';
+    const wrap = (node: React.ReactNode) => (
+      <div key={f.key} className={wideClass || undefined}>
+        {node}
+      </div>
+    );
+
     const isWritable = FIELD_WRITABLE.has(f.key);
     const zoneEditable = editableZones ? editableZones.has(f.zone) : true;
     const fieldEditable = editing && isWritable && zoneEditable;
+
+    // isActive / twoFaEnabled 由帳號狀況區的 Switch 處理、不在這裡渲染
+    if (f.key === 'isActive' || f.key === 'twoFaEnabled') return null;
+    // lastLoginAt 也在帳號狀況區渲染
+    if (f.key === 'lastLoginAt') return null;
+    // 其他 account zone 不再渲染的（mustChangePassword / failedLoginCount / lockedUntil）
+    if (f.key === 'mustChangePassword' || f.key === 'failedLoginCount' || f.key === 'lockedUntil') return null;
+
+    // departmentId 特殊：有主組 readonly + 徽章；無主組 fallback editable
+    if (f.key === 'departmentId') {
+      const draftValue = String(draft[f.key] ?? '');
+      const effectiveValue = primaryTeam?.departmentId ?? draftValue;
+      const matched = departmentOptions.find((o) => String(o.value) === effectiveValue);
+      const labelText = matched?.label ?? (effectiveValue || '—');
+      if (primaryTeam) {
+        return wrap(
+          <FieldShell label={f.label}>
+            <div className="flex items-center gap-2 rounded-md border border-border/60 bg-muted/30 px-2.5 py-1.5">
+              <span className="text-sm text-foreground">{primaryTeam.departmentName ?? labelText}</span>
+              <span className="ml-auto rounded border border-[#E8A020]/40 bg-[#E8A020]/10 px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-[#E8A020]">
+                自動帶（主組）
+              </span>
+            </div>
+          </FieldShell>,
+        );
+      }
+      if (fieldEditable) {
+        return wrap(
+          <FieldShell label={f.label}>
+            <select
+              className="h-9 w-full rounded-md border border-[#E8A020]/30 bg-[var(--nx-surface-input)] px-2.5 text-sm text-foreground outline-none focus:border-[#E8A020]/60 focus:ring-1 focus:ring-[#E8A020]/40"
+              value={draftValue}
+              onChange={(e) => setDraft({ ...draft, [f.key]: e.target.value })}
+            >
+              <option value="">（未指定）</option>
+              {departmentOptions.map((opt) => (
+                <option key={String(opt.value)} value={String(opt.value)} className="bg-popover">
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </FieldShell>,
+        );
+      }
+      return wrap(<FormField label={f.label} value={labelText || '—'} />);
+    }
+
+    // primarySiteId 特殊：ref dropdown
+    if (f.key === 'primarySiteId') {
+      const value = String(draft[f.key] ?? '');
+      if (fieldEditable) {
+        return wrap(
+          <FieldShell label={f.label}>
+            <select
+              className="h-9 w-full rounded-md border border-[#E8A020]/30 bg-[var(--nx-surface-input)] px-2.5 text-sm text-foreground outline-none focus:border-[#E8A020]/60 focus:ring-1 focus:ring-[#E8A020]/40"
+              value={value}
+              onChange={(e) => setDraft({ ...draft, [f.key]: e.target.value })}
+            >
+              <option value="">（未指定）</option>
+              {siteOptions.map((opt) => (
+                <option key={String(opt.value)} value={String(opt.value)} className="bg-popover">
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </FieldShell>,
+        );
+      }
+      const matched = siteOptions.find((o) => String(o.value) === value);
+      return wrap(<FormField label={f.label} value={matched?.label ?? (value || '—')} />);
+    }
+
+    // 一般可編輸入
     if (fieldEditable) {
-      return (
+      return wrap(
         <FormInput
-          key={f.key}
           label={f.label + (f.required ? ' *' : '')}
           value={String(draft[f.key] ?? '')}
           onChange={(v) => setDraft({ ...draft, [f.key]: v })}
-        />
+        />,
       );
     }
+
+    // 非本軌支援 → placeholder
+    if (!isWritable) {
+      const placeholderHint =
+        f.zone === 'account' ? '安全設定 service 自動寫、後台檢視' :
+        f.zone === 'orgPosition' && f.key === 'isTenantOwner' ? '系統內建旗標、開戶時拍板' :
+        '本軌不可編';
+      return wrap(<FormField label={f.label} value={`${placeholderHint}：${f.notes ?? '—'}`} dim />);
+    }
+
+    // 瀏覽
     const raw = draft[f.key];
-    return (
+    return wrap(
       <FormField
-        key={f.key}
         label={f.label}
         value={String(raw ?? '—') || '—'}
         mono={f.key === 'userAccount'}
-      />
+      />,
     );
   };
 
+  // 2026-06-23 帳號狀態 derived（鎖定中 / 啟用中 / 關閉中）
+  const accountStatus = useMemo<{
+    label: '鎖定中' | '啟用中' | '關閉中';
+    tone: 'red' | 'green' | 'muted';
+  }>(() => {
+    const lockedRaw = draft.lockedUntil;
+    const lockedAt = lockedRaw ? new Date(String(lockedRaw)) : null;
+    if (lockedAt && !Number.isNaN(lockedAt.getTime()) && lockedAt.getTime() > Date.now()) {
+      return { label: '鎖定中', tone: 'red' };
+    }
+    if (draft.isActive) return { label: '啟用中', tone: 'green' };
+    return { label: '關閉中', tone: 'muted' };
+  }, [draft.isActive, draft.lockedUntil]);
+
+  // 2026-06-23 admin 重設密碼
+  const [resetting, setResetting] = useState(false);
+  const handleResetPassword = useCallback(async () => {
+    if (!selectedUserId) return;
+    if (!window.confirm(`確認重設此員工密碼為「${RESET_PASSWORD_DEFAULT}」？\n員工下次登入會被強制改密。`)) return;
+    setResetting(true);
+    try {
+      await updateUser(selectedUserId, {
+        password: RESET_PASSWORD_DEFAULT,
+        mustChangePassword: true,
+      });
+      window.alert(`✅ 已重設密碼為「${RESET_PASSWORD_DEFAULT}」`);
+    } catch (e) {
+      window.alert(`重設密碼失敗：${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      setResetting(false);
+    }
+  }, [selectedUserId]);
+
   return (
     <div className="flex flex-col gap-4">
-      {/* 頂部區：左側 2 吋大頭照、右側 3 排基本欄位（執行長 2026-06-23 拍板）*/}
-      <div className="flex items-stretch gap-4">
-        {!creating && selectedUserId ? (
-          <UserPhotoInline userId={selectedUserId} initialHasPhoto={selectedHasPhoto} />
-        ) : null}
-        <div className="flex min-w-0 flex-1 flex-col gap-3">
-          {/* 第 1 排：員工編號 / 舊員工編號 */}
-          <div className="grid grid-cols-2 gap-3">
-            {renderTopField('userAccount')}
-            {renderTopField('legacyCode')}
+      <div className="grid gap-4 lg:[grid-template-columns:300px_minmax(0,1fr)_320px]">
+        {/* ─── 左欄：大頭照 + 帳號狀況 ─── */}
+        <div className="flex flex-col gap-4">
+          {!creating && selectedUserId ? (
+            <div className="rounded-lg border border-border/60 bg-card p-4">
+              <SectionTitle title="大頭照" />
+              <UserPhotoInline userId={selectedUserId} initialHasPhoto={selectedHasPhoto} />
+            </div>
+          ) : null}
+
+          <div className="rounded-lg border border-border/60 bg-card p-4">
+            <SectionTitle title="帳號狀況" />
+            <div className="flex flex-col gap-3">
+              {/* 帳號狀態 chip */}
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                  帳號狀態
+                </span>
+                <StatusChip label={accountStatus.label} tone={accountStatus.tone} />
+              </div>
+              <SwitchRow
+                label="是否啟用"
+                value={Boolean(draft.isActive)}
+                disabled={!editing || !FIELD_WRITABLE.has('isActive')}
+                onChange={(v) => setDraft({ ...draft, isActive: v })}
+              />
+              <SwitchRow
+                label="兩階段驗證"
+                value={Boolean(draft.twoFaEnabled)}
+                disabled={!editing || !FIELD_WRITABLE.has('twoFaEnabled')}
+                onChange={(v) => setDraft({ ...draft, twoFaEnabled: v })}
+              />
+              <FormField
+                label="最近登入時間"
+                value={draft.lastLoginAt ? formatDateTimeZh(String(draft.lastLoginAt)) : '—'}
+                dim
+              />
+              {!creating && selectedUserId ? (
+                <button
+                  type="button"
+                  disabled={resetting}
+                  onClick={handleResetPassword}
+                  className="mt-1 inline-flex h-9 items-center justify-center gap-1.5 rounded-md border border-[#E26060]/40 bg-[#E26060]/10 px-3 text-xs font-semibold text-[#E26060] transition-colors hover:bg-[#E26060]/20 disabled:opacity-50"
+                >
+                  <KeyRound className="size-3.5" />
+                  {resetting ? '重設中…' : '重設密碼'}
+                </button>
+              ) : null}
+            </div>
           </div>
-          {/* 第 2 排：中文姓名 / 英文姓名 */}
-          <div className="grid grid-cols-2 gap-3">
-            {renderTopField('userName')}
-            {renderTopField('userNameEn')}
+        </div>
+
+        {/* ─── 中欄：基本資料（合併地址 / 緊急 / 教育 / 到職離職）─── */}
+        <div className="rounded-lg border border-border/60 bg-card p-4">
+          <SectionTitle title="基本資料" />
+          <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(220px,1fr))]">
+            {renderField('userAccount')}
+            {renderField('legacyCode')}
+            {renderField('userName')}
+            {renderField('userNameEn')}
+            {renderField('gender')}
+            {renderField('birthday')}
+            {renderField('countryId')}
+            {renderField('nationalId')}
+            {renderField('email')}
+            {renderField('phone')}
+            <div className="col-span-full">
+              <UserAddressSection editing={editing} draft={draft} setDraft={setDraft} />
+            </div>
+            {renderField('emergencyContact')}
+            {renderField('emergencyRelation')}
+            {renderField('emergencyPhone')}
+            {renderField('highestEducation')}
+            {renderField('graduateSchool')}
+            {renderField('militaryService')}
+            {renderField('healthCheckDate')}
+            {renderField('healthCheckResult')}
+            {renderField('hireDate')}
+            {renderField('leftAt')}
           </div>
-          {/* 第 3 排：性別 / 生日 / 身分證 */}
-          <div className="grid grid-cols-3 gap-3">
-            {renderTopField('gender')}
-            {renderTopField('birthday')}
-            {renderTopField('nationalId')}
+        </div>
+
+        {/* ─── 右欄：職務 + 隸屬據點 ─── */}
+        <div className="flex flex-col gap-4">
+          <div className="rounded-lg border border-border/60 bg-card p-4">
+            <SectionTitle title="職務" />
+            <div className="flex flex-col gap-3">
+              {renderField('departmentId')}
+              <TeamsInlineSection
+                editing={editing}
+                items={selectedUserTeams ?? []}
+                onOpenPicker={onOpenTeamPicker}
+                onSetPrimary={onSetTeamPrimary}
+                onToggleLeader={onToggleTeamLeader}
+                onRevoke={onRevokeTeam}
+              />
+              <RolesInlineSection
+                editing={editing}
+                items={selectedUserRoles ?? []}
+                stagedRemovedIds={stagedRemovedRoleIds ?? new Set()}
+                stagedAdded={stagedAddedRoles ?? []}
+                stagedPrimaryId={stagedPrimaryRoleId ?? null}
+                onOpenPicker={onOpenRolePicker}
+                onSetPrimary={onSetRolePrimary}
+                onRevoke={onRevokeRole}
+              />
+              {renderField('isTenantOwner')}
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-border/60 bg-card p-4">
+            <SectionTitle title="隸屬據點" />
+            <div className="flex flex-col gap-3">
+              {renderField('primarySiteId')}
+              <WarehousesInlineSection
+                editing={editing}
+                items={selectedUserWarehouses ?? []}
+                stagedRemovedIds={stagedRemovedWarehouseIds ?? new Set()}
+                stagedAdded={stagedAddedWarehouses ?? []}
+                onOpenPicker={onOpenWarehousePicker}
+                onRevoke={onRevokeWarehouse}
+              />
+            </div>
           </div>
         </div>
       </div>
-
-      {/* fields：執行長 2026-06-23 拍板 — 一般欄位 ~250px、wide 欄位 ~500px、用 auto-fill 動態分欄 */}
-      <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(240px,1fr))]">
-        {renderItems.map((item) => {
-          // 2026-06-23 zone-level section header（合併單頁時用、原本 tabs 拿掉）
-          if (item.kind === 'zone-header') {
-            return (
-              <div
-                key={item.key}
-                className="col-span-full mt-3 flex items-center gap-2.5 border-b border-[#E8A020]/40 pb-2 first:mt-0"
-              >
-                <span className="size-2 rounded-full bg-[#E8A020] shadow-[0_0_10px_#E8A020]" />
-                <h2 className="text-base font-bold tracking-wide text-foreground">{item.label}</h2>
-              </div>
-            );
-          }
-          // 2026-06-23：basic zone 末尾插入地址 section
-          if (item.kind === 'address-section') {
-            return (
-              <div key={item.key} className="col-span-full">
-                <UserAddressSection editing={editing} draft={draft} setDraft={setDraft} />
-              </div>
-            );
-          }
-          // 2026-06-23：orgPosition zone 末尾插入隸屬倉庫 section
-          if (item.kind === 'warehouse-section') {
-            return (
-              <div key={item.key} className="col-span-full">
-                <WarehousesInlineSection
-                  editing={editing}
-                  items={selectedUserWarehouses ?? []}
-                  stagedRemovedIds={stagedRemovedWarehouseIds ?? new Set()}
-                  stagedAdded={stagedAddedWarehouses ?? []}
-                  onOpenPicker={onOpenWarehousePicker}
-                  onRevoke={onRevokeWarehouse}
-                />
-              </div>
-            );
-          }
-          // 2026-06-18 對齊 demo：sub-section header 分組（編號 / 姓名 / 個資 / 聯絡 / 緊急聯絡 等）
-          if (item.kind === 'header') {
-            return (
-              <div key={item.key} className="col-span-full mt-1 first:mt-0 border-b border-border/30 pb-1.5">
-                <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/80">
-                  {item.label}
-                </span>
-              </div>
-            );
-          }
-          const f = item.field;
-          const isWide = WIDE_FIELD_KEYS.has(f.key);
-          const wideClass = isWide ? '[grid-column:span_2]' : '';
-          // 統一 wrap 每個 field 到 grid cell（wide 自動跨 2 欄、~500px）
-          const wrap = (node: React.ReactNode) => (
-            <div key={f.key} className={wideClass || undefined}>
-              {node}
-            </div>
-          );
-          // 02 對齊第二批前端收尾軌 FE-CP3：地址 9 keys 統一由 UserAddressSection 渲染
-          if (ADDRESS_KEYS_HANDLED_BY_SECTION.has(f.key)) return null;
-          // 衛星表
-          if (f.isSatellite) {
-            // 05 批 T3 2026-06-07：teams 衛星 inline 編輯（即時 PATCH 範式、主組決定員工部門）
-            if (f.key === 'teams') {
-              return (
-                <div key={f.key} className="col-span-full">
-                  <TeamsInlineSection
-                    editing={editing}
-                    items={selectedUserTeams ?? []}
-                    onOpenPicker={onOpenTeamPicker}
-                    onSetPrimary={onSetTeamPrimary}
-                    onToggleLeader={onToggleTeamLeader}
-                    onRevoke={onRevokeTeam}
-                  />
-                </div>
-              );
-            }
-            // B2~B5：roles 衛星改為 inline 編輯區（從舊版 UserMasterPage 移植）
-            if (f.key === 'roles') {
-              return (
-                <div key={f.key} className="col-span-full">
-                  <RolesInlineSection
-                    editing={editing}
-                    items={selectedUserRoles ?? []}
-                    stagedRemovedIds={stagedRemovedRoleIds ?? new Set()}
-                    stagedAdded={stagedAddedRoles ?? []}
-                    stagedPrimaryId={stagedPrimaryRoleId ?? null}
-                    onOpenPicker={onOpenRolePicker}
-                    onSetPrimary={onSetRolePrimary}
-                    onRevoke={onRevokeRole}
-                  />
-                </div>
-              );
-            }
-            // 未識別的衛星表：placeholder
-            return (
-              <div key={f.key} className="col-span-full">
-                <SatelliteSection
-                  title={f.label}
-                  description={`衛星表 ${f.satelliteName ?? ''}；${f.notes ?? ''}`}
-                  status="backend-missing"
-                  hint="closure 後續軌"
-                />
-              </div>
-            );
-          }
-
-          // 跨 zone 統一可編判斷（DTO 已支援的欄位）；其餘顯示 placeholder（hr 加購 / 其他 service 自動寫）
-          const isWritable = FIELD_WRITABLE.has(f.key);
-          const zoneEditable = editableZones ? editableZones.has(f.zone) : true;
-          // 員工編號制改造（2026-06-02）：員編可改（內碼 id 不變、FK 不斷）
-          //   舊規格曾鎖 userAccount（lockedNow = editing && !creating && f.key === 'userAccount'）、
-          //   現解鎖、依賴 schema @@unique[tenantId, userAccount] + service 端 ConflictException 防衝突
-          const lockedNow = false;
-          const fieldEditable = editing && isWritable && zoneEditable && !lockedNow;
-
-          // 05 批 T3 2026-06-07：departmentId 特殊處理
-          //   - 有主組（primaryTeam）→ readonly + 顯示「from 主組」徽章
-          //   - 無主組 → ref dropdown 編輯（fallback、行政員工手動設）
-          if (f.key === 'departmentId') {
-            const draftValue = String(draft[f.key] ?? '');
-            const effectiveValue = primaryTeam?.departmentId ?? draftValue;
-            const matched = departmentOptions.find((o) => String(o.value) === effectiveValue);
-            const labelText = matched?.label ?? (effectiveValue || '—');
-            if (primaryTeam) {
-              // 唯讀（顯示主組部門 + 來源徽章）
-              return wrap(
-                <FieldShell label={f.label}>
-                  <div className="flex items-center gap-2 rounded-md border border-border/60 bg-muted/30 px-2.5 py-1.5">
-                    <span className="text-sm text-foreground">{primaryTeam.departmentName ?? labelText}</span>
-                    <span className="ml-auto rounded border border-[#E8A020]/40 bg-[#E8A020]/10 px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-[#E8A020]">
-                      自動帶（主組）
-                    </span>
-                  </div>
-                </FieldShell>,
-              );
-            }
-            // 無主組 → fallback editable
-            if (fieldEditable) {
-              return wrap(
-                <FieldShell label={f.label}>
-                  <select
-                    className="h-9 w-full rounded-md border border-[#E8A020]/30 bg-[var(--nx-surface-input)] px-2.5 text-sm text-foreground outline-none focus:border-[#E8A020]/60 focus:ring-1 focus:ring-[#E8A020]/40"
-                    value={draftValue}
-                    onChange={(e) => setDraft({ ...draft, [f.key]: e.target.value })}
-                  >
-                    <option value="">（未指定）</option>
-                    {departmentOptions.map((opt) => (
-                      <option key={String(opt.value)} value={String(opt.value)} className="bg-popover">
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                  <span className="text-[10px] text-muted-foreground">無主組 fallback、行政員工手動設</span>
-                </FieldShell>,
-              );
-            }
-            return wrap(<FormField label={f.label} value={labelText || '—'} />);
-          }
-
-          // 02 第四批 軌 1 2026-06-07：primarySiteId 走「ref 下拉」、不走純文字 input
-          if (f.key === 'primarySiteId') {
-            const value = String(draft[f.key] ?? '');
-            if (fieldEditable) {
-              return wrap(
-                <FieldShell label={f.label}>
-                  <select
-                    className="h-9 w-full rounded-md border border-[#E8A020]/30 bg-[var(--nx-surface-input)] px-2.5 text-sm text-foreground outline-none focus:border-[#E8A020]/60 focus:ring-1 focus:ring-[#E8A020]/40"
-                    value={value}
-                    onChange={(e) => setDraft({ ...draft, [f.key]: e.target.value })}
-                  >
-                    <option value="">（未指定）</option>
-                    {siteOptions.map((opt) => (
-                      <option key={String(opt.value)} value={String(opt.value)} className="bg-popover">
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                </FieldShell>,
-              );
-            }
-            const matched = siteOptions.find((o) => String(o.value) === value);
-            return wrap(
-              <FormField label={f.label} value={matched?.label ?? (value || '—')} />,
-            );
-          }
-
-          // isActive toggle（account 區）
-          if (f.key === 'isActive' && fieldEditable) {
-            const on = Boolean(draft[f.key]);
-            return wrap(
-              <FieldShell label={f.label}>
-                <button
-                  type="button"
-                  onClick={() => setDraft({ ...draft, [f.key]: !on })}
-                  className={cn(
-                    'inline-flex h-9 items-center justify-center rounded-md border px-3 text-sm font-medium transition-colors',
-                    on
-                      ? 'border-[#22D88F]/40 bg-[#22D88F]/10 text-[#22D88F]'
-                      : 'border-[#E26060]/40 bg-[#E26060]/10 text-[#E26060]',
-                  )}
-                >
-                  {on ? '啟用' : '停用'}
-                </button>
-              </FieldShell>,
-            );
-          }
-
-          // 一般文字輸入
-          if (fieldEditable) {
-            return wrap(
-              <FormInput
-                label={f.label + (f.required ? ' *' : '')}
-                value={String(draft[f.key] ?? '')}
-                onChange={(v) => setDraft({ ...draft, [f.key]: v })}
-              />,
-            );
-          }
-
-          // 非本軌支援欄位 → placeholder（mustChangePassword / failedLoginCount 等 service 自動寫）
-          if (!isWritable) {
-            const placeholderHint =
-              f.zone === 'account' ? '安全設定 service 自動寫、後台檢視' :
-              f.zone === 'orgPosition' && f.key === 'isTenantOwner' ? '系統內建旗標、開戶時拍板' :
-              '本軌不可編';
-            return wrap(
-              <FormField
-                label={f.label}
-                value={`${placeholderHint}：${f.notes ?? '—'}`}
-                dim
-              />,
-            );
-          }
-
-          // 瀏覽 / locked
-          const raw = draft[f.key];
-          return wrap(
-            <FormField
-              label={f.label}
-              value={String(raw ?? '—') || '—'}
-              mono={f.key === 'userAccount'}
-              tone={
-                f.key === 'isActive'
-                  ? (raw ? 'green' : 'red')
-                  : undefined
-              }
-            />,
-          );
-        })}
-      </div>
-
-      {/* 2026-06-23 註：原 basic 末尾 UserAddressSection / 大頭貼 link / orgPosition 末尾
-          WarehousesInlineSection 三段、合併單頁後改成在 renderItems 內 by-zone-end 插入。
-          大頭貼改為頂部 inline 上傳元件、不再連結子頁。 */}
     </div>
   );
 }
@@ -564,6 +507,79 @@ function fileToBase64(file: File): Promise<string> {
     reader.onerror = () => reject(reader.error);
     reader.readAsDataURL(file);
   });
+}
+
+// 2026-06-23 三區塊 layout 共用元件：section 卡片標題
+function SectionTitle({ title }: { title: string }) {
+  return (
+    <div className="mb-3 flex items-center gap-2 border-b border-[#E8A020]/40 pb-1.5">
+      <span className="size-2 rounded-full bg-[#E8A020] shadow-[0_0_10px_#E8A020]" />
+      <h3 className="text-sm font-bold tracking-wide text-foreground">{title}</h3>
+    </div>
+  );
+}
+
+// 帳號狀態徽章
+function StatusChip({
+  label,
+  tone,
+}: {
+  label: string;
+  tone: 'red' | 'green' | 'muted';
+}) {
+  const cls =
+    tone === 'green'
+      ? 'border-[#22D88F]/45 bg-[#22D88F]/12 text-[#22D88F] shadow-[0_0_10px_#22D88F33]'
+      : tone === 'red'
+      ? 'border-[#E26060]/45 bg-[#E26060]/12 text-[#E26060] shadow-[0_0_10px_#E2606033]'
+      : 'border-border bg-muted/40 text-muted-foreground';
+  return (
+    <span className={cn('inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold', cls)}>
+      {tone === 'red' ? <Lock className="size-3" /> : null}
+      {label}
+    </span>
+  );
+}
+
+// 開關按鈕（取代 true/false 文字）
+function SwitchRow({
+  label,
+  value,
+  onChange,
+  disabled,
+}: {
+  label: string;
+  value: boolean;
+  onChange: (next: boolean) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+        {label}
+      </span>
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => onChange(!value)}
+        className={cn(
+          'relative inline-flex h-5 w-9 flex-none items-center rounded-full border transition-colors disabled:opacity-50 disabled:cursor-not-allowed',
+          value
+            ? 'border-[#22D88F]/45 bg-[#22D88F]/30'
+            : 'border-border bg-muted/40',
+        )}
+        role="switch"
+        aria-checked={value}
+      >
+        <span
+          className={cn(
+            'inline-block size-3.5 rounded-full transition-transform',
+            value ? 'translate-x-[18px] bg-[#22D88F]' : 'translate-x-[2px] bg-muted-foreground',
+          )}
+        />
+      </button>
+    </div>
+  );
 }
 
 function UserPhotoInline({

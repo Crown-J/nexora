@@ -514,6 +514,10 @@ export class UserService {
     if (dto.password) {
       data.passwordHash = await bcrypt.hash(dto.password, 10);
     }
+    // 2026-06-23 admin 重設密碼專用：mustChangePassword 透傳寫入
+    if (dto.mustChangePassword !== undefined) {
+      data.mustChangePassword = dto.mustChangePassword;
+    }
     const row = await this.prisma.nx01User.update({ where: { id }, data, select: SEL });
     await this.audit.write({
       tenantId,

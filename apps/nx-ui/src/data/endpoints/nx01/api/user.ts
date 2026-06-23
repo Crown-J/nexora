@@ -221,6 +221,8 @@ export async function updateUser(
     email?: string | null;
     phone?: string | null;
     isActive?: boolean;
+    /** 2026-06-23：admin 重設密碼時帶 true、員工首次登入強制改 */
+    mustChangePassword?: boolean;
   } & UserBasicWritable,
 ): Promise<UserDto> {
   const apiBody: Record<string, unknown> = {};
@@ -230,6 +232,7 @@ export async function updateUser(
   if (body.email != null) apiBody.email = body.email;
   if (body.phone != null) apiBody.phone = body.phone;
   if (body.isActive !== undefined) apiBody.isActive = body.isActive;
+  if (body.mustChangePassword !== undefined) apiBody.mustChangePassword = body.mustChangePassword;
   writeBasicToApi(apiBody, body);
   const res = await apiFetch(`${BASE}/${encodeURIComponent(id)}`, {
     method: 'PATCH',
