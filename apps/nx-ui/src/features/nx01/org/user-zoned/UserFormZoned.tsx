@@ -144,9 +144,29 @@ export function UserFormZoned({
     ? activeZone
     : visibleZoneList[0]?.zone ?? 'basic';
 
+  // 2026-06-23 修：地址 9 欄（countryId + 4 戶籍 + 4 通訊）由 UserAddressSection 統一渲染、
+  // 不再讓 fields.map loop 用 FormField 顯示原始 cityId/districtId 內碼。
+  const ADDRESS_FIELD_KEYS = useMemo(
+    () =>
+      new Set([
+        'countryId',
+        'householdCityId',
+        'householdDistrictId',
+        'householdPostalCode',
+        'householdDetail',
+        'mailingCityId',
+        'mailingDistrictId',
+        'mailingPostalCode',
+        'mailingDetail',
+      ]),
+    [],
+  );
   const fieldsForZone = useMemo(
-    () => USER_FIELDS.filter((f) => f.zone === safeActiveZone),
-    [safeActiveZone],
+    () =>
+      USER_FIELDS.filter(
+        (f) => f.zone === safeActiveZone && !ADDRESS_FIELD_KEYS.has(f.key),
+      ),
+    [safeActiveZone, ADDRESS_FIELD_KEYS],
   );
 
   // 2026-06-18 對齊 demo CFG.emp section 分組：把 virtual section header 插入欄位序列前
