@@ -458,12 +458,15 @@ export function UserFormZoned({
               disabled={!editing || !FIELD_WRITABLE.has('twoFaEnabled')}
               onChange={(v) => setDraft({ ...draft, twoFaEnabled: v })}
             />
-            <FormField
-              label="最近登入時間"
-              value={draft.lastLoginAt ? formatDateTimeZh(String(draft.lastLoginAt)) : '—'}
-              dim
-              mono
-            />
+            {/* 最近登入時間 200px（執行長 2026-06-23 拍板）*/}
+            <div className="max-w-[200px]">
+              <FormField
+                label="最近登入時間"
+                value={draft.lastLoginAt ? formatDateTimeZh(String(draft.lastLoginAt)) : '—'}
+                dim
+                mono
+              />
+            </div>
             {!creating && selectedUserId ? (
               <button
                 type="button"
@@ -509,14 +512,26 @@ export function UserFormZoned({
               {renderField('emergencyRelation')}
               {renderField('emergencyPhone')}
             </div>
-            {/* 教育 + 到職離職（執行長拍板「移到信箱下方」）*/}
+            {/* 教育 + 在職（執行長 2026-06-23 拍板：到職離職移到最高學歷下面、體檢結果 125px）*/}
             {renderField('highestEducation')}
-            {renderField('graduateSchool')}
-            {renderField('militaryService')}
-            {renderField('healthCheckDate')}
-            {renderField('healthCheckResult')}
-            {renderField('hireDate')}
-            {renderField('leftAt')}
+            {/* 到職日 / 離職日：佔下一行兩格 */}
+            <div
+              className="col-span-full grid gap-3"
+              style={{ gridTemplateColumns: '250px 250px' }}
+            >
+              {renderField('hireDate')}
+              {renderField('leftAt')}
+            </div>
+            {/* 畢業學校 / 兵役 / 體檢日期 / 體檢結果（體檢結果 125px）*/}
+            <div
+              className="col-span-full grid gap-3"
+              style={{ gridTemplateColumns: '250px 250px 250px 125px' }}
+            >
+              {renderField('graduateSchool')}
+              {renderField('militaryService')}
+              {renderField('healthCheckDate')}
+              {renderField('healthCheckResult')}
+            </div>
             <div className="col-span-full">
               <UserAddressSection editing={editing} draft={draft} setDraft={setDraft} />
             </div>
