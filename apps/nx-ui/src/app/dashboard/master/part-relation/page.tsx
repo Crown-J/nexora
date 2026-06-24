@@ -1,10 +1,10 @@
 // apps/nx-ui/src/app/dashboard/master/part-relation/page.tsx
-/** part-relation 主檔（鋼鐵星球範式、EntityMasterPage）；DashboardShell 已加 bypass。 */
+// L0 卡片式 + 全鍵盤範本（執行長 2026-06-24 第二批 L0 候選）
 'use client';
 
-import { EntityMasterPage } from '@/features/nx01/shell/entity-master/EntityMasterPage';
+import { KeyboardCardMasterPage } from '@/features/nx01/shell/keyboard-card-master';
 import { PART_RELATION_MASTER } from '@/features/nx01/shell/master-config/catalog-masters';
 
 export default function Page() {
-  return <EntityMasterPage config={PART_RELATION_MASTER} />;
+  return <KeyboardCardMasterPage config={PART_RELATION_MASTER} />;
 }
