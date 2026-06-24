@@ -41,7 +41,14 @@ export async function listLocation(params: ListLocationParams): Promise<PagedRes
 
     const res = await apiFetch(`${BASE}${query}`, { method: 'GET' });
     await assertOk(res, 'nxui_master_location_list_001');
-    return (await res.json()) as PagedResult<LocationDto>;
+    // 2026-06-24 修：後端 location.service 回 { rows } 不是 { items }、轉換
+    const j = (await res.json()) as { items?: LocationDto[]; rows?: LocationDto[]; page?: number; pageSize?: number; total?: number };
+    return {
+        items: (Array.isArray(j.items) ? j.items : Array.isArray(j.rows) ? j.rows : []) as LocationDto[],
+        page: Number(j.page ?? 1),
+        pageSize: Number(j.pageSize ?? pageSize),
+        total: Number(j.total ?? 0),
+    };
 }
 
 /**
