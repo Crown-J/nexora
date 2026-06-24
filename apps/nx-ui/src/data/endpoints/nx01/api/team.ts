@@ -57,3 +57,18 @@ export async function listTeams(params: {
   await assertOk(res, 'nxui_base_team_list');
   return normalizePaged<TeamDto>(await res.json());
 }
+
+// 2026-06-24：OrgStructurePage 三欄 Alt+A 新增用
+export async function createTeam(body: {
+  code: string;
+  name: string;
+  departmentId: string;
+  parentTeamId?: string;
+  warehouseId?: string;
+  sortNo?: number;
+  isActive?: boolean;
+}): Promise<TeamDto> {
+  const res = await apiFetch(BASE, { method: 'POST', body: JSON.stringify(body) });
+  await assertOk(res, 'nxui_base_team_create');
+  return res.json() as Promise<TeamDto>;
+}

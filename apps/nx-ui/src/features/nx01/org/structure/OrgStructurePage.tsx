@@ -48,9 +48,9 @@ import {
 } from '@/features/nx01/shell/master-nav/master-pages';
 import { tryNavigate } from '@design/hooks/useDirtyGuard';
 
-import { listDepartments, type DepartmentDto } from '@data/endpoints/nx01/api/department';
-import { listTeams, type TeamDto } from '@data/endpoints/nx01/api/team';
-import { listRoles, type RoleDto } from '@data/endpoints/nx01/api/role';
+import { createDepartment, listDepartments, type DepartmentDto } from '@data/endpoints/nx01/api/department';
+import { createTeam, listTeams, type TeamDto } from '@data/endpoints/nx01/api/team';
+import { createRole, listRoles, type RoleDto } from '@data/endpoints/nx01/api/role';
 import {
   assignUserRole,
   listUserRoles,
@@ -103,6 +103,8 @@ export function OrgStructurePage() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  // 2026-06-24：三欄 Alt+A 新增 dialog（依 zone 分流）
+  const [createOpen, setCreateOpen] = useState<'dept' | 'team' | 'role' | null>(null);
 
   // ---------- 載資料 ----------
   useEffect(() => {
@@ -209,11 +211,12 @@ export function OrgStructurePage() {
         return;
       }
       // overlay 開時放行（讓 overlay 自己處理）
-      if (switcherOpen || helpOpen || pickerOpen) {
+      if (switcherOpen || helpOpen || pickerOpen || createOpen) {
         if (e.key === 'Escape') {
           setSwitcherOpen(false);
           setHelpOpen(false);
           setPickerOpen(false);
+          setCreateOpen(null);
           e.preventDefault();
         }
         return;
@@ -242,10 +245,17 @@ export function OrgStructurePage() {
         setHelpOpen(true);
         return;
       }
-      // A：開指派員工 picker（成員欄目標 = 選中職務）
-      if ((e.key === 'a' || e.key === 'A') && roleId) {
+      // A / Alt+A：依當前 focused 欄分流
+      //   dept 欄 → 新增部門
+      //   team 欄 → 新增組別（需先選部門）
+      //   role 欄 → 新增職務（需先選組別）
+      //   member 欄 → 指派員工（既有）
+      if (e.key === 'a' || e.key === 'A') {
         e.preventDefault();
-        setPickerOpen(true);
+        if (zone === 'dept') setCreateOpen('dept');
+        else if (zone === 'team' && deptId) setCreateOpen('team');
+        else if (zone === 'role' && teamId) setCreateOpen('role');
+        else if (zone === 'member' && roleId) setPickerOpen(true);
         return;
       }
 
@@ -324,10 +334,13 @@ export function OrgStructurePage() {
     teamsForDept,
     rolesForTeam,
     membersForRole,
+    deptId,
+    teamId,
     roleId,
     switcherOpen,
     helpOpen,
     pickerOpen,
+    createOpen,
     switchMaster,
   ]);
 
@@ -429,6 +442,7 @@ export function OrgStructurePage() {
           active={zone === 'dept'}
           onClick={() => setZone('dept')}
           shortcut="1"
+          headerAction={<AddBtn onClick={() => setCreateOpen('dept')} title="新增部門（A）" />}
         >
           {departments.length === 0 ? (
             <EmptyHint text="尚無部門" />
@@ -461,6 +475,9 @@ export function OrgStructurePage() {
           onClick={() => setZone('team')}
           shortcut="2"
           disabled={!deptId}
+          headerAction={
+            deptId ? <AddBtn onClick={() => setCreateOpen('team')} title="新增組別（A）" /> : null
+          }
         >
           {!deptId ? (
             <EmptyHint text="← 請先選部門" />
@@ -495,6 +512,9 @@ export function OrgStructurePage() {
           onClick={() => setZone('role')}
           shortcut="3"
           disabled={!teamId}
+          headerAction={
+            teamId ? <AddBtn onClick={() => setCreateOpen('role')} title="新增職務（A）" /> : null
+          }
         >
           {!teamId ? (
             <EmptyHint text="← 請先選組別" />
@@ -593,6 +613,68 @@ export function OrgStructurePage() {
 
       {/* 熱鍵指南（?） */}
       {helpOpen ? <HelpOverlay onClose={() => setHelpOpen(false)} /> : null}
+
+      {/* 三欄 Alt+A 新增 dialog（依 zone 分流） */}
+      {createOpen === 'dept' ? (
+        <QuickCreateDialog
+          title="新增部門"
+          subtitle="Create Department"
+          icon={Building2}
+          contextLine={null}
+          onClose={() => setCreateOpen(null)}
+          onSubmit={async ({ code, name, description }) => {
+            const d = await createDepartment({
+              code: code || `DEPT_${Date.now().toString(36).toUpperCase()}`,
+              name,
+            });
+            showToast(`已新增部門「${d.name}」`, 'success');
+            triggerReload();
+            selectDept(d.id);
+            setZone('team');
+          }}
+        />
+      ) : null}
+      {createOpen === 'team' && deptId && selectedDept ? (
+        <QuickCreateDialog
+          title="新增組別"
+          subtitle="Create Team"
+          icon={UsersRound}
+          contextLine={`隸屬部門：${selectedDept.name}（${selectedDept.code}）`}
+          onClose={() => setCreateOpen(null)}
+          onSubmit={async ({ code, name }) => {
+            const t = await createTeam({
+              code: code || `TEAM_${Date.now().toString(36).toUpperCase()}`,
+              name,
+              departmentId: deptId,
+            });
+            showToast(`已新增組別「${t.name}」`, 'success');
+            triggerReload();
+            selectTeam(t.id);
+            setZone('role');
+          }}
+        />
+      ) : null}
+      {createOpen === 'role' && teamId && selectedTeam ? (
+        <QuickCreateDialog
+          title="新增職務"
+          subtitle="Create Role"
+          icon={Briefcase}
+          contextLine={`隸屬組別：${selectedTeam.name}（${selectedTeam.code}）`}
+          onClose={() => setCreateOpen(null)}
+          onSubmit={async ({ code, name, description }) => {
+            const r = await createRole({
+              code: code || `R_${Date.now().toString(36).toUpperCase()}`,
+              name,
+              description: description || undefined,
+              teamId,
+            });
+            showToast(`已新增職務「${r.name}」`, 'success');
+            triggerReload();
+            selectRole(r.id);
+            setZone('member');
+          }}
+        />
+      ) : null}
 
       <ToastStack toasts={toasts} />
     </div>
@@ -784,6 +866,163 @@ function EmptyHint({ text }: { text: string }) {
   );
 }
 
+function AddBtn({ onClick, title }: { onClick: () => void; title: string }) {
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
+      className="inline-flex h-6 items-center gap-1 rounded-md border border-primary/50 bg-primary/10 px-2 text-[11px] font-medium text-primary hover:bg-primary/20"
+      title={title}
+    >
+      <UserPlus className="size-3" />
+      <span className="hidden sm:inline">
+        <span className="mr-0.5 font-mono">A</span>
+        新增
+      </span>
+    </button>
+  );
+}
+
+function QuickCreateDialog({
+  title,
+  subtitle,
+  icon: Icon,
+  contextLine,
+  onClose,
+  onSubmit,
+}: {
+  title: string;
+  subtitle: string;
+  icon: React.ComponentType<{ className?: string }>;
+  contextLine: string | null;
+  onClose: () => void;
+  onSubmit: (values: { code: string; name: string; description: string }) => Promise<void>;
+}) {
+  const [code, setCode] = useState('');
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const nameRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    nameRef.current?.focus();
+  }, []);
+
+  async function submit() {
+    if (!name.trim()) {
+      setErr('名稱必填');
+      nameRef.current?.focus();
+      return;
+    }
+    setBusy(true);
+    setErr(null);
+    try {
+      await onSubmit({ code: code.trim().toUpperCase(), name: name.trim(), description: description.trim() });
+      onClose();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : '建立失敗');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 grid place-items-center bg-black/70"
+      onClick={onClose}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          onClose();
+        } else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+          e.preventDefault();
+          void submit();
+        }
+      }}
+    >
+      <div
+        className="w-full max-w-md rounded-2xl border border-border/40 bg-popover p-5 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <header className="mb-3 flex items-center gap-2.5">
+          <Icon className="size-5 text-primary" />
+          <h2 className="text-sm font-bold tracking-wide text-foreground">{title}</h2>
+          <span className="ml-auto text-[10px] font-semibold uppercase tracking-[0.28em] text-muted-foreground/70">
+            {subtitle}
+          </span>
+        </header>
+        {contextLine ? (
+          <div className="mb-3 rounded-md border border-border/40 bg-muted/30 px-3 py-2 text-[11px] text-muted-foreground">
+            {contextLine}
+          </div>
+        ) : null}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            void submit();
+          }}
+          className="space-y-3"
+        >
+          <label className="block text-sm">
+            <span className="mb-1 block text-foreground/80">🟢 名稱 *</span>
+            <input
+              ref={nameRef}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="輸入名稱..."
+              className="w-full rounded border border-border/50 bg-background px-2 py-1 text-sm"
+              required
+              disabled={busy}
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="mb-1 block text-foreground/80">⚪ 代碼（可空、自動產）</span>
+            <input
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              placeholder="留空自動產"
+              className="w-full rounded border border-border/50 bg-background px-2 py-1 font-mono text-sm uppercase"
+              disabled={busy}
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="mb-1 block text-foreground/80">⚪ 說明（可空）</span>
+            <input
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="這個的用途..."
+              className="w-full rounded border border-border/50 bg-background px-2 py-1 text-sm"
+              disabled={busy}
+            />
+          </label>
+          {err ? <div className="text-xs text-destructive">{err}</div> : null}
+          <div className="flex justify-end gap-2 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={busy}
+              className="rounded-md border border-border/50 bg-card px-3 py-1.5 text-xs text-foreground/80 hover:bg-accent/15 disabled:opacity-50"
+            >
+              取消 (Esc)
+            </button>
+            <button
+              type="submit"
+              disabled={busy}
+              className="rounded-md bg-primary px-4 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            >
+              {busy ? '建立中…' : '建立 (Ctrl+Enter)'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 function HelpOverlay({ onClose }: { onClose: () => void }) {
   return (
     <div
@@ -803,7 +1042,7 @@ function HelpOverlay({ onClose }: { onClose: () => void }) {
           <Row k="↑ ↓" desc="欄內上下移卡片" />
           <Row k="Home / End" desc="欄內跳頭尾" />
           <Row k="Enter / Space" desc="選定 + cascade 到下一欄" />
-          <Row k="A" desc="開「指派員工」（成員欄目標 = 選中職務）" />
+          <Row k="A / Alt+A" desc="依當前欄：新增部門 / 組別 / 職務、或指派員工" />
           <Row k="Delete / Backspace" desc="移除成員（成員欄聚焦時）" />
           <Row k="[ / ]" desc="上 / 下個主檔" />
           <Row k="F3" desc="主檔切換 modal" />
