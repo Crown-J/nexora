@@ -915,8 +915,24 @@ export function UserZonedPage({
 
   const toggleSearch = useCallback(() => setSearchOpen((s) => !s), []);
 
+  // 2026-06-24 執行長拍板：滑鼠點旁邊 focus 跑掉、↑↓ 仍要切 row（不依賴 DOM focus）
+  // 規則同 EntityMasterPage：
+  //   - input/textarea/select/contenteditable focus 時：單鍵 ↑↓/Enter 不接、Alt 系仍接管
+  //   - Radix modal/dropdown 開（[data-state="open"][role="dialog"|"menu"]）：全短路、交給 modal
+  //   - 其他焦點（body/空白處）：↑↓ 用 selectedId state 切上下、不依賴 DOM
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      const tgt = e.target as HTMLElement | null;
+      const tag = tgt?.tagName ?? '';
+      const inInput =
+        tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' ||
+        (tgt?.isContentEditable ?? false);
+      const radixOpen = !!document.querySelector(
+        '[data-state="open"][role="dialog"], [data-state="open"][role="menu"]',
+      );
+
+      if (radixOpen) return;
+
       if (e.altKey) {
         const k = e.key.toLowerCase();
         const map: Record<string, () => void> = {
@@ -947,6 +963,7 @@ export function UserZonedPage({
         }
         return;
       }
+
       if (e.key === 'Escape') {
         if (searchOpen) {
           setSearchOpen(false);
@@ -956,8 +973,35 @@ export function UserZonedPage({
         }
         return;
       }
-      // 2026-06-18 ↑↓/Enter 切 row + 進詳細 全由 MasterTable.handleTableKey 處理（避免 window+div 雙重觸發
-      //   → 修「上下格都有黃框」focus-visible 殘留問題）。Alt 系列鍵保留在 window 級。
+
+      // 單鍵 ↑↓/Enter：input 焦點不攔
+      if (inInput) return;
+
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        if (tab !== 'list') return;
+        if (tgt?.hasAttribute?.('data-row-id')) return; // row 焦點交給 MasterTable
+        if (rows.length === 0) return;
+        const idx = rows.findIndex((r) => r.id === selectedId);
+        const nextIdx =
+          e.key === 'ArrowDown'
+            ? Math.min(rows.length - 1, Math.max(0, idx + 1))
+            : Math.max(0, idx - 1);
+        const nextRow = rows[nextIdx];
+        if (nextRow) {
+          e.preventDefault();
+          setSelectedId(nextRow.id);
+        }
+        return;
+      }
+
+      if (e.key === 'Enter') {
+        if (tab !== 'list') return;
+        if (tgt?.hasAttribute?.('data-row-id')) return;
+        if (!selectedId) return;
+        e.preventDefault();
+        attemptTabChange('detail');
+        return;
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);

@@ -656,9 +656,20 @@ export function PartZonedPage({
 
   const toggleSearch = useCallback(() => setSearchOpen((s) => !s), []);
 
-  // ── 全鍵盤 ──
+  // ── 全鍵盤（2026-06-24 加 window listener focus 全域、滑鼠點旁邊 ↑↓ 仍切 row）──
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      const tgt = e.target as HTMLElement | null;
+      const tag = tgt?.tagName ?? '';
+      const inInput =
+        tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' ||
+        (tgt?.isContentEditable ?? false);
+      const radixOpen = !!document.querySelector(
+        '[data-state="open"][role="dialog"], [data-state="open"][role="menu"]',
+      );
+
+      if (radixOpen) return;
+
       if (e.altKey) {
         const k = e.key.toLowerCase();
         const map: Record<string, () => void> = {
@@ -689,6 +700,7 @@ export function PartZonedPage({
         }
         return;
       }
+
       if (e.key === 'Escape') {
         if (searchOpen) {
           setSearchOpen(false);
@@ -698,13 +710,43 @@ export function PartZonedPage({
         }
         return;
       }
-      // 2026-06-18 ↑↓/Enter 由 MasterTable.handleTableKey 處理（避雙重觸發）
+
+      if (inInput) return;
+
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        if (tab !== 'list') return;
+        if (tgt?.hasAttribute?.('data-row-id')) return;
+        if (displayRows.length === 0) return;
+        const idx = displayRows.findIndex((r) => r.id === selectedId);
+        const nextIdx =
+          e.key === 'ArrowDown'
+            ? Math.min(displayRows.length - 1, Math.max(0, idx + 1))
+            : Math.max(0, idx - 1);
+        const nextRow = displayRows[nextIdx];
+        if (nextRow) {
+          e.preventDefault();
+          setSelectedId(nextRow.id);
+        }
+        return;
+      }
+
+      if (e.key === 'Enter') {
+        if (tab !== 'list') return;
+        if (tgt?.hasAttribute?.('data-row-id')) return;
+        if (!selectedId) return;
+        e.preventDefault();
+        attemptTabChange('detail');
+        return;
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [
     mode,
+    tab,
     searchOpen,
+    selectedId,
+    displayRows,
     attemptTabChange,
     handleCreate,
     handleEdit,
