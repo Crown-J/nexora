@@ -228,49 +228,50 @@ html.light:not([data-nx-palette]) {
 
 html.light[data-nx-palette='steel'] {
   color-scheme: light;
-  /* 2026-06-24 執行長:奶油米黃改冷銀灰金屬感（Apple / Linear 派）；主色保留琥珀延續品牌 */
+  /* 2026-06-24 執行長:冷銀灰金屬底 + 電光藍主色（SaaS 現代範式、Linear/Notion 派）*/
   --background: oklch(0.95 0.004 250);              /* 冷銀灰底 */
   --foreground: oklch(0.22 0.012 250);              /* 深石板字 */
   --card: oklch(0.975 0.003 250);                   /* 冷白卡 */
   --card-foreground: oklch(0.22 0.012 250);
   --popover: oklch(0.99 0.002 250);                 /* 近白 */
   --popover-foreground: oklch(0.22 0.012 250);
-  --primary: #b88600;                               /* 琥珀主色（品牌延續）*/
-  --primary-foreground: #0a0a0a;
+  --primary: #2563eb;                               /* 電光藍主色 */
+  --primary-foreground: #ffffff;
   --secondary: oklch(0.91 0.005 250);               /* 中銀灰 */
   --secondary-foreground: oklch(0.30 0.012 250);
   --muted: oklch(0.89 0.005 250);
   --muted-foreground: oklch(0.45 0.012 250);
-  --accent: #a67c00;                                /* 琥珀深 */
-  --accent-foreground: #0a0a0a;
+  --accent: #1d4ed8;                                /* 深電光藍 */
+  --accent-foreground: #ffffff;
   --destructive: oklch(0.62 0.18 25);
   --destructive-foreground: #ffffff;
   --border: oklch(0.82 0.006 250);                  /* 銀灰邊 */
   --input: oklch(0.93 0.005 250);
-  --ring: #c9a227;                                  /* 琥珀環 */
-  --chart-1: #b88600;
+  --ring: #3b82f6;                                  /* 電光藍環 */
+  --chart-1: #2563eb;                               /* 主線藍 */
   --chart-2: oklch(0.62 0.012 250);                 /* 中冷灰 */
   --chart-3: oklch(0.76 0.008 250);                 /* 淡冷灰 */
   --chart-4: oklch(0.48 0.014 250);                 /* 深冷灰 */
   --chart-5: oklch(0.38 0.016 250);                 /* 深石板 */
   --sidebar: oklch(0.93 0.005 250);
   --sidebar-foreground: oklch(0.22 0.012 250);
-  --sidebar-primary: #b88600;
-  --sidebar-primary-foreground: #0a0a0a;
+  --sidebar-primary: #2563eb;
+  --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: oklch(0.9 0.005 250);
   --sidebar-accent-foreground: oklch(0.30 0.012 250);
   --sidebar-border: oklch(0.85 0.006 250);
-  --sidebar-ring: #c9a227;
+  --sidebar-ring: #3b82f6;
   --nx-scroll-track: oklch(0.91 0.005 250);
   --nx-scroll-thumb: oklch(0.7 0.008 250);
   --nx-scroll-thumb-hover: oklch(0.58 0.012 250);
-  --nx-exp-gradient: linear-gradient(90deg, oklch(0.62 0.012 250) 0%, #d4a012 55%, #e8c040 100%);
-  --nx-glow-primary: 0 0 10px rgba(184, 134, 0, 0.24), 0 0 20px rgba(184, 134, 0, 0.10);
-  --color-primary-light: #e8c040;
-  --color-primary-bg: rgba(184, 134, 0, 0.1);
-  --warning: #b88600;
+  --nx-exp-gradient: linear-gradient(90deg, #1d4ed8 0%, #2563eb 55%, #60a5fa 100%);
+  --nx-glow-primary: 0 0 10px rgba(37, 99, 235, 0.28), 0 0 20px rgba(37, 99, 235, 0.12);
+  --color-primary-light: #60a5fa;
+  --color-primary-bg: rgba(37, 99, 235, 0.10);
+  /* warning 語意保留橘黃調（跟主色分流、避免警示色跟主色撞）*/
+  --warning: #d97706;
   --color-meeting: #64748b;
-  /* 主檔表面色（input / toolbar）light steel override：冷銀灰金屬版 */
+  /* 主檔表面色（input / toolbar）light steel override：冷銀灰版 */
   --nx-surface-input: oklch(0.98 0.003 250);
   --nx-surface-input-border: oklch(0.78 0.008 250);
   --nx-surface-input-fg: oklch(0.22 0.012 250);
@@ -280,12 +281,12 @@ html.light[data-nx-palette='steel'] {
   --nx-surface-toolbar-to: oklch(0.9 0.006 250);
 }
 
-/* 鋼鐵淺色銀灰版：冷銀光暈為主、微琥珀點綴（保留品牌暖點） */
+/* 鋼鐵淺色銀灰 + 電光藍版：冷銀為底 + 電光藍光暈點綴 */
 html.light[data-nx-palette='steel'] .home-aurora-light {
   background:
-    radial-gradient(circle at 14% 18%, rgba(170, 185, 205, 0.22), transparent 42%),
-    radial-gradient(circle at 86% 8%, rgba(200, 210, 225, 0.20), transparent 34%),
-    radial-gradient(circle at 52% 96%, rgba(232, 192, 64, 0.10), transparent 46%);
+    radial-gradient(circle at 14% 18%, rgba(170, 185, 215, 0.24), transparent 42%),
+    radial-gradient(circle at 86% 8%, rgba(96, 165, 250, 0.18), transparent 36%),
+    radial-gradient(circle at 52% 96%, rgba(37, 99, 235, 0.10), transparent 46%);
 }
 
 /**
