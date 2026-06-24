@@ -1,10 +1,10 @@
 // apps/nx-ui/src/app/dashboard/master/transmission/page.tsx
-// L0 卡片式 + 全鍵盤範本(執行長 2026-06-24 第二批 L0 候選)
+/** transmission 主檔（執行長 2026-06-24 推翻卡片式、統一回 EntityMasterPage） */
 'use client';
 
-import { KeyboardCardMasterPage } from '@/features/nx01/shell/keyboard-card-master';
+import { EntityMasterPage } from '@/features/nx01/shell/entity-master/EntityMasterPage';
 import { TRANSMISSION_MASTER } from '@/features/nx01/shell/master-config/catalog-masters';
 
 export default function Page() {
-  return <KeyboardCardMasterPage config={TRANSMISSION_MASTER} />;
+  return <EntityMasterPage config={TRANSMISSION_MASTER} />;
 }

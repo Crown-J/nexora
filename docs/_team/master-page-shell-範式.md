@@ -3,7 +3,9 @@
 # 主檔頁範式（MasterPageShell）
 
 **建立 2026-06-18**　**範本頁:`apps/nx-ui/src/features/nx01/org/user-zoned/UserZonedPage.tsx`**
-**2026-06-24 更新**：L0 範本從 `InlineEditMasterPage`（v1 inline row）升級為 `KeyboardCardMasterPage`（v2 卡片式 + 全鍵盤 + 主題化）；country / region / department / phonetic-dictionary 已全套
+**2026-06-24 v2 卡片式試驗**：曾把 L0 從 `InlineEditMasterPage`（v1）升級為 `KeyboardCardMasterPage`（v2 卡片）；
+**2026-06-24 v2 被執行長推翻**：視覺不統一、12 個試套主檔（11 L0 + 1 L1 currency）全退回 `EntityMasterPage`。
+下一階段方向：把 `UserZonedPage` 範式擴成「主檔通用 shell」+ 補全鍵盤、所有主檔統一用此範式（規劃中）。
 
 執行長拍板的範式（員工頁完工後封存）。其他主檔頁採樣此範本、不要再各做各的。
 
@@ -15,13 +17,26 @@
 
 | 級別 | 形態 | 範本 | 主檔 |
 |---|---|---|---|
-| **L0 純查表** | 卡片一筆一列 + 全鍵盤 + 浮層 detail/edit | `KeyboardCardMasterPage` (`features/nx01/shell/keyboard-card-master/`) | 11 個全套（2026-06-24）：country / region / department / phonetic-dictionary / model-type / drivetrain / part-relation / part-model / engine / transmission / model |
+| **L0 純查表** | 統一用 EntityMasterPage（2026-06-24 推翻 v2 卡片式後過渡） | `EntityMasterPage` (`features/nx01/shell/entity-master/`) | country / region / department / phonetic-dictionary / model-type / drivetrain / part-relation / part-model / engine / transmission / model（11 個）⚠️ 下階段擬遷至 UserZonedPage 通用化版 |
 | **L1 名詞表** | 列表 + 右側抽屜 detail（drawer） | 未建（規劃中） | currency / team / role / customer-grade / supplier-grade / brand 候選 |
 | **L2 中型** | 單頁長表 + 1-2 衛星 inline | UserZonedPage 縮減版 | warehouse / site / brand / location |
 | **L3 重型** | UserZonedPage 完整 | UserZonedPage / PartnerMasterPage / PartZonedPage | user / partner / part |
 | **特殊** | 圖表 / matrix | 各自 page | org-structure / role-view / location-structure / supplier-supply / universal-group |
 
-### L0 KeyboardCardMasterPage 行為差異（v2 範式、2026-06-24 拍板）
+### ⚠️ L0 v2 KeyboardCardMasterPage 範本（**已推翻**、2026-06-24）
+
+執行長 2026-06-24 推翻 v2 卡片式範本：「視覺不統一、整體感不對」。
+12 個試套主檔（11 L0 + 1 L1 currency）全退回 `EntityMasterPage`。
+
+下一階段方向：把 `UserZonedPage` 範式擴成「主檔通用 shell」+ 補全鍵盤、所有主檔統一用此範式。
+
+範本程式碼暫保留作對比參考（`features/nx01/shell/keyboard-card-master/`、`features/nx01/shell/inline-master/`），確認新通用 shell 落地後再清。
+
+以下保留卡片式範本的行為紀錄作為對比參考：
+
+---
+
+#### L0 KeyboardCardMasterPage 行為差異（v2 範式、已推翻）
 
 **取代第一代 `InlineEditMasterPage`**（row inline edit 範式）。原 v1 已無 caller、暫保留作對比參考，未來確認不回頭再清。
 

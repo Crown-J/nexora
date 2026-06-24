@@ -1,10 +1,10 @@
 // apps/nx-ui/src/app/dashboard/master/region/page.tsx
-// L0 卡片式 + 全鍵盤範本（執行長 2026-06-24 範式套至 L0 全字典）
+// 地區主檔（執行長 2026-06-24 推翻卡片式、統一回 EntityMasterPage）
 'use client';
 
-import { KeyboardCardMasterPage } from '@/features/nx01/shell/keyboard-card-master';
+import { EntityMasterPage } from '@/features/nx01/shell/entity-master/EntityMasterPage';
 import { REGION_MASTER } from '@/features/nx01/shell/master-config/catalog-masters';
 
 export default function Page() {
-  return <KeyboardCardMasterPage config={REGION_MASTER} />;
+  return <EntityMasterPage config={REGION_MASTER} />;
 }
