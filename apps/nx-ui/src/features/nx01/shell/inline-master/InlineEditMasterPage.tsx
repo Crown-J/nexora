@@ -351,7 +351,7 @@ export function InlineEditMasterPage({ config }: { config: EntityMasterConfig })
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
-  const handleExport = (format: 'csv' | 'pdf' | 'print') => {
+  const handleExport = (format: 'csv' | 'xlsx' | 'pdf' | 'print') => {
     const cols = listFs.map((f) => ({
       label: f.label,
       get: (r: EntityRow) => displayCell(f, r[f.key]),

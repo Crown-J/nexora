@@ -18,7 +18,8 @@
  * - 瀏覽器 print preview 已是業界 SaaS 通用範式（Stripe / Notion / Linear 均如此）
  */
 
-export type ExportFormat = 'csv' | 'pdf' | 'print';
+// 2026-06-24 加 'xlsx'（執行長 keyboard-card 範本要 CSV/PDF/EXCEL 三選 1 + P 列印分開）
+export type ExportFormat = 'csv' | 'xlsx' | 'pdf' | 'print';
 
 /** 匯出欄位：label = 表頭顯示文字、get = 從 row 取 cell 文字 */
 export type ExportColumn<T> = {
@@ -173,16 +174,45 @@ function openPrintPreview<T>(opts: ExportTableOptions<T>): void {
   w.document.close();
 }
 
+async function downloadXlsx<T>(opts: ExportTableOptions<T>): Promise<void> {
+  // 動態 import 避免擴 initial bundle（xlsx 是 ~200kb）
+  const XLSX = await import('xlsx');
+  const aoa: string[][] = [
+    opts.columns.map((c) => c.label),
+    ...opts.rows.map((r) => opts.columns.map((c) => c.get(r))),
+  ];
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  // 自動欄寬：每欄取該欄最長字串長度 × 1.5（粗估、CJK 半形字補正）
+  ws['!cols'] = opts.columns.map((_, ci) => {
+    const maxLen = aoa.reduce(
+      (m, row) => Math.max(m, (row[ci] ?? '').length),
+      0,
+    );
+    return { wch: Math.min(60, Math.max(8, maxLen * 1.5)) };
+  });
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, opts.title.slice(0, 31)); // sheet name 上限 31
+  XLSX.writeFile(wb, `${opts.title}.xlsx`);
+}
+
 /**
- * 三模式匯出統一入口。caller 端：
+ * 四模式匯出統一入口。caller 端：
  *   const handleExport = useCallback(
  *     (format) => exportTable(format, { title, columns: visibleCols, rows: displayRows }),
  *     [...],
  *   );
+ *
+ * - csv：BOM UTF-8 csv blob download
+ * - xlsx：真 .xlsx（aoa_to_sheet + 自動欄寬、xlsx 套件 dynamic import）
+ * - pdf / print：共用 print preview 新視窗
  */
 export function exportTable<T>(format: ExportFormat, opts: ExportTableOptions<T>): void {
   if (format === 'csv') {
     downloadCsv(opts);
+    return;
+  }
+  if (format === 'xlsx') {
+    void downloadXlsx(opts);
     return;
   }
   // pdf + print 共用 print preview；user 在 dialog 內選「另存 PDF」或「列印」

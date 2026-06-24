@@ -40,6 +40,7 @@ import {
   Pencil,
   Plus,
   Power,
+  Printer,
   RefreshCcw,
   Save,
   Search,
@@ -50,14 +51,7 @@ import { cn } from '@design/utils/cn';
 import { PageHeader } from '@design/components/page-header/PageHeader';
 import { useDirtyGuard } from '@design/hooks/useDirtyGuard';
 import { ToastStack, useToast } from '@design/components/toast/ToastStack';
-import {
-  gsap,
-  useGSAP,
-  useReducedMotion,
-  DURATION,
-  EASE,
-  STAGGER,
-} from '@/design/motion/gsap';
+import { useReducedMotion } from '@/design/motion/gsap';
 
 import { useRouter } from 'next/navigation';
 import { tryNavigate } from '@design/hooks/useDirtyGuard';
@@ -68,10 +62,14 @@ import {
   ConfirmDialog,
   type ConfirmState,
 } from '@/features/nx01/shell/ui/ConfirmDialog';
-import { exportTable } from '@/features/nx01/shell/hooks/useExportTable';
+import {
+  exportTable,
+  type ExportFormat,
+} from '@/features/nx01/shell/hooks/useExportTable';
 import { ToolbarButton } from '@/features/nx01/shell/ui/ErpToolbar';
 
 import { MasterSwitcher } from './MasterSwitcher';
+import { ExportMenu } from './ExportMenu';
 
 import {
   type EntityMasterConfig,
@@ -142,6 +140,7 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
   const [confirm, setConfirm] = useState<ConfirmState | null>(null);
   const [cheatOpen, setCheatOpen] = useState(false);
   const [switcherOpen, setSwitcherOpen] = useState(false);
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
 
   // refs
   const gridRef = useRef<HTMLDivElement>(null);
@@ -231,7 +230,7 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
   }, [config, editing, rows, focusIdx]);
 
   const handleExport = useCallback(
-    (format: 'csv' | 'pdf' | 'print') => {
+    (format: ExportFormat) => {
       const cols = listFs.map((f) => ({
         label: f.label,
         get: (r: EntityRow) => displayCell(f, r[f.key]),
@@ -241,10 +240,13 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
         columns: cols,
         rows,
       });
-      showToast(
-        format === 'csv' ? 'CSV 匯出已觸發' : format === 'pdf' ? 'PDF 匯出已觸發' : '列印已開啟',
-        'info',
-      );
+      const labelMap: Record<ExportFormat, string> = {
+        csv: 'CSV 匯出已觸發',
+        xlsx: 'Excel 匯出已觸發',
+        pdf: 'PDF 預覽已開啟',
+        print: '列印預覽已開啟',
+      };
+      showToast(labelMap[format], 'info');
     },
     [config, listFs, rows, showToast],
   );
@@ -435,11 +437,32 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
   //   - 編輯/新增：Tab/Shift+Tab 跳欄（原生）、Enter/Alt+S 存、Esc/Alt+C 取消
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      // switcher 開啟時、所有鍵交給 switcher 內部處理
-      if (switcherOpen) return;
-
       const k = e.key;
       const isAlt = e.altKey && !e.ctrlKey && !e.metaKey;
+
+      // ── F3 任何模式都 toggle switcher（最早處理）──
+      if (k === 'F3') {
+        e.preventDefault();
+        setSwitcherOpen((v) => !v);
+        return;
+      }
+
+      // switcher / export menu 開啟時、所有鍵交給該 modal 內部處理
+      if (switcherOpen || exportMenuOpen) return;
+
+      // cheat sheet 開啟時、只接 Esc / ? toggle
+      if (cheatOpen) {
+        if (k === 'Escape') {
+          e.preventDefault();
+          setCheatOpen(false);
+        }
+        // Shift+/ 也允許 toggle 關
+        if (e.code === 'Slash' && e.shiftKey) {
+          e.preventDefault();
+          setCheatOpen(false);
+        }
+        return;
+      }
 
       // ── 編輯 / 新增中 ──
       if (editing) {
@@ -494,12 +517,6 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
           e.preventDefault();
           const row = rows[focusIdx];
           if (row) handleToggleActive(row);
-          return;
-        }
-        // F3 在詳細中也可開 switcher
-        if (k === 'F3') {
-          e.preventDefault();
-          setSwitcherOpen(true);
           return;
         }
         return;
@@ -563,17 +580,15 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
         }
         if (k === 'o' || k === 'O') {
           e.preventDefault();
-          handleExport('csv');
+          setExportMenuOpen(true);
+          return;
+        }
+        if (k === 'p' || k === 'P') {
+          e.preventDefault();
+          handleExport('print');
           return;
         }
         return; // Alt 系沒命中 → 不擋其它瀏覽器快捷
-      }
-
-      // F3：切換主檔 switcher（取代舊 M / Alt+M）
-      if (k === 'F3') {
-        e.preventDefault();
-        setSwitcherOpen(true);
-        return;
       }
 
       // 非 Alt：方向 / 單鍵
@@ -617,10 +632,22 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
         startEdit();
         return;
       }
-      if (k === 'f' || k === 'F' || k === '/') {
+      // F 鍵搜尋（單字、不 shift）
+      if ((k === 'f' || k === 'F') && !e.shiftKey) {
         e.preventDefault();
         setSearchOpen(true);
         setTimeout(() => searchInputRef.current?.focus(), 50);
+        return;
+      }
+      // Slash 鍵：無 shift = / 搜尋；shift = ? 熱鍵（用 e.code 避免 layout / IME 變異）
+      if (e.code === 'Slash') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          setCheatOpen((v) => !v);
+        } else {
+          setSearchOpen(true);
+          setTimeout(() => searchInputRef.current?.focus(), 50);
+        }
         return;
       }
       if (k === 'd' || k === 'D') {
@@ -640,14 +667,16 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
         showToast('已重新整理', 'info');
         return;
       }
+      // O 鍵開匯出 menu（不直接匯出）
       if (k === 'o' || k === 'O') {
         e.preventDefault();
-        handleExport('csv');
+        setExportMenuOpen(true);
         return;
       }
-      if (k === '?') {
+      // P 鍵列印
+      if (k === 'p' || k === 'P') {
         e.preventDefault();
-        setCheatOpen((v) => !v);
+        handleExport('print');
         return;
       }
       if (k === '[') {
@@ -660,12 +689,8 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
         navigateAdjacent('next');
         return;
       }
+      // 瀏覽中 Esc：若搜尋條開、收起；否則無動作
       if (k === 'Escape') {
-        if (cheatOpen) {
-          e.preventDefault();
-          setCheatOpen(false);
-          return;
-        }
         if (searchOpen) {
           e.preventDefault();
           setSearchOpen(false);
@@ -681,6 +706,7 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
     searchOpen,
     cheatOpen,
     switcherOpen,
+    exportMenuOpen,
     moveFocus,
     moveDetailRow,
     handleCancel,
@@ -714,43 +740,7 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
     return () => clearTimeout(t);
   }, [editing, mode]);
 
-  // ── GSAP 進場 stagger（reduce-motion 退化） ──
-  useGSAP(
-    () => {
-      const root = gridRef.current;
-      if (!root) return;
-      const targets = root.querySelectorAll<HTMLElement>('[data-kbcard]');
-      if (targets.length === 0) return;
-      const mm = gsap.matchMedia();
-      mm.add(
-        {
-          reduceMotion: '(prefers-reduced-motion: reduce)',
-          normal: '(prefers-reduced-motion: no-preference)',
-        },
-        (ctx) => {
-          if (ctx.conditions?.reduceMotion) {
-            gsap.set(targets, { autoAlpha: 1, y: 0, scale: 1 });
-            return;
-          }
-          gsap.fromTo(
-            targets,
-            { autoAlpha: 0, y: 18, scale: 0.96 },
-            {
-              autoAlpha: 1,
-              y: 0,
-              scale: 1,
-              duration: DURATION.slow,
-              ease: EASE.enter,
-              stagger: STAGGER.tight,
-              overwrite: true,
-            },
-          );
-        },
-      );
-      return () => mm.revert();
-    },
-    { scope: gridRef, dependencies: [rows.length, reloadTick] },
-  );
+  // 進場 stagger 由 framer-motion 接管（KbCard 用 initial/animate + custom idx delay）。
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const focused = rows[focusIdx];
@@ -794,10 +784,11 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
           showToast('已重新整理', 'info');
         }}
         onToggleInactive={() => setShowInactive((v) => !v)}
-        onExport={() => handleExport('csv')}
+        onExport={() => setExportMenuOpen(true)}
+        onPrint={() => handleExport('print')}
         onPrevMaster={() => navigateAdjacent('prev')}
         onNextMaster={() => navigateAdjacent('next')}
-        onSwitch={() => setSwitcherOpen(true)}
+        onSwitch={() => setSwitcherOpen((v) => !v)}
         onCheatSheet={() => setCheatOpen(true)}
         onSave={() => void handleSave()}
         onCancel={handleCancel}
@@ -859,10 +850,7 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
             {keyword ? '無符合搜尋的資料' : `尚無${config.entityNoun}資料`}
           </div>
         ) : (
-          <div
-            className="grid gap-3"
-            style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}
-          >
+          <div className="flex flex-col gap-2">
             {rows.map((row, idx) => (
               <KbCard
                 key={row.id}
@@ -1047,7 +1035,8 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
                     <Hk k="R" t="重新整理" />
                     <Hk k="T" t="切換顯示停用" />
                     <Hk k="D" t="停用 / 啟用" />
-                    <Hk k="O" t="匯出 CSV" />
+                    <Hk k="O" t="匯出（選格式）" />
+                    <Hk k="P" t="列印" />
                     <Hk k="F3" t="切換主檔" />
                     <Hk k="[  /  ]" t="上 / 下個主檔" />
                     <Hk k="PgUp / PgDn" t="翻頁" />
@@ -1089,6 +1078,12 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
         open={switcherOpen}
         currentPageId={config.pageId}
         onClose={() => setSwitcherOpen(false)}
+      />
+
+      <ExportMenu
+        open={exportMenuOpen}
+        onClose={() => setExportMenuOpen(false)}
+        onSelect={(format) => handleExport(format)}
       />
 
       {confirm ? <ConfirmDialog state={confirm} onClose={() => setConfirm(null)} /> : null}
@@ -1161,7 +1156,6 @@ function StatusBar({
         {modeLabel}
       </span>
       <span className="text-foreground/80">
-        {mode === 'browse' && !searchOpen ? `焦點：${focusedLabel}` : null}
         {mode === 'detail' ? `目前：${focusedLabel}` : null}
         {mode === 'edit' ? `編輯：${focusedLabel}` : null}
         {searchOpen ? <>關鍵字：「{keyword || '—'}」</> : null}
@@ -1215,70 +1209,113 @@ const KbCard = forwardRef(function KbCard(
   ref: Ref<HTMLDivElement>,
 ) {
   return (
-    <div
+    <motion.div
       ref={ref}
       data-kbcard
       data-row-id={row.id}
       onClick={onSelect}
       onDoubleClick={onActivate}
+      animate={
+        reduced
+          ? { y: 0, scale: 1 }
+          : focused
+            ? { y: -3, scale: 1.006 }
+            : { y: 0, scale: 1 }
+      }
+      transition={
+        reduced
+          ? { duration: 0 }
+          : { type: 'spring', stiffness: 360, damping: 28, mass: 0.6 }
+      }
       className={cn(
-        'relative cursor-pointer rounded-xl border bg-card/80 p-3 text-sm transition-colors',
-        'border-border/50 hover:border-[#E8A020]/60 hover:bg-card',
+        'relative cursor-pointer overflow-hidden rounded-xl border bg-card/70 transition-colors',
+        focused ? 'z-10 border-[#E8A020] bg-card' : 'border-border/40 hover:border-[#E8A020]/40 hover:bg-card',
         !row.isActive && 'opacity-55',
       )}
+      style={
+        focused
+          ? {
+              boxShadow:
+                '0 14px 32px -10px rgba(232,160,32,0.55), 0 0 0 1px rgba(232,160,32,0.5), inset 0 1px 0 rgba(255,210,140,0.18)',
+            }
+          : undefined
+      }
     >
+      {/* focused 時左側金色 accent bar（layoutId 在卡間平滑切換） */}
       {focused ? (
         <motion.span
-          layoutId="kb-focus-ring"
-          className="pointer-events-none absolute inset-0 rounded-xl ring-2 ring-[#E8A020] [box-shadow:0_0_0_4px_rgba(232,160,32,0.18),0_8px_22px_-6px_rgba(232,160,32,0.45)]"
+          layoutId="kb-row-accent"
+          className="absolute inset-y-0 left-0 w-1 bg-[#E8A020]"
           transition={
-            reduced
-              ? { duration: 0 }
-              : { type: 'spring', stiffness: 380, damping: 30 }
+            reduced ? { duration: 0 } : { type: 'spring', stiffness: 420, damping: 32 }
           }
         />
       ) : null}
 
-      <div className="relative flex items-start justify-between gap-2">
-        <div className="min-w-0 flex-1">
-          {headField ? (
-            <div
+      <div className="flex items-center gap-5 px-4 py-3 pl-5">
+        {/* 左：head field（code）*/}
+        {headField ? (
+          <div className="flex shrink-0 flex-col">
+            <span className="text-[9px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/60">
+              {headField.label}
+            </span>
+            <span
               className={cn(
-                'truncate text-base font-bold tracking-wider text-foreground',
-                headField.mono && 'font-mono',
+                'text-[15px] font-bold tracking-wider text-foreground',
+                headField.mono && 'font-mono text-[14px]',
               )}
             >
               {displayCell(headField, row[headField.key])}
-            </div>
-          ) : null}
-          {subField ? (
-            <div className="mt-0.5 truncate text-[13px] text-muted-foreground">
+            </span>
+          </div>
+        ) : null}
+
+        {/* 分隔線 */}
+        {headField && (subField || tailFields.length > 0) ? (
+          <span className="h-9 w-px shrink-0 bg-border/30" />
+        ) : null}
+
+        {/* 中：sub field（name）*/}
+        {subField ? (
+          <div className="min-w-0 flex-1">
+            <span className="block text-[9px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/60">
+              {subField.label}
+            </span>
+            <span className="block truncate text-[14px] font-medium text-foreground">
               {displayCell(subField, row[subField.key])}
-            </div>
-          ) : null}
-        </div>
+            </span>
+          </div>
+        ) : null}
+
+        {/* 右側：tail fields 散列 */}
+        {tailFields.map((f) => (
+          <div key={f.key} className="shrink-0 text-right">
+            <span className="block text-[9px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/60">
+              {f.label}
+            </span>
+            <span
+              className={cn(
+                'block text-[13px] text-foreground/80',
+                f.mono && 'font-mono text-[12px]',
+              )}
+            >
+              {displayCell(f, row[f.key])}
+            </span>
+          </div>
+        ))}
+
+        {/* 最右：狀態 dot */}
         <span
           className={cn(
-            'mt-1 h-2 w-2 shrink-0 rounded-full',
+            'h-2.5 w-2.5 shrink-0 rounded-full',
             row.isActive
-              ? 'bg-[#22D88F] [box-shadow:0_0_8px_rgba(34,216,143,0.7)]'
+              ? 'bg-[#22D88F] [box-shadow:0_0_10px_rgba(34,216,143,0.7)]'
               : 'bg-[#888892]',
           )}
           title={row.isActive ? '啟用' : '停用'}
         />
       </div>
-
-      {tailFields.length > 0 ? (
-        <div className="relative mt-2 flex flex-wrap gap-x-3 gap-y-0.5 border-t border-border/30 pt-2 text-[11px] text-muted-foreground">
-          {tailFields.map((f) => (
-            <span key={f.key} className="truncate">
-              <span className="opacity-60">{f.label}：</span>
-              <span className={cn(f.mono && 'font-mono')}>{displayCell(f, row[f.key])}</span>
-            </span>
-          ))}
-        </div>
-      ) : null}
-    </div>
+    </motion.div>
   );
 });
 
@@ -1303,6 +1340,7 @@ function KbToolbar({
   onRefresh,
   onToggleInactive,
   onExport,
+  onPrint,
   onPrevMaster,
   onNextMaster,
   onSwitch,
@@ -1322,6 +1360,7 @@ function KbToolbar({
   onRefresh: () => void;
   onToggleInactive: () => void;
   onExport: () => void;
+  onPrint: () => void;
   onPrevMaster: () => void;
   onNextMaster: () => void;
   onSwitch: () => void;
@@ -1421,6 +1460,7 @@ function KbToolbar({
           />
           <ToolbarSep />
           <ToolbarButton icon={Download} letter="O" label="匯出" enabled onClick={onExport} />
+          <ToolbarButton icon={Printer} letter="P" label="列印" enabled onClick={onPrint} />
           <ToolbarSep />
           <ToolbarButton
             icon={ChevronLeft}
