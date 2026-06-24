@@ -114,6 +114,7 @@ export function MasterTable<T>({
   setChecked,
   pageSize = 20,
   onPageSizeChange,
+  hidePageSizeArea = false,
   sortKey,
   onSortKeyChange,
   onColumnOrderChange,
@@ -132,6 +133,8 @@ export function MasterTable<T>({
   pageSize?: number;
   /** 提供時 footer「每頁 N 筆」變 dropdown 選擇器（10/20/50/100），未提供時為純顯示 */
   onPageSizeChange?: (next: number) => void;
+  /** 2026-06-24 取消分頁範式：true 時 footer 右側「每頁 N 筆」整塊不顯（給固定 pageSize=100 一次撈全用） */
+  hidePageSizeArea?: boolean;
   sortKey?: string;
   onSortKeyChange?: (key: string) => void;
   /** 2026-06-18 表頭拖拉重排欄位順序回 callback；提供時 thead 啟用 dnd
@@ -351,13 +354,15 @@ export function MasterTable<T>({
           共 <span className="text-foreground">{total}</span> 筆 · 顯示 {rows.length} 筆
           {footerHint ? ` · ${footerHint}` : ''}
         </span>
-        <div className="ml-auto">
-          {onPageSizeChange ? (
-            <PageSizeSelector value={pageSize} onChange={onPageSizeChange} />
-          ) : (
-            <span className="text-muted-foreground/70">每頁 {pageSize} 筆</span>
-          )}
-        </div>
+        {hidePageSizeArea ? null : (
+          <div className="ml-auto">
+            {onPageSizeChange ? (
+              <PageSizeSelector value={pageSize} onChange={onPageSizeChange} />
+            ) : (
+              <span className="text-muted-foreground/70">每頁 {pageSize} 筆</span>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -29,7 +29,6 @@ import { exportTable, type ExportFormat } from '@/features/nx01/shell/hooks/useE
 import { SearchPanel } from '@/features/nx01/shell/ui/SearchPanel';
 import {
   MasterTable,
-  MASTER_TABLE_PAGE_SIZES,
   type MasterTableColumn,
 } from '@/features/nx01/shell/ui/MasterTable';
 import { ConfirmDialog, type ConfirmState } from '@/features/nx01/shell/ui/ConfirmDialog';
@@ -99,14 +98,21 @@ function listFields(cfg: EntityMasterConfig): EntityFieldDef[] {
   return cfg.fields.filter((f) => f.inList !== false);
 }
 
+/**
+ * 2026-06-24 執行長拍板：取消分頁、固定一次撈前 100 筆。
+ * - 原 page/totalPages/setPageSize state 全廢
+ * - itemIndex / 上下筆切換不再跨頁、純 displayRows 內 ±1
+ * - total > 100 時 footerHint 提示「顯前 100 筆、請用搜尋過濾」
+ */
+const ENTITY_LIST_PAGE_SIZE = 100;
+
 export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
   const { toasts, showToast } = useToast();
 
-  // 資料 / 分頁 / 篩選
+  // 資料 / 篩選（2026-06-24 取消分頁、pageSize 固定）
   const [rows, setRows] = useState<EntityRow[]>([]);
   const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState<number>(MASTER_TABLE_PAGE_SIZES[1]);
+  const pageSize = ENTITY_LIST_PAGE_SIZE;
   const [showInactive, setShowInactive] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [keyword, setKeyword] = useState('');
@@ -156,8 +162,7 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
     setVisibleKeys: setColumnsOrder,
   } = useColumnsPref(`master-entity:${config.basePath}:columns:v1`, COLUMN_ALL_KEYS, COLUMN_ALL_KEYS);
 
-  // 2026-06-18 自動 focus 第一筆 + 跨頁邊界 pending（同員工範式）
-  const pendingSelectRef = useRef<'first' | 'last' | null>(null);
+  // 2026-06-24 取消分頁後 pendingSelectRef 不再需要、僅留 focusFirstRowRef
   const focusFirstRowRef = useRef<boolean>(true);
 
   // M 排序欄位選項:自動從 list fields 推（不含 isActive、不含 textarea/json/computed）
@@ -226,8 +231,6 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
     [displayRows, selectedId],
   );
 
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
-
   // search debounce
   useEffect(() => {
     const t = setTimeout(() => setDebouncedKw(keyword), 300);
@@ -253,13 +256,13 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
     };
   }, [config]);
 
-  // load
+  // load（2026-06-24 取消分頁、固定撈前 100 筆）
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetchEntityList(config, {
         search: debouncedKw,
-        page,
+        page: 1,
         pageSize,
         isActive: showInactive ? undefined : true,
       });
@@ -271,32 +274,19 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
       setLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [config, debouncedKw, page, pageSize, showInactive, reloadTick]);
+  }, [config, debouncedKw, pageSize, showInactive, reloadTick]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
-  // 2026-06-18 套員工範式:跨頁邊界 pending + 全鍵盤 focus 第一筆
+  // 2026-06-24 套員工範式（不跨頁版）+ 全鍵盤 focus 第一筆
   useEffect(() => {
     if (displayRows.length === 0) {
       if (selectedId !== null) setSelectedId(null);
       return;
     }
-    // 1. 跨頁 pending（onPrev/Next 邊界觸發）
-    if (pendingSelectRef.current) {
-      const targetId =
-        pendingSelectRef.current === 'first'
-          ? displayRows[0].id
-          : displayRows[displayRows.length - 1].id;
-      setSelectedId(targetId);
-      pendingSelectRef.current = null;
-      requestAnimationFrame(() => {
-        document.querySelector<HTMLElement>(`[data-row-id="${targetId}"]`)?.focus();
-      });
-      return;
-    }
-    // 2. mount / cancel / save 後 focus 第一筆（focusFirstRowRef）
+    // mount / cancel / save 後 focus 第一筆
     if (focusFirstRowRef.current) {
       const firstId = displayRows[0].id;
       setSelectedId(firstId);
@@ -306,47 +296,33 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
       });
       return;
     }
-    // 3. 既有選中項目不在當前頁、預設選第一筆
+    // 既有選中項目不在 displayRows、預設選第一筆
     if (!displayRows.some((r) => r.id === selectedId)) setSelectedId(displayRows[0].id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [displayRows]);
 
-  // 2026-06-18 item-level navigation handlers（同員工範式）
+  // 2026-06-24 item-level navigation handlers（不跨頁版本、純 displayRows 內 ±1）
   const localIdx = displayRows.findIndex((r) => r.id === selectedId);
-  const itemIndex = localIdx >= 0 ? (page - 1) * pageSize + localIdx + 1 : 0;
-  const itemTotal = total;
+  const itemIndex = localIdx >= 0 ? localIdx + 1 : 0;
+  const itemTotal = displayRows.length;
   const handleJumpFirstItem = useCallback(() => {
-    if (total === 0) return;
-    pendingSelectRef.current = 'first';
-    setPage(1);
-    if (page === 1 && displayRows.length > 0) setSelectedId(displayRows[0].id);
-  }, [total, page, displayRows]);
+    if (displayRows.length === 0) return;
+    setSelectedId(displayRows[0].id);
+  }, [displayRows]);
   const handleJumpLastItem = useCallback(() => {
-    if (total === 0) return;
-    pendingSelectRef.current = 'last';
-    setPage(totalPages);
-    if (page === totalPages && displayRows.length > 0) {
-      setSelectedId(displayRows[displayRows.length - 1].id);
-    }
-  }, [total, totalPages, page, displayRows]);
+    if (displayRows.length === 0) return;
+    setSelectedId(displayRows[displayRows.length - 1].id);
+  }, [displayRows]);
   const handlePrevItem = useCallback(() => {
-    if (localIdx > 0) {
-      setSelectedId(displayRows[localIdx - 1].id);
-    } else if (page > 1) {
-      pendingSelectRef.current = 'last';
-      setPage(page - 1);
-    }
-  }, [localIdx, displayRows, page]);
+    if (localIdx > 0) setSelectedId(displayRows[localIdx - 1].id);
+  }, [localIdx, displayRows]);
   const handleNextItem = useCallback(() => {
     if (localIdx >= 0 && localIdx < displayRows.length - 1) {
       setSelectedId(displayRows[localIdx + 1].id);
-    } else if (page < totalPages) {
-      pendingSelectRef.current = 'first';
-      setPage(page + 1);
     } else if (localIdx < 0 && displayRows.length > 0) {
       setSelectedId(displayRows[0].id);
     }
-  }, [localIdx, displayRows, page, totalPages]);
+  }, [localIdx, displayRows]);
 
   // 選中列捲入視野（鍵盤 ↑↓ 切列時）
   useEffect(() => {
@@ -612,9 +588,27 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
   }, []);
 
   // ── 全鍵盤 ────────────────────────────────────────────
+  // 2026-06-24 執行長拍板：滑鼠點旁邊 focus 跑掉、↑↓ 仍要切 row（不依賴 DOM focus）。
+  // 規則：
+  //   - input/textarea/select/contenteditable focus 時：單鍵 ↑↓/Enter/字母 不接、Alt 系仍接管
+  //   - Radix modal/dropdown 開啟（[data-state="open"][role="dialog"|"menu"]）：全短路、交給 modal
+  //   - 其他情況：↑↓/Enter 由 EntityMasterPage 接管（用 selectedId state、不依賴 DOM focus）
+  //   - row 本身仍 tabIndex=0 + MasterTable.handleTableKey 並存（row focused 時優先 row，行為相同）
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      // 編輯輸入框內不攔截一般鍵（Alt 組合仍處理）
+      const tgt = e.target as HTMLElement | null;
+      const tag = tgt?.tagName ?? '';
+      const inInput =
+        tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' ||
+        (tgt?.isContentEditable ?? false);
+      const radixOpen = !!document.querySelector(
+        '[data-state="open"][role="dialog"], [data-state="open"][role="menu"]',
+      );
+
+      // Radix modal / dropdown 開啟時、所有熱鍵交給 modal（執行長明說範式）
+      if (radixOpen) return;
+
+      // ── Alt 系（既有範式：input 內也生效）──
       if (e.altKey) {
         const k = e.key.toLowerCase();
         const map: Record<string, () => void> = {
@@ -646,6 +640,8 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
         }
         return;
       }
+
+      // Esc 仍處理（input 內亦可、用來收搜尋條 / 取消編輯）
       if (e.key === 'Escape') {
         if (searchOpen) {
           setSearchOpen(false);
@@ -655,12 +651,59 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
         }
         return;
       }
-      // 2026-06-18 ↑↓/Enter 切 row + 進詳細 改由 MasterTable.handleTableKey 處理（避免雙重觸發）
-      // dropdown 開啟中也不攔（給 Radix DropdownMenu 自己處理選項導航）
+
+      // 單鍵 ↑↓/Enter：input 焦點不攔（讓 input 移 cursor / 換行）
+      if (inInput) return;
+
+      // ↑↓ 切 row（不依賴 DOM focus、靠 selectedId state）
+      // row 本身 keydown 由 MasterTable.handleTableKey 處理；此處接管 focus 在 body / 別處時
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        if (tab !== 'list') return; // detail 模式 ↑↓ 不切 row
+        if (tgt?.hasAttribute?.('data-row-id')) return; // row 焦點交給 MasterTable
+        if (displayRows.length === 0) return;
+        const idx = displayRows.findIndex((r) => r.id === selectedId);
+        const nextIdx =
+          e.key === 'ArrowDown'
+            ? Math.min(displayRows.length - 1, Math.max(0, idx + 1))
+            : Math.max(0, idx - 1);
+        const nextRow = displayRows[nextIdx];
+        if (nextRow) {
+          e.preventDefault();
+          setSelectedId(nextRow.id);
+        }
+        return;
+      }
+
+      // Enter 進詳細（同上、row 焦點交給 MasterTable）
+      if (e.key === 'Enter') {
+        if (tab !== 'list') return;
+        if (tgt?.hasAttribute?.('data-row-id')) return;
+        if (!selectedId) return;
+        e.preventDefault();
+        attemptTabChange('detail');
+        return;
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [mode, searchOpen, attemptTabChange, handleCreate, handleEdit, handleDelete, handleSave, handleCancel, handleExport, showToast, toggleSearch, toggleFilter, selected]);
+  }, [
+    mode,
+    tab,
+    searchOpen,
+    selectedId,
+    displayRows,
+    attemptTabChange,
+    handleCreate,
+    handleEdit,
+    handleDelete,
+    handleSave,
+    handleCancel,
+    handleExport,
+    showToast,
+    toggleSearch,
+    toggleFilter,
+    selected,
+  ]);
 
   // beforeunload（dirty 攔截）
   useEffect(() => {
@@ -852,16 +895,15 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
             checked={checked}
             setChecked={setChecked}
             pageSize={pageSize}
-            onPageSizeChange={(n) => {
-              setPageSize(n);
-              setPage(1);
-            }}
+            hidePageSizeArea
             footerHint={
               loading
                 ? '載入中...'
-                : filters.length > 0
-                  ? `篩選 ${filters.length} 條件 · 符合 ${displayRows.length} 筆（僅就本頁套用）`
-                  : undefined
+                : total > pageSize
+                  ? `資料較多、僅顯前 ${pageSize} 筆、請用搜尋過濾`
+                  : filters.length > 0
+                    ? `篩選 ${filters.length} 條件 · 符合 ${displayRows.length} 筆`
+                    : undefined
             }
             totalCount={total}
           />
