@@ -1142,18 +1142,18 @@ function StatusBar({
     mode === 'edit' || mode === 'create'
       ? 'var(--kb-accent)'
       : mode === 'detail'
-        ? '#B4B8C0'
+        ? 'var(--kb-mode-detail-fg)'
         : searchOpen
-          ? '#7AC4FF'
-          : '#22D88F';
+          ? 'var(--kb-mode-search-fg)'
+          : 'var(--kb-mode-browse-fg)';
   const modeBg =
     mode === 'edit' || mode === 'create'
       ? 'var(--kb-accent-14)'
       : mode === 'detail'
-        ? '#B4B8C022'
+        ? 'var(--kb-mode-detail-bg)'
         : searchOpen
-          ? '#7AC4FF22'
-          : '#22D88F22';
+          ? 'var(--kb-mode-search-bg)'
+          : 'var(--kb-mode-browse-bg)';
 
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-border/30 bg-card/60 px-3 py-1.5 text-[11px] text-muted-foreground">

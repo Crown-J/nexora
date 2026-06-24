@@ -352,6 +352,28 @@ html.light select {
 html.light { --nx-accent-strong: #c8550f; }
 
 /* ============================================================
+   keyboard-card-master StatusBar mode chip token（執行長 2026-06-24）
+   - 深色：保留淺綠/淺藍/淺灰（NEXORA 原範式）
+   - 淺色：改 saturated 深色 + 14% alpha 底（白底對比夠）
+============================================================ */
+:root {
+  --kb-mode-browse-fg: #22d88f;
+  --kb-mode-browse-bg: color-mix(in srgb, #22d88f 13%, transparent);
+  --kb-mode-search-fg: #7ac4ff;
+  --kb-mode-search-bg: color-mix(in srgb, #7ac4ff 13%, transparent);
+  --kb-mode-detail-fg: #b4b8c0;
+  --kb-mode-detail-bg: color-mix(in srgb, #b4b8c0 13%, transparent);
+}
+html.light {
+  --kb-mode-browse-fg: #15803d;
+  --kb-mode-browse-bg: color-mix(in srgb, #15803d 14%, transparent);
+  --kb-mode-search-fg: #1d4ed8;
+  --kb-mode-search-bg: color-mix(in srgb, #1d4ed8 14%, transparent);
+  --kb-mode-detail-fg: #475569;
+  --kb-mode-detail-bg: color-mix(in srgb, #475569 12%, transparent);
+}
+
+/* ============================================================
    keyboard-card-master 範本主色 token（執行長 2026-06-24）
    - 跟著 --primary 切換、淺色 silver theme 自動變藍、深色仍琥珀
    - 透明度 _NN 系：對應 rgba(c, NN/100) 等效
