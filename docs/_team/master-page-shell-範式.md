@@ -15,7 +15,7 @@
 
 | 級別 | 形態 | 範本 | 主檔 |
 |---|---|---|---|
-| **L0 純查表** | 卡片一筆一列 + 全鍵盤 + 浮層 detail/edit | `KeyboardCardMasterPage` (`features/nx01/shell/keyboard-card-master/`) | country / region / department / phonetic-dictionary（4 個已套、2026-06-24 v2 範式）+ 候選：model-type / drivetrain / part-relation / part-model |
+| **L0 純查表** | 卡片一筆一列 + 全鍵盤 + 浮層 detail/edit | `KeyboardCardMasterPage` (`features/nx01/shell/keyboard-card-master/`) | 11 個全套（2026-06-24）：country / region / department / phonetic-dictionary / model-type / drivetrain / part-relation / part-model / engine / transmission / model |
 | **L1 名詞表** | 列表 + 右側抽屜 detail（drawer） | 未建（規劃中） | currency / team / role / customer-grade / supplier-grade / brand 候選 |
 | **L2 中型** | 單頁長表 + 1-2 衛星 inline | UserZonedPage 縮減版 | warehouse / site / brand / location |
 | **L3 重型** | UserZonedPage 完整 | UserZonedPage / PartnerMasterPage / PartZonedPage | user / partner / part |
