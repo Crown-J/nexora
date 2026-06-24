@@ -211,7 +211,10 @@ export function MasterTable<T>({
   // 2026-06-18 hydration fix:DndContext 內部 render screen-reader div、
   //   不能塞 <tr> 子層（HTML 規範違反）。改包整個 <table> 外、Sortable items 仍能找到 DraggableTh。
   const tableBody = (
-    <div className="flex-1 overflow-auto nx-master-scroll" onKeyDown={handleTableKey}>
+    <div
+      className="flex-1 overflow-auto nx-master-scroll [scroll-padding-top:48px]"
+      onKeyDown={handleTableKey}
+    >
       <table className="w-full border-collapse text-[13px]">
         <thead className="sticky top-0 z-10 border-b border-border/40 bg-card/95 backdrop-blur-md">
           <tr className="text-left text-[11.5px] font-semibold uppercase tracking-[0.02em] text-muted-foreground">
