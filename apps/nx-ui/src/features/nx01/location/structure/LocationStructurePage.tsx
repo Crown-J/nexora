@@ -144,11 +144,13 @@ export function LocationStructurePage() {
     setLoading(true);
     void (async () => {
       try {
+        // 後端 Nx01ListQueryDto @Max(100)、單頁上限 100、超過會 400
+        // 假設 LITE 客戶資料量小、暫不做分頁迭代；超出時再改 paginate loop
         const [siteRes, whRes, zoneRes, locRes] = await Promise.all([
-          listSites({ pageSize: 200, isActive: true }),
-          listWarehouses({ pageSize: 500, isActive: true }),
-          listWarehouseZones({ pageSize: 500, isActive: true }),
-          listLocation({ page: 1, pageSize: 1000, isActive: true }),
+          listSites({ pageSize: 100, isActive: true }),
+          listWarehouses({ pageSize: 100, isActive: true }),
+          listWarehouseZones({ pageSize: 100, isActive: true }),
+          listLocation({ page: 1, pageSize: 100, isActive: true }),
         ]);
         if (cancelled) return;
         setSites(siteRes.items);
@@ -162,7 +164,7 @@ export function LocationStructurePage() {
             const r = await listUserWarehouses({
               warehouseId: w.id,
               isActive: true,
-              pageSize: 200,
+              pageSize: 100,
             }).catch(() => null);
             if (!r) return;
             empMap.set(

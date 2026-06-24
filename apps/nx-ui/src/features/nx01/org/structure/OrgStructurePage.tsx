@@ -112,10 +112,11 @@ export function OrgStructurePage() {
     setLoading(true);
     void (async () => {
       try {
+        // 後端 Nx01ListQueryDto @Max(100)、單頁上限 100、超過會 400
         const [depRes, teamRes, roleRes] = await Promise.all([
           listDepartments({ pageSize: 100, isActive: true }),
-          listTeams({ pageSize: 200, isActive: true }),
-          listRoles({ pageSize: 500, isActive: true }),
+          listTeams({ pageSize: 100, isActive: true }),
+          listRoles({ pageSize: 100, isActive: true }),
         ]);
         if (cancelled) return;
         setDepartments(depRes.items);
@@ -126,7 +127,7 @@ export function OrgStructurePage() {
         const map = new Map<string, Member[]>();
         await Promise.all(
           roleRes.items.map(async (r) => {
-            const ur = await listUserRoles({ roleId: r.id, isActive: true, pageSize: 200 }).catch(
+            const ur = await listUserRoles({ roleId: r.id, isActive: true, pageSize: 100 }).catch(
               () => null,
             );
             if (!ur) return;
