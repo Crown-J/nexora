@@ -259,6 +259,15 @@ export function UserZonedPage({
       });
     }
   }, [rows]);
+
+  // 2026-06-24 選中列捲入視野（鍵盤 ↑↓ 切列時、跟 EntityMasterPage 同範式）
+  useEffect(() => {
+    if (!selectedId || tab !== 'list') return;
+    document
+      .querySelector(`[data-row-id="${selectedId}"]`)
+      ?.scrollIntoView({ block: 'nearest' });
+  }, [selectedId, tab]);
+
   const handleJumpFirstItem = useCallback(() => {
     if (rows.length === 0) return;
     setSelectedId(rows[0].id);

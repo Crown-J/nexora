@@ -382,6 +382,14 @@ export function PartZonedPage({
     }
   }, [displayRows]);
 
+  // 2026-06-24 選中列捲入視野（鍵盤 ↑↓ 切列時、跟 EntityMasterPage 同範式）
+  useEffect(() => {
+    if (!selectedId || tab !== 'list') return;
+    document
+      .querySelector(`[data-row-id="${selectedId}"]`)
+      ?.scrollIntoView({ block: 'nearest' });
+  }, [selectedId, tab]);
+
   const handleJumpFirstItem = useCallback(() => {
     if (displayRows.length === 0) return;
     setSelectedId(displayRows[0].id);
