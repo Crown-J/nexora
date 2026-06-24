@@ -53,6 +53,7 @@ import {
   ConfirmDialog,
   type ConfirmState,
 } from '@/features/nx01/shell/ui/ConfirmDialog';
+import { exportTable } from '@/features/nx01/shell/hooks/useExportTable';
 
 import { MasterSwitcher } from './MasterSwitcher';
 
@@ -69,6 +70,7 @@ import {
   rowToDraft,
   draftToBody,
 } from '../entity-master/config';
+import { formatDateTimeZh } from '../entity-master/format';
 
 const PAGE_SIZE = 50;
 
@@ -89,7 +91,14 @@ function displayCell(f: EntityFieldDef, raw: unknown): string {
   return String(raw);
 }
 
-type Mode = 'browse' | 'edit' | 'create';
+type Mode = 'browse' | 'detail' | 'edit' | 'create';
+
+function auditPerson(username: unknown, name: unknown): string {
+  const n = (name as string) || '';
+  const u = (username as string) || '';
+  if (n && u) return `${n}（${u}）`;
+  return n || u || '—';
+}
 
 export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig }) {
   const { toasts, showToast } = useToast();
@@ -127,6 +136,8 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
   const listFs = useMemo(() => listFields(config), [config]);
   const editFs = useMemo(() => editFields(config), [config]);
   const editing = mode === 'edit' || mode === 'create';
+  const viewing = mode === 'detail';
+  const overlayed = editing || viewing;
 
   // search debounce
   useEffect(() => {
@@ -169,7 +180,7 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
     return false;
   }, [editing, draft, original]);
 
-  const exitEditing = useCallback(() => {
+  const exitOverlay = useCallback(() => {
     setMode('browse');
     setDraft({});
     setOriginal({});
@@ -185,6 +196,13 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
     setOriginal(d);
   }, [config, editing]);
 
+  const startDetail = useCallback(() => {
+    if (editing) return;
+    const row = rows[focusIdx];
+    if (!row) return;
+    setMode('detail');
+  }, [editing, rows, focusIdx]);
+
   const startEdit = useCallback(() => {
     if (config.readOnly) return;
     if (editing) return;
@@ -195,6 +213,25 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
     setDraft(d);
     setOriginal(d);
   }, [config, editing, rows, focusIdx]);
+
+  const handleExport = useCallback(
+    (format: 'csv' | 'pdf' | 'print') => {
+      const cols = listFs.map((f) => ({
+        label: f.label,
+        get: (r: EntityRow) => displayCell(f, r[f.key]),
+      }));
+      exportTable<EntityRow>(format, {
+        title: config.title,
+        columns: cols,
+        rows,
+      });
+      showToast(
+        format === 'csv' ? 'CSV 匯出已觸發' : format === 'pdf' ? 'PDF 匯出已觸發' : '列印已開啟',
+        'info',
+      );
+    },
+    [config, listFs, rows, showToast],
+  );
 
   const handleSave = useCallback(async () => {
     if (!editing) return;
@@ -217,17 +254,17 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
         await updateEntity(config, row.id, body);
         showToast(`更新${config.entityNoun}成功`, 'success');
       }
-      exitEditing();
+      exitOverlay();
       setReloadTick((n) => n + 1);
     } catch (e) {
       showToast((e as Error)?.message ?? '儲存失敗', 'danger');
     }
-  }, [editing, mode, config, draft, rows, focusIdx, showToast, exitEditing]);
+  }, [editing, mode, config, draft, rows, focusIdx, showToast, exitOverlay]);
 
   const handleCancel = useCallback(() => {
     if (!editing) return;
     if (!isDirty) {
-      exitEditing();
+      exitOverlay();
       return;
     }
     setConfirm({
@@ -235,9 +272,9 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
       message: '所有未存的修改將遺失。',
       variant: 'danger',
       confirmLabel: '丟棄',
-      onConfirm: exitEditing,
+      onConfirm: exitOverlay,
     });
-  }, [editing, isDirty, mode, exitEditing]);
+  }, [editing, isDirty, mode, exitOverlay]);
 
   const handleToggleActive = useCallback(
     (row: EntityRow) => {
@@ -265,6 +302,17 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
     [config, listFs, showToast],
   );
 
+  // 詳細模式 ↑↓：切上下筆
+  const moveDetailRow = useCallback(
+    (dir: 'prev' | 'next') => {
+      if (!viewing) return;
+      const next = dir === 'next' ? focusIdx + 1 : focusIdx - 1;
+      if (next < 0 || next >= rows.length) return;
+      setFocusIdx(next);
+    },
+    [viewing, focusIdx, rows.length],
+  );
+
   // dirty guard
   useDirtyGuard(
     () => isDirty,
@@ -281,7 +329,7 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
           label: '丟棄變更',
           variant: 'danger',
           onClick: () => {
-            exitEditing();
+            exitOverlay();
             proceed();
           },
         },
@@ -360,39 +408,93 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
     [config.pageId, router, showToast],
   );
 
-  // ── 鍵盤 handler（window listener） ──
+  // ── 鍵盤 handler（window listener、NEXORA 工作列範式） ──
+  //
+  // 三個 mode + Alt 系工作列熱鍵：
+  //   - 瀏覽（browse）：↑↓←→ 移、Enter/Space 進詳細、N 新增、X 切停用
+  //                    / 搜尋、? 熱鍵、M 切換主檔、[/] 上下主檔、Q/E 翻頁
+  //                    Alt+A 新增、Alt+E 編輯、Alt+F 搜尋、Alt+R 重整
+  //                    Alt+T 切顯停用、Alt+D 切停用、Alt+O 匯出、Alt+M 切換
+  //   - 詳細（detail）：↑↓ 切上下筆、Alt+E 進編輯、Alt+D 切停用、Esc 退
+  //   - 編輯/新增：Tab/Shift+Tab 跳欄（原生）、Enter/Alt+S 存、Esc/Alt+C 取消
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      // switcher 開啟時、所有鍵交給 switcher 內部 input 處理
+      // switcher 開啟時、所有鍵交給 switcher 內部處理
       if (switcherOpen) return;
 
-      // 編輯中：只攔 Esc / Enter（讓 Tab/Shift+Tab 由瀏覽器原生跳）
+      const k = e.key;
+      const isAlt = e.altKey && !e.ctrlKey && !e.metaKey;
+
+      // ── 編輯 / 新增中 ──
       if (editing) {
-        if (e.key === 'Escape') {
+        if (k === 'Escape') {
           e.preventDefault();
           handleCancel();
           return;
         }
-        if (e.key === 'Enter') {
+        if (k === 'Enter') {
           const tgt = e.target as HTMLElement;
           if (tgt.tagName === 'TEXTAREA') return;
           e.preventDefault();
           void handleSave();
           return;
         }
+        if (isAlt && (k === 's' || k === 'S')) {
+          e.preventDefault();
+          void handleSave();
+          return;
+        }
+        if (isAlt && (k === 'c' || k === 'C')) {
+          e.preventDefault();
+          handleCancel();
+          return;
+        }
+        return; // Tab / Shift+Tab / 打字交給瀏覽器
+      }
+
+      // ── 詳細中 ──
+      if (viewing) {
+        if (k === 'Escape') {
+          e.preventDefault();
+          exitOverlay();
+          return;
+        }
+        if (k === 'ArrowUp') {
+          e.preventDefault();
+          moveDetailRow('prev');
+          return;
+        }
+        if (k === 'ArrowDown') {
+          e.preventDefault();
+          moveDetailRow('next');
+          return;
+        }
+        if (isAlt && (k === 'e' || k === 'E')) {
+          e.preventDefault();
+          startEdit();
+          return;
+        }
+        if (isAlt && (k === 'd' || k === 'D')) {
+          e.preventDefault();
+          const row = rows[focusIdx];
+          if (row) handleToggleActive(row);
+          return;
+        }
+        // 詳細模式不接受其他熱鍵（避免誤觸）
         return;
       }
-      // 搜尋中：focus 在 input 時、只攔 Esc / ↓
+
+      // ── 搜尋中（input focus）──
       if (searchOpen) {
         const tgt = e.target as HTMLElement;
         if (tgt === searchInputRef.current) {
-          if (e.key === 'Escape') {
+          if (k === 'Escape') {
             e.preventDefault();
             setSearchOpen(false);
             setKeyword('');
             return;
           }
-          if (e.key === 'ArrowDown') {
+          if (k === 'ArrowDown') {
             e.preventDefault();
             searchInputRef.current?.blur();
             return;
@@ -400,54 +502,85 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
           return;
         }
       }
-      // 瀏覽模式
-      if (e.ctrlKey || e.metaKey || e.altKey) return;
-      const k = e.key;
 
-      if (k === 'ArrowUp') {
-        e.preventDefault();
-        moveFocus('up');
-        return;
+      // ── 瀏覽模式 ──
+
+      // Alt 系（工作列）
+      if (isAlt) {
+        if (k === 'a' || k === 'A') {
+          e.preventDefault();
+          startCreate();
+          return;
+        }
+        if (k === 'e' || k === 'E') {
+          e.preventDefault();
+          startEdit();
+          return;
+        }
+        if (k === 'f' || k === 'F') {
+          e.preventDefault();
+          setSearchOpen(true);
+          setTimeout(() => searchInputRef.current?.focus(), 50);
+          return;
+        }
+        if (k === 'r' || k === 'R') {
+          e.preventDefault();
+          setReloadTick((n) => n + 1);
+          showToast('已重新整理', 'info');
+          return;
+        }
+        if (k === 't' || k === 'T') {
+          e.preventDefault();
+          setShowInactive((v) => !v);
+          return;
+        }
+        if (k === 'd' || k === 'D') {
+          e.preventDefault();
+          const row = rows[focusIdx];
+          if (row) handleToggleActive(row);
+          return;
+        }
+        if (k === 'o' || k === 'O') {
+          e.preventDefault();
+          handleExport('csv');
+          return;
+        }
+        if (k === 'm' || k === 'M') {
+          e.preventDefault();
+          setSwitcherOpen(true);
+          return;
+        }
+        return; // Alt 系沒命中 → 不擋其它瀏覽器快捷
       }
-      if (k === 'ArrowDown') {
-        e.preventDefault();
-        moveFocus('down');
-        return;
-      }
-      if (k === 'ArrowLeft') {
-        e.preventDefault();
-        moveFocus('left');
-        return;
-      }
-      if (k === 'ArrowRight') {
-        e.preventDefault();
-        moveFocus('right');
-        return;
-      }
-      if (k === 'Home') {
-        e.preventDefault();
-        setFocusIdx(0);
-        return;
-      }
+
+      // 非 Alt：方向 / 單鍵
+      if (e.ctrlKey || e.metaKey) return;
+
+      if (k === 'ArrowUp') { e.preventDefault(); moveFocus('up'); return; }
+      if (k === 'ArrowDown') { e.preventDefault(); moveFocus('down'); return; }
+      if (k === 'ArrowLeft') { e.preventDefault(); moveFocus('left'); return; }
+      if (k === 'ArrowRight') { e.preventDefault(); moveFocus('right'); return; }
+      if (k === 'Home') { e.preventDefault(); setFocusIdx(0); return; }
       if (k === 'End') {
         e.preventDefault();
         setFocusIdx(Math.max(0, rows.length - 1));
         return;
       }
-      if (k === 'PageDown' || k === 'e' || k === 'E') {
+      // Q / PageUp → 上一頁；E / PageDown → 下一頁（左右手分流）
+      if (k === 'q' || k === 'Q' || k === 'PageUp') {
+        e.preventDefault();
+        if (page > 1) setPage(page - 1);
+        return;
+      }
+      if (k === 'e' || k === 'E' || k === 'PageDown') {
         e.preventDefault();
         const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
         if (page < totalPages) setPage(page + 1);
         return;
       }
-      if (k === 'PageUp' || k === 'q' || k === 'Q') {
-        e.preventDefault();
-        if (page > 1) setPage(page - 1);
-        return;
-      }
       if (k === 'Enter' || k === ' ') {
         e.preventDefault();
-        startEdit();
+        startDetail();
         return;
       }
       if (k === 'n' || k === 'N') {
@@ -515,15 +648,20 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
     return () => window.removeEventListener('keydown', handler);
   }, [
     editing,
+    viewing,
     searchOpen,
     cheatOpen,
     switcherOpen,
     moveFocus,
+    moveDetailRow,
     handleCancel,
     handleSave,
     handleToggleActive,
+    handleExport,
     startCreate,
+    startDetail,
     startEdit,
+    exitOverlay,
     navigateAdjacent,
     rows,
     focusIdx,
@@ -656,7 +794,7 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
         data-nx-frame
         className={cn(
           'relative rounded-lg border border-border/40 bg-card/40 p-3 transition-[filter] duration-200',
-          editing && 'pointer-events-none [filter:blur(2px)_brightness(0.85)]',
+          overlayed && 'pointer-events-none [filter:blur(2px)_brightness(0.85)]',
         )}
       >
         {loading && rows.length === 0 ? (
@@ -677,14 +815,14 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
                   cardRefs.current[idx] = el;
                 }}
                 row={row}
-                focused={idx === focusIdx && !editing}
+                focused={idx === focusIdx && !overlayed}
                 headField={headField}
                 subField={subField}
                 tailFields={tailFields}
                 onSelect={() => setFocusIdx(idx)}
                 onActivate={() => {
                   setFocusIdx(idx);
-                  startEdit();
+                  startDetail();
                 }}
                 reduced={reduced}
               />
@@ -693,6 +831,84 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
         )}
       </div>
 
+      {/* 詳細 overlay（read-only、含 audit 欄位）*/}
+      <AnimatePresence>
+        {viewing && focused ? (
+          <motion.div
+            className="fixed inset-0 z-40 flex items-center justify-center bg-background/50 p-4 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: reduced ? 0 : 0.15 }}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) exitOverlay();
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.96, opacity: 0, y: 8 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.97, opacity: 0, y: 6 }}
+              transition={{ duration: reduced ? 0 : 0.2, ease: [0.2, 0.7, 0.2, 1] }}
+              className="w-full max-w-lg rounded-xl border bg-card shadow-2xl border-border/60 shadow-black/30"
+            >
+              {/* header */}
+              <div className="flex items-center justify-between border-b border-border/40 px-5 py-3">
+                <div className="flex items-center gap-2">
+                  <span className="rounded-md bg-foreground/10 px-1.5 py-0.5 text-[10px] font-semibold tracking-wider text-muted-foreground">
+                    詳細
+                  </span>
+                  <h2 className="text-sm font-semibold tracking-wide text-foreground">
+                    {focusedLabel || config.entityNoun}
+                  </h2>
+                </div>
+                <span
+                  className={cn(
+                    'rounded-full px-2 py-0.5 text-[10px] font-semibold',
+                    focused.isActive
+                      ? 'bg-[#22D88F]/14 text-[#22D88F]'
+                      : 'bg-[#888892]/14 text-[#888892]',
+                  )}
+                >
+                  {focused.isActive ? '啟用' : '停用'}
+                </span>
+              </div>
+              {/* body */}
+              <div className="px-5 py-4">
+                <DetailFields editFs={editFs} row={focused} />
+                <div className="mt-4 border-t border-border/30 pt-3">
+                  <div className="mb-2 text-[10px] font-semibold tracking-[0.18em] text-muted-foreground/70">
+                    異動紀錄
+                  </div>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[12px]">
+                    <ReadOnlyRow label="建立時間" value={formatDateTimeZh(focused.createdAt)} mono />
+                    <ReadOnlyRow
+                      label="建立人員"
+                      value={auditPerson(focused.createdByUsername, focused.createdByName)}
+                    />
+                    <ReadOnlyRow label="修改時間" value={formatDateTimeZh(focused.updatedAt)} mono />
+                    <ReadOnlyRow
+                      label="修改人員"
+                      value={auditPerson(focused.updatedByUsername, focused.updatedByName)}
+                    />
+                  </div>
+                </div>
+              </div>
+              {/* footer hints */}
+              <div className="flex items-center justify-between border-t border-border/40 px-5 py-2.5 text-[11px] text-muted-foreground">
+                <span>
+                  <kbd className="kb">↑↓</kbd> 上下筆 · <kbd className="kb">Alt+E</kbd> 編輯 ·{' '}
+                  <kbd className="kb">Alt+D</kbd> 切停用 · <kbd className="kb">Esc</kbd> 退
+                </span>
+                <span className="text-[10px] opacity-60">
+                  {focusIdx + 1} / {rows.length}
+                </span>
+              </div>
+            </motion.div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+
+      {/* 編輯 / 新增 overlay */}
       <AnimatePresence>
         {editing ? (
           <motion.div
@@ -731,7 +947,7 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
               <div className="mt-4 flex items-center justify-between border-t border-border/40 pt-3 text-[11px] text-muted-foreground">
                 <span>
                   <kbd className="kb">Tab</kbd> 跳欄 · <kbd className="kb">Enter</kbd> 儲存 ·{' '}
-                  <kbd className="kb">Esc</kbd> 取消
+                  <kbd className="kb">Alt+S</kbd> 存 · <kbd className="kb">Esc</kbd> 取消
                 </span>
               </div>
             </motion.div>
@@ -761,21 +977,49 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
                 <Keyboard className="h-4 w-4" />
                 <h3 className="text-sm font-semibold tracking-wider">鍵盤快捷鍵</h3>
               </div>
-              <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-xs">
-                <Hk k="↑ ↓ ← →" t="卡片間移動" />
-                <Hk k="Enter / Space" t="進入編輯" />
-                <Hk k="N" t="新增一筆" />
-                <Hk k="X" t="停用 / 啟用" />
-                <Hk k="/" t="搜尋此主檔" />
-                <Hk k="T" t="切換顯示停用" />
-                <Hk k="R" t="重新整理" />
-                <Hk k="Q / E" t="上一頁 / 下一頁" />
-                <Hk k="Home / End" t="第一張 / 最後一張" />
-                <Hk k="[ / ]" t="上 / 下個主檔" />
-                <Hk k="M" t="切換主檔（switcher）" />
-                <Hk k="?" t="本說明" />
-                <Hk k="Tab / Shift+Tab" t="編輯中跳欄" />
-                <Hk k="Esc" t="取消 / 退出" />
+              <div className="grid grid-cols-2 gap-x-8">
+                {/* 瀏覽 */}
+                <div>
+                  <div className="mb-1.5 text-[10px] font-semibold tracking-[0.18em] text-[#E8A020]/80">
+                    瀏覽
+                  </div>
+                  <div className="flex flex-col gap-1 text-xs">
+                    <Hk k="↑ ↓ ← →" t="卡片移動" />
+                    <Hk k="Enter / Space" t="看詳細" />
+                    <Hk k="Alt+A" t="新增" />
+                    <Hk k="Alt+E" t="編輯" />
+                    <Hk k="Alt+F  /  /" t="搜尋" />
+                    <Hk k="Alt+R" t="重新整理" />
+                    <Hk k="Alt+T" t="切換顯示停用" />
+                    <Hk k="Alt+D  /  X" t="停用 / 啟用" />
+                    <Hk k="Alt+O" t="匯出 CSV" />
+                    <Hk k="Alt+M  /  M" t="切換主檔" />
+                    <Hk k="[  /  ]" t="上 / 下個主檔" />
+                    <Hk k="Q / E / PgUp / PgDn" t="翻頁" />
+                    <Hk k="Home / End" t="第一張 / 最後一張" />
+                    <Hk k="?" t="本說明" />
+                  </div>
+                </div>
+                {/* 詳細 + 編輯 */}
+                <div>
+                  <div className="mb-1.5 text-[10px] font-semibold tracking-[0.18em] text-[#E8A020]/80">
+                    詳細
+                  </div>
+                  <div className="mb-3 flex flex-col gap-1 text-xs">
+                    <Hk k="↑ ↓" t="上一筆 / 下一筆" />
+                    <Hk k="Alt+E" t="編輯此筆" />
+                    <Hk k="Alt+D" t="停用 / 啟用" />
+                    <Hk k="Esc" t="退回瀏覽" />
+                  </div>
+                  <div className="mb-1.5 text-[10px] font-semibold tracking-[0.18em] text-[#E8A020]/80">
+                    編輯 / 新增
+                  </div>
+                  <div className="flex flex-col gap-1 text-xs">
+                    <Hk k="Tab / Shift+Tab" t="跳欄" />
+                    <Hk k="Enter  /  Alt+S" t="儲存" />
+                    <Hk k="Esc  /  Alt+C" t="取消" />
+                  </div>
+                </div>
               </div>
               <div className="mt-3 border-t border-border/40 pt-2 text-[10px] text-muted-foreground">
                 按 <kbd className="kb">Esc</kbd> 或點擊背景關閉
@@ -842,9 +1086,17 @@ function StatusBar({
       ? '新增'
       : mode === 'edit'
         ? '編輯'
-        : '瀏覽';
+        : mode === 'detail'
+          ? '詳細'
+          : '瀏覽';
   const modeColor =
-    mode === 'edit' || mode === 'create' ? '#E8A020' : searchOpen ? '#7AC4FF' : '#22D88F';
+    mode === 'edit' || mode === 'create'
+      ? '#E8A020'
+      : mode === 'detail'
+        ? '#B4B8C0'
+        : searchOpen
+          ? '#7AC4FF'
+          : '#22D88F';
 
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-border/30 bg-card/60 px-3 py-1.5 text-[11px] text-muted-foreground">
@@ -856,6 +1108,8 @@ function StatusBar({
       </span>
       <span className="text-foreground/80">
         {mode === 'browse' && !searchOpen ? `焦點：${focusedLabel}` : null}
+        {mode === 'detail' ? `目前：${focusedLabel}` : null}
+        {mode === 'edit' ? `編輯：${focusedLabel}` : null}
         {searchOpen ? <>關鍵字：「{keyword || '—'}」</> : null}
       </span>
       <span className="flex-1" />
@@ -872,14 +1126,21 @@ function StatusBar({
       <span className="hidden sm:inline">
         {mode === 'browse' && !searchOpen ? (
           <>
-            <kbd className="kb">↑↓←→</kbd> 移動 · <kbd className="kb">Enter</kbd> 編輯 ·{' '}
+            <kbd className="kb">↑↓←→</kbd> 移動 · <kbd className="kb">Enter</kbd> 詳細 ·{' '}
+            <kbd className="kb">Alt+E</kbd> 編輯
             {canCreate ? (
               <>
-                <kbd className="kb">N</kbd> 新增 ·{' '}
+                {' '}· <kbd className="kb">Alt+A</kbd> 新增
               </>
-            ) : null}
-            <kbd className="kb">[ ]</kbd> 切主檔 · <kbd className="kb">M</kbd> 切換 ·{' '}
-            <kbd className="kb">/</kbd> 搜尋 · <kbd className="kb">?</kbd> 熱鍵
+            ) : null}{' '}
+            · <kbd className="kb">[ ]</kbd> 切主檔 · <kbd className="kb">M</kbd> 切換 ·{' '}
+            <kbd className="kb">?</kbd> 熱鍵
+          </>
+        ) : null}
+        {mode === 'detail' ? (
+          <>
+            <kbd className="kb">↑↓</kbd> 切筆 · <kbd className="kb">Alt+E</kbd> 編輯 ·{' '}
+            <kbd className="kb">Alt+D</kbd> 切停用 · <kbd className="kb">Esc</kbd> 退
           </>
         ) : null}
         {searchOpen ? (
@@ -993,6 +1254,50 @@ const KbCard = forwardRef(function KbCard(
     </div>
   );
 });
+
+// ──────────────────────────────────────────────────────────────
+// DetailFields — 詳細浮層內 read-only 欄位顯示
+// ──────────────────────────────────────────────────────────────
+
+function DetailFields({ editFs, row }: { editFs: EntityFieldDef[]; row: EntityRow }) {
+  return (
+    <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+      {editFs.map((f) => (
+        <ReadOnlyRow
+          key={f.key}
+          label={f.label}
+          value={displayCell(f, row[f.key])}
+          mono={f.mono}
+        />
+      ))}
+    </div>
+  );
+}
+
+function ReadOnlyRow({
+  label,
+  value,
+  mono,
+}: {
+  label: string;
+  value: string;
+  mono?: boolean;
+}) {
+  return (
+    <div className="flex items-baseline gap-2 border-b border-border/20 pb-1.5">
+      <span className="shrink-0 text-[11px] font-medium text-muted-foreground/80">{label}</span>
+      <span
+        className={cn(
+          'flex-1 truncate text-right text-[13px] text-foreground',
+          mono && 'font-mono text-[12px]',
+        )}
+        title={value}
+      >
+        {value}
+      </span>
+    </div>
+  );
+}
 
 // ──────────────────────────────────────────────────────────────
 // EditForm — 編輯浮層內表單（純鍵盤、Tab 跳欄）
