@@ -46,6 +46,7 @@ export function MasterSwitcher({ open, currentPageId, onClose }: Props) {
   const [focusIdx, setFocusIdx] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // 過濾 + 排序：可用主檔（非 disabled）打分
   const filtered = useMemo<MasterPageMeta[]>(() => {
@@ -131,7 +132,20 @@ export function MasterSwitcher({ open, currentPageId, onClose }: Props) {
       }
       if (best !== focusIdx) {
         setFocusIdx(best);
-        cards[best]?.scrollIntoView({ block: 'nearest', behavior: reduced ? 'auto' : 'smooth' });
+        // 手動 scrollBy（不用 element.scrollIntoView）避免冒泡到 document 觸發
+        // modal 外側 scrollbar 閃現（Chrome 在 fixed modal 內 scrollIntoView 已知毛病）
+        const target = cards[best];
+        const container = scrollContainerRef.current;
+        if (target && container) {
+          const er = target.getBoundingClientRect();
+          const cr = container.getBoundingClientRect();
+          const behavior: ScrollBehavior = reduced ? 'auto' : 'smooth';
+          if (er.top < cr.top) {
+            container.scrollBy({ top: er.top - cr.top - 8, behavior });
+          } else if (er.bottom > cr.bottom) {
+            container.scrollBy({ top: er.bottom - cr.bottom + 8, behavior });
+          }
+        }
       }
     },
     [focusIdx, reduced],
@@ -252,7 +266,11 @@ export function MasterSwitcher({ open, currentPageId, onClose }: Props) {
           </div>
 
           {/* 分區 + 卡片 grid */}
-          <div className="max-h-[60vh] overflow-y-auto pr-1">
+          <div
+            ref={scrollContainerRef}
+            className="max-h-[60vh] overflow-y-auto pr-1"
+            style={{ scrollbarGutter: 'stable' }}
+          >
             {grouped.length === 0 ? (
               <div className="py-12 text-center text-xs text-muted-foreground">
                 找不到符合「{keyword}」的主檔
