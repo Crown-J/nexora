@@ -47,7 +47,6 @@ import { exportTable } from '@/features/nx01/shell/hooks/useExportTable';
 import { SearchPanel } from '@/features/nx01/shell/ui/SearchPanel';
 import {
   MasterTable,
-  MASTER_TABLE_PAGE_SIZES,
   type MasterTableColumn,
 } from '@/features/nx01/shell/ui/MasterTable';
 import { MasterDetailScroll, EmptyDetail } from '@/features/nx01/shell/ui/MasterDetail';
@@ -124,10 +123,10 @@ export function UserZonedPage({
 }: UserZonedPageProps) {
   const { toasts, showToast } = useToast();
 
+  // 2026-06-24 執行長拍板：取消分頁、固定撈前 100 筆
   const [rows, setRows] = useState<UserDto[]>([]);
   const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState<number>(MASTER_TABLE_PAGE_SIZES[1]);
+  const pageSize = 100;
   const [showInactive, setShowInactive] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [keyword, setKeyword] = useState('');
@@ -206,7 +205,7 @@ export function UserZonedPage({
     setLoading(true);
     try {
       const res = await listUsers({
-        page,
+        page: 1,
         pageSize,
         q: debouncedKw,
         isActive: showInactive ? undefined : true,
@@ -221,7 +220,7 @@ export function UserZonedPage({
       setLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedKw, page, pageSize, showInactive, reloadTick, sortKey, sortOrder]);
+  }, [debouncedKw, pageSize, showInactive, reloadTick, sortKey, sortOrder]);
 
   useEffect(() => {
     void load();
@@ -241,35 +240,14 @@ export function UserZonedPage({
     [rows, selectedId],
   );
 
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
-
-  // 2026-06-18 執行長範式：項目級導航（itemIndex / itemTotal）
+  // 2026-06-24 取消分頁後：itemIndex / 項目級導航不再跨頁、純 rows 內 ±1
   const localIdx = rows.findIndex((r) => r.id === selectedId);
-  const itemIndex = localIdx >= 0 ? (page - 1) * pageSize + localIdx + 1 : 0;
-  const itemTotal = total;
-  // 跨頁切換時、reload 後選首/末筆的 pending 標記
-  const pendingSelectRef = useRef<'first' | 'last' | null>(null);
+  const itemIndex = localIdx >= 0 ? localIdx + 1 : 0;
+  const itemTotal = rows.length;
   // 2026-06-18 全鍵盤範式:進主檔 / 存檔 / 取消後自動 focus 第一 row（user 可直接用 ↑↓ 切換）
   const focusFirstRowRef = useRef<boolean>(true); // mount 時預設 true
   useEffect(() => {
     if (rows.length === 0) return;
-    // 1. 跨頁邊界 pending（onPrev/Next/Jump*Item 觸發）
-    if (pendingSelectRef.current) {
-      const targetId =
-        pendingSelectRef.current === 'first'
-          ? rows[0].id
-          : rows[rows.length - 1].id;
-      setSelectedId(targetId);
-      pendingSelectRef.current = null;
-      // 同步 focus DOM
-      requestAnimationFrame(() => {
-        document
-          .querySelector<HTMLElement>(`[data-row-id="${targetId}"]`)
-          ?.focus();
-      });
-      return;
-    }
-    // 2. 全鍵盤 focus 第一筆（mount / cancel / save 後）
     if (focusFirstRowRef.current) {
       const firstId = rows[0].id;
       setSelectedId(firstId);
@@ -282,35 +260,23 @@ export function UserZonedPage({
     }
   }, [rows]);
   const handleJumpFirstItem = useCallback(() => {
-    if (total === 0) return;
-    pendingSelectRef.current = 'first';
-    setPage(1);
-    if (page === 1 && rows.length > 0) setSelectedId(rows[0].id);
-  }, [total, page, rows]);
+    if (rows.length === 0) return;
+    setSelectedId(rows[0].id);
+  }, [rows]);
   const handleJumpLastItem = useCallback(() => {
-    if (total === 0) return;
-    pendingSelectRef.current = 'last';
-    setPage(totalPages);
-    if (page === totalPages && rows.length > 0) setSelectedId(rows[rows.length - 1].id);
-  }, [total, totalPages, page, rows]);
+    if (rows.length === 0) return;
+    setSelectedId(rows[rows.length - 1].id);
+  }, [rows]);
   const handlePrevItem = useCallback(() => {
-    if (localIdx > 0) {
-      setSelectedId(rows[localIdx - 1].id);
-    } else if (page > 1) {
-      pendingSelectRef.current = 'last';
-      setPage(page - 1);
-    }
-  }, [localIdx, rows, page]);
+    if (localIdx > 0) setSelectedId(rows[localIdx - 1].id);
+  }, [localIdx, rows]);
   const handleNextItem = useCallback(() => {
     if (localIdx >= 0 && localIdx < rows.length - 1) {
       setSelectedId(rows[localIdx + 1].id);
-    } else if (page < totalPages) {
-      pendingSelectRef.current = 'first';
-      setPage(page + 1);
     } else if (localIdx < 0 && rows.length > 0) {
       setSelectedId(rows[0].id);
     }
-  }, [localIdx, rows, page, totalPages]);
+  }, [localIdx, rows]);
 
   // B2~B5：load roles + warehouses when entering detail
   useEffect(() => {
@@ -1198,12 +1164,15 @@ export function UserZonedPage({
             checked={new Set()}
             setChecked={() => {}}
             pageSize={pageSize}
-            onPageSizeChange={(n) => {
-              setPageSize(n);
-              setPage(1);
-            }}
+            hidePageSizeArea
             onColumnOrderChange={setColumnsOrder}
-            footerHint={loading ? '載入中...' : undefined}
+            footerHint={
+              loading
+                ? '載入中...'
+                : total > pageSize
+                  ? `資料較多、僅顯前 ${pageSize} 筆、請用搜尋過濾`
+                  : undefined
+            }
             totalCount={total}
           />
         ) : (
