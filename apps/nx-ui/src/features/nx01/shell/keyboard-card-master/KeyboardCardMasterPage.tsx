@@ -29,7 +29,22 @@ import {
   type Ref,
 } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Search, X as XIcon, Keyboard } from 'lucide-react';
+import {
+  ArrowRightLeft,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  Eye,
+  EyeOff,
+  Keyboard,
+  Pencil,
+  Plus,
+  Power,
+  RefreshCcw,
+  Save,
+  Search,
+  X as XIcon,
+} from 'lucide-react';
 
 import { cn } from '@design/utils/cn';
 import { PageHeader } from '@design/components/page-header/PageHeader';
@@ -54,6 +69,7 @@ import {
   type ConfirmState,
 } from '@/features/nx01/shell/ui/ConfirmDialog';
 import { exportTable } from '@/features/nx01/shell/hooks/useExportTable';
+import { ToolbarButton } from '@/features/nx01/shell/ui/ErpToolbar';
 
 import { MasterSwitcher } from './MasterSwitcher';
 
@@ -469,18 +485,23 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
           moveDetailRow('next');
           return;
         }
-        if (isAlt && (k === 'e' || k === 'E')) {
+        if (k === 'e' || k === 'E' || (isAlt && (k === 'e' || k === 'E'))) {
           e.preventDefault();
           startEdit();
           return;
         }
-        if (isAlt && (k === 'd' || k === 'D')) {
+        if (k === 'd' || k === 'D' || (isAlt && (k === 'd' || k === 'D'))) {
           e.preventDefault();
           const row = rows[focusIdx];
           if (row) handleToggleActive(row);
           return;
         }
-        // 詳細模式不接受其他熱鍵（避免誤觸）
+        // F3 在詳細中也可開 switcher
+        if (k === 'F3') {
+          e.preventDefault();
+          setSwitcherOpen(true);
+          return;
+        }
         return;
       }
 
@@ -545,12 +566,14 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
           handleExport('csv');
           return;
         }
-        if (k === 'm' || k === 'M') {
-          e.preventDefault();
-          setSwitcherOpen(true);
-          return;
-        }
         return; // Alt 系沒命中 → 不擋其它瀏覽器快捷
+      }
+
+      // F3：切換主檔 switcher（取代舊 M / Alt+M）
+      if (k === 'F3') {
+        e.preventDefault();
+        setSwitcherOpen(true);
+        return;
       }
 
       // 非 Alt：方向 / 單鍵
@@ -566,13 +589,13 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
         setFocusIdx(Math.max(0, rows.length - 1));
         return;
       }
-      // Q / PageUp → 上一頁；E / PageDown → 下一頁（左右手分流）
-      if (k === 'q' || k === 'Q' || k === 'PageUp') {
+      // 翻頁：PageUp / PageDown
+      if (k === 'PageUp') {
         e.preventDefault();
         if (page > 1) setPage(page - 1);
         return;
       }
-      if (k === 'e' || k === 'E' || k === 'PageDown') {
+      if (k === 'PageDown') {
         e.preventDefault();
         const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
         if (page < totalPages) setPage(page + 1);
@@ -583,18 +606,24 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
         startDetail();
         return;
       }
-      if (k === 'n' || k === 'N') {
+      // 單鍵：工作列字母（A E F R T D O）— 對應 Alt+ 系
+      if (k === 'a' || k === 'A') {
         e.preventDefault();
         startCreate();
         return;
       }
-      if (k === '/') {
+      if (k === 'e' || k === 'E') {
+        e.preventDefault();
+        startEdit();
+        return;
+      }
+      if (k === 'f' || k === 'F' || k === '/') {
         e.preventDefault();
         setSearchOpen(true);
         setTimeout(() => searchInputRef.current?.focus(), 50);
         return;
       }
-      if (k === 'x' || k === 'X') {
+      if (k === 'd' || k === 'D') {
         e.preventDefault();
         const row = rows[focusIdx];
         if (row) handleToggleActive(row);
@@ -611,14 +640,14 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
         showToast('已重新整理', 'info');
         return;
       }
+      if (k === 'o' || k === 'O') {
+        e.preventDefault();
+        handleExport('csv');
+        return;
+      }
       if (k === '?') {
         e.preventDefault();
         setCheatOpen((v) => !v);
-        return;
-      }
-      if (k === 'm' || k === 'M') {
-        e.preventDefault();
-        setSwitcherOpen(true);
         return;
       }
       if (k === '[') {
@@ -747,6 +776,33 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
         <MasterQuickNav currentPageId={config.pageId} />
       </div>
 
+      <KbToolbar
+        mode={mode}
+        canCreate={!config.readOnly && config.canCreate !== false}
+        canEdit={!config.readOnly}
+        focused={focused}
+        showInactive={showInactive}
+        onCreate={startCreate}
+        onEdit={startEdit}
+        onToggleActive={() => focused && handleToggleActive(focused)}
+        onSearch={() => {
+          setSearchOpen(true);
+          setTimeout(() => searchInputRef.current?.focus(), 50);
+        }}
+        onRefresh={() => {
+          setReloadTick((n) => n + 1);
+          showToast('已重新整理', 'info');
+        }}
+        onToggleInactive={() => setShowInactive((v) => !v)}
+        onExport={() => handleExport('csv')}
+        onPrevMaster={() => navigateAdjacent('prev')}
+        onNextMaster={() => navigateAdjacent('next')}
+        onSwitch={() => setSwitcherOpen(true)}
+        onCheatSheet={() => setCheatOpen(true)}
+        onSave={() => void handleSave()}
+        onCancel={handleCancel}
+      />
+
       <StatusBar
         mode={mode}
         focusedLabel={focusedLabel}
@@ -755,7 +811,6 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
         showInactive={showInactive}
         page={page}
         totalPages={totalPages}
-        canCreate={!config.readOnly && config.canCreate !== false}
       />
 
       <AnimatePresence initial={false}>
@@ -986,16 +1041,16 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
                   <div className="flex flex-col gap-1 text-xs">
                     <Hk k="↑ ↓ ← →" t="卡片移動" />
                     <Hk k="Enter / Space" t="看詳細" />
-                    <Hk k="Alt+A" t="新增" />
-                    <Hk k="Alt+E" t="編輯" />
-                    <Hk k="Alt+F  /  /" t="搜尋" />
-                    <Hk k="Alt+R" t="重新整理" />
-                    <Hk k="Alt+T" t="切換顯示停用" />
-                    <Hk k="Alt+D  /  X" t="停用 / 啟用" />
-                    <Hk k="Alt+O" t="匯出 CSV" />
-                    <Hk k="Alt+M  /  M" t="切換主檔" />
+                    <Hk k="A" t="新增" />
+                    <Hk k="E" t="編輯" />
+                    <Hk k="F  /  /" t="搜尋" />
+                    <Hk k="R" t="重新整理" />
+                    <Hk k="T" t="切換顯示停用" />
+                    <Hk k="D" t="停用 / 啟用" />
+                    <Hk k="O" t="匯出 CSV" />
+                    <Hk k="F3" t="切換主檔" />
                     <Hk k="[  /  ]" t="上 / 下個主檔" />
-                    <Hk k="Q / E / PgUp / PgDn" t="翻頁" />
+                    <Hk k="PgUp / PgDn" t="翻頁" />
                     <Hk k="Home / End" t="第一張 / 最後一張" />
                     <Hk k="?" t="本說明" />
                   </div>
@@ -1007,8 +1062,9 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
                   </div>
                   <div className="mb-3 flex flex-col gap-1 text-xs">
                     <Hk k="↑ ↓" t="上一筆 / 下一筆" />
-                    <Hk k="Alt+E" t="編輯此筆" />
-                    <Hk k="Alt+D" t="停用 / 啟用" />
+                    <Hk k="E" t="編輯此筆" />
+                    <Hk k="D" t="停用 / 啟用" />
+                    <Hk k="F3" t="切換主檔" />
                     <Hk k="Esc" t="退回瀏覽" />
                   </div>
                   <div className="mb-1.5 text-[10px] font-semibold tracking-[0.18em] text-[#E8A020]/80">
@@ -1069,7 +1125,6 @@ function StatusBar({
   showInactive,
   page,
   totalPages,
-  canCreate,
 }: {
   mode: Mode;
   focusedLabel: string;
@@ -1078,7 +1133,6 @@ function StatusBar({
   showInactive: boolean;
   page: number;
   totalPages: number;
-  canCreate: boolean;
 }) {
   const modeLabel = searchOpen
     ? '搜尋'
@@ -1123,38 +1177,11 @@ function StatusBar({
           {page} / {totalPages}
         </span>
       ) : null}
-      <span className="hidden sm:inline">
-        {mode === 'browse' && !searchOpen ? (
-          <>
-            <kbd className="kb">↑↓←→</kbd> 移動 · <kbd className="kb">Enter</kbd> 詳細 ·{' '}
-            <kbd className="kb">Alt+E</kbd> 編輯
-            {canCreate ? (
-              <>
-                {' '}· <kbd className="kb">Alt+A</kbd> 新增
-              </>
-            ) : null}{' '}
-            · <kbd className="kb">[ ]</kbd> 切主檔 · <kbd className="kb">M</kbd> 切換 ·{' '}
-            <kbd className="kb">?</kbd> 熱鍵
-          </>
-        ) : null}
-        {mode === 'detail' ? (
-          <>
-            <kbd className="kb">↑↓</kbd> 切筆 · <kbd className="kb">Alt+E</kbd> 編輯 ·{' '}
-            <kbd className="kb">Alt+D</kbd> 切停用 · <kbd className="kb">Esc</kbd> 退
-          </>
-        ) : null}
-        {searchOpen ? (
-          <>
-            <kbd className="kb">↓</kbd> 移到卡片 · <kbd className="kb">Esc</kbd> 退出
-          </>
-        ) : null}
-        {mode === 'edit' || mode === 'create' ? (
-          <>
-            <kbd className="kb">Tab</kbd> 跳欄 · <kbd className="kb">Enter</kbd> 儲存 ·{' '}
-            <kbd className="kb">Esc</kbd> 取消
-          </>
-        ) : null}
-      </span>
+      {searchOpen ? (
+        <span className="hidden text-[10px] opacity-70 sm:inline">
+          <kbd className="kb">↓</kbd> 移到卡片 · <kbd className="kb">Esc</kbd> 退出
+        </span>
+      ) : null}
     </div>
   );
 }
@@ -1254,6 +1281,181 @@ const KbCard = forwardRef(function KbCard(
     </div>
   );
 });
+
+// ──────────────────────────────────────────────────────────────
+// KbToolbar — 工作列（letter chip + icon + label、依 mode 切按鈕集）
+// ──────────────────────────────────────────────────────────────
+
+function ToolbarSep() {
+  return <span className="mx-1 h-5 w-px bg-border/40" aria-hidden />;
+}
+
+function KbToolbar({
+  mode,
+  canCreate,
+  canEdit,
+  focused,
+  showInactive,
+  onCreate,
+  onEdit,
+  onToggleActive,
+  onSearch,
+  onRefresh,
+  onToggleInactive,
+  onExport,
+  onPrevMaster,
+  onNextMaster,
+  onSwitch,
+  onCheatSheet,
+  onSave,
+  onCancel,
+}: {
+  mode: Mode;
+  canCreate: boolean;
+  canEdit: boolean;
+  focused: EntityRow | undefined;
+  showInactive: boolean;
+  onCreate: () => void;
+  onEdit: () => void;
+  onToggleActive: () => void;
+  onSearch: () => void;
+  onRefresh: () => void;
+  onToggleInactive: () => void;
+  onExport: () => void;
+  onPrevMaster: () => void;
+  onNextMaster: () => void;
+  onSwitch: () => void;
+  onCheatSheet: () => void;
+  onSave: () => void;
+  onCancel: () => void;
+}) {
+  const editing = mode === 'edit' || mode === 'create';
+  const viewing = mode === 'detail';
+
+  return (
+    <div
+      data-nx-frame
+      className="flex flex-wrap items-center gap-1 rounded-lg border border-border/40 bg-card/60 px-2 py-1.5"
+    >
+      {editing ? (
+        <>
+          <ToolbarButton icon={Save} letter="S" label="儲存" enabled accent onClick={onSave} />
+          <ToolbarSep />
+          <ToolbarButton
+            icon={XIcon}
+            letter="C"
+            label="取消"
+            enabled
+            variant="danger"
+            onClick={onCancel}
+          />
+        </>
+      ) : viewing ? (
+        <>
+          <ToolbarButton
+            icon={Pencil}
+            letter="E"
+            label="編輯"
+            enabled={canEdit && !!focused}
+            accent
+            onClick={onEdit}
+          />
+          <ToolbarSep />
+          <ToolbarButton
+            icon={Power}
+            letter="D"
+            label={focused?.isActive ? '停用' : '啟用'}
+            enabled={canEdit && !!focused}
+            variant={focused?.isActive ? 'danger' : 'default'}
+            onClick={onToggleActive}
+          />
+          <ToolbarSep />
+          <ToolbarButton
+            icon={XIcon}
+            letter="Esc"
+            label="退出"
+            enabled
+            onClick={onCancel}
+          />
+        </>
+      ) : (
+        <>
+          <ToolbarButton
+            icon={Plus}
+            letter="A"
+            label="新增"
+            enabled={canCreate}
+            onClick={onCreate}
+          />
+          <ToolbarButton
+            icon={Pencil}
+            letter="E"
+            label="編輯"
+            enabled={canEdit && !!focused}
+            onClick={onEdit}
+          />
+          <ToolbarButton
+            icon={Power}
+            letter="D"
+            label={focused?.isActive ? '停用' : '啟用'}
+            enabled={canEdit && !!focused}
+            variant={focused?.isActive ? 'danger' : 'default'}
+            onClick={onToggleActive}
+          />
+          <ToolbarSep />
+          <ToolbarButton icon={Search} letter="F" label="搜尋" enabled onClick={onSearch} />
+          <ToolbarButton
+            icon={RefreshCcw}
+            letter="R"
+            label="重整"
+            enabled
+            onClick={onRefresh}
+          />
+          <ToolbarButton
+            icon={showInactive ? EyeOff : Eye}
+            letter="T"
+            label="切顯停用"
+            enabled
+            pressed={showInactive}
+            onClick={onToggleInactive}
+          />
+          <ToolbarSep />
+          <ToolbarButton icon={Download} letter="O" label="匯出" enabled onClick={onExport} />
+          <ToolbarSep />
+          <ToolbarButton
+            icon={ChevronLeft}
+            letter="["
+            label="上主檔"
+            enabled
+            onClick={onPrevMaster}
+          />
+          <ToolbarButton
+            icon={ChevronRight}
+            letter="]"
+            label="下主檔"
+            enabled
+            onClick={onNextMaster}
+          />
+          <ToolbarButton
+            icon={ArrowRightLeft}
+            letter="F3"
+            label="切換"
+            enabled
+            onClick={onSwitch}
+          />
+          <ToolbarSep />
+          <ToolbarButton
+            icon={Keyboard}
+            letter="?"
+            label="熱鍵"
+            enabled
+            onClick={onCheatSheet}
+          />
+        </>
+      )}
+    </div>
+  );
+}
 
 // ──────────────────────────────────────────────────────────────
 // DetailFields — 詳細浮層內 read-only 欄位顯示
