@@ -125,11 +125,11 @@ export function ExportMenu({
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.97, opacity: 0, y: 6 }}
             transition={{ duration: reduced ? 0 : 0.2, ease: [0.2, 0.7, 0.2, 1] }}
-            className="w-full max-w-sm rounded-2xl border border-[#E8A020]/40 bg-card shadow-2xl shadow-[#E8A020]/15 outline-none"
+            className="w-full max-w-sm rounded-2xl border border-primary/40 bg-card shadow-2xl shadow-primary/15 outline-none"
           >
             <div className="flex items-center justify-between border-b border-border/40 px-5 py-3">
               <div className="flex items-center gap-2">
-                <span className="rounded-md bg-[#E8A020]/15 px-2 py-0.5 text-[10px] font-bold tracking-wider text-[#E8A020]">
+                <span className="rounded-md bg-primary/15 px-2 py-0.5 text-[10px] font-bold tracking-wider text-primary">
                   O
                 </span>
                 <h2 className="text-sm font-semibold tracking-wider text-foreground">
@@ -149,13 +149,13 @@ export function ExportMenu({
                     onMouseEnter={() => setFocusIdx(idx)}
                     className={cn(
                       'relative cursor-pointer rounded-lg border bg-background/40 p-3 transition-colors',
-                      'border-border/40 hover:border-[#E8A020]/60 hover:bg-background/60',
+                      'border-border/40 hover:border-primary/60 hover:bg-background/60',
                     )}
                   >
                     {focused ? (
                       <motion.span
                         layoutId="export-menu-ring"
-                        className="pointer-events-none absolute inset-0 rounded-lg ring-2 ring-[#E8A020] [box-shadow:0_0_0_3px_rgba(232,160,32,0.16)]"
+                        className="pointer-events-none absolute inset-0 rounded-lg ring-2 ring-primary [box-shadow:0_0_0_3px_var(--kb-accent-16)]"
                         transition={
                           reduced
                             ? { duration: 0 }
@@ -164,7 +164,7 @@ export function ExportMenu({
                       />
                     ) : null}
                     <div className="relative flex items-center gap-3">
-                      <Icon className="size-5 shrink-0 text-[#E8A020]" />
+                      <Icon className="size-5 shrink-0 text-primary" />
                       <div className="min-w-0 flex-1">
                         <div className="text-sm font-semibold text-foreground">{opt.label}</div>
                         <div className="truncate text-[11px] text-muted-foreground">

@@ -221,13 +221,13 @@ export function MasterSwitcher({ open, currentPageId, onClose }: Props) {
             transition={{ duration: reduced ? 0 : 0.2, ease: [0.2, 0.7, 0.2, 1] }}
             className={cn(
               'w-full max-w-2xl rounded-2xl border bg-card shadow-2xl outline-none',
-              'border-[#E8A020]/40 shadow-[#E8A020]/15',
+              'border-primary/40 shadow-primary/15',
             )}
           >
             {/* Header */}
             <div className="flex items-center justify-between border-b border-border/40 px-5 py-3">
               <div className="flex items-center gap-2">
-                <span className="rounded-md bg-[#E8A020]/15 px-2 py-0.5 text-[10px] font-bold tracking-wider text-[#E8A020]">
+                <span className="rounded-md bg-primary/15 px-2 py-0.5 text-[10px] font-bold tracking-wider text-primary">
                   M
                 </span>
                 <h2 className="text-sm font-semibold tracking-wider text-foreground">
@@ -249,7 +249,7 @@ export function MasterSwitcher({ open, currentPageId, onClose }: Props) {
                 return grouped.map(({ cat, pages }) => (
                   <section key={cat.key} className="mb-5 last:mb-0">
                     <div className="mb-2.5 flex items-center gap-2">
-                      <span className="text-[11px] font-semibold tracking-[0.18em] text-[#E8A020]/80">
+                      <span className="text-[11px] font-semibold tracking-[0.18em] text-primary/80">
                         {cat.label.toUpperCase()}
                       </span>
                       <span className="rounded-full bg-foreground/8 px-1.5 py-0.5 text-[9px] font-semibold text-muted-foreground">
@@ -276,13 +276,13 @@ export function MasterSwitcher({ open, currentPageId, onClose }: Props) {
                             onDoubleClick={() => activate(p)}
                             className={cn(
                               'relative cursor-pointer rounded-lg border bg-background/40 px-2.5 py-2.5 transition-colors',
-                              'border-border/40 hover:border-[#E8A020]/50 hover:bg-background/60',
+                              'border-border/40 hover:border-primary/50 hover:bg-background/60',
                             )}
                           >
                             {focused ? (
                               <motion.span
                                 layoutId="master-switcher-ring"
-                                className="pointer-events-none absolute inset-0 rounded-lg ring-2 ring-[#E8A020] [box-shadow:0_0_0_3px_rgba(232,160,32,0.16)]"
+                                className="pointer-events-none absolute inset-0 rounded-lg ring-2 ring-primary [box-shadow:0_0_0_3px_var(--kb-accent-16)]"
                                 transition={
                                   reduced
                                     ? { duration: 0 }
@@ -294,19 +294,19 @@ export function MasterSwitcher({ open, currentPageId, onClose }: Props) {
                               <Icon
                                 className={cn(
                                   'size-[16px] shrink-0',
-                                  current ? 'text-[#E8A020]' : 'text-muted-foreground/80',
+                                  current ? 'text-primary' : 'text-muted-foreground/80',
                                 )}
                               />
                               <span
                                 className={cn(
                                   'min-w-0 flex-1 truncate text-[13px] font-medium',
-                                  current ? 'text-[#E8A020]' : 'text-foreground/90',
+                                  current ? 'text-primary' : 'text-foreground/90',
                                 )}
                               >
                                 {p.label}
                               </span>
                               {current ? (
-                                <span className="shrink-0 text-[9px] font-bold tracking-wider text-[#E8A020]">
+                                <span className="shrink-0 text-[9px] font-bold tracking-wider text-primary">
                                   ●
                                 </span>
                               ) : null}
@@ -343,18 +343,18 @@ export function MasterSwitcher({ open, currentPageId, onClose }: Props) {
               background: transparent;
             }
             .ms-scroll::-webkit-scrollbar-thumb {
-              background: rgba(232, 160, 32, 0.18);
+              background: var(--kb-accent-18);
               border-radius: 4px;
               border: 2px solid transparent;
               background-clip: padding-box;
             }
             .ms-scroll::-webkit-scrollbar-thumb:hover {
-              background: rgba(232, 160, 32, 0.32);
+              background: color-mix(in srgb, var(--primary) 32%, transparent);
               background-clip: padding-box;
             }
             .ms-scroll {
               scrollbar-width: thin;
-              scrollbar-color: rgba(232, 160, 32, 0.25) transparent;
+              scrollbar-color: var(--kb-accent-25) transparent;
             }
           `}</style>
         </motion.div>

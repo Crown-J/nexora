@@ -811,9 +811,9 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.18, ease: 'easeOut' }}
-            className="flex items-center gap-2 rounded-lg border border-[#E8A020]/40 bg-card/80 px-3 py-2"
+            className="flex items-center gap-2 rounded-lg border border-primary/40 bg-card/80 px-3 py-2"
           >
-            <Search className="h-4 w-4 text-[#E8A020]" />
+            <Search className="h-4 w-4 text-primary" />
             <input
               ref={searchInputRef}
               value={keyword}
@@ -969,13 +969,13 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.96, opacity: 0, y: 6 }}
               transition={{ duration: reduced ? 0 : 0.22, ease: [0.2, 0.7, 0.2, 1] }}
-              className="w-full max-w-md rounded-xl border-2 border-[#E8A020] bg-card p-5 shadow-2xl shadow-[#E8A020]/20"
+              className="w-full max-w-md rounded-xl border-2 border-primary bg-card p-5 shadow-2xl shadow-primary/20"
             >
               <div className="mb-3 flex items-center justify-between">
                 <h2 className="text-base font-semibold tracking-wide text-foreground">
                   {mode === 'create' ? `新增${config.entityNoun}` : `編輯：${focusedLabel}`}
                 </h2>
-                <span className="rounded-full bg-[#E8A020]/14 px-2 py-0.5 text-[10px] font-semibold text-[#E8A020]">
+                <span className="rounded-full bg-primary/14 px-2 py-0.5 text-[10px] font-semibold text-primary">
                   {mode === 'create' ? '新增中' : '編輯中'}
                 </span>
               </div>
@@ -1013,17 +1013,17 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.92, opacity: 0 }}
               transition={{ duration: reduced ? 0 : 0.2, ease: 'easeOut' }}
-              className="rounded-xl border border-[#E8A020]/40 bg-card p-5 shadow-2xl"
+              className="rounded-xl border border-primary/40 bg-card p-5 shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="mb-3 flex items-center gap-2 text-[#E8A020]">
+              <div className="mb-3 flex items-center gap-2 text-primary">
                 <Keyboard className="h-4 w-4" />
                 <h3 className="text-sm font-semibold tracking-wider">鍵盤快捷鍵</h3>
               </div>
               <div className="grid grid-cols-2 gap-x-8">
                 {/* 瀏覽 */}
                 <div>
-                  <div className="mb-1.5 text-[10px] font-semibold tracking-[0.18em] text-[#E8A020]/80">
+                  <div className="mb-1.5 text-[10px] font-semibold tracking-[0.18em] text-primary/80">
                     瀏覽
                   </div>
                   <div className="flex flex-col gap-1 text-xs">
@@ -1046,7 +1046,7 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
                 </div>
                 {/* 詳細 + 編輯 */}
                 <div>
-                  <div className="mb-1.5 text-[10px] font-semibold tracking-[0.18em] text-[#E8A020]/80">
+                  <div className="mb-1.5 text-[10px] font-semibold tracking-[0.18em] text-primary/80">
                     詳細
                   </div>
                   <div className="mb-3 flex flex-col gap-1 text-xs">
@@ -1056,7 +1056,7 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
                     <Hk k="F3" t="切換主檔" />
                     <Hk k="Esc" t="退回瀏覽" />
                   </div>
-                  <div className="mb-1.5 text-[10px] font-semibold tracking-[0.18em] text-[#E8A020]/80">
+                  <div className="mb-1.5 text-[10px] font-semibold tracking-[0.18em] text-primary/80">
                     編輯 / 新增
                   </div>
                   <div className="flex flex-col gap-1 text-xs">
@@ -1095,9 +1095,9 @@ export function KeyboardCardMasterPage({ config }: { config: EntityMasterConfig 
           display: inline-block;
           padding: 0 5px;
           border-radius: 4px;
-          border: 1px solid rgba(232, 160, 32, 0.45);
-          background: rgba(232, 160, 32, 0.1);
-          color: #e8a020;
+          border: 1px solid var(--kb-accent-45);
+          background: var(--kb-accent-10);
+          color: var(--kb-accent);
           font-size: 10px;
           font-weight: 600;
           font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -1140,18 +1140,26 @@ function StatusBar({
           : '瀏覽';
   const modeColor =
     mode === 'edit' || mode === 'create'
-      ? '#E8A020'
+      ? 'var(--kb-accent)'
       : mode === 'detail'
         ? '#B4B8C0'
         : searchOpen
           ? '#7AC4FF'
           : '#22D88F';
+  const modeBg =
+    mode === 'edit' || mode === 'create'
+      ? 'var(--kb-accent-14)'
+      : mode === 'detail'
+        ? '#B4B8C022'
+        : searchOpen
+          ? '#7AC4FF22'
+          : '#22D88F22';
 
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-border/30 bg-card/60 px-3 py-1.5 text-[11px] text-muted-foreground">
       <span
         className="rounded px-1.5 py-0.5 font-semibold tracking-wider"
-        style={{ background: `${modeColor}22`, color: modeColor }}
+        style={{ background: modeBg, color: modeColor }}
       >
         {modeLabel}
       </span>
@@ -1229,14 +1237,14 @@ const KbCard = forwardRef(function KbCard(
       }
       className={cn(
         'relative cursor-pointer overflow-hidden rounded-xl border bg-card/70 transition-colors',
-        focused ? 'z-10 border-[#E8A020] bg-card' : 'border-border/40 hover:border-[#E8A020]/40 hover:bg-card',
+        focused ? 'z-10 border-primary bg-card' : 'border-border/40 hover:border-primary/40 hover:bg-card',
         !row.isActive && 'opacity-55',
       )}
       style={
         focused
           ? {
               boxShadow:
-                '0 14px 32px -10px rgba(232,160,32,0.55), 0 0 0 1px rgba(232,160,32,0.5), inset 0 1px 0 rgba(255,210,140,0.18)',
+                '0 14px 32px -10px var(--kb-accent-55), 0 0 0 1px var(--kb-accent-50), inset 0 1px 0 var(--kb-accent-18)',
             }
           : undefined
       }
@@ -1245,7 +1253,7 @@ const KbCard = forwardRef(function KbCard(
       {focused ? (
         <motion.span
           layoutId="kb-row-accent"
-          className="absolute inset-y-0 left-0 w-1 bg-[#E8A020]"
+          className="absolute inset-y-0 left-0 w-1 bg-primary"
           transition={
             reduced ? { duration: 0 } : { type: 'spring', stiffness: 420, damping: 32 }
           }
@@ -1574,7 +1582,7 @@ function EditForm({
                 disabled={disabled}
                 onChange={(e) => onChange({ ...draft, [f.key]: e.target.value })}
                 className={cn(
-                  'rounded border border-[var(--nx-surface-input-border)] bg-[var(--nx-surface-input)] px-2 py-1.5 text-sm text-[var(--nx-surface-input-fg)] outline-none focus:border-[#E8A020]',
+                  'rounded border border-[var(--nx-surface-input-border)] bg-[var(--nx-surface-input)] px-2 py-1.5 text-sm text-[var(--nx-surface-input-fg)] outline-none focus:border-primary',
                   f.mono && 'font-mono',
                   disabled && 'cursor-not-allowed opacity-50',
                 )}
@@ -1593,7 +1601,7 @@ function EditForm({
                   checked={Boolean(v)}
                   disabled={disabled}
                   onChange={(e) => onChange({ ...draft, [f.key]: e.target.checked })}
-                  className="h-4 w-4 accent-[#E8A020]"
+                  className="h-4 w-4 accent-[var(--color-primary)]"
                 />
                 <span className="text-sm text-foreground">{v ? '是' : '否'}</span>
               </label>
@@ -1606,7 +1614,7 @@ function EditForm({
                 rows={3}
                 onChange={(e) => onChange({ ...draft, [f.key]: e.target.value })}
                 className={cn(
-                  'rounded border border-[var(--nx-surface-input-border)] bg-[var(--nx-surface-input)] px-2 py-1.5 text-sm text-[var(--nx-surface-input-fg)] outline-none focus:border-[#E8A020]',
+                  'rounded border border-[var(--nx-surface-input-border)] bg-[var(--nx-surface-input)] px-2 py-1.5 text-sm text-[var(--nx-surface-input-fg)] outline-none focus:border-primary',
                   f.mono && 'font-mono',
                   disabled && 'cursor-not-allowed opacity-50',
                 )}
@@ -1620,7 +1628,7 @@ function EditForm({
                 disabled={disabled}
                 onChange={(e) => onChange({ ...draft, [f.key]: e.target.value })}
                 className={cn(
-                  'rounded border border-[var(--nx-surface-input-border)] bg-[var(--nx-surface-input)] px-2 py-1.5 text-sm text-[var(--nx-surface-input-fg)] outline-none focus:border-[#E8A020]',
+                  'rounded border border-[var(--nx-surface-input-border)] bg-[var(--nx-surface-input)] px-2 py-1.5 text-sm text-[var(--nx-surface-input-fg)] outline-none focus:border-primary',
                   f.mono && 'font-mono',
                   disabled && 'cursor-not-allowed opacity-50',
                 )}

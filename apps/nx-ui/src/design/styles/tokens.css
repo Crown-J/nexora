@@ -353,6 +353,30 @@ html.light select {
 html.light { --nx-accent-strong: #c8550f; }
 
 /* ============================================================
+   keyboard-card-master 範本主色 token（執行長 2026-06-24）
+   - 跟著 --primary 切換、淺色 silver theme 自動變藍、深色仍琥珀
+   - 透明度 _NN 系：對應 rgba(c, NN/100) 等效
+============================================================ */
+:root {
+  --kb-accent: var(--primary);
+  --kb-accent-08: color-mix(in srgb, var(--primary) 8%, transparent);
+  --kb-accent-10: color-mix(in srgb, var(--primary) 10%, transparent);
+  --kb-accent-14: color-mix(in srgb, var(--primary) 14%, transparent);
+  --kb-accent-15: color-mix(in srgb, var(--primary) 15%, transparent);
+  --kb-accent-16: color-mix(in srgb, var(--primary) 16%, transparent);
+  --kb-accent-18: color-mix(in srgb, var(--primary) 18%, transparent);
+  --kb-accent-20: color-mix(in srgb, var(--primary) 20%, transparent);
+  --kb-accent-25: color-mix(in srgb, var(--primary) 25%, transparent);
+  --kb-accent-30: color-mix(in srgb, var(--primary) 30%, transparent);
+  --kb-accent-40: color-mix(in srgb, var(--primary) 40%, transparent);
+  --kb-accent-45: color-mix(in srgb, var(--primary) 45%, transparent);
+  --kb-accent-50: color-mix(in srgb, var(--primary) 50%, transparent);
+  --kb-accent-55: color-mix(in srgb, var(--primary) 55%, transparent);
+  --kb-accent-60: color-mix(in srgb, var(--primary) 60%, transparent);
+  --kb-accent-70: color-mix(in srgb, var(--primary) 70%, transparent);
+}
+
+/* ============================================================
    主檔表面色 token（執行長 2026-06-18 範式）
    - 深色:固定深黑 hex（不變、保留鋼鐵星球觀感）
    - 淺色:深橘色系（取代深黑、與 light theme 暖調統一）
