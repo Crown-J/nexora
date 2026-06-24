@@ -3,6 +3,7 @@
 # 主檔頁範式（MasterPageShell）
 
 **建立 2026-06-18**　**範本頁:`apps/nx-ui/src/features/nx01/org/user-zoned/UserZonedPage.tsx`**
+**2026-06-24 更新**：L0 範本從 `InlineEditMasterPage`（v1 inline row）升級為 `KeyboardCardMasterPage`（v2 卡片式 + 全鍵盤 + 主題化）；country / region / department / phonetic-dictionary 已全套
 
 執行長拍板的範式（員工頁完工後封存）。其他主檔頁採樣此範本、不要再各做各的。
 
@@ -14,20 +15,82 @@
 
 | 級別 | 形態 | 範本 | 主檔 |
 |---|---|---|---|
-| **L0 純查表** | 列表 inline edit row（無 detail tab） | `InlineEditMasterPage` (`features/nx01/shell/inline-master/`) | country / region / department / phonetic-dictionary（4 個已套、2026-06-23）+ 候選：model-type / drivetrain / part-relation / part-model |
+| **L0 純查表** | 卡片一筆一列 + 全鍵盤 + 浮層 detail/edit | `KeyboardCardMasterPage` (`features/nx01/shell/keyboard-card-master/`) | country / region / department / phonetic-dictionary（4 個已套、2026-06-24 v2 範式）+ 候選：model-type / drivetrain / part-relation / part-model |
 | **L1 名詞表** | 列表 + 右側抽屜 detail（drawer） | 未建（規劃中） | currency / team / role / customer-grade / supplier-grade / brand 候選 |
 | **L2 中型** | 單頁長表 + 1-2 衛星 inline | UserZonedPage 縮減版 | warehouse / site / brand / location |
 | **L3 重型** | UserZonedPage 完整 | UserZonedPage / PartnerMasterPage / PartZonedPage | user / partner / part |
 | **特殊** | 圖表 / matrix | 各自 page | org-structure / role-view / location-structure / supplier-supply / universal-group |
 
-### L0 InlineEditMasterPage 行為差異
+### L0 KeyboardCardMasterPage 行為差異（v2 範式、2026-06-24 拍板）
 
-- 取消 list/detail Tab、永遠 list 視圖
-- row 雙擊 / Enter / Alt+E → 該 row in-place 變 input cells
-- Tab/Shift+Tab 跳欄、Enter 存、Esc 取消（dirty 3-way confirm）
-- A 新增 = 列頂插空白 editing row（非切到 detail tab）
-- 工具列：A / F / D / R / O / T、無批次選取 / 排序 dropdown / 篩選面板
-- 共用 EntityMasterConfig 不擴展、共用 entity-master/config.ts helper
+**取代第一代 `InlineEditMasterPage`**（row inline edit 範式）。原 v1 已無 caller、暫保留作對比參考，未來確認不回頭再清。
+
+#### 視覺
+- 卡片**一筆一列**（橫排）：左 head field（code）│ 中 sub field（name）│ 右 tail fields + 狀態 dot
+- **focused 卡凸出**：framer-motion spring `translateY(-3px) + scale(1.006)` + 強陰影 + 左側主色 accent bar（layoutId 跨卡片平滑切換）
+- 無 list/detail tab、無表格列；不切「資料瀏覽 / 詳細資料」
+- reduce-motion 全路徑退化
+
+#### 三模式
+- **瀏覽 (browse)**：grid 滾動、`↑↓←→` 移焦點
+- **詳細 (detail)**：Enter 開浮層、read-only 顯示所有業務欄位 + audit（建立 / 修改 時間/人員）
+- **編輯 (edit) / 新增 (create)**：浮層卡 + form inputs、Tab 跳欄、dirty 3-way confirm
+
+#### 鍵盤
+| 模式 | 鍵 | 動作 |
+|---|---|---|
+| 瀏覽 | `↑↓←→` / `Home` `End` | 卡片移動 / 跳頭尾 |
+| 瀏覽 | `Enter` / `Space` | 進詳細浮層（**不是直接編輯**） |
+| 瀏覽 | `A` / `Alt+A` | 新增 |
+| 瀏覽 | `E` / `Alt+E` | 編輯（跳過詳細） |
+| 瀏覽 | `F` / `Alt+F` / `/` | 搜尋條 |
+| 瀏覽 | `R` / `Alt+R` | 重整 |
+| 瀏覽 | `T` / `Alt+T` | 切顯停用 |
+| 瀏覽 | `D` / `Alt+D` | 停用 / 啟用 |
+| 瀏覽 | `O` / `Alt+O` | **ExportMenu**（CSV / Excel / PDF 三選 1） |
+| 瀏覽 | `P` / `Alt+P` | 列印 |
+| 瀏覽 | `[` / `]` | 上 / 下個主檔 |
+| 瀏覽 | `F3` | 主檔切換 modal（22 主檔 grid） |
+| 瀏覽 | `PgUp` / `PgDn` | 翻頁 |
+| 瀏覽 | `?` | 熱鍵 cheat sheet 浮層 |
+| 詳細 | `↑↓` | 切上下筆（focused row 跟著更新） |
+| 詳細 | `E` / `Alt+E` | 進編輯 |
+| 詳細 | `D` / `Alt+D` | 停用 / 啟用 |
+| 詳細 | `F3` | 主檔切換 |
+| 詳細 | `Esc` | 退回瀏覽 |
+| 編輯 | `Tab` / `Shift+Tab` | 跳欄（瀏覽器原生） |
+| 編輯 | `Enter` / `Alt+S` | 儲存 |
+| 編輯 | `Esc` / `Alt+C` | 取消（dirty 3-way confirm） |
+
+`?` 用 `e.code === 'Slash' && e.shiftKey` 判定（避免 IME / layout 變異）；F3 在 handler 最頂 toggle、不受其他 modal 阻擋。
+
+#### 浮層元件
+- **MasterSwitcher**（F3）：22 主檔 × 6 分區 group、root tabIndex=-1 + onKeyDown 接管（不依賴 input focus）、自訂細 scrollbar 永遠在
+- **ExportMenu**（O）：3 卡片 CSV / Excel / PDF、`↑↓` + `Enter` + `1/2/3` 直選
+- **DetailPanel**：業務欄位 + 異動紀錄（formatDateTimeZh + auditPerson）
+- **EditForm**：依 `EntityMasterConfig.fields` 動態 render input / select / toggle / textarea / date
+- **CheatSheet**（`?`）：拆「瀏覽 / 詳細 / 編輯」三段、列全熱鍵
+
+#### 工作列（KbToolbar、letter chip + icon + label）
+- 序：`A 新增 / E 編輯 / D 停用` │ `F 搜尋 / R 重整 / T 切顯停用` │ `O 匯出 / P 列印` │ `[ 上主檔 / ] 下主檔 / F3 切換` │ `? 熱鍵`
+- 編輯模式：`S 儲存 / C 取消`
+- letter chip 顯示主字母（**不是 Alt+A**）、實際支援 Alt+ 與單鍵雙觸發
+
+#### Status bar（mode chip）
+- 各模式 chip 顏色用 `--kb-mode-{browse|search|detail}-{fg|bg}` token
+- 深色：淺綠 / 淺藍 / 淺灰（原 NEXORA 範式）
+- 淺色：深綠 / 深藍 / 深石板（saturated、白底對比夠）
+- 編輯模式 chip 吃 `var(--kb-accent)` 跟主色一致
+
+#### 共用設施
+- 吃既有 `EntityMasterConfig` + REST helper、不擴 schema / API / config 型別
+- 借 `entity-master/format.formatDateTimeZh` + `auditPerson` 顯示 audit
+- 借 `useExportTable.exportTable`（已擴 `'xlsx'` 加 dynamic import）
+
+#### 主題化
+- 元件內無硬編 hex；所有強調色吃 `--kb-accent` 系列（`--primary` 衍生）
+- `--kb-accent` / `-08` / `-10` / `-14` / `-15` / `-16` / `-18` / `-20` / `-25` / `-30` / `-40` / `-45` / `-50` / `-55` / `-60` / `-70` 一組透明階
+- 深色 / 鋼鐵星球：琥珀；淺色 steel：白底 + 金黃 / 橘 / 紅三色階（黃橘紅元素配色）
 
 ---
 
