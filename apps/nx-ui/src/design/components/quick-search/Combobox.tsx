@@ -35,6 +35,12 @@ export type ComboboxProps<T> = {
   /** Enter 在沒選聯想項時觸發（parent 通常會 focusNext or runSearch）*/
   onSubmit: () => void;
 
+  /** ↓ 鍵在下拉沒開（無 suggestions）時呼叫；給父層轉焦點進結果區用（執行長 2026-06-24 F2 第二輪）*/
+  onArrowDownEmpty?: () => void;
+
+  /** input focus 時呼叫；讓父層追蹤 lastInputRef、給結果區 ↑ 回 input 用 */
+  onFocusOutside?: () => void;
+
   /** debounce ms、預設 200 */
   debounceMs?: number;
 };
@@ -51,6 +57,8 @@ export function Combobox<T>({
   getDescription,
   onSelect,
   onSubmit,
+  onArrowDownEmpty,
+  onFocusOutside,
   debounceMs = 200,
 }: ComboboxProps<T>) {
   const [open, setOpen] = useState(false);
@@ -160,7 +168,14 @@ export function Combobox<T>({
       }
 
       if (e.key === 'ArrowDown') {
-        if (suggestions.length === 0) return;
+        if (suggestions.length === 0) {
+          // 下拉沒開時 → ↓ 把焦點轉進結果區（執行長 2026-06-24 F2 第二輪修正）
+          if (onArrowDownEmpty) {
+            e.preventDefault();
+            onArrowDownEmpty();
+          }
+          return;
+        }
         e.preventDefault();
         e.stopPropagation();
         setOpen(true);
@@ -201,7 +216,7 @@ export function Combobox<T>({
         return;
       }
     },
-    [open, suggestions, focusedIdx, handleSelect, onSubmit, handleSpace],
+    [open, suggestions, focusedIdx, handleSelect, onSubmit, handleSpace, onArrowDownEmpty],
   );
 
   // 點外面關下拉
@@ -234,6 +249,7 @@ export function Combobox<T>({
         onChange={(e) => handleChange(e.target.value)}
         onKeyDown={handleKeyDown}
         onFocus={(e) => {
+          onFocusOutside?.();
           // 執行長 2026-06-24 F2 視窗 1：焦點落入有字 → 自動全選反白（打字=覆蓋、→鍵取消反白）
           if (value) e.currentTarget.select();
           if (suggestions.length > 0) setOpen(true);

@@ -47,6 +47,10 @@ type Props = {
   onSelectName: (name: string) => void;
   /** Enter 沒選候選時：跳下一欄 / 觸發搜尋 */
   onSubmit: () => void;
+  /** ↓ 鍵在候選下拉沒開時呼叫；給父層轉焦點進結果區用（執行長 2026-06-24 F2 第二輪）*/
+  onArrowDownEmpty?: () => void;
+  /** input focus 時呼叫；讓父層追蹤 lastInputRef */
+  onFocusOutside?: () => void;
 };
 
 export function PhoneticPicker({
@@ -57,6 +61,8 @@ export function PhoneticPicker({
   inputRef,
   onSelectName,
   onSubmit,
+  onArrowDownEmpty,
+  onFocusOutside,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [candidates, setCandidates] = useState<string[]>([]);
@@ -131,7 +137,15 @@ export function PhoneticPicker({
         return;
       }
 
-      if (e.key === 'ArrowDown' && candidates.length > 0) {
+      if (e.key === 'ArrowDown') {
+        if (candidates.length === 0) {
+          // 候選沒開時 → ↓ 把焦點轉進結果區（執行長 2026-06-24 F2 第二輪修正）
+          if (onArrowDownEmpty) {
+            e.preventDefault();
+            onArrowDownEmpty();
+          }
+          return;
+        }
         e.preventDefault();
         e.stopPropagation();
         setOpen(true);
@@ -169,7 +183,7 @@ export function PhoneticPicker({
         setOpen(false);
       }
     },
-    [open, candidates, focusedIdx, triggerPhoneticLookup, onSubmit, handleSelect],
+    [open, candidates, focusedIdx, triggerPhoneticLookup, onSubmit, handleSelect, onArrowDownEmpty],
   );
 
   const handleChange = useCallback(
@@ -207,6 +221,7 @@ export function PhoneticPicker({
         onKeyDown={handleKeyDown}
         // 執行長 2026-06-24 F2 視窗 1：焦點落入有字 → 自動全選反白（純輸入欄、空白=空格、不影響）
         onFocus={(e) => {
+          onFocusOutside?.();
           if (value) e.currentTarget.select();
         }}
         placeholder={placeholder}
