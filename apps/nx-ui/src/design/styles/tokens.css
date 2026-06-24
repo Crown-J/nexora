@@ -228,56 +228,56 @@ html.light:not([data-nx-palette]) {
 
 html.light[data-nx-palette='steel'] {
   color-scheme: light;
-  /* 2026-06-24 執行長:白底 + 黃橘紅元素配色（暖色系夕陽風、ERP 暖調親和）*/
-  --background: #ffffff;                            /* 純白底 */
+  /* 2026-06-24 執行長:暖米白底 + 純白卡片浮起、強層次（黃橘紅元素不變）*/
+  --background: oklch(0.965 0.018 78);              /* 暖米白整頁底（微帶金、不是純白） */
   --foreground: #1f1d1a;                            /* 深炭微暖字 */
-  --card: #fdfdfb;                                  /* 近白卡（微暖偏 warm gray）*/
+  --card: #ffffff;                                  /* 純白卡片（浮在暖米底上、強對比） */
   --card-foreground: #1f1d1a;
-  --popover: #ffffff;
+  --popover: #ffffff;                               /* 浮層純白 */
   --popover-foreground: #1f1d1a;
-  --primary: #f59e0b;                               /* 金黃主色（amber-500）*/
+  --primary: #f59e0b;                               /* 金黃主色 */
   --primary-foreground: #ffffff;
-  --secondary: oklch(0.94 0.012 70);                /* 暖米白 */
-  --secondary-foreground: oklch(0.30 0.02 60);
-  --muted: oklch(0.93 0.012 70);
-  --muted-foreground: oklch(0.45 0.018 60);
-  --accent: #ea580c;                                /* 橘 accent（orange-600）*/
+  --secondary: oklch(0.93 0.020 75);                /* 暖米淺二階 */
+  --secondary-foreground: oklch(0.30 0.025 60);
+  --muted: oklch(0.91 0.022 75);                    /* 暖米中階（比 secondary 再深一點）*/
+  --muted-foreground: oklch(0.45 0.022 60);
+  --accent: #ea580c;                                /* 橘 */
   --accent-foreground: #ffffff;
-  --destructive: #dc2626;                           /* 紅（red-600、停用/警告）*/
+  --destructive: #dc2626;                           /* 紅 */
   --destructive-foreground: #ffffff;
-  --border: oklch(0.86 0.018 60);                   /* 暖淺灰邊 */
-  --input: oklch(0.96 0.01 70);                     /* 暖近白輸入框 */
-  --ring: #f59e0b;                                  /* 金黃環 */
-  --chart-1: #f59e0b;                               /* 主線金黃 */
-  --chart-2: #ea580c;                               /* 副線橘 */
-  --chart-3: #dc2626;                               /* 第三紅 */
-  --chart-4: oklch(0.62 0.06 60);                   /* 暖灰 */
-  --chart-5: oklch(0.45 0.04 60);                   /* 深暖灰 */
-  --sidebar: #fdfbf7;                               /* 暖近白側欄 */
+  --border: oklch(0.82 0.028 65);                   /* 暖灰邊加深、卡片邊看得到 */
+  --input: #ffffff;                                 /* 輸入框純白 */
+  --ring: #f59e0b;
+  --chart-1: #f59e0b;
+  --chart-2: #ea580c;
+  --chart-3: #dc2626;
+  --chart-4: oklch(0.62 0.06 60);
+  --chart-5: oklch(0.45 0.04 60);
+  --sidebar: oklch(0.945 0.022 78);                 /* 側欄比 background 再暖一階、立體感 */
   --sidebar-foreground: #1f1d1a;
   --sidebar-primary: #f59e0b;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: oklch(0.94 0.014 70);
-  --sidebar-accent-foreground: oklch(0.30 0.02 60);
-  --sidebar-border: oklch(0.88 0.014 60);
+  --sidebar-accent: oklch(0.92 0.024 75);
+  --sidebar-accent-foreground: oklch(0.30 0.025 60);
+  --sidebar-border: oklch(0.84 0.028 65);
   --sidebar-ring: #f59e0b;
-  --nx-scroll-track: oklch(0.94 0.012 70);
-  --nx-scroll-thumb: oklch(0.72 0.04 60);
+  --nx-scroll-track: oklch(0.93 0.020 75);
+  --nx-scroll-thumb: oklch(0.74 0.04 60);
   --nx-scroll-thumb-hover: #f59e0b;
   --nx-exp-gradient: linear-gradient(90deg, #f59e0b 0%, #ea580c 55%, #dc2626 100%);
   --nx-glow-primary: 0 0 10px rgba(245, 158, 11, 0.32), 0 0 20px rgba(234, 88, 12, 0.14);
   --color-primary-light: #fbbf24;
   --color-primary-bg: rgba(245, 158, 11, 0.12);
-  --warning: #ea580c;                               /* warning = 橘（語意對齊） */
-  --color-meeting: #78716c;                         /* 暖灰會議 */
-  /* 主檔表面色（input / toolbar）light steel override：暖白版 */
-  --nx-surface-input: #ffffff;                      /* 純白輸入框 */
-  --nx-surface-input-border: oklch(0.82 0.03 60);   /* 暖淺金邊 */
+  --warning: #ea580c;
+  --color-meeting: #78716c;
+  /* 主檔表面色（input / toolbar）light warm 版：純白 + 暖金邊 */
+  --nx-surface-input: #ffffff;
+  --nx-surface-input-border: oklch(0.80 0.035 60);  /* 暖金邊加深 */
   --nx-surface-input-fg: #1f1d1a;
   --nx-surface-input-muted: oklch(0.55 0.025 60);
   --nx-surface-input-label: oklch(0.40 0.035 60);
-  --nx-surface-toolbar-from: #ffffff;
-  --nx-surface-toolbar-to: oklch(0.97 0.012 70);
+  --nx-surface-toolbar-from: oklch(0.965 0.018 78); /* 工具列暖米淺漸層起 */
+  --nx-surface-toolbar-to: oklch(0.92 0.024 75);    /* 漸層終略深、層次感 */
 }
 
 /* 白底暖色版：黃橘紅三段光暈、暖陽感 */
