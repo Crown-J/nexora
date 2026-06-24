@@ -980,7 +980,14 @@ function DetailPane({
     <MasterDetailScroll scrollKey={selected?.id ?? (creating ? '__new__' : null)}>
       <div className="px-4 py-4 sm:px-6">
         {/* 2026-06-18 SectionHeader 已搬到 MasterPageHead tabs 同排 */}
-        <div ref={formRef} data-master-form onKeyDown={handleFormKey} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {/* 2026-06-24 執行長拍板：detail 區排版統一 UserFormZoned 5 欄 minmax(220px,1fr) F 方案 */}
+        <div
+          ref={formRef}
+          data-master-form
+          onKeyDown={handleFormKey}
+          className="grid gap-3"
+          style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}
+        >
           {config.fields.map((f) => {
             // 計算欄位（唯讀即時預覽，如料號分段預覽）：編輯時讀 draft、瀏覽時讀 row
             if (f.type === 'computed') {
@@ -1015,7 +1022,7 @@ function DetailPane({
             // 編輯模式：textarea / json（長文 / JSON 巢狀）
             if (editing && !lockedNow && (f.type === 'textarea' || f.type === 'json')) {
               return (
-                <div key={f.key} className="flex flex-col gap-1 sm:col-span-2">
+                <div key={f.key} className="flex flex-col gap-1 [grid-column:span_2]">
                   <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-foreground/80">
                     {f.label + (f.required ? ' *' : '') + (f.type === 'json' ? '（JSON 陣列）' : '')}
                   </span>
@@ -1104,9 +1111,12 @@ function DetailPane({
           })}
         </div>
 
-        {/* audit（瀏覽既有資料時） */}
+        {/* audit（瀏覽既有資料時） — 跟主 grid 同 5 欄 220px 範式 */}
         {!creating && selected ? (
-          <div className="mt-5 grid grid-cols-1 gap-3 border-t border-border/60 pt-4 sm:grid-cols-2">
+          <div
+            className="mt-5 grid gap-3 border-t border-border/60 pt-4"
+            style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}
+          >
             <FormField label="建立時間" value={formatDt(selected.createdAt)} mono dim />
             <FormField label="建立人員" value={auditPerson(selected.createdByUsername, selected.createdByName)} dim />
             <FormField label="修改時間" value={formatDt(selected.updatedAt)} mono dim />
