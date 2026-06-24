@@ -58,3 +58,18 @@ export async function getSite(id: string): Promise<SiteDto> {
   await assertOk(res, 'nxui_base_site_get');
   return res.json() as Promise<SiteDto>;
 }
+
+// 2026-06-24：LocationStructurePage Alt+A 新增據點用
+export async function createSite(body: {
+  code: string;
+  name: string;
+  address?: string;
+  phone?: string;
+  isMain?: boolean;
+  sortNo?: number;
+  isActive?: boolean;
+}): Promise<SiteDto> {
+  const res = await apiFetch(BASE, { method: 'POST', body: JSON.stringify(body) });
+  await assertOk(res, 'nxui_base_site_create');
+  return res.json() as Promise<SiteDto>;
+}
