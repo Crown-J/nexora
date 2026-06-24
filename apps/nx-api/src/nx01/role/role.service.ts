@@ -23,6 +23,8 @@ const SEL = {
   // 02 第三批 T1 2026-06-07：職務層級 + 隸屬部門
   level: true,
   departmentId: true,
+  // 2026-06-24：職務硬綁組別（業務職務必填、isSystem 系統角色可空）
+  teamId: true,
   isSystem: true,
   isActive: true,
   sortNo: true,
@@ -31,6 +33,7 @@ const SEL = {
   updatedAt: true,
   updatedBy: true,
   department: { select: { code: true, name: true } },
+  team: { select: { code: true, name: true, departmentId: true } },
 } as const;
 
 type Row = Prisma.Nx01RoleGetPayload<{ select: typeof SEL }>;
@@ -53,7 +56,32 @@ export class RoleService {
       ];
     }
     if (q.isActive !== undefined) where.isActive = q.isActive;
+    // 2026-06-24：teamId / departmentId 過濾（OrgStructurePage 四欄 cascade 用）
+    if (q.teamId) where.teamId = q.teamId;
+    if (q.departmentId) where.departmentId = q.departmentId;
     return where;
+  }
+
+  /** 2026-06-24：業務職務 teamId 必填 + team.departmentId 必須一致；isSystem 系統角色豁免 */
+  private async validateTeam(
+    tenantId: string,
+    isSystem: boolean,
+    teamId: string | null | undefined,
+    departmentId: string | null | undefined,
+  ): Promise<{ teamId: string | null; departmentId: string | null }> {
+    if (isSystem) {
+      return { teamId: teamId ?? null, departmentId: departmentId ?? null };
+    }
+    if (!teamId) {
+      throw new ForbiddenException('業務職務必須指定隸屬組別（teamId 必填）');
+    }
+    const team = await this.prisma.nx01Team.findFirst({
+      where: { id: teamId, tenantId, isActive: true },
+      select: { id: true, departmentId: true },
+    });
+    if (!team) throw new NotFoundException('指定的組別不存在或已停用');
+    // departmentId 從 team 自動帶入（保持冗餘衍生欄一致）
+    return { teamId: team.id, departmentId: team.departmentId };
   }
 
   async list(user: RequestUser, q: ListRoleQueryDto) {
@@ -98,6 +126,13 @@ export class RoleService {
       select: { id: true },
     });
     if (dup) throw new ConflictException('Role code already exists');
+    // 2026-06-24：業務職務 teamId 必填、departmentId 由 team 衍生
+    const validated = await this.validateTeam(
+      tenantId,
+      false,
+      dto.teamId?.trim() || null,
+      dto.departmentId?.trim() || null,
+    );
     const row = await this.prisma.nx01Role.create({
       data: {
         tenantId,
@@ -106,7 +141,8 @@ export class RoleService {
         description: dto.description?.trim() || null,
         // 02 第三批 T1 2026-06-07：職務層級 + 隸屬部門
         level: dto.level?.trim() || null,
-        departmentId: dto.departmentId?.trim() || null,
+        departmentId: validated.departmentId,
+        teamId: validated.teamId,
         sortNo: dto.sortNo ?? 0,
         isSystem: false,
         isActive: dto.isActive ?? true,
@@ -136,6 +172,16 @@ export class RoleService {
     if (existing.isSystem) {
       throw new ForbiddenException('Cannot modify system role');
     }
+    // 2026-06-24：teamId / departmentId 改動需重新 validate（業務職務 teamId 必填、dep 由 team 衍生）
+    let teamPatch: { teamId?: string | null; departmentId?: string | null } = {};
+    if (dto.teamId !== undefined || dto.departmentId !== undefined) {
+      const nextTeamId =
+        dto.teamId !== undefined ? (dto.teamId?.trim() || null) : existing.teamId;
+      const nextDepId =
+        dto.departmentId !== undefined ? (dto.departmentId?.trim() || null) : existing.departmentId;
+      const validated = await this.validateTeam(tenantId, existing.isSystem, nextTeamId, nextDepId);
+      teamPatch = { teamId: validated.teamId, departmentId: validated.departmentId };
+    }
     const row = await this.prisma.nx01Role.update({
       where: { id },
       data: {
@@ -143,7 +189,7 @@ export class RoleService {
         ...(dto.description !== undefined ? { description: dto.description } : {}),
         // 02 第三批 T1 2026-06-07
         ...(dto.level !== undefined ? { level: dto.level?.trim() || null } : {}),
-        ...(dto.departmentId !== undefined ? { departmentId: dto.departmentId?.trim() || null } : {}),
+        ...teamPatch,
         ...(dto.sortNo !== undefined ? { sortNo: dto.sortNo } : {}),
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
         updatedBy: user.sub,
@@ -193,11 +239,14 @@ export class RoleService {
   }
 
   private mapRow(row: Row) {
-    const { department, ...rest } = row;
+    const { department, team, ...rest } = row;
     return {
       ...rest,
       departmentCode: department?.code ?? null,
       departmentName: department?.name ?? null,
+      // 2026-06-24：team 衛星顯示用
+      teamCode: team?.code ?? null,
+      teamName: team?.name ?? null,
     };
   }
 }

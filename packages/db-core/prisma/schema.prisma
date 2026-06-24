@@ -1188,7 +1188,12 @@ model Nx01Role {
   /// 職務層級（如 G1-G5、總經理/經理/組長/員工、業務命名彈性、純文字）；02 第三批 T1 2026-06-07 新增、啟用最低需求版本：LITE
   level                                String?                 @db.VarChar(20)
   /// 隸屬部門 ID（FK nx01_department、職務歸屬部門）；02 第三批 T1 2026-06-07 新增、啟用最低需求版本：LITE
+  /// 2026-06-24 執行長拍板「職務硬綁組別」後保留作冗餘衍生欄、由 service 從 teamId 自動帶入
   departmentId                         String?                 @map("department_id") @db.VarChar(15)
+  /// 隸屬組別 ID（FK nx01_team、組織架構四層 部門→組別→職務→成員 的第三層）
+  /// 2026-06-24 執行長拍板：業務職務必填、isSystem=true 系統角色（SYSADMIN/OWNER 等跨部門）豁免可空
+  /// 各組別個別建職務（如：台北組業務員、新莊組業務員為不同筆）
+  teamId                               String?                 @map("team_id") @db.VarChar(15)
   /// 是否系統內建角色（內建可限制刪除/改代碼）；啟用最低需求版本：LITE
   isSystem                         Boolean              @default(false) @map("is_system")
   /// 是否啟用（停用後不可再指派）；啟用最低需求版本：LITE
@@ -1206,6 +1211,8 @@ model Nx01Role {
   tenant                               Nx99Tenant              @relation("R_Nx01Role_tenantId", fields: [tenantId], references: [id])
   /// 02 第三批 T1 2026-06-07：隸屬部門 relation
   department                           Nx01Department?         @relation("R_Nx01Role_departmentId", fields: [departmentId], references: [id], onDelete: SetNull)
+  /// 2026-06-24：隸屬組別 relation（業務職務必填+isSystem 系統角色可空、組別停用走 SetNull）
+  team                                 Nx01Team?               @relation("R_Nx01Role_teamId", fields: [teamId], references: [id], onDelete: SetNull)
   rev_Nx01KpiTarget_roleId             Nx01KpiTarget[]         @relation("R_Nx01KpiTarget_roleId")
   rev_Nx01RolePermission_roleId        Nx01RolePermission[]    @relation("R_Nx01RolePermission_roleId")
   rev_Nx01RoleView_roleId              Nx01RoleView[]          @relation("R_Nx01RoleView_roleId")
@@ -1214,6 +1221,8 @@ model Nx01Role {
   rev_Nx07EmployeeChange_newRoleId     Nx07EmployeeChange[]    @relation("R_Nx07EmployeeChange_newRoleId")
 
   @@unique([tenantId, code])
+  /// 2026-06-24：職務硬綁組別、加 index 加速依組別查職務
+  @@index([tenantId, teamId])
   @@map("nx01_role")
 }
 
@@ -1355,6 +1364,8 @@ model Nx01Team {
   rev_Nx01UserTeam_teamId         Nx01UserTeam[]         @relation("R_Nx01UserTeam_teamId")
   rev_Nx01BulletinCategory_teamId Nx01BulletinCategory[] @relation("R_Nx01BulletinCategory_teamId")
   rev_Nx07Schedule_teamId         Nx07Schedule[]         @relation("R_Nx07Schedule_teamId")
+  /// 2026-06-24：職務硬綁組別
+  rev_Nx01Role_teamId             Nx01Role[]             @relation("R_Nx01Role_teamId")
 
   @@map("nx01_team")
 }

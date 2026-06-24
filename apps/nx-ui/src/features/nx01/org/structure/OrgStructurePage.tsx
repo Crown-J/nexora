@@ -1,35 +1,56 @@
 // apps/nx-ui/src/features/nx01/org/structure/OrgStructurePage.tsx
-// 組織架構圖（接真 API、2026-06-22 重寫）
+// 組織架構圖 v3：四欄並列卡片 + 全鍵盤 + 主檔切換按鈕
 //
-// schema 真相：Role 只 link Department、Team 也 link Department、Role 與 Team 不直接關聯。
-// 所以「部門→組別→職務→使用者」嚴格四層不成立、用雙分支樹呈現。
+// 2026-06-24 執行長拍板「職務硬綁組別」(部門→組別→職務→成員 嚴格四層 cascade)
+//   - schema Nx01Role 加 teamId（業務職務必填、isSystem 系統角色豁免可空）
+//   - UI 四欄：欄1部門 → 欄2組別(filter by 部門) → 欄3職務(filter by 組別) → 欄4成員(從 user-role 衛星)
 //
-// 樹結構：
-//   部門 → [📁 組別 / 🎖 職務] → 葉子（組別 / 職務）
+// 鍵盤（全域 window listener、不依賴 input focus）：
+//   ← →     切換欄（4 欄循環）
+//   ↑ ↓     欄內上下移卡片
+//   Home/End 欄內跳頭尾
+//   Enter   選定 + cascade 到下一欄
+//   A       右上「指派員工」（成員欄目標 = 選中職務）
+//   Delete  移除成員（成員欄聚焦時）
+//   [ / ]   上 / 下個主檔（依 master-pages 順序）
+//   F3      開主檔切換 modal
+//   ?       顯示鍵盤指南
 //
-// 互動：
-//   - 點組別葉子 → 右欄顯示該組成員（從 nx01_user_team 衛星表）
-//   - 點職務葉子 → 右欄顯示掛此職務的員工（從 nx01_user_role 衛星表）
-//   - 「指派員工」開 EntityPickerDialog 多選加入；員工可多歸組、多職
-//   - ✕ 鈕 / Delete 鍵：revoke user-team 或 user-role（員工本身不刪）
+// 主檔切換：MasterPageHead 同款 MasterQuickNav 嵌在頂部右側
+
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Briefcase, Building2, FolderTree, Users2, UserPlus } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import {
+  Building2,
+  Briefcase,
+  HelpCircle,
+  Keyboard,
+  Network,
+  Trash2,
+  UserPlus,
+  Users2,
+  UsersRound,
+} from 'lucide-react';
 
-import { MasterBatchShell } from '@design/components/master-batch';
-import type { MasterBatchConfig } from '@design/components/master-batch';
+import { cn } from '@design/utils/cn';
+import { PageHeader } from '@design/components/page-header/PageHeader';
+import { ToastStack, useToast } from '@design/components/toast/ToastStack';
 import { EntityPickerDialog } from '@design/components/multi-select-modal/EntityPickerDialog';
-import type { PagedResult } from '@data/types/nx01/api';
+import { useReducedMotion } from '@/design/motion/gsap';
+
+import { MasterQuickNav } from '@/features/nx01/shell/master-nav/MasterQuickNav';
+import { MasterSwitcher } from '@/features/nx01/shell/keyboard-card-master/MasterSwitcher';
+import {
+  MASTER_PAGES,
+  masterPageIdFromPath,
+} from '@/features/nx01/shell/master-nav/master-pages';
+import { tryNavigate } from '@design/hooks/useDirtyGuard';
+
 import { listDepartments, type DepartmentDto } from '@data/endpoints/nx01/api/department';
 import { listTeams, type TeamDto } from '@data/endpoints/nx01/api/team';
 import { listRoles, type RoleDto } from '@data/endpoints/nx01/api/role';
-import {
-  assignUserTeam,
-  listUserTeams,
-  revokeUserTeam,
-  type UserTeamDto,
-} from '@data/endpoints/nx01/api/user-team';
 import {
   assignUserRole,
   listUserRoles,
@@ -37,21 +58,15 @@ import {
   type UserRoleDto,
 } from '@data/endpoints/nx01/api/user-role';
 import { listUsers, type UserDto } from '@data/endpoints/nx01/api/user';
+import type { PagedResult } from '@data/types/nx01/api';
 
-type StructureNodeType = 'department' | 'team-folder' | 'role-folder' | 'team' | 'role';
+const CURRENT_PAGE_ID = 'orgchart';
 
-type StructureNode = {
-  id: string;
-  type: StructureNodeType;
-  label: string;
-  deptId?: string;
-  teamId?: string;
-  roleId?: string;
-};
+type Zone = 'dept' | 'team' | 'role' | 'member';
+const ZONE_ORDER: Zone[] = ['dept', 'team', 'role', 'member'];
 
-/** 葉子節點的成員顯示用結構 */
-type MemberRow = {
-  /** 衛星表 row id（user-team.id 或 user-role.id），用於 revoke */
+type Member = {
+  /** user_role.id（revoke 用） */
   assignmentId: string;
   userId: string;
   userAccount: string | null;
@@ -59,67 +74,73 @@ type MemberRow = {
 };
 
 export function OrgStructurePage() {
+  const router = useRouter();
+  const { toasts, showToast } = useToast();
+  const reducedMotion = useReducedMotion();
+
+  // ---------- 資料 ----------
   const [departments, setDepartments] = useState<DepartmentDto[]>([]);
   const [teams, setTeams] = useState<TeamDto[]>([]);
   const [roles, setRoles] = useState<RoleDto[]>([]);
-  /** Map<teamId, MemberRow[]> */
-  const [teamMembers, setTeamMembers] = useState<Map<string, MemberRow[]>>(new Map());
-  /** Map<roleId, MemberRow[]> */
-  const [roleMembers, setRoleMembers] = useState<Map<string, MemberRow[]>>(new Map());
+  /** Map<roleId, Member[]> */
+  const [roleMembers, setRoleMembers] = useState<Map<string, Member[]>>(new Map());
   const [loading, setLoading] = useState(true);
-  const [pickerSubject, setPickerSubject] = useState<StructureNode | null>(null);
   const [reloadTick, setReloadTick] = useState(0);
 
-  // ---------- 載入：departments + teams + roles + 衛星表所有 active assignments ----------
+  // ---------- 選擇狀態（cascade） ----------
+  const [deptId, setDeptId] = useState<string | null>(null);
+  const [teamId, setTeamId] = useState<string | null>(null);
+  const [roleId, setRoleId] = useState<string | null>(null);
+
+  // ---------- 焦點 ----------
+  const [zone, setZone] = useState<Zone>('dept');
+  const [deptIdx, setDeptIdx] = useState(0);
+  const [teamIdx, setTeamIdx] = useState(0);
+  const [roleIdx, setRoleIdx] = useState(0);
+  const [memberIdx, setMemberIdx] = useState(0);
+
+  // ---------- modal / overlay ----------
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [switcherOpen, setSwitcherOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+
+  // ---------- 載資料 ----------
   useEffect(() => {
     let cancelled = false;
-    (async () => {
-      setLoading(true);
+    setLoading(true);
+    void (async () => {
       try {
         const [depRes, teamRes, roleRes] = await Promise.all([
           listDepartments({ pageSize: 100, isActive: true }),
           listTeams({ pageSize: 200, isActive: true }),
-          listRoles({ pageSize: 200, isActive: true }),
+          listRoles({ pageSize: 500, isActive: true }),
         ]);
         if (cancelled) return;
         setDepartments(depRes.items);
         setTeams(teamRes.items);
         setRoles(roleRes.items);
 
-        // 為每個 team / role 並行 fetch 成員（衛星 active=true）
-        const teamMap = new Map<string, MemberRow[]>();
-        const roleMap = new Map<string, MemberRow[]>();
-        await Promise.all([
-          ...teamRes.items.map(async (t) => {
-            const r = await listUserTeams({ teamId: t.id, isActive: true, pageSize: 100 }).catch(() => null);
-            if (!r) return;
-            teamMap.set(
-              t.id,
-              r.items.map((ut: UserTeamDto) => ({
-                assignmentId: ut.id,
-                userId: ut.userId,
-                userAccount: ut.userAccount,
-                userDisplayName: ut.userDisplayName,
+        // 為每個 role 並行 fetch 成員（user-role active=true）
+        const map = new Map<string, Member[]>();
+        await Promise.all(
+          roleRes.items.map(async (r) => {
+            const ur = await listUserRoles({ roleId: r.id, isActive: true, pageSize: 200 }).catch(
+              () => null,
+            );
+            if (!ur) return;
+            map.set(
+              r.id,
+              ur.items.map((u: UserRoleDto) => ({
+                assignmentId: u.id,
+                userId: u.userId,
+                userAccount: u.userAccount,
+                userDisplayName: u.userDisplayName,
               })),
             );
           }),
-          ...roleRes.items.map(async (r0) => {
-            const r = await listUserRoles({ roleId: r0.id, isActive: true, pageSize: 100 }).catch(() => null);
-            if (!r) return;
-            roleMap.set(
-              r0.id,
-              r.items.map((ur: UserRoleDto) => ({
-                assignmentId: ur.id,
-                userId: ur.userId,
-                userAccount: ur.userAccount,
-                userDisplayName: ur.userDisplayName,
-              })),
-            );
-          }),
-        ]);
+        );
         if (cancelled) return;
-        setTeamMembers(teamMap);
-        setRoleMembers(roleMap);
+        setRoleMembers(map);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -131,170 +152,232 @@ export function OrgStructurePage() {
 
   const triggerReload = useCallback(() => setReloadTick((t) => t + 1), []);
 
-  // ---------- 樹結構 ----------
-  const treeRoots = useCallback(
-    (): StructureNode[] =>
-      departments.map((d) => ({
-        id: `dept:${d.id}`,
-        type: 'department',
-        label: d.name,
-        deptId: d.id,
-      })),
-    [departments],
+  // ---------- cascade lists ----------
+  const teamsForDept = useMemo(
+    () => (deptId ? teams.filter((t) => t.departmentId === deptId) : []),
+    [teams, deptId],
+  );
+  const rolesForTeam = useMemo(
+    () => (teamId ? roles.filter((r) => r.teamId === teamId) : []),
+    [roles, teamId],
+  );
+  const membersForRole = useMemo(
+    () => (roleId ? (roleMembers.get(roleId) ?? []) : []),
+    [roleMembers, roleId],
   );
 
-  const treeChildren = useCallback(
-    (n: StructureNode): StructureNode[] => {
-      if (n.type === 'department') {
-        return [
-          { id: `folder:${n.deptId!}:teams`, type: 'team-folder', label: '組別', deptId: n.deptId },
-          { id: `folder:${n.deptId!}:roles`, type: 'role-folder', label: '職務', deptId: n.deptId },
-        ];
-      }
-      if (n.type === 'team-folder') {
-        return teams
-          .filter((t) => t.departmentId === n.deptId)
-          .map((t) => ({
-            id: `team:${t.id}`,
-            type: 'team',
-            label: t.name,
-            deptId: t.departmentId,
-            teamId: t.id,
-          }));
-      }
-      if (n.type === 'role-folder') {
-        return roles
-          .filter((r) => r.departmentId === n.deptId)
-          .map((r) => ({
-            id: `role:${r.id}`,
-            type: 'role',
-            label: r.name,
-            deptId: r.departmentId ?? undefined,
-            roleId: r.id,
-          }));
-      }
-      return [];
+  // ---------- 選定 helpers ----------
+  const selectDept = useCallback((id: string) => {
+    setDeptId(id);
+    setTeamId(null);
+    setRoleId(null);
+    setTeamIdx(0);
+    setRoleIdx(0);
+    setMemberIdx(0);
+  }, []);
+  const selectTeam = useCallback((id: string) => {
+    setTeamId(id);
+    setRoleId(null);
+    setRoleIdx(0);
+    setMemberIdx(0);
+  }, []);
+  const selectRole = useCallback((id: string) => {
+    setRoleId(id);
+    setMemberIdx(0);
+  }, []);
+
+  // ---------- 主檔切換（[/]） ----------
+  const switchMaster = useCallback(
+    (dir: -1 | 1) => {
+      const enabled = MASTER_PAGES.filter((p) => !p.disabled);
+      const curIdx = enabled.findIndex((p) => p.id === CURRENT_PAGE_ID);
+      if (curIdx < 0) return;
+      const next = enabled[(curIdx + dir + enabled.length) % enabled.length];
+      tryNavigate(() => router.push(next.href), next.label);
     },
-    [teams, roles],
+    [router],
   );
 
-  const membersOf = useCallback(
-    (n: StructureNode): MemberRow[] => {
-      if (n.type === 'team') return teamMembers.get(n.teamId!) ?? [];
-      if (n.type === 'role') return roleMembers.get(n.roleId!) ?? [];
-      return [];
-    },
-    [teamMembers, roleMembers],
-  );
-
-  // ---------- config ----------
-  const config = useMemo<MasterBatchConfig<StructureNode, MemberRow>>(
-    () => ({
-      title: '組織架構圖',
-      category: '組織架構',
-      desc: '部門 → 組別／職務 → 使用者；員工可多歸組、多職。點開部門展開組別／職務分支。',
-      subjectIcon: FolderTree,
-      subjectNoun: '組織節點',
-      memberNoun: '使用者',
-      memberUnit: '位',
-      addLabel: '指派員工',
-      addIcon: UserPlus,
-
-      leftMode: 'tree',
-      treeRoots,
-      treeChildren,
-      isSelectable: (n) => n.type === 'team' || n.type === 'role',
-      defaultExpandedIds: () =>
-        departments.flatMap((d) => [
-          `dept:${d.id}`,
-          `folder:${d.id}:teams`,
-          `folder:${d.id}:roles`,
-        ]),
-      subjectId: (n) => n.id,
-      subjectTitle: (n) => n.label,
-      subjectCount: (n) => {
-        if (n.type === 'team' || n.type === 'role') return membersOf(n).length;
-        return undefined;
-      },
-
-      rightMode: 'list',
-      members: membersOf,
-      memberId: (m) => m.userId,
-      renderMember: (m) => <EmployeeRowView member={m} />,
-
-      onAdd: (n) => {
-        if (n.type === 'team' || n.type === 'role') setPickerSubject(n);
-      },
-      onRemoveMember: async (n, userId, ctx) => {
-        const member = membersOf(n).find((m) => m.userId === userId);
-        if (!member) return;
-        try {
-          if (n.type === 'team') await revokeUserTeam(member.assignmentId);
-          else if (n.type === 'role') await revokeUserRole(member.assignmentId);
-          ctx.showToast(
-            `已將 ${member.userDisplayName ?? member.userAccount ?? '員工'} 移出「${n.label}」`,
-            'success',
-          );
-          triggerReload();
-        } catch (e) {
-          const msg = e instanceof Error ? e.message : String(e);
-          ctx.showToast(`移除失敗：${msg}`, 'danger');
+  // ---------- 鍵盤 handler（global） ----------
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      // input/textarea/select focused 時放行
+      const t = e.target as HTMLElement | null;
+      const tag = t?.tagName ?? '';
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
+        if (e.key === 'Escape') (t as HTMLElement).blur();
+        return;
+      }
+      // overlay 開時放行（讓 overlay 自己處理）
+      if (switcherOpen || helpOpen || pickerOpen) {
+        if (e.key === 'Escape') {
+          setSwitcherOpen(false);
+          setHelpOpen(false);
+          setPickerOpen(false);
+          e.preventDefault();
         }
-      },
-      emptyText: (n) => {
-        if (n.type === 'team')
-          return {
-            title: `「${n.label}」組別還沒有成員`,
-            desc: '點右上「指派員工」勾選後加入；員工可多歸組。',
-          };
-        if (n.type === 'role')
-          return {
-            title: `「${n.label}」職務還沒有成員`,
-            desc: '點右上「指派員工」勾選後加入；員工可多職。',
-          };
-        return { title: '請選一個組別或職務', desc: '展開部門節點選擇組別或職務分支。' };
-      },
-    }),
-    [departments, membersOf, treeChildren, treeRoots, triggerReload],
+        return;
+      }
+
+      // F3：主檔切換 modal
+      if (e.key === 'F3') {
+        e.preventDefault();
+        setSwitcherOpen(true);
+        return;
+      }
+      // [ / ]：上 / 下個主檔
+      if (e.key === '[') {
+        e.preventDefault();
+        switchMaster(-1);
+        return;
+      }
+      if (e.key === ']') {
+        e.preventDefault();
+        switchMaster(1);
+        return;
+      }
+      // ? (Shift+/)：熱鍵指南
+      if (e.code === 'Slash' && e.shiftKey) {
+        e.preventDefault();
+        setHelpOpen(true);
+        return;
+      }
+      // A：開指派員工 picker（成員欄目標 = 選中職務）
+      if ((e.key === 'a' || e.key === 'A') && roleId) {
+        e.preventDefault();
+        setPickerOpen(true);
+        return;
+      }
+
+      // ← → 切欄（包含 wrap、跳過空欄）
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        const dir = e.key === 'ArrowRight' ? 1 : -1;
+        const idx = ZONE_ORDER.indexOf(zone);
+        const nextIdx = (idx + dir + ZONE_ORDER.length) % ZONE_ORDER.length;
+        setZone(ZONE_ORDER[nextIdx]);
+        return;
+      }
+
+      // 欄內 ↑ ↓ / Home / End / Enter / Delete
+      const lists: Record<Zone, { count: number; idx: number; setIdx: (i: number) => void }> = {
+        dept: { count: departments.length, idx: deptIdx, setIdx: setDeptIdx },
+        team: { count: teamsForDept.length, idx: teamIdx, setIdx: setTeamIdx },
+        role: { count: rolesForTeam.length, idx: roleIdx, setIdx: setRoleIdx },
+        member: { count: membersForRole.length, idx: memberIdx, setIdx: setMemberIdx },
+      };
+      const cur = lists[zone];
+      if (e.key === 'ArrowDown') {
+        if (cur.count > 0) {
+          e.preventDefault();
+          cur.setIdx((cur.idx + 1) % cur.count);
+        }
+        return;
+      }
+      if (e.key === 'ArrowUp') {
+        if (cur.count > 0) {
+          e.preventDefault();
+          cur.setIdx((cur.idx - 1 + cur.count) % cur.count);
+        }
+        return;
+      }
+      if (e.key === 'Home' && cur.count > 0) {
+        e.preventDefault();
+        cur.setIdx(0);
+        return;
+      }
+      if (e.key === 'End' && cur.count > 0) {
+        e.preventDefault();
+        cur.setIdx(cur.count - 1);
+        return;
+      }
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        if (zone === 'dept' && departments[deptIdx]) {
+          selectDept(departments[deptIdx].id);
+          setZone('team');
+        } else if (zone === 'team' && teamsForDept[teamIdx]) {
+          selectTeam(teamsForDept[teamIdx].id);
+          setZone('role');
+        } else if (zone === 'role' && rolesForTeam[roleIdx]) {
+          selectRole(rolesForTeam[roleIdx].id);
+          setZone('member');
+        }
+        return;
+      }
+      if ((e.key === 'Delete' || e.key === 'Backspace') && zone === 'member' && membersForRole[memberIdx]) {
+        e.preventDefault();
+        void handleRemoveMember(membersForRole[memberIdx]);
+        return;
+      }
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    zone,
+    deptIdx,
+    teamIdx,
+    roleIdx,
+    memberIdx,
+    departments,
+    teamsForDept,
+    rolesForTeam,
+    membersForRole,
+    roleId,
+    switcherOpen,
+    helpOpen,
+    pickerOpen,
+    switchMaster,
+  ]);
+
+  // ---------- 行為 ----------
+  const handleRemoveMember = useCallback(
+    async (member: Member) => {
+      try {
+        await revokeUserRole(member.assignmentId);
+        showToast(
+          `已將 ${member.userDisplayName ?? member.userAccount ?? '員工'} 移出此職務`,
+          'success',
+        );
+        triggerReload();
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        showToast(`移除失敗：${msg}`, 'danger');
+      }
+    },
+    [showToast, triggerReload],
   );
 
-  // ---------- picker：listUsers async search、排除已指派的 ----------
   const pickerSearch = useCallback(
     async (q: string): Promise<PagedResult<UserDto>> => {
-      if (!pickerSubject) return { items: [], page: 1, pageSize: 0, total: 0 };
-      const existingUserIds = new Set(membersOf(pickerSubject).map((m) => m.userId));
+      if (!roleId) return { items: [], page: 1, pageSize: 0, total: 0 };
+      const existing = new Set(membersForRole.map((m) => m.userId));
       const res = await listUsers({ q: q.trim() || undefined, pageSize: 50, isActive: true });
-      const items = res.items.filter((u) => !existingUserIds.has(u.id));
+      const items = res.items.filter((u) => !existing.has(u.id));
       return { items, page: 1, pageSize: items.length, total: items.length };
     },
-    [pickerSubject, membersOf],
+    [roleId, membersForRole],
   );
 
   const handlePickerConfirm = useCallback(
     async (selected: UserDto[]) => {
-      if (!pickerSubject) return;
-      const subj = pickerSubject;
+      if (!roleId) return;
       try {
         for (const u of selected) {
-          if (subj.type === 'team') {
-            await assignUserTeam({ userId: u.id, teamId: subj.teamId! });
-          } else if (subj.type === 'role') {
-            await assignUserRole({ userId: u.id, roleId: subj.roleId! });
-          }
+          await assignUserRole({ userId: u.id, roleId });
         }
+        showToast(`已指派 ${selected.length} 位員工`, 'success');
         triggerReload();
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
-        alert(`指派失敗：${msg}`);
+        showToast(`指派失敗：${msg}`, 'danger');
       }
     },
-    [pickerSubject, triggerReload],
+    [roleId, showToast, triggerReload],
   );
 
-  const pickerTitle = pickerSubject ? `指派員工到「${pickerSubject.label}」` : '指派員工';
-  const pickerSubtitle =
-    pickerSubject?.type === 'team' ? 'Assign Team Members' : 'Assign Role Members';
-
+  // ---------- 渲染 ----------
   if (loading) {
     return (
       <div className="flex h-[60vh] items-center justify-center text-sm text-muted-foreground">
@@ -303,15 +386,201 @@ export function OrgStructurePage() {
     );
   }
 
-  return (
-    <>
-      <MasterBatchShell config={config} />
+  const selectedDept = deptId ? departments.find((d) => d.id === deptId) : null;
+  const selectedTeam = teamId ? teams.find((t) => t.id === teamId) : null;
+  const selectedRole = roleId ? roles.find((r) => r.id === roleId) : null;
 
+  const totalCount = `${departments.length} 部門 / ${teams.length} 組別 / ${roles.length} 職務`;
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col gap-3">
+      {/* 頂部：標題列 + MasterQuickNav 主檔切換按鈕 */}
+      <div className="flex flex-wrap items-start justify-between gap-3 px-4 pt-3">
+        <PageHeader
+          crumbs={[{ label: '主檔' }, { label: '組織架構圖' }]}
+          category="組織架構"
+          title="組織架構圖"
+          desc="部門 → 組別 → 職務 → 成員 四層 cascade、↑↓ 移卡 ← → 切欄 Enter 選定 A 指派 ? 熱鍵"
+          count={totalCount}
+        />
+        <div data-nx-frame className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setHelpOpen(true)}
+            className="inline-flex h-7 items-center gap-1 rounded-md border border-border/50 bg-card px-2 text-[11px] font-medium text-foreground/80 hover:border-border hover:bg-accent/15"
+            title="熱鍵指南（?）"
+          >
+            <Keyboard className="size-3" />
+            <span className="hidden sm:inline">
+              <span className="mr-0.5 font-mono text-primary">?</span>
+              熱鍵
+            </span>
+          </button>
+          <MasterQuickNav currentPageId={CURRENT_PAGE_ID} />
+        </div>
+      </div>
+
+      {/* 四欄並列 */}
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 px-4 pb-4 md:grid-cols-4">
+        <ColumnPanel
+          title="部門"
+          subtitle={`${departments.length} 項`}
+          icon={Building2}
+          active={zone === 'dept'}
+          onClick={() => setZone('dept')}
+          shortcut="1"
+        >
+          {departments.length === 0 ? (
+            <EmptyHint text="尚無部門" />
+          ) : (
+            departments.map((d, i) => (
+              <Card
+                key={d.id}
+                title={d.name}
+                code={d.code}
+                count={teams.filter((t) => t.departmentId === d.id).length}
+                countLabel="組"
+                focused={zone === 'dept' && deptIdx === i}
+                selected={deptId === d.id}
+                reducedMotion={reducedMotion}
+                onClick={() => {
+                  setZone('dept');
+                  setDeptIdx(i);
+                  selectDept(d.id);
+                }}
+              />
+            ))
+          )}
+        </ColumnPanel>
+
+        <ColumnPanel
+          title="組別"
+          subtitle={selectedDept ? `${selectedDept.name} ▸ ${teamsForDept.length} 項` : '請先選部門'}
+          icon={UsersRound}
+          active={zone === 'team'}
+          onClick={() => setZone('team')}
+          shortcut="2"
+          disabled={!deptId}
+        >
+          {!deptId ? (
+            <EmptyHint text="← 請先選部門" />
+          ) : teamsForDept.length === 0 ? (
+            <EmptyHint text="此部門尚無組別" />
+          ) : (
+            teamsForDept.map((t, i) => (
+              <Card
+                key={t.id}
+                title={t.name}
+                code={t.code}
+                count={roles.filter((r) => r.teamId === t.id).length}
+                countLabel="職"
+                focused={zone === 'team' && teamIdx === i}
+                selected={teamId === t.id}
+                reducedMotion={reducedMotion}
+                onClick={() => {
+                  setZone('team');
+                  setTeamIdx(i);
+                  selectTeam(t.id);
+                }}
+              />
+            ))
+          )}
+        </ColumnPanel>
+
+        <ColumnPanel
+          title="職務"
+          subtitle={selectedTeam ? `${selectedTeam.name} ▸ ${rolesForTeam.length} 項` : '請先選組別'}
+          icon={Briefcase}
+          active={zone === 'role'}
+          onClick={() => setZone('role')}
+          shortcut="3"
+          disabled={!teamId}
+        >
+          {!teamId ? (
+            <EmptyHint text="← 請先選組別" />
+          ) : rolesForTeam.length === 0 ? (
+            <EmptyHint text="此組別尚無職務" />
+          ) : (
+            rolesForTeam.map((r, i) => (
+              <Card
+                key={r.id}
+                title={r.name}
+                code={r.code}
+                count={roleMembers.get(r.id)?.length ?? 0}
+                countLabel="人"
+                focused={zone === 'role' && roleIdx === i}
+                selected={roleId === r.id}
+                reducedMotion={reducedMotion}
+                onClick={() => {
+                  setZone('role');
+                  setRoleIdx(i);
+                  selectRole(r.id);
+                }}
+              />
+            ))
+          )}
+        </ColumnPanel>
+
+        <ColumnPanel
+          title="成員"
+          subtitle={selectedRole ? `${selectedRole.name} ▸ ${membersForRole.length} 人` : '請先選職務'}
+          icon={Users2}
+          active={zone === 'member'}
+          onClick={() => setZone('member')}
+          shortcut="4"
+          disabled={!roleId}
+          headerAction={
+            roleId ? (
+              <button
+                type="button"
+                onClick={() => setPickerOpen(true)}
+                className="inline-flex h-6 items-center gap-1 rounded-md border border-primary/50 bg-primary/10 px-2 text-[11px] font-medium text-primary hover:bg-primary/20"
+                title="指派員工（A）"
+              >
+                <UserPlus className="size-3" />
+                <span className="hidden sm:inline">
+                  <span className="mr-0.5 font-mono">A</span>
+                  指派
+                </span>
+              </button>
+            ) : null
+          }
+        >
+          {!roleId ? (
+            <EmptyHint text="← 請先選職務" />
+          ) : membersForRole.length === 0 ? (
+            <EmptyHint text="此職務尚無成員、按 A 指派" />
+          ) : (
+            membersForRole.map((m, i) => (
+              <MemberCard
+                key={m.userId}
+                member={m}
+                focused={zone === 'member' && memberIdx === i}
+                reducedMotion={reducedMotion}
+                onClick={() => {
+                  setZone('member');
+                  setMemberIdx(i);
+                }}
+                onRemove={() => void handleRemoveMember(m)}
+              />
+            ))
+          )}
+        </ColumnPanel>
+      </div>
+
+      {/* 主檔切換 modal（F3） */}
+      <MasterSwitcher
+        open={switcherOpen}
+        currentPageId={CURRENT_PAGE_ID}
+        onClose={() => setSwitcherOpen(false)}
+      />
+
+      {/* 指派員工 picker（A） */}
       <EntityPickerDialog<UserDto>
-        open={pickerSubject !== null}
-        onClose={() => setPickerSubject(null)}
-        title={pickerTitle}
-        subtitle={pickerSubtitle}
+        open={pickerOpen && !!roleId}
+        onClose={() => setPickerOpen(false)}
+        title={selectedRole ? `指派員工到「${selectedRole.name}」` : '指派員工'}
+        subtitle="Assign Role Members"
         icon={Users2}
         searchPlaceholder="搜尋姓名或員工編號…"
         search={pickerSearch}
@@ -321,33 +590,250 @@ export function OrgStructurePage() {
         onConfirm={handlePickerConfirm}
         confirmLabel="指派"
       />
-    </>
+
+      {/* 熱鍵指南（?） */}
+      {helpOpen ? <HelpOverlay onClose={() => setHelpOpen(false)} /> : null}
+
+      <ToastStack toasts={toasts} />
+    </div>
   );
 }
 
-/* ============ 員工列渲染 ============ */
-function EmployeeRowView({ member }: { member: MemberRow }) {
+// ============ 子元件 ============
+
+function ColumnPanel({
+  title,
+  subtitle,
+  icon: Icon,
+  active,
+  onClick,
+  shortcut,
+  disabled,
+  children,
+  headerAction,
+}: {
+  title: string;
+  subtitle: string;
+  icon: React.ComponentType<{ className?: string }>;
+  active: boolean;
+  onClick: () => void;
+  shortcut: string;
+  disabled?: boolean;
+  children: React.ReactNode;
+  headerAction?: React.ReactNode;
+}) {
+  return (
+    <section
+      onClick={onClick}
+      className={cn(
+        'flex min-h-0 flex-col overflow-hidden rounded-lg border bg-card transition-all',
+        active
+          ? 'border-primary/60 shadow-[0_0_0_2px_var(--color-primary)/0.18]'
+          : disabled
+            ? 'border-border/40 opacity-70'
+            : 'border-border/50 hover:border-border',
+      )}
+    >
+      <header
+        className={cn(
+          'flex items-center gap-2 border-b px-3 py-2',
+          active ? 'border-primary/40 bg-primary/8' : 'border-border/40 bg-muted/30',
+        )}
+      >
+        <Icon className={cn('size-4', active ? 'text-primary' : 'text-muted-foreground')} />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+            {title}
+            <kbd
+              className={cn(
+                'inline-block rounded border px-1 font-mono text-[10px]',
+                active
+                  ? 'border-primary/60 bg-primary/15 text-primary'
+                  : 'border-border/50 bg-muted/40 text-muted-foreground',
+              )}
+            >
+              {shortcut}
+            </kbd>
+          </div>
+          <div className="truncate text-[11px] text-muted-foreground">{subtitle}</div>
+        </div>
+        {headerAction}
+      </header>
+      <div className="flex flex-col gap-1.5 overflow-y-auto p-2">{children}</div>
+    </section>
+  );
+}
+
+function Card({
+  title,
+  code,
+  count,
+  countLabel,
+  focused,
+  selected,
+  reducedMotion,
+  onClick,
+}: {
+  title: string;
+  code: string;
+  count: number;
+  countLabel: string;
+  focused: boolean;
+  selected: boolean;
+  reducedMotion: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'group flex items-center gap-2 rounded-md border px-2.5 py-2 text-left transition-all',
+        focused
+          ? 'border-primary/70 bg-primary/12 shadow-md'
+          : selected
+            ? 'border-primary/40 bg-primary/6'
+            : 'border-border/40 bg-card hover:border-border hover:bg-accent/15',
+        !reducedMotion && focused && 'scale-[1.01]',
+      )}
+    >
+      <span
+        className={cn(
+          'inline-block h-7 w-1 rounded-sm transition-colors',
+          focused ? 'bg-primary' : selected ? 'bg-primary/50' : 'bg-transparent',
+        )}
+        aria-hidden
+      />
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-[13px] font-medium text-foreground">{title}</div>
+        <div className="truncate font-mono text-[10px] text-muted-foreground">{code}</div>
+      </div>
+      <span
+        className={cn(
+          'flex-none rounded-full px-2 py-0.5 text-[10px] font-semibold',
+          focused
+            ? 'bg-primary/20 text-primary'
+            : count > 0
+              ? 'bg-muted/60 text-foreground/80'
+              : 'bg-muted/30 text-muted-foreground',
+        )}
+      >
+        {count} {countLabel}
+      </span>
+    </button>
+  );
+}
+
+function MemberCard({
+  member,
+  focused,
+  reducedMotion,
+  onClick,
+  onRemove,
+}: {
+  member: Member;
+  focused: boolean;
+  reducedMotion: boolean;
+  onClick: () => void;
+  onRemove: () => void;
+}) {
   const display = member.userDisplayName ?? member.userAccount ?? member.userId;
   return (
-    <div className="flex items-center gap-3">
-      <span className="grid size-9 flex-none place-items-center rounded-full bg-[#E8A020]/18 text-sm font-semibold text-[#E8A020]">
+    <div
+      onClick={onClick}
+      className={cn(
+        'group flex items-center gap-2 rounded-md border px-2.5 py-2 transition-all',
+        focused
+          ? 'border-primary/70 bg-primary/12 shadow-md'
+          : 'border-border/40 bg-card hover:border-border hover:bg-accent/15',
+        !reducedMotion && focused && 'scale-[1.01]',
+      )}
+    >
+      <span className="grid size-8 flex-none place-items-center rounded-full bg-[#E8A020]/18 text-xs font-semibold text-[#E8A020]">
         {display.slice(0, 1)}
       </span>
       <div className="min-w-0 flex-1">
-        <div className="truncate text-sm text-foreground">{display}</div>
-        <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
-          {member.userAccount ? (
-            <span className="font-mono text-foreground/85">{member.userAccount}</span>
-          ) : null}
-          <span className="inline-flex items-center gap-1">
-            <Briefcase className="size-3" />
-            員工
-          </span>
-          <span className="inline-flex items-center gap-1">
-            <Building2 className="size-3" />
-          </span>
+        <div className="truncate text-[13px] text-foreground">{display}</div>
+        {member.userAccount ? (
+          <div className="truncate font-mono text-[10px] text-muted-foreground">
+            {member.userAccount}
+          </div>
+        ) : null}
+      </div>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove();
+        }}
+        className="rounded-md p-1 text-muted-foreground opacity-0 transition-all hover:bg-destructive/15 hover:text-destructive group-hover:opacity-100"
+        title="移除（Delete）"
+      >
+        <Trash2 className="size-3.5" />
+      </button>
+    </div>
+  );
+}
+
+function EmptyHint({ text }: { text: string }) {
+  return (
+    <div className="grid place-items-center py-8 text-center text-[12px] text-muted-foreground">
+      <Network className="mb-2 size-6 opacity-40" />
+      {text}
+    </div>
+  );
+}
+
+function HelpOverlay({ onClose }: { onClose: () => void }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 grid place-items-center bg-black/70"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md rounded-2xl border border-border/40 bg-popover p-5 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <header className="mb-3 flex items-center gap-2">
+          <HelpCircle className="size-5 text-primary" />
+          <h2 className="text-sm font-bold tracking-wide text-foreground">組織架構圖 · 鍵盤指南</h2>
+        </header>
+        <div className="space-y-2 text-[12px] text-foreground/85">
+          <Row k="← →" desc="切換四欄（部門 → 組別 → 職務 → 成員）" />
+          <Row k="↑ ↓" desc="欄內上下移卡片" />
+          <Row k="Home / End" desc="欄內跳頭尾" />
+          <Row k="Enter / Space" desc="選定 + cascade 到下一欄" />
+          <Row k="A" desc="開「指派員工」（成員欄目標 = 選中職務）" />
+          <Row k="Delete / Backspace" desc="移除成員（成員欄聚焦時）" />
+          <Row k="[ / ]" desc="上 / 下個主檔" />
+          <Row k="F3" desc="主檔切換 modal" />
+          <Row k="?" desc="開 / 關 此指南" />
+          <Row k="Esc" desc="關閉浮層" />
         </div>
+        <footer className="mt-4 flex justify-end">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-md border border-border/50 bg-card px-3 py-1 text-[12px] text-foreground/80 hover:bg-accent/15"
+          >
+            關閉（Esc）
+          </button>
+        </footer>
       </div>
     </div>
   );
 }
+
+function Row({ k, desc }: { k: string; desc: string }) {
+  return (
+    <div className="flex items-center gap-3">
+      <kbd className="inline-block min-w-[64px] rounded border border-border/50 bg-muted/40 px-2 py-0.5 text-center font-mono text-[11px] text-foreground">
+        {k}
+      </kbd>
+      <span className="flex-1">{desc}</span>
+    </div>
+  );
+}
+
+// 確保 masterPageIdFromPath import 沒被 tree-shake（保留 ref）
+void masterPageIdFromPath;

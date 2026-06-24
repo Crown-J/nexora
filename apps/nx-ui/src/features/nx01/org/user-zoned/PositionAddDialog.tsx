@@ -66,12 +66,19 @@ export function PositionAddDialog({ open, onClose, userId, onSuccess }: Position
     () => teams.filter((t) => !deptId || t.departmentId === deptId),
     [teams, deptId],
   );
-  const rolesForDept = useMemo(
-    () => roles.filter((r) => !deptId || r.departmentId === deptId),
-    [roles, deptId],
+  // 2026-06-24：職務硬綁組別後、依 teamId filter（無 teamId 時 fallback deptId、過渡期相容）
+  const rolesForTeam = useMemo(
+    () =>
+      roles.filter((r) => {
+        if (teamId) return r.teamId === teamId;
+        if (deptId) return r.departmentId === deptId && !r.teamId;
+        return true;
+      }),
+    [roles, teamId, deptId],
   );
 
-  const canSubmit = deptId !== '' && roleId !== '' && !submitting;
+  // 2026-06-24：組別變必選（職務歸組別、需先選組別才能列職務）
+  const canSubmit = deptId !== '' && teamId !== '' && roleId !== '' && !submitting;
 
   const handleConfirm = useCallback(async () => {
     if (!canSubmit) return;
@@ -141,15 +148,19 @@ export function PositionAddDialog({ open, onClose, userId, onSuccess }: Position
           />
           <Step
             num={2}
-            label="組別（選填）"
+            label="組別"
+            required
             children={
               <select
                 className={selectCls}
                 value={teamId}
-                onChange={(e) => setTeamId(e.target.value)}
+                onChange={(e) => {
+                  setTeamId(e.target.value);
+                  setRoleId('');
+                }}
                 disabled={!deptId || submitting}
               >
-                <option value="">不指定</option>
+                <option value="">請選擇組別</option>
                 {teamsForDept.map((t) => (
                   <option key={t.id} value={t.id} className="bg-popover">
                     {t.code} · {t.name}
@@ -167,10 +178,10 @@ export function PositionAddDialog({ open, onClose, userId, onSuccess }: Position
                 className={selectCls}
                 value={roleId}
                 onChange={(e) => setRoleId(e.target.value)}
-                disabled={!deptId || submitting}
+                disabled={!teamId || submitting}
               >
                 <option value="">請選擇職務</option>
-                {rolesForDept.map((r) => (
+                {rolesForTeam.map((r) => (
                   <option key={r.id} value={r.id} className="bg-popover">
                     {r.code} · {r.name}
                   </option>

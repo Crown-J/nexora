@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
 import { createRole, deleteRole, listRoles, updateRole } from '@data/endpoints/settings/roles/api';
+import { listTeams } from '@data/endpoints/nx01/api/team';
 import type { CreateRolePayload, Role } from '@data/types/settings/roles';
 
 export function RolesListView() {
@@ -186,13 +187,35 @@ function NewRoleForm({
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
   const [description, setDescription] = useState('');
+  // 2026-06-24：職務硬綁組別、業務職務 teamId 必填
+  const [teamId, setTeamId] = useState('');
+  const [teams, setTeams] = useState<{ id: string; code: string; name: string; departmentName: string | null }[]>([]);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await listTeams({ pageSize: 200, isActive: true });
+        if (!cancelled) setTeams(res.items.map((t) => ({ id: t.id, code: t.code, name: t.name, departmentName: t.departmentName })));
+      } catch {
+        /* silent */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) {
       setErr('角色名稱必填');
+      return;
+    }
+    if (!teamId) {
+      setErr('業務職務必須選擇隸屬組別');
       return;
     }
     setBusy(true);
@@ -203,6 +226,7 @@ function NewRoleForm({
         name: name.trim(),
         code: autoCode,
         description: description.trim() || undefined,
+        teamId,
       };
       const role = await createRole(payload);
       onCreated(role);
@@ -235,6 +259,22 @@ function NewRoleForm({
             placeholder="留空自動產 R_xxx"
             className="w-full rounded border bg-background px-2 py-1 font-mono"
           />
+        </label>
+        <label className="text-sm md:col-span-3">
+          <span className="block mb-1">🟢 隸屬組別 * <span className="text-xs text-muted-foreground">（職務歸組別、組別歸部門）</span></span>
+          <select
+            value={teamId}
+            onChange={(e) => setTeamId(e.target.value)}
+            className="w-full rounded border bg-background px-2 py-1"
+            required
+          >
+            <option value="">— 請選擇組別 —</option>
+            {teams.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.departmentName ? `${t.departmentName} / ` : ''}{t.code} · {t.name}
+              </option>
+            ))}
+          </select>
         </label>
         <label className="text-sm md:col-span-3">
           <span className="block mb-1">⚪ 說明（可選）</span>

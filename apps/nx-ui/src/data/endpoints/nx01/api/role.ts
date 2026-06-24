@@ -14,6 +14,10 @@ export type RoleDto = {
   departmentId?: string | null;
   departmentCode?: string | null;
   departmentName?: string | null;
+  // 2026-06-24：職務硬綁組別（業務職務必填、isSystem 系統角色可空）
+  teamId?: string | null;
+  teamCode?: string | null;
+  teamName?: string | null;
   isSystem: boolean;
   isActive: boolean;
   sortNo: number;
@@ -51,6 +55,9 @@ export async function listRoles(params: {
   page?: number;
   pageSize?: number;
   isActive?: boolean;
+  // 2026-06-24：OrgStructurePage 四欄 cascade 需依組別 / 部門過濾職務
+  teamId?: string;
+  departmentId?: string;
 }): Promise<PagedResult<RoleDto>> {
   const pageSize = clampNx01ListPageSize(params.pageSize, 20);
   const qs = buildQueryString({
@@ -58,6 +65,8 @@ export async function listRoles(params: {
     page: params.page != null ? String(params.page) : undefined,
     pageSize: String(pageSize),
     isActive: params.isActive === undefined ? undefined : String(params.isActive),
+    teamId: params.teamId || undefined,
+    departmentId: params.departmentId || undefined,
   });
   const res = await apiFetch(`${BASE}${qs}`, { method: 'GET' });
   await assertOk(res, 'nxui_base_role_list');
@@ -71,6 +80,8 @@ export async function createRole(body: {
   // 02 第三批 T1 2026-06-07
   level?: string | null;
   departmentId?: string | null;
+  // 2026-06-24：業務職務必填、isSystem 系統角色豁免；departmentId 後端會從 team 衍生
+  teamId?: string | null;
   isSystem?: boolean;
   isActive?: boolean;
   sortNo?: number;
@@ -92,6 +103,8 @@ export async function updateRole(
     // 02 第三批 T1 2026-06-07
     level?: string | null;
     departmentId?: string | null;
+    // 2026-06-24：teamId 改變會自動同步 departmentId
+    teamId?: string | null;
     isActive?: boolean;
     sortNo?: number;
   },
