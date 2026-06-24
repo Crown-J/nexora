@@ -12,7 +12,8 @@ import { assertOk } from '@data/api/http';
 import { clampNx01ListPageSize } from '@data/utils/nx01Pagination';
 import type { CreateLocationBody, LocationDto, PagedResult, UpdateLocationBody } from '@data/types/shared/master/location';
 
-const BASE = '/location';
+// 2026-06-24 修 404：後端 controller 路徑為 'nx01/locations'（apps/nx-api/src/nx01/location/location.controller.ts:20）
+const BASE = '/nx01/locations';
 
 export type ListLocationParams = {
     page: number;
@@ -75,11 +76,11 @@ export async function createLocation(body: CreateLocationBody): Promise<Location
  * @FUNCTION_CODE NX00-UI-NX00-LOCATION-API-001-F04
  * 說明：
  * - updateLocation：更新庫位
- * - PUT /location/:id
+ * - PATCH /nx01/locations/:id（2026-06-24 修：後端是 @Patch、原前端用 PUT 是 mismatch）
  */
 export async function updateLocation(id: string, body: UpdateLocationBody): Promise<LocationDto> {
     const res = await apiFetch(`${BASE}/${encodeURIComponent(id)}`, {
-        method: 'PUT',
+        method: 'PATCH',
         body: JSON.stringify(body),
     });
 
