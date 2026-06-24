@@ -1,61 +1,50 @@
 // apps/nx-ui/src/design/components/quick-search/PartQuickSearchModal.tsx
-// F2 料號即時搜尋 Modal（執行長 2026-06-17 拍板、第三版實作）
+// 料號即時搜尋（執行長 2026-06-24 F2 視窗 1 重做、第四版）
 //
-// 排版（鋼鐵風 #E8A020 主色）：
-// ┌─────────────────────────────────────────────────────────────┐
-// │ Header: 🔍 料號即時搜尋 [☐含停用]  [F2·QUICK]   [搜尋][✕] │
-// ├─────────────────────────────────────────────────────────────┤
-// │ 篩選列（4 個 Combobox 並排）                                │
-// │   廠牌 ___▾  品名/注音 ___▾  族群 ___▾  料號 ___▾          │
-// │   ↓（每欄輸入即出聯想下拉、↑↓選 + Enter 確認 + 跳下一欄）  │
-// ├─────────────────────────────────────────────────────────────┤
-// │ 主結果區（手動觸發、移除自動 debounce 搜避免閃跳）           │
-// │   ✓ 料號  品名  廠牌  族群  庫存:onHand/可出               │
-// ├─────────────────────────────────────────────────────────────┤
-// │ 明細區（階段 4 接：基本+庫存+三 tab）                       │
-// ├─────────────────────────────────────────────────────────────┤
-// │ Footer: F2 開關 · ↑↓ 切聯想/結果 · Enter 確認/跳欄 · Esc   │
-// └─────────────────────────────────────────────────────────────┘
+// 範圍：本次只做視窗 1（搜尋窗）。Enter 選定後印 partId + 觸發 window event
+// `nx-part-selected`、給未來視窗 2 hook、本次不做視窗 2~6。
 //
-// 行為（執行長 2026-06-17 第三次回饋實作）：
-//   - 四欄各自為 Combobox：輸入時 debounce 200ms 出聯想下拉
-//   - 上下鍵在下拉內切聯想項；Enter 選定聯想項 + 跳下一欄
-//   - 不選聯想直接 Enter → 用輸入文字當該欄條件、跳下一欄
-//   - 最後一欄（料號）Enter → 觸發主搜尋 + 焦點跳結果列表
-//   - 主結果區只在「Enter 觸發搜尋」或「按搜尋按鈕」更新、不自動 debounce
-//   - 結果列表上下鍵切、選中 row 在右側明細區顯示
-//   - Alt+F 回第一欄；Esc 關下拉（若開）或關 Modal
-//   - 移除 backdrop-blur（CSS blur 是閃跳元兇之一）
+// 與第三版差異：
+//   · 單欄結構（移除右側明細 / 4 tabs / 圖片 / 歷史紀錄；那些屬視窗 2~6）
+//   · 5 欄搜尋列：料號(大、預設焦點) / 品名(F4) / 廠牌 / 族群 / □含停用品
+//   · 結果以「主件→替代品」群組樹呈現（通用件群組）、命中高亮
+//   · 全鍵盤紀律新版（Esc 兩段式、空白雙意、focus 全選、PgUp/PgDn/Home/End、debounce 250ms 自動焦點）
+//
+// 排版：
+// ┌─────────────────────────────────────────────────────────────────┐
+// │ Header: 🔍 料號即時搜尋               [F2·QUICK SEARCH]   [✕]  │
+// ├─────────────────────────────────────────────────────────────────┤
+// │ 搜尋列：料號(2fr) | 品名 F4 | 廠牌 | 族群 | ☐含停用品          │
+// ├─────────────────────────────────────────────────────────────────┤
+// │ 結果（單欄、主件群組頭 + 替代品縮排掛底下、字級放大）          │
+// ├─────────────────────────────────────────────────────────────────┤
+// │ Footer: 鍵盤操作提示常駐                                       │
+// └─────────────────────────────────────────────────────────────────┘
+//
+// 全鍵盤行為：
+//   · 欄位切換: Tab / Shift+Tab
+//   · focus 落入有字: 自動全選反白（打字=覆蓋、→鍵取消反白接續編輯）
+//   · 純輸入欄（料號 / 品名）: 空白=空格（料號要能打「03L 115 561」）
+//   · 品名欄 F4 = 注音查詢（PhoneticPicker 內建）
+//   · 下拉欄（廠牌 / 族群）: 空欄+空白→開選單；有字+空白→吞掉；直接打字篩選
+//     - 選單內 ↑↓ 選、Enter 定（沿用 Combobox）
+//   · 結果列表: ↑↓ 切筆 / PgUp PgDn 翻頁 / Home End 頭尾 / Enter 選定 / Esc 關
+//   · Esc 兩段式: 內層 input 開著的下拉 → 先關下拉；下拉關著或在結果區 → 關 modal
+//   · 打完字稍停（debounce 250ms）→ 自動搜尋 + 焦點落結果第一筆（前提：焦點仍在剛打的 input）
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertCircle, Image as ImageIcon, Loader2, PackageSearch, Search, X } from 'lucide-react';
+import { Loader2, PackageSearch, X } from 'lucide-react';
 
 import {
-  buildPartSearchPhotoUrl,
-  getPartDetail,
-  getPartPurchaseHistory,
-  getPartRelated,
-  getPartSalesHistory,
   getPartSearchMasterOptions,
-  getPartStockHistory,
-  getPartStockSettings,
-  getPartStockSummary,
-  listPartSearchPhotos,
   quickSearchParts,
-  type PartPhotoMeta,
 } from '@data/endpoints/nx01/part-search/api/part-search';
 import type {
-  PartDetailDto,
-  PartPurchaseHistoryRow,
-  PartRelatedRow,
-  PartSalesHistoryDto,
+  PartSearchCompatGroup,
   PartSearchQuery,
   PartSearchResult,
   PartSearchRow,
-  PartStockHistoryRow,
-  PartStockSettingRow,
-  PartStockSummaryDto,
 } from '@data/types/nx01/part-search';
 import { cn } from '@design/utils/cn';
 
@@ -63,7 +52,6 @@ import { Combobox } from './Combobox';
 import { PhoneticPicker } from './PhoneticPicker';
 
 type Props = {
-  /** 由 GlobalPartQuickSearch 控制；true 時播 zoom-out 動畫 */
   closing?: boolean;
   onClose: () => void;
 };
@@ -72,93 +60,159 @@ type BrandOpt = { id: string; code: string; name: string };
 type PartGroupOpt = { id: string; code: string; name: string };
 
 const PAGE_SIZE = 100;
-const HARD_LIMIT = 500;
 const SUGGESTION_LIMIT = 8;
+const SEARCH_DEBOUNCE_MS = 250;
+const RESULT_PAGE_SIZE = 8; // PgUp/PgDn 每頁跳幾筆
+
+/** 扁平 row 給↑↓ navigation 用：群組頭 + 替代品依序排、最後接 ungrouped */
+type FlatResultRow =
+  | { kind: 'group-primary'; groupId: string; member: PartSearchRow & { role?: number; isMatch?: boolean } }
+  | { kind: 'group-alt'; groupId: string; member: PartSearchRow & { role?: number; isMatch?: boolean } }
+  | { kind: 'ungrouped'; member: PartSearchRow };
 
 export function PartQuickSearchModal({ closing = false, onClose }: Props) {
-  // GlobalPartQuickSearch 已負責 mount/unmount、本元件 mount 期間 open 永遠 true
-  const open = true;
-  // 四欄篩選文字（執行長 2026-06-17 拍板第三次回饋:每欄都 Combobox 聯想）
-  const [brandQuery, setBrandQuery] = useState('');
-  const [keyword, setKeyword] = useState('');
-  const [partGroupQuery, setPartGroupQuery] = useState('');
+  // 四欄條件 + 含停用旗標
   const [partNo, setPartNo] = useState('');
+  const [keyword, setKeyword] = useState('');
+  const [brandQuery, setBrandQuery] = useState('');
+  const [partGroupQuery, setPartGroupQuery] = useState('');
   const [includeInactive, setIncludeInactive] = useState(false);
 
-  // 主結果區
-  const [rows, setRows] = useState<PartSearchRow[]>([]);
+  // 結果
   const [result, setResult] = useState<PartSearchResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [focusedIndex, setFocusedIndex] = useState(0);
 
-  // 明細區（隨選中料號變動）
-  const [detail, setDetail] = useState<PartDetailDto | null>(null);
-  const [stockSummary, setStockSummary] = useState<PartStockSummaryDto | null>(null);
-  const [stockSettings, setStockSettings] = useState<PartStockSettingRow[]>([]);
-  const [photos, setPhotos] = useState<PartPhotoMeta[]>([]);
-  const [detailLoading, setDetailLoading] = useState(false);
-  const detailReqIdRef = useRef(0);
-
-  // F2 歷史紀錄（最近 10 筆、localStorage）
-  const [history, setHistory] = useState<HistoryEntry[]>([]);
-  // 載入 history（mount 時讀 localStorage）
-  useEffect(() => {
-    setHistory(loadHistory());
-  }, []);
-
-  // 廠牌 / 族群主檔（開啟時一次撈、cache 給聯想 filter 用）
+  // 廠牌 / 族群 cache（給 Combobox 聯想 filter 用）
   const [brands, setBrands] = useState<BrandOpt[]>([]);
   const [partGroups, setPartGroups] = useState<PartGroupOpt[]>([]);
 
-  // 焦點流程 ref（順序 廠牌 → 品名 → 族群 → 料號 → 結果列表）
-  const brandInputRef = useRef<HTMLInputElement>(null);
-  const keywordInputRef = useRef<HTMLInputElement>(null);
-  const partGroupInputRef = useRef<HTMLInputElement>(null);
+  // 欄位 refs
   const partNoInputRef = useRef<HTMLInputElement>(null);
+  const keywordInputRef = useRef<HTMLInputElement>(null);
+  const brandInputRef = useRef<HTMLInputElement>(null);
+  const partGroupInputRef = useRef<HTMLInputElement>(null);
+  const resultListRef = useRef<HTMLDivElement>(null);
 
-  const FILTER_ORDER: Array<React.RefObject<HTMLInputElement | null>> = useMemo(
-    () => [brandInputRef, keywordInputRef, partGroupInputRef, partNoInputRef],
+  // 串接視窗 2 用：reqId 防 race condition
+  const reqIdRef = useRef(0);
+
+  // 焦點管理：debounce 自動跳結果區時、確認當下焦點仍在 input（避免使用者 Tab 走後被搶回）
+  const FILTER_REFS = useMemo(
+    () => [partNoInputRef, keywordInputRef, brandInputRef, partGroupInputRef],
     [],
   );
 
-  const focusFirstFilter = useCallback(() => {
-    setTimeout(() => brandInputRef.current?.focus(), 0);
-  }, []);
-
-  // 開 Modal: reset + focus 第一欄 + lazy load 主檔
+  // mount: reset + 預設焦點落料號欄 + lazy load 主檔
   useEffect(() => {
-    if (!open) return;
-    setBrandQuery('');
-    setKeyword('');
-    setPartGroupQuery('');
     setPartNo('');
+    setKeyword('');
+    setBrandQuery('');
+    setPartGroupQuery('');
     setIncludeInactive(false);
-    setRows([]);
     setResult(null);
     setError(null);
     setFocusedIndex(0);
-    focusFirstFilter();
-  }, [open, focusFirstFilter]);
+    // 預設焦點：料號欄（執行長 2026-06-24 規格：開窗游標自動停料號欄）
+    setTimeout(() => partNoInputRef.current?.focus(), 0);
+  }, []);
 
   useEffect(() => {
-    if (!open) return;
-    if (brands.length > 0 && partGroups.length > 0) return;
     void (async () => {
       try {
         const opts = await getPartSearchMasterOptions();
         setBrands(opts.brands);
         setPartGroups(opts.partGroups);
       } catch {
-        // 失敗不擋、聯想下拉就空、Crown 仍能用文字搜
+        // 撈不到不擋、Combobox 聯想就空、純文字搜尋仍可用
       }
     })();
-  }, [open, brands.length, partGroups.length]);
+  }, []);
 
-  // 四欄 fetchSuggestions（client filter / API search）
+  // 扁平化 result 給↑↓ 用
+  const flatRows = useMemo<FlatResultRow[]>(() => {
+    if (!result) return [];
+    const acc: FlatResultRow[] = [];
+    for (const g of result.groups ?? []) {
+      if (g.primary) {
+        acc.push({ kind: 'group-primary', groupId: g.groupId, member: g.primary });
+      }
+      for (const a of g.alts) {
+        acc.push({ kind: 'group-alt', groupId: g.groupId, member: a });
+      }
+    }
+    for (const u of result.ungrouped ?? []) {
+      acc.push({ kind: 'ungrouped', member: u });
+    }
+    return acc;
+  }, [result]);
+
+  // 主搜尋
+  const runSearch = useCallback(
+    async (opts: { focusResultAfter: boolean }) => {
+      const q: PartSearchQuery = {
+        partNo: partNo.trim() || undefined,
+        keyword: keyword.trim() || undefined,
+        brandQuery: brandQuery.trim() || undefined,
+        partGroupQuery: partGroupQuery.trim() || undefined,
+        includeInactive,
+        groupByCompat: true,
+        page: 1,
+        pageSize: PAGE_SIZE,
+      };
+      const hasAny = Boolean(q.partNo || q.keyword || q.brandQuery || q.partGroupQuery);
+      if (!hasAny) {
+        // 全空 = 清結果、不搜
+        setResult(null);
+        setError(null);
+        setLoading(false);
+        return;
+      }
+      const myReqId = ++reqIdRef.current;
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await quickSearchParts(q);
+        if (reqIdRef.current !== myReqId) return;
+        setResult(res);
+        setFocusedIndex(0);
+        // 自動把焦點落到結果第一筆（前提：當下焦點仍在剛打字的 input、沒 Tab 走）
+        if (opts.focusResultAfter) {
+          const stillInFilter =
+            document.activeElement instanceof HTMLInputElement &&
+            FILTER_REFS.some((ref) => ref.current === document.activeElement);
+          if (stillInFilter) {
+            // 用 rAF 確保 DOM render 完
+            requestAnimationFrame(() => {
+              const el = document.querySelector('[data-pqs-row="0"]') as HTMLElement | null;
+              el?.focus();
+            });
+          }
+        }
+      } catch (e) {
+        if (reqIdRef.current !== myReqId) return;
+        setError(e instanceof Error ? e.message : '搜尋失敗');
+      } finally {
+        if (reqIdRef.current === myReqId) setLoading(false);
+      }
+    },
+    [partNo, keyword, brandQuery, partGroupQuery, includeInactive, FILTER_REFS],
+  );
+
+  // 自動 debounce 搜尋：打完字稍停 → 搜尋 + 自動焦點到第一筆
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      void runSearch({ focusResultAfter: true });
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(handle);
+  }, [partNo, keyword, brandQuery, partGroupQuery, includeInactive, runSearch]);
+
+  // Combobox fetchSuggestions（用 cache 過濾）
   const fetchBrandSuggestions = useCallback(
     async (q: string): Promise<BrandOpt[]> => {
       const lower = q.toLowerCase();
+      if (!lower) return brands.slice(0, SUGGESTION_LIMIT);
       return brands
         .filter(
           (b) => b.code.toLowerCase().includes(lower) || b.name.toLowerCase().includes(lower),
@@ -171,6 +225,7 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
   const fetchPartGroupSuggestions = useCallback(
     async (q: string): Promise<PartGroupOpt[]> => {
       const lower = q.toLowerCase();
+      if (!lower) return partGroups.slice(0, SUGGESTION_LIMIT);
       return partGroups
         .filter(
           (g) => g.code.toLowerCase().includes(lower) || g.name.toLowerCase().includes(lower),
@@ -180,1159 +235,426 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
     [partGroups],
   );
 
-  const fetchPartNoSuggestions = useCallback(async (q: string): Promise<PartSearchRow[]> => {
-    try {
-      const res = await quickSearchParts({
-        partNo: q,
-        includeInactive: true,
-        page: 1,
-        pageSize: SUGGESTION_LIMIT,
-      });
-      return res.rows;
-    } catch {
-      return [];
-    }
-  }, []);
+  // 各欄 onSubmit（Combobox / PhoneticPicker Enter 時觸發、非選聯想項）
+  // 規格：Tab 跳下一欄、Enter 跑搜尋。為了單欄式工作流、Enter 也跑搜尋。
+  const submitField = useCallback(() => {
+    void runSearch({ focusResultAfter: true });
+  }, [runSearch]);
 
-  // 主搜尋（只在「最後一欄 Enter」或「搜尋按鈕」觸發、不再自動 debounce）
-  const runSearch = useCallback(
-    async (focusResultAfter: boolean, override?: Partial<PartSearchQuery>) => {
-      // override 可強制改寫某幾欄（給 history click 用、不受 state 異步影響）
-      const q: PartSearchQuery = {
-        brandQuery: brandQuery.trim() || undefined,
-        partGroupQuery: partGroupQuery.trim() || undefined,
-        keyword: keyword.trim() || undefined,
-        partNo: partNo.trim() || undefined,
-        ...override,
-        includeInactive,
-        page: 1,
-        pageSize: PAGE_SIZE,
-      };
-      const hasAny = Boolean(q.brandQuery || q.partGroupQuery || q.keyword || q.partNo);
-      if (!hasAny) {
-        setError('至少需提供一個篩選條件（廠牌 / 品名 / 族群 / 料號）');
-        return;
-      }
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await quickSearchParts(q);
-        setResult(res);
-        setRows(res.rows);
+  // 確定選擇一筆 → 印 partId + 觸發 window event 給未來視窗 2、關 modal
+  const selectRow = useCallback(
+    (row: PartSearchRow) => {
+      console.log('[F2-V4] 選定料號 partId=%s code=%s name=%s', row.id, row.code, row.name);
+      window.dispatchEvent(
+        new CustomEvent('nx-part-selected', {
+          detail: { partId: row.id, code: row.code, name: row.name },
+        }),
+      );
+      onClose();
+    },
+    [onClose],
+  );
+
+  // 結果區鍵盤：↑↓ / PgUp PgDn / Home End / Enter / Esc
+  const handleResultKey = useCallback(
+    (e: React.KeyboardEvent<HTMLButtonElement>) => {
+      if (e.nativeEvent.isComposing) return;
+      const total = flatRows.length;
+      if (total === 0) return;
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setFocusedIndex((i) => Math.min(total - 1, i + 1));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setFocusedIndex((i) => Math.max(0, i - 1));
+      } else if (e.key === 'PageDown') {
+        e.preventDefault();
+        setFocusedIndex((i) => Math.min(total - 1, i + RESULT_PAGE_SIZE));
+      } else if (e.key === 'PageUp') {
+        e.preventDefault();
+        setFocusedIndex((i) => Math.max(0, i - RESULT_PAGE_SIZE));
+      } else if (e.key === 'Home') {
+        e.preventDefault();
         setFocusedIndex(0);
-        if (focusResultAfter && res.rows.length > 0) {
-          setTimeout(() => {
-            (document.querySelector('[data-pqs-row="0"]') as HTMLElement | null)?.focus();
-          }, 0);
-        }
-      } catch (e) {
-        setError(e instanceof Error ? e.message : '搜尋失敗');
-      } finally {
-        setLoading(false);
-      }
-    },
-    [brandQuery, partGroupQuery, keyword, partNo, includeInactive],
-  );
-
-  // 從歷史紀錄選一筆 → 清其他欄位 + 用料號搜
-  const selectHistory = useCallback(
-    (entry: HistoryEntry) => {
-      setBrandQuery('');
-      setKeyword('');
-      setPartGroupQuery('');
-      setPartNo(entry.code);
-      void runSearch(true, {
-        brandQuery: undefined,
-        keyword: undefined,
-        partGroupQuery: undefined,
-        partNo: entry.code,
-      });
-    },
-    [runSearch],
-  );
-
-  // 跳下一欄（select + focus）
-  const focusNext = useCallback(
-    (currentIdx: number) => {
-      const next = FILTER_ORDER[currentIdx + 1]?.current;
-      if (next) {
-        next.focus();
-        next.select();
-      }
-    },
-    [FILTER_ORDER],
-  );
-
-  // 各欄 onSubmit（Combobox Enter 不選聯想時觸發）
-  const submitFromBrand = useCallback(() => focusNext(0), [focusNext]);
-  const submitFromKeyword = useCallback(() => focusNext(1), [focusNext]);
-  const submitFromPartGroup = useCallback(() => focusNext(2), [focusNext]);
-  const submitFromPartNo = useCallback(() => void runSearch(true), [runSearch]);
-
-  // 各欄 onSelect（選聯想項時填入 input 值；廠牌/族群帶 name、料號帶 code、品名走 PhoneticPicker）
-  const selectBrand = useCallback((b: BrandOpt) => setBrandQuery(b.name), []);
-  const selectPartGroup = useCallback((g: PartGroupOpt) => setPartGroupQuery(g.name), []);
-  const selectPartNo = useCallback((r: PartSearchRow) => setPartNo(r.code), []);
-  const selectKeywordName = useCallback((name: string) => setKeyword(name), []);
-
-  // 全域熱鍵：Esc 關 Modal / ↑↓ 切主結果 / Alt+F 回第一欄
-  useEffect(() => {
-    if (!open) return;
-    const h = (e: KeyboardEvent) => {
-      if (e.isComposing) return;
-      if (e.key === 'Escape') {
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        setFocusedIndex(total - 1);
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        const r = flatRows[focusedIndex];
+        if (r) selectRow(r.member);
+      } else if (e.key === 'Escape') {
+        // 結果區無下拉選單可關 → 直接關 modal
         e.preventDefault();
         e.stopPropagation();
         onClose();
-        return;
       }
-      if (e.altKey && (e.key === 'f' || e.key === 'F')) {
-        e.preventDefault();
-        e.stopPropagation();
-        focusFirstFilter();
-        return;
-      }
-      // ↑↓ 切主結果（如果焦點不在 input 篩選欄、就讓給 main result）
-      const active = document.activeElement;
-      const isInFilter =
-        active instanceof HTMLInputElement &&
-        FILTER_ORDER.some((ref) => ref.current === active);
-      if (isInFilter) return; // 篩選欄 input 的 ↑↓ 已由 Combobox 內部處理
-      if (e.key === 'ArrowDown' && rows.length > 0) {
-        e.preventDefault();
-        setFocusedIndex((i) => Math.min(rows.length - 1, i + 1));
-      } else if (e.key === 'ArrowUp' && rows.length > 0) {
-        e.preventDefault();
-        setFocusedIndex((i) => Math.max(0, i - 1));
-      }
-    };
-    window.addEventListener('keydown', h, true);
-    return () => window.removeEventListener('keydown', h, true);
-  }, [open, rows.length, onClose, focusFirstFilter, FILTER_ORDER]);
+    },
+    [flatRows, focusedIndex, onClose, selectRow],
+  );
 
-  // 切到 focused row 時 scroll into view + DOM focus
+  // 切 focused row → scroll into view + DOM focus
   useEffect(() => {
-    if (!open) return;
-    const el = document.querySelector(`[data-pqs-row="${focusedIndex}"]`) as HTMLElement | null;
-    el?.scrollIntoView({ block: 'nearest' });
+    const el = document.querySelector(
+      `[data-pqs-row="${focusedIndex}"]`,
+    ) as HTMLElement | null;
+    if (!el) return;
+    el.scrollIntoView({ block: 'nearest' });
+    // 若焦點目前在「結果區某個 row button」上、切換到新的 row、要把焦點轉過去
     const active = document.activeElement;
     const activeIsResultRow =
       active instanceof HTMLElement && active.hasAttribute('data-pqs-row');
-    if (activeIsResultRow) el?.focus();
-  }, [focusedIndex, open]);
+    if (activeIsResultRow) el.focus();
+  }, [focusedIndex]);
 
-  // 選中 row 變化 → 並行 fetch detail + stockSummary + photos
-  const selected = rows[focusedIndex];
+  // Modal 全域 Esc（最外層保險：所有內層元件沒攔截才執行）
   useEffect(() => {
-    if (!open || !selected) {
-      setDetail(null);
-      setStockSummary(null);
-      setStockSettings([]);
-      setPhotos([]);
-      return;
-    }
-    const partId = selected.id;
-    const myReqId = ++detailReqIdRef.current;
-    setDetailLoading(true);
-    void (async () => {
-      try {
-        const [d, s, set, p] = await Promise.all([
-          getPartDetail(partId),
-          getPartStockSummary(partId),
-          getPartStockSettings(partId).catch(() => ({ rows: [] as PartStockSettingRow[] })),
-          listPartSearchPhotos(partId).catch(() => ({ rows: [] as PartPhotoMeta[] })),
-        ]);
-        if (detailReqIdRef.current !== myReqId) return;
-        setDetail(d);
-        setStockSummary(s);
-        setStockSettings(set.rows);
-        setPhotos(p.rows);
-        // 推 history（執行長階段 6 拍板:選一筆就記）
-        const entry: HistoryEntry = {
-          id: partId,
-          code: selected.code,
-          name: selected.name,
-          ts: Date.now(),
-        };
-        setHistory((prev) => pushHistory(prev, entry));
-      } catch {
-        if (detailReqIdRef.current !== myReqId) return;
-        setDetail(null);
-        setStockSummary(null);
-        setStockSettings([]);
-        setPhotos([]);
-      } finally {
-        if (detailReqIdRef.current === myReqId) setDetailLoading(false);
+    const h = (e: KeyboardEvent) => {
+      if (e.isComposing) return;
+      if (e.key === 'Escape') {
+        // 內層的 Combobox / PhoneticPicker 已 stopPropagation 處理下拉開的情況、
+        // 這裡只在他們沒攔住時關 modal
+        e.preventDefault();
+        onClose();
       }
-    })();
-  }, [open, selected]);
-
-  // mount 即顯示、移除 if(!open) early return（由 GlobalPartQuickSearch 控制 mount）
+    };
+    // capture=false → 內層攔下後不會走到這裡（Combobox 用了 stopPropagation）
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, [onClose]);
 
   return (
     <div
       className={cn(
-        'fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm',
+        'fixed inset-0 z-[100] flex items-center justify-center bg-black/45 backdrop-blur-sm',
         closing ? 'animate-out fade-out duration-200' : 'animate-in fade-in duration-200',
       )}
     >
       <div
         className={cn(
-          // 玻璃感:半透明 card + backdrop-blur 讓底下星空透出（執行長 2026-06-17 拍板）
-          'flex flex-col rounded-2xl border border-border/40 bg-card/70 text-foreground shadow-[0_30px_80px_rgba(0,0,0,0.55)] backdrop-blur-2xl',
-          // zoom 動畫
+          'flex flex-col rounded-2xl border border-border/40 bg-card/85 text-foreground shadow-[0_30px_80px_rgba(0,0,0,0.55)] backdrop-blur-2xl',
           closing
             ? 'animate-out fade-out zoom-out-95 duration-200'
             : 'animate-in fade-in zoom-in-95 duration-200',
         )}
         style={{
-          // 執行長 2026-06-17:固定 modal 大小、不隨內容變動
-          width: 'min(1200px, 96vw)',
-          height: 'min(760px, 92vh)',
+          width: 'min(1100px, 96vw)',
+          height: 'min(720px, 92vh)',
         }}
       >
         {/* Header */}
-        <div className="flex items-center gap-2.5 border-b border-border/40 px-5 py-3">
+        <div className="flex items-center gap-2.5 border-b border-border/40 px-6 py-3.5">
           <span className="size-2 rounded-full bg-[#E8A020] shadow-[0_0_10px_#E8A020]" />
-          <PackageSearch className="size-4 text-[#E8A020]" />
-          <h2 className="text-sm font-bold tracking-wide text-foreground">料號即時搜尋</h2>
-
-          <label className="ml-4 flex cursor-pointer items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground">
-            <input
-              type="checkbox"
-              checked={includeInactive}
-              onChange={(e) => setIncludeInactive(e.target.checked)}
-              className="size-3 accent-[#E8A020]"
-            />
-            含停用品
-          </label>
-
-          <span className="ml-auto text-[10px] font-semibold uppercase tracking-[0.28em] text-muted-foreground/70">
+          <PackageSearch className="size-5 text-[#E8A020]" />
+          <h2 className="text-base font-bold tracking-wide text-foreground">料號即時搜尋</h2>
+          <span className="ml-auto text-[11px] font-semibold uppercase tracking-[0.28em] text-muted-foreground/70">
             F2 · QUICK SEARCH
           </span>
           <button
             type="button"
-            onClick={() => void runSearch(true)}
-            className="ml-2 inline-flex h-7 items-center gap-1.5 rounded-md border border-[#E8A020]/40 bg-[#E8A020]/15 px-3 text-xs font-medium text-[#E8A020] hover:bg-[#E8A020]/25"
-          >
-            <Search className="size-3.5" />
-            搜尋
-          </button>
-          <button
-            type="button"
             onClick={onClose}
-            className="ml-1 rounded-md border border-border/40 bg-[#1F2D26] p-1 text-muted-foreground hover:bg-[#22222A] hover:text-foreground"
+            className="ml-2 rounded-md border border-border/40 bg-background/40 p-1.5 text-muted-foreground hover:bg-card/60 hover:text-foreground"
             aria-label="關閉"
           >
-            <X className="size-3.5" />
+            <X className="size-4" />
           </button>
         </div>
 
-        {/* 篩選列（四個 Combobox 並排）*/}
-        <div className="grid grid-cols-1 gap-2 border-b border-border/40 bg-card/60 px-5 py-3 sm:grid-cols-4">
+        {/* 搜尋列（5 欄：料號 2fr / 品名 / 廠牌 / 族群 / 含停用品）*/}
+        <div className="grid items-end gap-3 border-b border-border/40 bg-card/60 px-6 py-4"
+             style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr auto' }}>
+          {/* 料號欄：純 input、空白=空格、首焦點、字級加大 */}
+          <PartNoInput
+            value={partNo}
+            onChange={setPartNo}
+            inputRef={partNoInputRef}
+            onSubmit={submitField}
+          />
+          <PhoneticPicker
+            label="品名（F4 注音）"
+            value={keyword}
+            onChange={setKeyword}
+            placeholder="直接打中文或按 F4 注音查"
+            inputRef={keywordInputRef}
+            onSelectName={(name) => setKeyword(name)}
+            onSubmit={submitField}
+          />
           <Combobox<BrandOpt>
             label="廠牌"
             value={brandQuery}
             onChange={setBrandQuery}
-            placeholder="例:BOSCH / NGK / VAG"
+            placeholder="空白=展開、或打字篩選"
             inputRef={brandInputRef}
             fetchSuggestions={fetchBrandSuggestions}
             getKey={(b) => b.id}
             getLabel={(b) => `${b.code} · ${b.name}`}
-            onSelect={selectBrand}
-            onSubmit={submitFromBrand}
-          />
-          <PhoneticPicker
-            label="品名"
-            value={keyword}
-            onChange={setKeyword}
-            placeholder="直接打中文 / 注音鍵盤碼+F4 (CVN→火星塞)"
-            inputRef={keywordInputRef}
-            onSelectName={selectKeywordName}
-            onSubmit={submitFromKeyword}
+            onSelect={(b) => setBrandQuery(b.name)}
+            onSubmit={submitField}
           />
           <Combobox<PartGroupOpt>
-            label="零件族群"
+            label="族群"
             value={partGroupQuery}
             onChange={setPartGroupQuery}
-            placeholder="例:ENGINE / 引擎 / BRAKE"
+            placeholder="空白=展開、或打字篩選"
             inputRef={partGroupInputRef}
             fetchSuggestions={fetchPartGroupSuggestions}
             getKey={(g) => g.id}
             getLabel={(g) => `${g.code} · ${g.name}`}
-            onSelect={selectPartGroup}
-            onSubmit={submitFromPartGroup}
+            onSelect={(g) => setPartGroupQuery(g.name)}
+            onSubmit={submitField}
           />
-          <Combobox<PartSearchRow>
-            label="使用料號"
-            value={partNo}
-            onChange={setPartNo}
-            placeholder="例:DEMO-ATE / VAG-03H"
-            inputRef={partNoInputRef}
-            fetchSuggestions={fetchPartNoSuggestions}
-            getKey={(r) => r.id}
-            getLabel={(r) => r.code}
-            getDescription={(r) => r.name}
-            onSelect={selectPartNo}
-            onSubmit={submitFromPartNo}
-          />
+          <label className="flex cursor-pointer items-center gap-2 self-end pb-2 text-sm text-foreground">
+            <input
+              type="checkbox"
+              checked={includeInactive}
+              onChange={(e) => setIncludeInactive(e.target.checked)}
+              className="size-4 accent-[#E8A020]"
+            />
+            含停用品
+          </label>
         </div>
 
-        {/* 主結果區（窄）+ 明細區（寬）split（執行長 2026-06-17:左側更窄、右側永遠全顯示）*/}
-        <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[260px_1fr]">
-          {/* 左：主結果列表 */}
-          <div className="relative flex min-h-0 flex-col border-b border-border/40 lg:border-b-0 lg:border-r">
-            <div className="flex items-center justify-between gap-2 border-b border-border/40 bg-background/40/60 px-4 py-1.5 text-[11px] text-muted-foreground">
-              <span className="min-w-0 flex-1 truncate">
-                {result ? (
-                  <>
-                    主結果{' '}
-                    <span
-                      className={cn(
-                        'font-mono',
-                        result.total === 0 ? 'text-[#E26060]' : 'text-[#E8A020]',
-                      )}
-                    >
-                      {result.total.toLocaleString()}
-                    </span>{' '}
-                    筆
-                    {result.limitReached ? (
-                      <span className="ml-1 text-[#E26060]">
-                        （已達上限 {HARD_LIMIT}、請加條件再縮小）
-                      </span>
-                    ) : null}
-                    {result.total === 0 ? (
-                      <span className="ml-2 text-[#E26060]">
-                        條件「
-                        {[
-                          brandQuery && `廠牌=${brandQuery}`,
-                          keyword && `品名=${keyword}`,
-                          partGroupQuery && `族群=${partGroupQuery}`,
-                          partNo && `料號=${partNo}`,
-                        ]
-                          .filter(Boolean)
-                          .join(' / ') || '空'}
-                        」無對應料號（檢查 demo seed 是否已跑）
-                      </span>
-                    ) : null}
-                  </>
-                ) : (
-                  '輸入條件後按 Enter（料號欄）或右上「搜尋」'
-                )}
-              </span>
-              <span className="shrink-0 font-mono text-[10px] text-muted-foreground/70">↑↓ 切結果</span>
-            </div>
-
-            {error ? (
-              <div className="m-4 flex items-start gap-2 rounded-md border border-[#5A2A2A] bg-[#1F1212] px-3 py-2 text-xs text-[#E26060]">
-                <AlertCircle className="mt-0.5 size-3.5 shrink-0" />
-                <span className="min-w-0 flex-1">{error}</span>
-              </div>
-            ) : null}
-
-            <div className="min-h-0 flex-1 overflow-auto">
-              {rows.length === 0 && !error ? (
-                history.length === 0 ? (
-                  <div className="flex h-full items-center justify-center px-6 py-10 text-center text-xs text-muted-foreground/70">
-                    <div>
-                      <Search className="mx-auto mb-2 size-6 text-muted-foreground/40" />
-                      輸入條件、按 Enter 或「搜尋」按鈕
-                    </div>
-                  </div>
-                ) : (
-                  <HistoryView entries={history} onSelect={selectHistory} />
-                )
-              ) : (
-                <ul className="divide-y divide-border/30">
-                  {rows.map((r, idx) => (
-                    <li key={r.id}>
-                      <button
-                        type="button"
-                        data-pqs-row={idx}
-                        onClick={() => setFocusedIndex(idx)}
-                        className={cn(
-                          'flex w-full px-3 py-2 text-left',
-                          idx === focusedIndex
-                            ? 'bg-[#E8A020]/12 ring-1 ring-inset ring-[#E8A020]/50'
-                            : 'hover:bg-card/60',
-                          !r.isActive && 'opacity-60',
-                        )}
-                      >
-                        {/* 執行長 2026-06-17:列表只顯示基準料號、不顯示庫存數字 */}
-                        <span className="min-w-0 flex-1 truncate font-mono text-xs text-[#E8A020]">
-                          {r.code}
-                        </span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-
-            {/* 搜尋中 overlay（不替換內容、避免 layout 重排造成的閃跳）*/}
-            {loading ? (
-              <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-background/40/60">
-                <div className="flex items-center gap-2 rounded-md border border-[#E8A020]/40 bg-background/40 px-3 py-1.5 text-xs text-[#E8A020] shadow-lg">
-                  <Loader2 className="size-3.5 animate-spin" />
-                  搜尋中…
-                </div>
-              </div>
-            ) : null}
-          </div>
-
-          {/* 右：明細區（基本資料 + 庫存概況 + 產品圖片 + 四 tab）*/}
-          <DetailPane
-            selected={selected}
-            detail={detail}
-            stockSummary={stockSummary}
-            stockSettings={stockSettings}
-            photos={photos}
-            detailLoading={detailLoading}
+        {/* 結果區 */}
+        <div className="relative min-h-0 flex-1 overflow-hidden">
+          <ResultsHeader
+            result={result}
+            loading={loading}
+            error={error}
+            hasAnyInput={Boolean(partNo || keyword || brandQuery || partGroupQuery)}
           />
-        </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-between border-t border-border/40 bg-background/40/40 px-5 py-2 text-[10px] text-muted-foreground/70">
-          <span>
-            F2 開關 · 廠牌/族群/料號輸入出聯想 · 品名按 F4 注音查詢 · ↑↓ 選 · Enter 確認 ·
-            料號欄 Enter 搜尋 · Alt+F 回第一欄 · Esc 關
-          </span>
-          <span className="font-mono text-muted-foreground/40">NEXORA · Part Quick Search</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/** 右側明細區：基本資料(含正方形圖片) + 庫存概況（執行長 2026-06-17:永遠顯示、空值用 —）*/
-function DetailPane({
-  selected,
-  detail,
-  stockSummary,
-  stockSettings,
-  photos,
-  detailLoading,
-}: {
-  selected: PartSearchRow | undefined;
-  detail: PartDetailDto | null;
-  stockSummary: PartStockSummaryDto | null;
-  stockSettings: PartStockSettingRow[];
-  photos: PartPhotoMeta[];
-  detailLoading: boolean;
-}) {
-  // 取顯示值 helper（無 selected/detail 時回 '—'）
-  const v = (val: string | null | undefined) => (val && val.trim() ? val : '—');
-  const codeVal = selected ? (detail?.code ?? selected.code) : '—';
-  const nameVal = selected ? v(detail?.name ?? selected.name) : '—';
-  const secCodeVal = selected ? v(detail?.secCode ?? selected.secCode) : '—';
-  const oldCodeVal = selected ? v(detail?.oldCode) : '—';
-  const brandVal = selected
-    ? detail?.brand
-      ? `${detail.brand.code} · ${detail.brand.name}`
-      : v(selected.brandName)
-    : '—';
-  const groupVal = selected
-    ? detail?.partGroup
-      ? `${detail.partGroup.code} · ${detail.partGroup.name}`
-      : v(selected.partGroupName)
-    : '—';
-  const specVal = selected ? v(detail?.spec ?? selected.spec) : '—';
-  const statusVal = selected ? (selected.isActive ? '啟用' : '停用') : '—';
-
-  return (
-    <div className="flex min-h-0 flex-col overflow-auto p-4">
-      <div className="space-y-3">
-        {/* 基本資料（內嵌正方形圖片在左側）*/}
-        <section className="rounded-lg border border-border/40 bg-card/60 p-3">
-          <div className="mb-2 flex items-center justify-between">
-            <h3 className="text-[10px] font-semibold uppercase tracking-[0.28em] text-muted-foreground">
-              基本資料
-            </h3>
-            {detailLoading ? <Loader2 className="size-3 animate-spin text-muted-foreground/70" /> : null}
-          </div>
-          <div className="flex gap-3">
-            {/* 正方形產品圖片（執行長 2026-06-17:嵌在基本資料內）*/}
-            <SquarePhoto partId={selected?.id} photos={photos} />
-
-            {/* 文字資料 */}
-            <div className="min-w-0 flex-1 space-y-1.5">
-              <DataRow label="基準料號" value={codeVal} mono accent />
-              <DataRow label="品名" value={nameVal} />
-              <DataRow label="副廠料號" value={secCodeVal} mono />
-              <DataRow label="舊料號" value={oldCodeVal} mono />
-              <DataRow label="廠牌" value={brandVal} />
-              <DataRow label="族群" value={groupVal} />
-              <DataRow label="備註 (規格)" value={specVal} />
-              <DataRow label="狀態" value={statusVal} />
-            </div>
-          </div>
-        </section>
-
-        {/* 庫存概況 */}
-        <section className="rounded-lg border border-border/40 bg-card/60 p-3">
-          <div className="mb-2 flex items-center justify-between">
-            <h3 className="text-[10px] font-semibold uppercase tracking-[0.28em] text-muted-foreground">
-              庫存概況
-            </h3>
-            {detailLoading ? <Loader2 className="size-3 animate-spin text-muted-foreground/70" /> : null}
-          </div>
-
-          {/* 公司總 */}
-          <div className="mb-2 grid grid-cols-4 gap-2">
-            <StatPill
-              label="公司庫存"
-              value={stockSummary?.company.onHand ?? '0'}
-              color="#22D88F"
-            />
-            <StatPill
-              label="可出量"
-              value={stockSummary?.company.available ?? '0'}
-              color="#D8D8DC"
-            />
-            <StatPill
-              label="不可出"
-              value={String(
-                Number(stockSummary?.company.reserved ?? '0') +
-                  Number(stockSummary?.company.inTransit ?? '0'),
-              )}
-              color="#E26060"
-            />
-            <StatPill
-              label="在途"
-              value={stockSummary?.company.inTransit ?? '0'}
-              color="#888892"
-            />
-          </div>
-
-          {/* 各倉位明細 */}
-          {stockSummary && stockSummary.warehouses.length > 0 ? (
-            <table className="w-full border-collapse text-[11px]">
-              <thead>
-                <tr className="border-b border-border/40 text-[10px] uppercase tracking-wider text-muted-foreground/70">
-                  <th className="py-1.5 pr-2 text-left font-medium">倉位</th>
-                  <th className="py-1.5 px-1 text-right font-medium">庫存</th>
-                  <th className="py-1.5 px-1 text-right font-medium">可出</th>
-                  <th className="py-1.5 px-1 text-right font-medium">不可出</th>
-                  <th className="py-1.5 pl-1 text-right font-medium">在途</th>
-                </tr>
-              </thead>
-              <tbody>
-                {stockSummary.warehouses.map((w) => (
-                  <tr key={w.warehouseId} className="border-b border-[#1F2D26]">
-                    <td className="py-1.5 pr-2 font-mono text-foreground">
-                      {w.warehouseCode}
-                      <span className="ml-1 text-[10px] text-muted-foreground/70">· {w.warehouseName}</span>
-                    </td>
-                    <td className="py-1.5 px-1 text-right font-mono text-[#22D88F]">
-                      {Number(w.onHand).toFixed(0)}
-                    </td>
-                    <td className="py-1.5 px-1 text-right font-mono text-foreground">
-                      {Number(w.available).toFixed(0)}
-                    </td>
-                    <td className="py-1.5 px-1 text-right font-mono text-[#E26060]">
-                      {Number(w.reserved).toFixed(0)}
-                    </td>
-                    <td className="py-1.5 pl-1 text-right font-mono text-muted-foreground">
-                      {Number(w.inTransit).toFixed(0)}
-                    </td>
-                  </tr>
+          <div ref={resultListRef} className="h-full overflow-auto pb-2 pt-1">
+            {flatRows.length === 0 ? null : (
+              <ul className="divide-y divide-border/20">
+                {flatRows.map((row, idx) => (
+                  <li key={`${row.kind}-${row.member.id}-${idx}`}>
+                    <ResultRow
+                      row={row}
+                      index={idx}
+                      isFocused={idx === focusedIndex}
+                      onFocusIndex={setFocusedIndex}
+                      onKeyDown={handleResultKey}
+                      onSelect={selectRow}
+                    />
+                  </li>
                 ))}
-              </tbody>
-            </table>
-          ) : (
-            <div className="rounded border border-dashed border-border/40 px-3 py-2 text-center text-[10px] text-muted-foreground/70">
-              無倉位庫存資料
-            </div>
-          )}
-        </section>
-
-        {/* 進貨 / 銷貨 / 庫存 / 相關零件 四 tab */}
-        <TabSection selected={selected} detail={detail} stockSettings={stockSettings} />
-      </div>
-    </div>
-  );
-}
-
-type TabKey = 'purchase' | 'sales' | 'stock' | 'related';
-
-function TabSection({
-  selected,
-  detail,
-  stockSettings,
-}: {
-  selected: PartSearchRow | undefined;
-  detail: PartDetailDto | null;
-  stockSettings: PartStockSettingRow[];
-}) {
-  const [activeTab, setActiveTab] = useState<TabKey>('purchase');
-  const [purchase, setPurchase] = useState<PartPurchaseHistoryRow[]>([]);
-  const [sales, setSales] = useState<PartSalesHistoryDto | null>(null);
-  const [stockHist, setStockHist] = useState<PartStockHistoryRow[]>([]);
-  const [related, setRelated] = useState<PartRelatedRow[]>([]);
-  const [tabLoading, setTabLoading] = useState(false);
-  const reqIdRef = useRef(0);
-
-  // 選新 row 時 reset 所有 tab 資料（避免顯示舊資料）
-  const [prevId, setPrevId] = useState<string | undefined>(selected?.id);
-  if (prevId !== selected?.id) {
-    setPrevId(selected?.id);
-    setPurchase([]);
-    setSales(null);
-    setStockHist([]);
-    setRelated([]);
-  }
-
-  // 切 tab 或選新 row 時 lazy fetch 對應資料
-  useEffect(() => {
-    if (!selected) return;
-    const partId = selected.id;
-    const tab = activeTab;
-    const myReqId = ++reqIdRef.current;
-    setTabLoading(true);
-    void (async () => {
-      try {
-        if (tab === 'purchase') {
-          const r = await getPartPurchaseHistory(partId);
-          if (reqIdRef.current === myReqId) setPurchase(r.rows);
-        } else if (tab === 'sales') {
-          const r = await getPartSalesHistory(partId);
-          if (reqIdRef.current === myReqId) setSales(r);
-        } else if (tab === 'stock') {
-          const r = await getPartStockHistory(partId);
-          if (reqIdRef.current === myReqId) setStockHist(r.rows);
-        } else if (tab === 'related') {
-          const r = await getPartRelated(partId);
-          if (reqIdRef.current === myReqId) setRelated(r.rows);
-        }
-      } catch {
-        // 失敗保留舊資料、不爆 UI
-      } finally {
-        if (reqIdRef.current === myReqId) setTabLoading(false);
-      }
-    })();
-  }, [selected, activeTab]);
-
-  const tabs: Array<{ key: TabKey; label: string }> = [
-    { key: 'purchase', label: '進貨' },
-    { key: 'sales', label: '銷貨' },
-    { key: 'stock', label: '庫存' },
-    { key: 'related', label: '相關零件' },
-  ];
-
-  return (
-    <section className="rounded-lg border border-border/40 bg-card/60 p-3">
-      {/* Tab 按鈕列 */}
-      <div className="mb-2 flex items-center gap-1 border-b border-border/40">
-        {tabs.map((t) => (
-          <button
-            key={t.key}
-            type="button"
-            onClick={() => setActiveTab(t.key)}
-            className={cn(
-              '-mb-px border-b-2 px-3 py-1.5 text-xs transition-colors',
-              activeTab === t.key
-                ? 'border-[#E8A020] text-[#E8A020]'
-                : 'border-transparent text-muted-foreground hover:text-foreground',
+              </ul>
             )}
-          >
-            {t.label}
-          </button>
-        ))}
-        {tabLoading ? <Loader2 className="ml-auto size-3 animate-spin text-muted-foreground/70" /> : null}
-      </div>
-
-      {/* Tab 內容 */}
-      <div className="min-h-[180px]">
-        {!selected ? (
-          <EmptyTab text="選一筆結果以查看明細" />
-        ) : activeTab === 'purchase' ? (
-          <PurchasePanel rows={purchase} detail={detail} stockSettings={stockSettings} />
-        ) : activeTab === 'sales' ? (
-          <SalesPanel sales={sales} />
-        ) : activeTab === 'stock' ? (
-          <StockHistoryPanel rows={stockHist} detail={detail} />
-        ) : (
-          <RelatedPanel rows={related} />
-        )}
-      </div>
-    </section>
-  );
-}
-
-function EmptyTab({ text }: { text: string }) {
-  return (
-    <div className="flex h-full min-h-[160px] items-center justify-center text-[11px] text-muted-foreground/70">
-      {text}
-    </div>
-  );
-}
-
-/** 進貨 tab：進貨紀錄 table + ABCD 公司定價 + 安全量/最高量（執行長原始需求 4）*/
-function PurchasePanel({
-  rows,
-  detail,
-  stockSettings,
-}: {
-  rows: PartPurchaseHistoryRow[];
-  detail: PartDetailDto | null;
-  stockSettings: PartStockSettingRow[];
-}) {
-  return (
-    <div className="space-y-2">
-      <div className="grid grid-cols-5 gap-1 rounded border border-border/40 bg-background/40 p-2 text-[10px]">
-        <PriceCell label="成本" value={detail?.cost} />
-        <PriceCell label="A 價" value={detail?.priceA} accent />
-        <PriceCell label="B 價" value={detail?.priceB} accent />
-        <PriceCell label="C 價" value={detail?.priceC} accent />
-        <PriceCell label="D 價" value={detail?.priceD} accent />
-      </div>
-
-      {/* 安全量 / 最高量 / 建議補貨（per 倉位）*/}
-      <div>
-        <div className="mb-1 text-[10px] uppercase tracking-wider text-muted-foreground/70">
-          安全量 / 最高量
+          </div>
+          {loading ? (
+            <div className="pointer-events-none absolute right-4 top-3 flex items-center gap-2 rounded-md border border-[#E8A020]/40 bg-background/60 px-3 py-1.5 text-xs text-[#E8A020] shadow-lg">
+              <Loader2 className="size-3.5 animate-spin" />
+              搜尋中…
+            </div>
+          ) : null}
         </div>
-        {stockSettings.length === 0 ? (
-          <div className="text-[11px] text-muted-foreground/70">尚未設定</div>
-        ) : (
-          <table className="w-full border-collapse text-[11px]">
-            <thead>
-              <tr className="border-b border-border/40 text-[10px] uppercase tracking-wider text-muted-foreground/70">
-                <th className="py-1.5 pr-2 text-left font-medium">倉位</th>
-                <th className="py-1.5 px-1 text-right font-medium">安全量</th>
-                <th className="py-1.5 px-1 text-right font-medium">最高量</th>
-                <th className="py-1.5 pl-1 text-right font-medium">建議補貨</th>
-              </tr>
-            </thead>
-            <tbody>
-              {stockSettings.map((s) => (
-                <tr key={s.warehouseId} className="border-b border-border/30">
-                  <td className="py-1 pr-2 font-mono text-foreground">
-                    {s.warehouseCode}
-                    <span className="ml-1 text-[10px] text-muted-foreground/70">
-                      · {s.warehouseName}
-                    </span>
-                  </td>
-                  <td className="py-1 px-1 text-right font-mono text-[#E26060]">
-                    {Number(s.minQty).toFixed(0)}
-                  </td>
-                  <td className="py-1 px-1 text-right font-mono text-foreground">
-                    {Number(s.maxQty).toFixed(0)}
-                  </td>
-                  <td className="py-1 pl-1 text-right font-mono text-[#E8A020]">
-                    {Number(s.reorderQty).toFixed(0)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-      {rows.length === 0 ? (
-        <EmptyTab text="無進貨紀錄" />
-      ) : (
-        <div className="overflow-auto">
-          <table className="w-full border-collapse text-[11px]">
-            <thead>
-              <tr className="border-b border-border/40 text-[10px] uppercase tracking-wider text-muted-foreground/70">
-                <th className="py-1.5 pr-2 text-left font-medium">日期</th>
-                <th className="py-1.5 px-1 text-left font-medium">單號</th>
-                <th className="py-1.5 px-1 text-left font-medium">廠商</th>
-                <th className="py-1.5 px-1 text-right font-medium">數量</th>
-                <th className="py-1.5 px-1 text-right font-medium">單價</th>
-                <th className="py-1.5 pl-1 text-right font-medium">實際成本</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r) => (
-                <tr key={r.rrItemId} className="border-b border-border/30">
-                  <td className="py-1 pr-2 text-foreground">{formatDate(r.rrDate)}</td>
-                  <td className="py-1 px-1 font-mono text-foreground">{r.docNo}</td>
-                  <td className="py-1 px-1 text-foreground">{r.supplierName}</td>
-                  <td className="py-1 px-1 text-right font-mono text-foreground">
-                    {Number(r.qty).toFixed(0)}
-                  </td>
-                  <td className="py-1 px-1 text-right font-mono text-foreground">
-                    {Number(r.unitCost).toFixed(2)}
-                  </td>
-                  <td className="py-1 pl-1 text-right font-mono text-[#22D88F]">
-                    {Number(r.actualUnitCost).toFixed(2)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
-  );
-}
 
-/** 銷貨 tab:銷售紀錄 + 報價（含未成交） + ABCD 建議報價（執行長原始需求 5）*/
-function SalesPanel({ sales }: { sales: PartSalesHistoryDto | null }) {
-  if (!sales) return <EmptyTab text="載入中…" />;
-  return (
-    <div className="space-y-3">
-      {/* 建議報價 */}
-      <div className="grid grid-cols-5 gap-1 rounded border border-border/40 bg-background/40 p-2 text-[10px]">
-        <PriceCell label="成本" value={sales.suggestedPrices.cost} />
-        <PriceCell label="A 價" value={sales.suggestedPrices.priceA} accent />
-        <PriceCell label="B 價" value={sales.suggestedPrices.priceB} accent />
-        <PriceCell label="C 價" value={sales.suggestedPrices.priceC} accent />
-        <PriceCell label="D 價" value={sales.suggestedPrices.priceD} accent />
-      </div>
-
-      {/* 銷售紀錄 */}
-      <div>
-        <div className="mb-1 text-[10px] uppercase tracking-wider text-muted-foreground/70">
-          銷售紀錄
-        </div>
-        {sales.sales.length === 0 ? (
-          <div className="text-[11px] text-muted-foreground/70">無銷售紀錄</div>
-        ) : (
-          <table className="w-full border-collapse text-[11px]">
-            <thead>
-              <tr className="border-b border-border/40 text-[10px] uppercase tracking-wider text-muted-foreground/70">
-                <th className="py-1.5 pr-2 text-left font-medium">日期</th>
-                <th className="py-1.5 px-1 text-left font-medium">單號</th>
-                <th className="py-1.5 px-1 text-left font-medium">客戶</th>
-                <th className="py-1.5 px-1 text-right font-medium">數量</th>
-                <th className="py-1.5 pl-1 text-right font-medium">單價</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sales.sales.map((r) => (
-                <tr key={r.soItemId} className="border-b border-border/30">
-                  <td className="py-1 pr-2 text-foreground">{formatDate(r.soDate)}</td>
-                  <td className="py-1 px-1 font-mono text-foreground">{r.docNo}</td>
-                  <td className="py-1 px-1 text-foreground">{r.customerName}</td>
-                  <td className="py-1 px-1 text-right font-mono text-foreground">
-                    {Number(r.qty).toFixed(0)}
-                  </td>
-                  <td className="py-1 pl-1 text-right font-mono text-[#22D88F]">
-                    {Number(r.unitPrice).toFixed(2)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-
-      {/* 報價紀錄（含未成交）*/}
-      <div>
-        <div className="mb-1 text-[10px] uppercase tracking-wider text-muted-foreground/70">
-          報價紀錄（含未成交）
-        </div>
-        {sales.quotes.length === 0 ? (
-          <div className="text-[11px] text-muted-foreground/70">無報價紀錄</div>
-        ) : (
-          <table className="w-full border-collapse text-[11px]">
-            <thead>
-              <tr className="border-b border-border/40 text-[10px] uppercase tracking-wider text-muted-foreground/70">
-                <th className="py-1.5 pr-2 text-left font-medium">日期</th>
-                <th className="py-1.5 px-1 text-left font-medium">單號</th>
-                <th className="py-1.5 px-1 text-left font-medium">客戶</th>
-                <th className="py-1.5 px-1 text-right font-medium">單價</th>
-                <th className="py-1.5 px-1 text-right font-medium">底價</th>
-                <th className="py-1.5 pl-1 text-center font-medium">成交</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sales.quotes.map((r) => (
-                <tr key={r.quoteItemId} className="border-b border-border/30">
-                  <td className="py-1 pr-2 text-foreground">{formatDate(r.quoteDate)}</td>
-                  <td className="py-1 px-1 font-mono text-foreground">{r.docNo}</td>
-                  <td className="py-1 px-1 text-foreground">{r.customerName}</td>
-                  <td className="py-1 px-1 text-right font-mono text-foreground">
-                    {Number(r.unitPrice).toFixed(2)}
-                  </td>
-                  <td className="py-1 px-1 text-right font-mono text-muted-foreground/70">
-                    {r.minPrice ? Number(r.minPrice).toFixed(2) : '—'}
-                  </td>
-                  <td className="py-1 pl-1 text-center">
-                    {r.isSelected ? (
-                      <span className="text-[#22D88F]">✓</span>
-                    ) : (
-                      <span className="text-muted-foreground/40">—</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-    </div>
-  );
-}
-
-/** 庫存 tab:出入庫紀錄 + 最後進/出貨時間（執行長原始需求 6）*/
-function StockHistoryPanel({
-  rows,
-  detail,
-}: {
-  rows: PartStockHistoryRow[];
-  detail: PartDetailDto | null;
-}) {
-  return (
-    <div className="space-y-2">
-      <div className="grid grid-cols-2 gap-2 rounded border border-border/40 bg-background/40 p-2 text-[11px]">
-        <div>
-          <span className="text-muted-foreground/70">最後進貨：</span>{' '}
-          <span className="font-mono text-foreground">{formatDate(detail?.lastPurchaseAt) || '—'}</span>
-        </div>
-        <div>
-          <span className="text-muted-foreground/70">最後出貨：</span>{' '}
-          <span className="font-mono text-foreground">{formatDate(detail?.lastSaleAt) || '—'}</span>
-        </div>
-      </div>
-      {rows.length === 0 ? (
-        <EmptyTab text="無出入庫紀錄" />
-      ) : (
-        <div className="overflow-auto">
-          <table className="w-full border-collapse text-[11px]">
-            <thead>
-              <tr className="border-b border-border/40 text-[10px] uppercase tracking-wider text-muted-foreground/70">
-                <th className="py-1.5 pr-2 text-left font-medium">時間</th>
-                <th className="py-1.5 px-1 text-left font-medium">類型</th>
-                <th className="py-1.5 px-1 text-left font-medium">倉位</th>
-                <th className="py-1.5 px-1 text-right font-medium">入</th>
-                <th className="py-1.5 pl-1 text-right font-medium">出</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r) => (
-                <tr key={r.id} className="border-b border-border/30">
-                  <td className="py-1 pr-2 text-foreground">{formatDateTime(r.movementDate)}</td>
-                  <td className="py-1 px-1 text-foreground">{movementTypeLabel(r)}</td>
-                  <td className="py-1 px-1 text-foreground">
-                    {r.warehouseCode}
-                    <span className="ml-1 text-[10px] text-muted-foreground/70">{r.locationCode}</span>
-                  </td>
-                  <td className="py-1 px-1 text-right font-mono text-[#22D88F]">
-                    {Number(r.qtyIn) > 0 ? Number(r.qtyIn).toFixed(0) : ''}
-                  </td>
-                  <td className="py-1 pl-1 text-right font-mono text-[#E26060]">
-                    {Number(r.qtyOut) > 0 ? Number(r.qtyOut).toFixed(0) : ''}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
-  );
-}
-
-/** 相關零件 tab（執行長 Q3=A 不分子類型）*/
-function RelatedPanel({ rows }: { rows: PartRelatedRow[] }) {
-  if (rows.length === 0) return <EmptyTab text="無相關零件" />;
-  return (
-    <ul className="divide-y divide-border/30">
-      {rows.map((r) => (
-        <li key={r.relationId} className={cn('flex items-center gap-2 py-1.5', !r.isActive && 'opacity-60')}>
-          <span className="w-[150px] shrink-0 truncate font-mono text-xs text-[#E8A020]">
-            {r.code}
+        {/* Footer 鍵盤提示 */}
+        <div className="grid grid-cols-[1fr_auto] items-center gap-4 border-t border-border/40 bg-background/40 px-6 py-2.5 text-[11px] text-muted-foreground/80">
+          <span>
+            <Kbd>Tab</Kbd>/<Kbd>Shift+Tab</Kbd> 切欄 ·{' '}
+            <Kbd>↑↓</Kbd>/<Kbd>PgUp</Kbd>/<Kbd>PgDn</Kbd>/<Kbd>Home</Kbd>/<Kbd>End</Kbd> 切筆 ·{' '}
+            <Kbd>Enter</Kbd> 選定 · <Kbd>Esc</Kbd> 關（兩段式） · 品名 <Kbd>F4</Kbd> 注音 ·
+            廠牌/族群空欄 <Kbd>Space</Kbd> 展開
           </span>
-          <span className="min-w-0 flex-1 truncate text-[11px] text-foreground">{r.name}</span>
-          <span className="w-[80px] shrink-0 truncate text-[10px] text-muted-foreground/70">
-            {r.brandCode ?? '—'}
+          <span className="font-mono text-[10px] text-muted-foreground/40">
+            NEXORA · Part Quick Search · 視窗 1
           </span>
-          <span className="w-[80px] shrink-0 text-right font-mono text-[11px]">
-            <span className="text-[#22D88F]">{Number(r.onHandTotal).toFixed(0)}</span>
-            <span className="text-muted-foreground/70"> / </span>
-            <span className="text-muted-foreground">{Number(r.availableTotal).toFixed(0)}</span>
-          </span>
-        </li>
-      ))}
-    </ul>
+        </div>
+      </div>
+    </div>
   );
 }
 
-function PriceCell({
-  label,
+/** 料號純輸入欄：focus 全選、空白=正常空格、Enter=搜尋（字級放大）*/
+function PartNoInput({
   value,
-  accent,
+  onChange,
+  inputRef,
+  onSubmit,
 }: {
-  label: string;
-  value: string | null | undefined;
-  accent?: boolean;
+  value: string;
+  onChange: (v: string) => void;
+  inputRef: React.RefObject<HTMLInputElement | null>;
+  onSubmit: () => void;
 }) {
+  const handleKey = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.nativeEvent.isComposing) return;
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        onSubmit();
+      }
+      // Esc 不攔、讓外層 modal 關
+      // 空白不攔、純輸入欄 = 正常空格（例：「03L 115 561」）
+    },
+    [onSubmit],
+  );
   return (
-    <div className="flex flex-col items-center">
-      <span className="text-[9px] uppercase tracking-wider text-muted-foreground/70">{label}</span>
-      <span
-        className={cn(
-          'font-mono text-xs',
-          accent ? 'text-[#E8A020]' : 'text-foreground',
-        )}
-      >
-        {value ? Number(value).toFixed(0) : '—'}
+    <div className="flex flex-col gap-1">
+      <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70">
+        料號（最大欄、預設焦點）
       </span>
-    </div>
-  );
-}
-
-function formatDate(iso: string | null | undefined): string {
-  if (!iso) return '';
-  return iso.slice(0, 10);
-}
-
-function formatDateTime(iso: string | null | undefined): string {
-  if (!iso) return '';
-  return iso.slice(0, 16).replace('T', ' ');
-}
-
-/** 出入庫類型顯示（依 movementType + sourceDocType 對照業務語意）*/
-function movementTypeLabel(r: PartStockHistoryRow): string {
-  // movementType: I=IN / O=OUT / A=ADJUST
-  // sourceDocType: P=進貨 / S=銷貨 / T=盤點 / I=開帳 / X=調撥 / R=退貨
-  const docMap: Record<string, string> = {
-    P: '進貨',
-    S: '銷貨',
-    T: '盤點',
-    I: '開帳',
-    X: '調撥',
-    R: '退貨',
-  };
-  return docMap[r.sourceDocType] ?? r.movementType;
-}
-
-/** 歷史紀錄（localStorage 最近 10 筆、執行長階段 6 拍板）*/
-type HistoryEntry = {
-  id: string;
-  code: string;
-  name: string;
-  ts: number;
-};
-
-const HISTORY_KEY = 'nx-pqs-history';
-const HISTORY_MAX = 10;
-
-function loadHistory(): HistoryEntry[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    const raw = window.localStorage.getItem(HISTORY_KEY);
-    if (!raw) return [];
-    const arr = JSON.parse(raw) as unknown;
-    if (!Array.isArray(arr)) return [];
-    return arr.filter(
-      (e): e is HistoryEntry =>
-        typeof e === 'object' &&
-        e !== null &&
-        typeof (e as HistoryEntry).id === 'string' &&
-        typeof (e as HistoryEntry).code === 'string',
-    );
-  } catch {
-    return [];
-  }
-}
-
-function pushHistory(prev: HistoryEntry[], entry: HistoryEntry): HistoryEntry[] {
-  const filtered = prev.filter((e) => e.id !== entry.id);
-  const next = [entry, ...filtered].slice(0, HISTORY_MAX);
-  if (typeof window !== 'undefined') {
-    try {
-      window.localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
-    } catch {
-      // localStorage 滿 / 失敗 → 忽略、不擋 UI
-    }
-  }
-  return next;
-}
-
-/** 歷史紀錄顯示（空 result 時取代 placeholder）*/
-function HistoryView({
-  entries,
-  onSelect,
-}: {
-  entries: HistoryEntry[];
-  onSelect: (e: HistoryEntry) => void;
-}) {
-  return (
-    <div className="px-3 py-3">
-      <div className="mb-2 flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-muted-foreground/70">
-        <Search className="size-3" />
-        最近查詢（{entries.length}）
-      </div>
-      <ul className="space-y-1">
-        {entries.map((e) => (
-          <li key={e.id}>
-            <button
-              type="button"
-              onClick={() => onSelect(e)}
-              className="flex w-full flex-col items-start gap-0.5 rounded border border-border/40 bg-background/40 px-2 py-1.5 text-left hover:border-[#E8A020]/40 hover:bg-card/60"
-            >
-              <span className="truncate font-mono text-xs text-[#E8A020]">{e.code}</span>
-              <span className="truncate text-[10px] text-muted-foreground/70">{e.name}</span>
-            </button>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function DataRow({
-  label,
-  value,
-  mono,
-  accent,
-}: {
-  label: string;
-  value: string | null | undefined;
-  mono?: boolean;
-  accent?: boolean;
-}) {
-  return (
-    <div className="flex items-baseline gap-3 border-b border-[#1F2D26]/60 pb-1 text-[11px] last:border-b-0 last:pb-0">
-      <span className="w-[78px] shrink-0 text-muted-foreground/70">{label}</span>
-      <span
-        className={cn(
-          'min-w-0 flex-1 truncate',
-          mono && 'font-mono',
-          accent ? 'text-[#E8A020]' : 'text-foreground',
-        )}
-      >
-        {value || '—'}
-      </span>
-    </div>
-  );
-}
-
-function StatPill({ label, value, color }: { label: string; value: string; color: string }) {
-  return (
-    <div className="flex flex-col items-center rounded-md border border-border/40 bg-background/40/60 px-2 py-1.5">
-      <span className="text-[9px] uppercase tracking-wider text-muted-foreground/70">{label}</span>
-      <span className="font-mono text-sm" style={{ color }}>
-        {Number(value).toFixed(0)}
-      </span>
-    </div>
-  );
-}
-
-/** 正方形產品縮圖（嵌在基本資料左側、執行長 2026-06-17）*/
-function SquarePhoto({ partId, photos }: { partId: string | undefined; photos: PartPhotoMeta[] }) {
-  const main = photos[0];
-  if (!partId || !main) {
-    return (
-      <div className="flex size-[120px] shrink-0 flex-col items-center justify-center rounded border border-dashed border-border/40 bg-background/40/40 text-center text-[9px] text-muted-foreground/70">
-        <ImageIcon className="mb-1 size-5 text-muted-foreground/40" />
-        無產品圖
-      </div>
-    );
-  }
-  return (
-    <div className="size-[120px] shrink-0 overflow-hidden rounded border border-border/40 bg-background/40">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={buildPartSearchPhotoUrl(partId, main.id)}
-        alt={main.origFilename ?? '產品圖片'}
-        className="size-full object-cover"
+      <input
+        ref={inputRef}
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={handleKey}
+        onFocus={(e) => {
+          // 焦點落入有字 → 自動全選反白（執行長 2026-06-24 F2 視窗 1 規格）
+          if (value) e.currentTarget.select();
+        }}
+        placeholder="可打 VAG-03H / 03L 115 561 / 03L*115 / 後 6 碼"
+        autoComplete="off"
+        className="h-12 rounded-md border border-[#E8A020]/40 bg-background/60 px-3 font-mono text-base tracking-wide text-foreground outline-none placeholder:text-muted-foreground/60 focus:border-[#E8A020]"
       />
     </div>
   );
 }
 
+/** 結果區 header（result 描述行 + error）*/
+function ResultsHeader({
+  result,
+  loading,
+  error,
+  hasAnyInput,
+}: {
+  result: PartSearchResult | null;
+  loading: boolean;
+  error: string | null;
+  hasAnyInput: boolean;
+}) {
+  const groupCount = result?.groups?.length ?? 0;
+  const ungroupedCount = result?.ungrouped?.length ?? 0;
+  return (
+    <div className="flex items-center justify-between border-b border-border/30 bg-background/40 px-6 py-2 text-[12px] text-muted-foreground">
+      {error ? (
+        <span className="text-[#E26060]">⚠ {error}</span>
+      ) : !hasAnyInput ? (
+        <span>輸入任一條件、稍停 0.25 秒自動搜尋；按 <Kbd>F4</Kbd>（品名欄）打注音碼</span>
+      ) : !result ? (
+        loading ? <span className="text-[#E8A020]">搜尋中…</span> : <span>—</span>
+      ) : (
+        <span>
+          找到{' '}
+          <span className={cn('font-mono font-semibold', result.total === 0 ? 'text-[#E26060]' : 'text-[#E8A020]')}>
+            {result.total.toLocaleString()}
+          </span>{' '}
+          筆（群組 <span className="font-mono">{groupCount}</span> · 散件{' '}
+          <span className="font-mono">{ungroupedCount}</span>）
+          {result.limitReached ? (
+            <span className="ml-2 text-[#E26060]">⚠ 已達上限 500、請縮小條件</span>
+          ) : null}
+        </span>
+      )}
+      <span className="font-mono text-[10px] text-muted-foreground/50">
+        ↑↓ 切筆 / PgUp PgDn 翻頁 / Home End 頭尾
+      </span>
+    </div>
+  );
+}
+
+/** 結果 row：群組頭 / 替代品 / 散件三種樣式 */
+function ResultRow({
+  row,
+  index,
+  isFocused,
+  onFocusIndex,
+  onKeyDown,
+  onSelect,
+}: {
+  row: FlatResultRow;
+  index: number;
+  isFocused: boolean;
+  onFocusIndex: (i: number) => void;
+  onKeyDown: (e: React.KeyboardEvent<HTMLButtonElement>) => void;
+  onSelect: (r: PartSearchRow) => void;
+}) {
+  const m = row.member;
+  const isPrimary = row.kind !== 'group-alt';
+  const indent = row.kind === 'group-alt';
+  const oemTag = m.isOem ? '正廠' : '副廠';
+  const oemColor = m.isOem ? 'text-[#22D88F]' : 'text-[#FFB347]';
+
+  return (
+    <button
+      type="button"
+      data-pqs-row={index}
+      onClick={() => onSelect(m)}
+      onFocus={() => onFocusIndex(index)}
+      onKeyDown={onKeyDown}
+      className={cn(
+        'flex w-full items-center gap-4 px-6 py-3 text-left outline-none transition-colors',
+        isFocused
+          ? 'bg-[#E8A020]/12 ring-1 ring-inset ring-[#E8A020]/60'
+          : 'hover:bg-card/60',
+        !m.isActive && 'opacity-55',
+      )}
+    >
+      {/* 縮排線（替代品）*/}
+      {indent ? (
+        <span className="ml-6 inline-block w-5 shrink-0 text-muted-foreground/60">└</span>
+      ) : (
+        <span className="inline-block w-1 shrink-0 self-stretch rounded bg-[#E8A020]/60" />
+      )}
+
+      {/* 料號 */}
+      <span
+        className={cn(
+          'min-w-[180px] shrink-0 truncate font-mono tracking-wide',
+          isPrimary ? 'text-base text-[#E8A020]' : 'text-sm text-[#9BD0E8]',
+        )}
+      >
+        {m.code}
+      </span>
+
+      {/* 主件 / 替代 徽章 */}
+      {isPrimary ? (
+        <span className="shrink-0 rounded border border-[#E8A020]/60 bg-[#E8A020]/15 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-[#E8A020]">
+          主件
+        </span>
+      ) : (
+        <span className="shrink-0 rounded border border-[#5A8FB8]/60 bg-[#3B5C7A]/20 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-[#9BD0E8]">
+          替代
+        </span>
+      )}
+
+      {/* 廠牌 */}
+      <span className="w-[110px] shrink-0 truncate text-sm text-foreground">
+        {m.brandCode ?? m.brandName ?? '—'}
+      </span>
+
+      {/* 正廠 / 副廠 */}
+      <span className={cn('w-[44px] shrink-0 text-center font-mono text-[11px]', oemColor)}>
+        {oemTag}
+      </span>
+
+      {/* 品名 */}
+      <span className="min-w-0 flex-1 truncate text-sm text-foreground">{m.name}</span>
+
+      {/* 命中高亮（替代品如果是搜尋命中、給個小點）*/}
+      {'isMatch' in m && (m as { isMatch?: boolean }).isMatch && row.kind === 'group-alt' ? (
+        <span className="size-1.5 shrink-0 rounded-full bg-[#E8A020] shadow-[0_0_6px_#E8A020]" />
+      ) : null}
+
+      {/* 停用品標 */}
+      {!m.isActive ? (
+        <span className="shrink-0 rounded border border-[#5A2A2A] bg-[#1F1212] px-1.5 py-0.5 text-[10px] text-[#E26060]">
+          停用
+        </span>
+      ) : null}
+    </button>
+  );
+}
+
+function Kbd({ children }: { children: React.ReactNode }) {
+  return (
+    <kbd className="rounded border border-border/50 bg-background/60 px-1.5 py-px font-mono text-[10px] text-foreground">
+      {children}
+    </kbd>
+  );
+}
+
+// 防範未使用 import warning（result 型別暫保留導出時用）
+export type { PartSearchCompatGroup };

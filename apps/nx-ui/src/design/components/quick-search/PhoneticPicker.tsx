@@ -205,9 +205,13 @@ export function PhoneticPicker({
         value={value}
         onChange={(e) => handleChange(e.target.value)}
         onKeyDown={handleKeyDown}
+        // 執行長 2026-06-24 F2 視窗 1：焦點落入有字 → 自動全選反白（純輸入欄、空白=空格、不影響）
+        onFocus={(e) => {
+          if (value) e.currentTarget.select();
+        }}
         placeholder={placeholder}
         autoComplete="off"
-        className="h-8 rounded-md border border-border/40 bg-background/60 px-2 text-xs text-foreground outline-none placeholder:text-muted-foreground/70 focus:border-[#E8A020]/60"
+        className="h-10 rounded-md border border-border/40 bg-background/60 px-2.5 text-sm text-foreground outline-none placeholder:text-muted-foreground/70 focus:border-[#E8A020]/60"
       />
 
       {open && candidates.length > 0 ? (

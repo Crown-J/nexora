@@ -119,9 +119,45 @@ export function Combobox<T>({
     [onSelect, onSubmit],
   );
 
+  // 空欄+空白：trigger fetchSuggestions('') 把整個下拉打開（執行長 2026-06-24 F2 視窗 1 鍵盤紀律）
+  // 有字+空白：吞掉、不打空格（廠牌/族群這類下拉欄不該插入空格）
+  // 純輸入欄（料號/品名）走獨立元件、空白永遠是空格、不用 Combobox
+  const handleSpace = useCallback(
+    async (e: React.KeyboardEvent<HTMLInputElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (value.trim()) {
+        // 有字+空白 → 吞掉
+        return;
+      }
+      // 空欄+空白 → 展開所有聯想項
+      const myReqId = ++reqIdRef.current;
+      try {
+        const items = await fetchSuggestions('');
+        if (reqIdRef.current !== myReqId) return;
+        setSuggestions(items);
+        setFocusedIdx(items.length > 0 ? 0 : -1);
+        setSearchedEmpty(items.length === 0);
+        setOpen(true);
+      } catch {
+        if (reqIdRef.current !== myReqId) return;
+        setSuggestions([]);
+        setSearchedEmpty(true);
+        setOpen(true);
+      }
+    },
+    [value, fetchSuggestions],
+  );
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.nativeEvent.isComposing) return; // IME 中不處理
+
+      // 空白雙意：空欄→開選單；有字→吞掉（執行長 2026-06-24 F2 視窗 1 規格）
+      if (e.key === ' ' || e.code === 'Space') {
+        void handleSpace(e);
+        return;
+      }
 
       if (e.key === 'ArrowDown') {
         if (suggestions.length === 0) return;
@@ -165,7 +201,7 @@ export function Combobox<T>({
         return;
       }
     },
-    [open, suggestions, focusedIdx, handleSelect, onSubmit],
+    [open, suggestions, focusedIdx, handleSelect, onSubmit, handleSpace],
   );
 
   // 點外面關下拉
@@ -197,12 +233,14 @@ export function Combobox<T>({
         value={value}
         onChange={(e) => handleChange(e.target.value)}
         onKeyDown={handleKeyDown}
-        onFocus={() => {
+        onFocus={(e) => {
+          // 執行長 2026-06-24 F2 視窗 1：焦點落入有字 → 自動全選反白（打字=覆蓋、→鍵取消反白）
+          if (value) e.currentTarget.select();
           if (suggestions.length > 0) setOpen(true);
         }}
         placeholder={placeholder}
         autoComplete="off"
-        className="h-8 rounded-md border border-border/40 bg-background/60 px-2 text-xs text-foreground outline-none placeholder:text-muted-foreground/70 focus:border-[#E8A020]/60"
+        className="h-10 rounded-md border border-border/40 bg-background/60 px-2.5 text-sm text-foreground outline-none placeholder:text-muted-foreground/70 focus:border-[#E8A020]/60"
       />
 
       {open && suggestions.length > 0 ? (
