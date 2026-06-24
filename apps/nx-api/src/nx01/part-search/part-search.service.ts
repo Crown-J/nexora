@@ -202,6 +202,7 @@ export class PartSearchService {
           name: true,
           secCode: true,
           isActive: true,
+          isOem: true,
           spec: true,
           brand: { select: { code: true, name: true } },
           partGroup: { select: { code: true, name: true } },
@@ -231,27 +232,193 @@ export class PartSearchService {
     const limitReached = rawTotal > HARD_RESULT_LIMIT;
     const total = Math.min(rawTotal, HARD_RESULT_LIMIT);
 
+    const flatRows = rows.map((r) => ({
+      id: r.id,
+      code: r.code,
+      name: r.name,
+      secCode: r.secCode,
+      spec: r.spec,
+      brandCode: r.brand?.code ?? null,
+      brandName: r.brand?.name ?? null,
+      partGroupCode: r.partGroup?.code ?? null,
+      partGroupName: r.partGroup?.name ?? null,
+      isActive: r.isActive,
+      isOem: r.isOem,
+      onHandTotal: stockMap.get(r.id)?.onHand ?? '0',
+      availableTotal: stockMap.get(r.id)?.available ?? '0',
+    }));
+
+    // 通用件群組樹模式（執行長 2026-06-24 F2 視窗 1 重做：結果以「主件→替代品」歸組顯示）
+    // 1. 取出命中 part 屬於的所有 compat group
+    // 2. 每個 group 撈完整 members（含未命中的主件 + 其他替代品、給上下文）
+    // 3. 未屬任何 group 的命中 part → ungrouped 自成一筆（一律標 PRIMARY）
+    if (q.groupByCompat) {
+      const tree = await this.buildCompatGroupTree(tenantId, flatRows);
+      return {
+        page,
+        pageSize,
+        total,
+        rawTotal,
+        limitReached,
+        rows: flatRows,
+        groups: tree.groups,
+        ungrouped: tree.ungrouped,
+      };
+    }
+
     return {
       page,
       pageSize,
       total,
       rawTotal,
       limitReached,
-      rows: rows.map((r) => ({
-        id: r.id,
-        code: r.code,
-        name: r.name,
-        secCode: r.secCode,
-        spec: r.spec,
-        brandCode: r.brand?.code ?? null,
-        brandName: r.brand?.name ?? null,
-        partGroupCode: r.partGroup?.code ?? null,
-        partGroupName: r.partGroup?.name ?? null,
-        isActive: r.isActive,
-        onHandTotal: stockMap.get(r.id)?.onHand ?? '0',
-        availableTotal: stockMap.get(r.id)?.available ?? '0',
-      })),
+      rows: flatRows,
     };
+  }
+
+  /**
+   * 通用件群組樹：把搜尋命中的 part 依 Nx01PartCompatGroupMember 歸組。
+   * 命中 part 若屬於 ≥1 個 group → 取「第一個 group」作主歸宿（避免重複展示）。
+   *   - 群組頭顯示該 group 的 PRIMARY（若 group 無 PRIMARY、用 sortNo 最前的 ALT 當頭、role 標 ALT）
+   *   - 替代品依 sortNo 排列、完整列出（不限定是否在搜尋結果裡）
+   *   - 「命中」的 member 加 isMatch=true 旗標、UI 可高亮
+   * 命中 part 不屬於任何 group → ungrouped、視為單筆主件。
+   */
+  private async buildCompatGroupTree(
+    tenantId: string,
+    hits: Array<{
+      id: string;
+      code: string;
+      name: string;
+      secCode: string | null;
+      spec: string | null;
+      brandCode: string | null;
+      brandName: string | null;
+      partGroupCode: string | null;
+      partGroupName: string | null;
+      isActive: boolean;
+      isOem: boolean;
+      onHandTotal: string;
+      availableTotal: string;
+    }>,
+  ) {
+    if (hits.length === 0) return { groups: [], ungrouped: [] };
+
+    const hitIds = hits.map((h) => h.id);
+    // 撈這些 part 屬於的所有 group（不限 isActive、讓上下文完整）
+    const memberships = await this.prisma.nx01PartCompatGroupMember.findMany({
+      where: { tenantId, partId: { in: hitIds } },
+      select: { groupId: true, partId: true, role: true, sortNo: true },
+    });
+
+    // 命中 part → 對應的 groupIds（取第一個作主歸宿、避免重複）
+    const partToPrimaryGroup = new Map<string, string>();
+    const groupIds = new Set<string>();
+    for (const m of memberships) {
+      if (!partToPrimaryGroup.has(m.partId)) {
+        partToPrimaryGroup.set(m.partId, m.groupId);
+      }
+      groupIds.add(m.groupId);
+    }
+
+    // 撈所有相關 group 的完整 members + group 本身
+    const [groups, allMembers] = await Promise.all([
+      this.prisma.nx01PartCompatGroup.findMany({
+        where: { tenantId, id: { in: Array.from(groupIds) } },
+        orderBy: [{ sortNo: 'asc' }, { code: 'asc' }],
+        select: { id: true, code: true, name: true, remark: true },
+      }),
+      this.prisma.nx01PartCompatGroupMember.findMany({
+        where: { tenantId, groupId: { in: Array.from(groupIds) } },
+        orderBy: [{ role: 'asc' }, { sortNo: 'asc' }],
+        select: {
+          groupId: true,
+          partId: true,
+          role: true,
+          isBidirectional: true,
+          sortNo: true,
+          part: {
+            select: {
+              id: true,
+              code: true,
+              name: true,
+              secCode: true,
+              spec: true,
+              isActive: true,
+              isOem: true,
+              brand: { select: { code: true, name: true } },
+              partGroup: { select: { code: true, name: true } },
+            },
+          },
+        },
+      }),
+    ]);
+
+    // 補撈：完整 member 中、非命中 part 的庫存（給 UI 一致顯示）
+    const allMemberPartIds = Array.from(new Set(allMembers.map((m) => m.partId)));
+    const extraIds = allMemberPartIds.filter((id) => !hitIds.includes(id));
+    const extraStock = extraIds.length
+      ? await this.prisma.nx03StockBalance.groupBy({
+          by: ['partId'],
+          where: { tenantId, partId: { in: extraIds } },
+          _sum: { onHandQty: true, availableQty: true },
+        })
+      : [];
+    const extraStockMap = new Map(
+      extraStock.map((b) => [
+        b.partId,
+        {
+          onHand: b._sum?.onHandQty?.toString() ?? '0',
+          available: b._sum?.availableQty?.toString() ?? '0',
+        },
+      ]),
+    );
+    const hitsMap = new Map(hits.map((h) => [h.id, h]));
+
+    // 組樹：每個 group 一個節點
+    const groupNodes = groups.map((g) => {
+      const members = allMembers
+        .filter((m) => m.groupId === g.id)
+        .map((m) => {
+          const hit = hitsMap.get(m.partId);
+          const stock = hit
+            ? { onHand: hit.onHandTotal, available: hit.availableTotal }
+            : (extraStockMap.get(m.partId) ?? { onHand: '0', available: '0' });
+          return {
+            id: m.part.id,
+            code: m.part.code,
+            name: m.part.name,
+            secCode: m.part.secCode,
+            spec: m.part.spec,
+            brandCode: m.part.brand?.code ?? null,
+            brandName: m.part.brand?.name ?? null,
+            partGroupCode: m.part.partGroup?.code ?? null,
+            partGroupName: m.part.partGroup?.name ?? null,
+            isActive: m.part.isActive,
+            isOem: m.part.isOem,
+            onHandTotal: stock.onHand,
+            availableTotal: stock.available,
+            role: m.role, // 1=PRIMARY 主件 / 2=ALT 替代品
+            isBidirectional: m.isBidirectional,
+            isMatch: hitsMap.has(m.partId),
+          };
+        });
+      const primary = members.find((m) => m.role === 1) ?? members[0];
+      const alts = members.filter((m) => m.id !== primary?.id);
+      return {
+        groupId: g.id,
+        groupCode: g.code,
+        groupName: g.name,
+        remark: g.remark,
+        primary,
+        alts,
+      };
+    });
+
+    // 命中 part 不屬於任何 group → ungrouped（自成單筆、視為主件）
+    const ungrouped = hits.filter((h) => !partToPrimaryGroup.has(h.id));
+
+    return { groups: groupNodes, ungrouped };
   }
 
   /** 基本資料 + 正廠對應料號（供右側基本資料區）*/

@@ -13,8 +13,25 @@ export type PartSearchRow = {
   partGroupCode: string | null;
   partGroupName: string | null;
   isActive: boolean;
+  isOem: boolean;
   onHandTotal: string;
   availableTotal: string;
+};
+
+/** 通用件群組 member 節點（執行長 2026-06-24 F2 視窗 1 重做、回應內 groups[].primary/alts 用）*/
+export type PartSearchCompatMember = PartSearchRow & {
+  role: number; // 1=PRIMARY 主件 / 2=ALT 替代品
+  isBidirectional: boolean;
+  isMatch: boolean; // 該 member 本身是否為「搜尋命中」的 part
+};
+
+export type PartSearchCompatGroup = {
+  groupId: string;
+  groupCode: string;
+  groupName: string;
+  remark: string | null;
+  primary?: PartSearchCompatMember;
+  alts: PartSearchCompatMember[];
 };
 
 export type PartSearchResult = {
@@ -24,6 +41,10 @@ export type PartSearchResult = {
   rawTotal: number;
   limitReached: boolean;
   rows: PartSearchRow[];
+  /** 只在 query.groupByCompat=true 時出現：屬於通用件群組的命中 part 樹（含完整 group 上下文）*/
+  groups?: PartSearchCompatGroup[];
+  /** 只在 query.groupByCompat=true 時出現：不屬任何 group 的命中 part（一律視為主件）*/
+  ungrouped?: PartSearchRow[];
 };
 
 export type PartSearchQuery = {
@@ -34,6 +55,8 @@ export type PartSearchQuery = {
   keyword?: string;
   partNo?: string;
   includeInactive?: boolean;
+  /** 通用件群組樹模式（F2 視窗 1 用）*/
+  groupByCompat?: boolean;
   page?: number;
   pageSize?: number;
 };

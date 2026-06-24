@@ -49,6 +49,17 @@ export class PartSearchQueryDto {
   @IsBoolean()
   includeInactive?: boolean;
 
+  /**
+   * 通用件群組樹模式（執行長 2026-06-24 F2 視窗 1 重做）。
+   * true → 在回應內補 groups + ungrouped：以「主件→替代品」歸組顯示。
+   * 不影響既有 rows 欄位（向下相容、舊版第三版 modal 仍可用）。
+   */
+  @IsOptional()
+  @Type(() => Object)
+  @Transform(({ value }) => toOptionalBool(value))
+  @IsBoolean()
+  groupByCompat?: boolean;
+
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(100) pageSize?: number;
 }

@@ -40,6 +40,7 @@ export async function quickSearchParts(q: PartSearchQuery): Promise<PartSearchRe
     keyword: q.keyword?.trim() || undefined,
     partNo: q.partNo?.trim() || undefined,
     includeInactive: q.includeInactive ? 'true' : undefined,
+    groupByCompat: q.groupByCompat ? 'true' : undefined,
     page: q.page !== undefined ? String(q.page) : undefined,
     pageSize: q.pageSize !== undefined ? String(q.pageSize) : undefined,
   });
