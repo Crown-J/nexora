@@ -254,10 +254,22 @@ export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props
     return () => window.removeEventListener('keydown', h);
   }, []);
 
+  // 執行長 2026-06-25：開窗焦點永遠在右側通用零件、不去 Header「退回搜尋」按鈕。
+  // 1. initialFocusRef={compatListRef} → mount 時先 focus FocusZone 容器（即使資料還沒載完、容器可 focus）
+  // 2. compatRows 載入後 useEffect → 切到第一筆（主件）row、↑↓ 直接生效
+  useEffect(() => {
+    if (compatRows.length === 0) return;
+    queueMicrotask(() => {
+      const el = document.querySelector('[data-compat-row="0"]') as HTMLElement | null;
+      el?.focus();
+    });
+  }, [compatRows.length, mainPartId]);
+
   return (
     <FocusLockedDialog
       open
       onClose={onBack} // Esc → 退回搜尋窗（不是直接關全部）
+      initialFocusRef={compatListRef}
       ariaLabel="料號主視窗"
       backdropClassName="bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
       dialogClassName="flex flex-col rounded-2xl border border-border/40 bg-card/85 text-foreground shadow-[0_30px_80px_rgba(0,0,0,0.55)] backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-200"
