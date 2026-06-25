@@ -4,6 +4,7 @@ import * as React from 'react'
 import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu'
 import { CheckIcon, ChevronRightIcon, CircleIcon } from 'lucide-react'
 
+import { useModalLayer } from '@design/primitives/modal-stack'
 import { cn } from '@design/utils/cn'
 
 function DropdownMenu({
@@ -36,9 +37,13 @@ function DropdownMenuContent({
   sideOffset = 4,
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Content>) {
+  // 軌 A：menu 開啟期間註冊為 layer、guard 隔離背景 keydown
+  const contentRef = React.useRef<HTMLDivElement>(null)
+  useModalLayer(contentRef)
   return (
     <DropdownMenuPrimitive.Portal>
       <DropdownMenuPrimitive.Content
+        ref={contentRef}
         data-slot="dropdown-menu-content"
         sideOffset={sideOffset}
         className={cn(
@@ -226,8 +231,12 @@ function DropdownMenuSubContent({
   className,
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.SubContent>) {
+  // 軌 A：sub menu 也註冊（多層 menu 時最內層成為 top layer）
+  const subRef = React.useRef<HTMLDivElement>(null)
+  useModalLayer(subRef)
   return (
     <DropdownMenuPrimitive.SubContent
+      ref={subRef}
       data-slot="dropdown-menu-sub-content"
       className={cn(
         'bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-[60] min-w-[8rem] origin-(--radix-dropdown-menu-content-transform-origin) overflow-hidden rounded-md border p-1 shadow-lg',

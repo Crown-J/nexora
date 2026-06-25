@@ -15,7 +15,7 @@
 //   bubble phase listener 之前執行、抓得到所有事件。
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, type RefObject } from 'react';
 
 type Layer = {
   id: number;
@@ -147,6 +147,42 @@ export function useModalStackGuard(): void {
       guardInstalled = false;
     };
   }, []);
+}
+
+/**
+ * 給「不用 FocusLockedDialog 但仍是 modal」的元件用（如 Radix `<DialogContent>`）。
+ * 接一個 elementRef、mount 時 push layer、unmount 時 pop + 還原 prevFocus。
+ *
+ * 用法：
+ *   const ref = useRef<HTMLDivElement>(null);
+ *   useModalLayer(ref);
+ *   return <DialogPrimitive.Content ref={ref} ... />
+ *
+ * Esc 由 Radix 自帶 onOpenChange 處理（不用傳 onEscape）。
+ */
+export function useModalLayer(
+  elementRef: RefObject<HTMLElement | null>,
+  onEscape?: () => void,
+): void {
+  useEffect(() => {
+    const el = elementRef.current;
+    if (!el) return;
+    const prevFocus = (document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null);
+    const id = pushLayer({
+      element: el,
+      prevFocus,
+      allowBackdropClose: false,
+      onEscape,
+    });
+    return () => {
+      const removed = popLayer(id);
+      if (removed?.prevFocus && document.body.contains(removed.prevFocus)) {
+        queueMicrotask(() => removed.prevFocus?.focus());
+      }
+    };
+  }, [elementRef, onEscape]);
 }
 
 /** debug：給 devtools 用 */

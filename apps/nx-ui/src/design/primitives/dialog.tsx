@@ -4,6 +4,7 @@ import * as React from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
 
+import { useModalLayer } from '@design/primitives/modal-stack';
 import { cn } from '@design/utils/cn';
 
 function Dialog({ ...props }: React.ComponentProps<typeof DialogPrimitive.Root>) {
@@ -49,6 +50,11 @@ function DialogContent({
   /** 顯示頂部拖曳列，可左右／上下移動視窗 */
   draggable?: boolean;
 }) {
+  // 軌 A：把這個 Radix Dialog 註冊進全域 modal-stack、guard 才認得它（背景頁 keydown 自動隔離）
+  // Radix DialogContent 在 portal 內、只在 open 時 mount/render；useEffect cleanup 在 close 時 pop。
+  const contentRef = React.useRef<HTMLDivElement>(null);
+  useModalLayer(contentRef);
+
   const [dragOffset, setDragOffset] = React.useState({ x: 0, y: 0 });
   const dragState = React.useRef<{
     active: boolean;
@@ -98,6 +104,7 @@ function DialogContent({
       <DialogOverlay />
       <DialogPrimitive.Content
         data-slot="dialog-content"
+        ref={contentRef}
         style={
           draggable
             ? {

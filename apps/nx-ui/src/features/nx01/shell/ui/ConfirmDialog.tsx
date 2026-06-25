@@ -15,8 +15,9 @@
  */
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import { AlertTriangle } from 'lucide-react';
+import { FocusLockedDialog } from '@design/primitives/focus-locked-dialog';
 import { cn } from '@design/utils/cn';
 
 export type ConfirmState = {
@@ -44,47 +45,37 @@ export function ConfirmDialog({
 }) {
   const confirmRef = useRef<HTMLButtonElement>(null);
 
-  // 開啟時自動聚焦「確認（預設動作）」按鈕 → 琥珀外框高亮，Enter 直接觸發
-  useEffect(() => {
-    if (state) setTimeout(() => confirmRef.current?.focus(), 0);
-  }, [state]);
+  // 軌 A：FocusLockedDialog 接管 Esc + focus trap + 背景隔離；
+  // Enter 由 native button focus 處理（瀏覽器原生：focused button + Enter 自動 click）；
+  // D 鍵在 dialog 內 onKeyDown 接（避開全域 window listener）。
+  // confirmRef autofocus 改用 FocusLockedDialog 的 initialFocusRef。
 
-  // 鍵盤（capture 優先、避免外層 keydown 同時觸發）：
-  //   Enter = 確認（預設動作，最常用）/ Esc = 取消（留在編輯）/ D = 丟棄變更（secondaryAction，避免方向鍵誤觸）
-  useEffect(() => {
-    if (!state) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Enter') {
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (!state) return;
+      if (e.nativeEvent.isComposing) return;
+      if ((e.key === 'd' || e.key === 'D') && state.secondaryAction) {
         e.preventDefault();
-        e.stopPropagation();
-        state.onConfirm();
-        onClose();
-      } else if (e.key === 'Escape') {
-        e.preventDefault();
-        e.stopPropagation();
-        onClose();
-      } else if ((e.key === 'd' || e.key === 'D') && state.secondaryAction) {
-        e.preventDefault();
-        e.stopPropagation();
         state.secondaryAction.onClick();
         onClose();
       }
-    };
-    window.addEventListener('keydown', onKey, true);
-    return () => window.removeEventListener('keydown', onKey, true);
-  }, [state, onClose]);
+    },
+    [state, onClose],
+  );
 
   if (!state) return null;
   const isDanger = state.variant === 'danger';
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
-      onClick={onClose}
+    <FocusLockedDialog
+      open
+      onClose={onClose}
+      initialFocusRef={confirmRef}
+      role="alertdialog"
+      ariaLabel={state.title}
+      backdropClassName="bg-black/70 backdrop-blur-sm"
+      dialogClassName="w-full max-w-sm rounded-2xl border border-[#2A2A30] bg-[#131316] p-5 shadow-2xl"
     >
-      <div
-        className="w-full max-w-sm rounded-2xl border border-[#2A2A30] bg-[#131316] p-5 shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div onKeyDown={handleKeyDown}>
         <div className="flex items-start gap-3">
           <div
             className={cn(
@@ -147,6 +138,6 @@ export function ConfirmDialog({
           </button>
         </div>
       </div>
-    </div>
+    </FocusLockedDialog>
   );
 }
