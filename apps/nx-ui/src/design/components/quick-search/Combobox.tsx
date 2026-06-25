@@ -256,12 +256,12 @@ export function Combobox<T>({
         }}
         placeholder={placeholder}
         autoComplete="off"
-        className="h-10 rounded-md border border-border/40 bg-background/60 px-2.5 text-sm text-foreground outline-none placeholder:text-muted-foreground/70 focus:border-[#E8A020]/60"
+        className="h-10 rounded-md border border-[#6C86CE]/40 bg-[#241751]/60 px-2.5 text-sm text-foreground outline-none placeholder:text-muted-foreground/70 focus:border-[#02EDAB]/60"
       />
 
       {open && suggestions.length > 0 ? (
         <ul
-          className="absolute left-0 right-0 top-full z-50 mt-1 max-h-60 overflow-auto rounded-md border border-border/40 bg-card/60 shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
+          className="absolute left-0 right-0 top-full z-50 mt-1 max-h-60 overflow-auto rounded-md border border-[#6C86CE]/40 bg-[#4D47A3]/60 shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
           // 軌 2 minimal patch（執行長 2026-06-25）：點下拉 padding 區域 preventDefault、
           // 避免 input 失焦 → 下拉關 → 方向鍵失效。row button 自己有 mousedown preventDefault。
           onMouseDown={(e) => {
@@ -284,8 +284,8 @@ export function Combobox<T>({
                   className={cn(
                     'flex w-full flex-col items-start gap-0.5 px-3 py-1.5 text-left text-xs',
                     i === focusedIdx
-                      ? 'bg-[#E8A020]/15 text-[#E8A020]'
-                      : 'text-foreground hover:bg-card/60',
+                      ? 'bg-[#02EDAB]/15 text-[#02EDAB]'
+                      : 'text-foreground hover:bg-[#4D47A3]/60',
                   )}
                 >
                   <span className="truncate font-mono">{getLabel(item)}</span>
@@ -298,7 +298,7 @@ export function Combobox<T>({
           })}
         </ul>
       ) : open && searchedEmpty ? (
-        <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-md border border-border/40 bg-card/60 px-3 py-2 text-[11px] text-muted-foreground/70 shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+        <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-md border border-[#6C86CE]/40 bg-[#4D47A3]/60 px-3 py-2 text-[11px] text-muted-foreground/70 shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
           無聯想項（按 Enter 用輸入文字搜尋、或檢查是否已 seed 測試資料）
         </div>
       ) : null}

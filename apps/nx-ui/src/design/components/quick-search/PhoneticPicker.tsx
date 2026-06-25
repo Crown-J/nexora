@@ -207,7 +207,7 @@ export function PhoneticPicker({
         <button
           type="button"
           onClick={() => void triggerPhoneticLookup()}
-          className="rounded border border-[#E8A020]/40 bg-[#E8A020]/10 px-1.5 py-px font-mono text-[9px] tracking-normal text-[#E8A020] hover:bg-[#E8A020]/20"
+          className="rounded border border-[#02EDAB]/40 bg-[#02EDAB]/10 px-1.5 py-px font-mono text-[9px] tracking-normal text-[#02EDAB] hover:bg-[#02EDAB]/20"
           title="把輸入視為注音鍵盤碼（如 CVN→ㄏㄒㄙ）查料號"
         >
           F4 注音查
@@ -226,12 +226,12 @@ export function PhoneticPicker({
         }}
         placeholder={placeholder}
         autoComplete="off"
-        className="h-10 rounded-md border border-border/40 bg-background/60 px-2.5 text-sm text-foreground outline-none placeholder:text-muted-foreground/70 focus:border-[#E8A020]/60"
+        className="h-10 rounded-md border border-[#6C86CE]/40 bg-[#241751]/60 px-2.5 text-sm text-foreground outline-none placeholder:text-muted-foreground/70 focus:border-[#02EDAB]/60"
       />
 
       {open && candidates.length > 0 ? (
         <ul
-          className="absolute left-0 right-0 top-full z-50 mt-1 max-h-60 overflow-auto rounded-md border border-border/40 bg-card/60 shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
+          className="absolute left-0 right-0 top-full z-50 mt-1 max-h-60 overflow-auto rounded-md border border-[#6C86CE]/40 bg-[#4D47A3]/60 shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
           // 軌 2 minimal patch（執行長 2026-06-25）：點候選下拉 padding 區域 preventDefault、
           // 避免 input 失焦 → 候選關 → 方向鍵失效
           onMouseDown={(e) => {
@@ -248,8 +248,8 @@ export function PhoneticPicker({
                 className={cn(
                   'flex w-full items-center px-3 py-1.5 text-left text-xs',
                   i === focusedIdx
-                    ? 'bg-[#E8A020]/15 text-[#E8A020]'
-                    : 'text-foreground hover:bg-card/60',
+                    ? 'bg-[#02EDAB]/15 text-[#02EDAB]'
+                    : 'text-foreground hover:bg-[#4D47A3]/60',
                 )}
               >
                 {name}
@@ -258,11 +258,11 @@ export function PhoneticPicker({
           ))}
         </ul>
       ) : open && searched && !loading ? (
-        <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-md border border-border/40 bg-card/60 px-3 py-2 text-[11px] text-muted-foreground/70 shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+        <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-md border border-[#6C86CE]/40 bg-[#4D47A3]/60 px-3 py-2 text-[11px] text-muted-foreground/70 shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
           注音「{keyboardToBopomofo(value.trim())}」無對應料號（檢查 phonetic_index 是否已建）
         </div>
       ) : open && loading ? (
-        <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-md border border-border/40 bg-card/60 px-3 py-2 text-[11px] text-[#E8A020] shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+        <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-md border border-[#6C86CE]/40 bg-[#4D47A3]/60 px-3 py-2 text-[11px] text-[#02EDAB] shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
           注音查詢中:「{keyboardToBopomofo(value.trim())}」…
         </div>
       ) : null}

@@ -271,27 +271,27 @@ export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props
       onClose={onBack} // Esc → 退回搜尋窗（不是直接關全部）
       initialFocusRef={compatListRef}
       ariaLabel="料號主視窗"
-      backdropClassName="bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
-      dialogClassName="flex flex-col rounded-2xl border border-border/40 bg-card/85 text-foreground shadow-[0_30px_80px_rgba(0,0,0,0.55)] backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-200"
+      backdropClassName="bg-[#0A0820]/55 backdrop-blur-sm animate-in fade-in duration-200"
+      dialogClassName="flex flex-col rounded-2xl border border-[#6C86CE]/35 bg-gradient-to-br from-[#241751]/90 to-[#1A0F3A]/90 text-foreground shadow-[0_30px_80px_rgba(0,0,0,0.65),0_0_60px_-20px_rgba(2,237,171,0.15)] backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-200"
       dialogStyle={{ width: 'min(1400px, 96vw)', height: 'min(820px, 94vh)' }}
     >
       <>
         {/* Header */}
-        <div className="flex items-center gap-3 border-b border-border/40 px-6 py-2.5">
+        <div className="flex items-center gap-3 border-b border-[#6C86CE]/40 px-6 py-2.5">
           <button
             type="button"
             onClick={onBack}
-            className="inline-flex items-center gap-1.5 rounded-md border border-border/40 bg-background/40 px-2.5 py-1 text-xs text-muted-foreground hover:border-[#E8A020]/55 hover:bg-card/60 hover:text-foreground"
+            className="inline-flex items-center gap-1.5 rounded-md border border-[#6C86CE]/40 bg-[#241751]/40 px-2.5 py-1 text-xs text-muted-foreground hover:border-[#02EDAB]/55 hover:bg-[#4D47A3]/60 hover:text-foreground"
             title="退回搜尋窗 (Esc)"
           >
             <ArrowLeft className="size-3.5" />
             退回搜尋
           </button>
-          <span className="size-2 rounded-full bg-[#E8A020] shadow-[0_0_10px_#E8A020]" />
-          <Package className="size-4 text-[#E8A020]" />
+          <span className="size-2 rounded-full bg-[#02EDAB] shadow-[0_0_10px_#02EDAB]" />
+          <Package className="size-4 text-[#02EDAB]" />
           <h2 className="text-sm font-bold tracking-wide text-foreground">料號主視窗</h2>
           {previewPartId ? (
-            <span className="ml-3 rounded border border-[#5A8FB8]/60 bg-[#3B5C7A]/20 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-[#9BD0E8]">
+            <span className="ml-3 rounded border border-[#6C86CE]/60 bg-[#4D47A3]/20 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-[#6C86CE]">
               預覽中
             </span>
           ) : null}
@@ -301,7 +301,7 @@ export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props
           <button
             type="button"
             onClick={onClose}
-            className="ml-1 rounded-md border border-border/40 bg-background/40 p-1 text-muted-foreground hover:bg-card/60 hover:text-foreground"
+            className="ml-1 rounded-md border border-[#6C86CE]/40 bg-[#241751]/40 p-1 text-muted-foreground hover:bg-[#4D47A3]/60 hover:text-foreground"
             aria-label="關閉全部"
             title="關閉全部"
           >
@@ -350,7 +350,7 @@ export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props
         </div>
 
         {/* Footer 鍵盤提示 */}
-        <div className="flex items-center justify-between border-t border-border/35 bg-background/35 px-6 py-2 text-[12px] text-muted-foreground/85">
+        <div className="flex items-center justify-between border-t border-[#6C86CE]/35 bg-[#241751]/35 px-6 py-2 text-[12px] text-muted-foreground/85">
           <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <Kbd>Tab</Kbd> 切欄
             <span className="text-muted-foreground/35">·</span>
@@ -407,7 +407,7 @@ function LeftColumn({
   const mainPhoto = photos[0];
 
   return (
-    <aside className="flex min-h-0 flex-col border-r border-border/40 bg-background/30">
+    <aside className="flex min-h-0 flex-col border-r border-[#6C86CE]/40 bg-[#241751]/30">
       <SectionHeader icon={<Package className="size-3.5" />} label="基本資料" loading={loading} />
       <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-auto px-5 py-4">
         {/* 縮圖（Space 放大）*/}
@@ -415,9 +415,9 @@ function LeftColumn({
           type="button"
           onClick={onZoomToggle}
           className={cn(
-            'group relative mx-auto flex aspect-square w-full max-w-[220px] items-center justify-center overflow-hidden rounded-lg border-2 bg-background/40 transition-colors',
-            previewActive ? 'border-[#9BD0E8]/55' : 'border-[#E8A020]/35',
-            'hover:border-[#E8A020]',
+            'group relative mx-auto flex aspect-square w-full max-w-[220px] items-center justify-center overflow-hidden rounded-lg border-2 bg-[#241751]/40 transition-colors',
+            previewActive ? 'border-[#6C86CE]/55' : 'border-[#02EDAB]/35',
+            'hover:border-[#02EDAB]',
           )}
           title="Space 放大"
         >
@@ -434,7 +434,7 @@ function LeftColumn({
               <span className="text-[10px]">無產品圖</span>
             </div>
           )}
-          <span className="pointer-events-none absolute bottom-1.5 right-1.5 rounded border border-border/50 bg-background/80 px-2 py-0.5 font-mono text-[11px] text-foreground/90 opacity-0 transition-opacity group-hover:opacity-100">
+          <span className="pointer-events-none absolute bottom-1.5 right-1.5 rounded border border-[#6C86CE]/50 bg-[#241751]/80 px-2 py-0.5 font-mono text-[11px] text-foreground/90 opacity-0 transition-opacity group-hover:opacity-100">
             Space 放大
           </span>
         </button>
@@ -500,7 +500,7 @@ function MiddleColumn({
   const allZero = warehouses.length > 0 && nonZeroWh.length === 0;
 
   return (
-    <section className="flex min-h-0 flex-col border-r border-border/40 bg-background/20">
+    <section className="flex min-h-0 flex-col border-r border-[#6C86CE]/40 bg-[#241751]/20">
       <SectionHeader icon={<Warehouse className="size-3.5" />} label="庫存狀態" loading={loading} />
       <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden px-5 py-4">
         {/* 上段：公司總 4 顆 KPI（shrink-0、固定高度）*/}
@@ -526,18 +526,18 @@ function MiddleColumn({
           </h4>
 
           {warehouses.length === 0 ? (
-            <div className="rounded-md border border-dashed border-border/35 px-3 py-4 text-center text-[11px] text-muted-foreground/55">
+            <div className="rounded-md border border-dashed border-[#6C86CE]/35 px-3 py-4 text-center text-[11px] text-muted-foreground/55">
               無倉位庫存資料
             </div>
           ) : allZero ? (
-            <div className="rounded-md border border-dashed border-border/35 px-3 py-6 text-center text-[12px] text-muted-foreground/65">
+            <div className="rounded-md border border-dashed border-[#6C86CE]/35 px-3 py-6 text-center text-[12px] text-muted-foreground/65">
               各倉皆無庫存
             </div>
           ) : (
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-border/30 bg-card/40">
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-[#6C86CE]/30 bg-[#4D47A3]/40">
               {/* 表頭一行：文字自帶顏色當圖例 */}
               <div
-                className="grid shrink-0 items-center border-b border-border/35 bg-background/45 px-3 py-2 text-[12px] font-medium uppercase tracking-[0.1em]"
+                className="grid shrink-0 items-center border-b border-[#6C86CE]/35 bg-[#241751]/45 px-3 py-2 text-[12px] font-medium uppercase tracking-[0.1em]"
                 style={{ gridTemplateColumns: WH_GRID_COLS }}
               >
                 <span className="text-muted-foreground/85">倉位</span>
@@ -556,11 +556,11 @@ function MiddleColumn({
 
                   {/* 隱藏空倉折疊區 */}
                   {zeroWh.length > 0 && (
-                    <li className="border-t border-border/20">
+                    <li className="border-t border-[#6C86CE]/20">
                       <button
                         type="button"
                         onClick={() => setShowZeros((v) => !v)}
-                        className="flex w-full items-center gap-1.5 px-3 py-2 text-left text-[12px] text-muted-foreground/85 transition-colors hover:bg-card/60 hover:text-foreground"
+                        className="flex w-full items-center gap-1.5 px-3 py-2 text-left text-[12px] text-muted-foreground/85 transition-colors hover:bg-[#4D47A3]/60 hover:text-foreground"
                       >
                         {showZeros ? (
                           <ChevronDown className="size-3" />
@@ -572,7 +572,7 @@ function MiddleColumn({
                         </span>
                       </button>
                       {showZeros && (
-                        <ul className="border-t border-border/15 bg-background/20">
+                        <ul className="border-t border-[#6C86CE]/15 bg-[#241751]/20">
                           {zeroWh.map((w) => (
                             <WarehouseRow key={w.warehouseId} w={w} dimmed />
                           ))}
@@ -602,13 +602,13 @@ function WarehouseRow({
   return (
     <li
       className={cn(
-        'grid items-center border-b border-border/15 px-3 py-1.5 last:border-b-0',
+        'grid items-center border-b border-[#6C86CE]/15 px-3 py-1.5 last:border-b-0',
         dimmed && 'opacity-55',
       )}
       style={{ gridTemplateColumns: WH_GRID_COLS }}
     >
       <span className="min-w-0 truncate text-[13px]">
-        <span className="font-mono font-medium text-[#E8A020]">{w.warehouseCode}</span>
+        <span className="font-mono font-medium text-[#02EDAB]">{w.warehouseCode}</span>
         <span className="ml-1.5 text-foreground/85">{w.warehouseName}</span>
       </span>
       <WhCell value={w.onHand} color={STOCK_COLORS.onHand} />
@@ -683,7 +683,7 @@ function RightColumn({
   );
 
   return (
-    <section className="flex min-h-0 flex-col bg-background/15">
+    <section className="flex min-h-0 flex-col bg-[#241751]/15">
       <SectionHeader
         icon={<Package className="size-3.5" />}
         label="通用零件"
@@ -764,16 +764,16 @@ function CompatCard({
       onMouseEnter={onHover}
       onKeyDown={onKeyDown}
       className={cn(
-        'relative flex w-full flex-col gap-1.5 overflow-hidden rounded-xl bg-card/60 px-4 py-3 text-left outline-none',
+        'relative flex w-full flex-col gap-1.5 overflow-hidden rounded-xl bg-[#4D47A3]/60 px-4 py-3 text-left outline-none',
         'border-2 transition-[border-color,box-shadow,background-color] duration-150 ease-out',
         isMain
           ? // 主件永遠高亮
-            'border-[#E8A020] bg-[#E8A020]/12 shadow-[0_0_12px_-2px_rgba(232,160,32,0.45)]'
+            'border-[#02EDAB] bg-[#02EDAB]/12 shadow-[0_0_12px_-2px_rgba(232,160,32,0.45)]'
           : isHighlighted
-            ? 'border-[#E8A020] bg-[#E8A020]/12 shadow-[0_0_12px_-2px_rgba(232,160,32,0.45)]'
+            ? 'border-[#02EDAB] bg-[#02EDAB]/12 shadow-[0_0_12px_-2px_rgba(232,160,32,0.45)]'
             : isPreviewTarget
-              ? 'border-[#9BD0E8] bg-[#3B5C7A]/15'
-              : 'border-border/35 bg-card/40 hover:border-[#E8A020]/55 hover:bg-card/75',
+              ? 'border-[#6C86CE] bg-[#4D47A3]/15'
+              : 'border-[#6C86CE]/35 bg-[#4D47A3]/40 hover:border-[#02EDAB]/55 hover:bg-[#4D47A3]/75',
         !row.isActive && 'opacity-55',
       )}
     >
@@ -782,18 +782,18 @@ function CompatCard({
         <span
           className={cn(
             'min-w-0 flex-1 break-all font-mono font-semibold tracking-[0.01em]',
-            isMain ? 'text-[17px] text-[#E8A020]' : 'text-[15px] text-[#E8A020]/90',
+            isMain ? 'text-[17px] text-[#02EDAB]' : 'text-[15px] text-[#02EDAB]/90',
           )}
         >
           {row.code}
         </span>
         <div className="flex shrink-0 items-center gap-1.5">
           {isMain ? (
-            <span className="rounded-md border border-[#E8A020] bg-[#E8A020]/25 px-2 py-0.5 font-mono text-[11px] font-bold uppercase tracking-[0.08em] text-[#E8A020]">
+            <span className="rounded-md border border-[#02EDAB] bg-[#02EDAB]/25 px-2 py-0.5 font-mono text-[11px] font-bold uppercase tracking-[0.08em] text-[#02EDAB]">
               主
             </span>
           ) : (
-            <span className="rounded-md border border-[#5A8FB8]/60 bg-[#3B5C7A]/25 px-2 py-0.5 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-[#9BD0E8]">
+            <span className="rounded-md border border-[#6C86CE]/60 bg-[#4D47A3]/25 px-2 py-0.5 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-[#6C86CE]">
               替代
             </span>
           )}
@@ -801,8 +801,8 @@ function CompatCard({
             className={cn(
               'rounded-md border px-2 py-0.5 font-mono text-[11px] font-medium uppercase tracking-[0.08em]',
               row.isOem
-                ? 'border-[#E8A020]/55 bg-[#E8A020]/15 text-[#E8A020]'
-                : 'border-border/55 bg-muted/35 text-muted-foreground/95',
+                ? 'border-[#02EDAB]/55 bg-[#02EDAB]/15 text-[#02EDAB]'
+                : 'border-[#6C86CE]/55 bg-muted/35 text-muted-foreground/95',
             )}
           >
             {row.isOem ? '正廠' : '副廠'}
@@ -857,15 +857,15 @@ function SectionHeader({
   loading?: boolean;
 }) {
   return (
-    <div className="flex items-center gap-2 border-b border-border/35 bg-background/25 px-5 py-2.5 text-[12px] font-medium uppercase tracking-[0.16em] text-muted-foreground/90">
-      <span className="text-[#E8A020]">{icon}</span>
+    <div className="flex items-center gap-2 border-b border-[#6C86CE]/35 bg-[#241751]/25 px-5 py-2.5 text-[12px] font-medium uppercase tracking-[0.16em] text-muted-foreground/90">
+      <span className="text-[#02EDAB]">{icon}</span>
       <span>{label}</span>
       {sublabel ? (
         <span className="ml-1 text-[12px] normal-case tracking-normal text-muted-foreground/75">
           · {sublabel}
         </span>
       ) : null}
-      {loading ? <Loader2 className="ml-auto size-3.5 animate-spin text-[#E8A020]" /> : null}
+      {loading ? <Loader2 className="ml-auto size-3.5 animate-spin text-[#02EDAB]" /> : null}
     </div>
   );
 }
@@ -874,7 +874,7 @@ function KpiTile({ label, value, color }: { label: string; value: string | undef
   const n = value ? Number(value) : 0;
   const isZero = n === 0;
   return (
-    <div className="flex flex-col gap-0.5 rounded-md border border-border/35 bg-card/55 px-3 py-2">
+    <div className="flex flex-col gap-0.5 rounded-md border border-[#6C86CE]/35 bg-[#4D47A3]/55 px-3 py-2">
       <span className="text-[12px] font-medium uppercase tracking-[0.1em] text-muted-foreground/85">
         {label}
       </span>
@@ -901,7 +901,7 @@ function DataRow({
   // 執行長 2026-06-25 視覺優化：20 吋低解析 + 灰字看不清。
   // 字級 12→14、灰字透明度 65→90、邊框 15→35、value 14→15 medium、徽章 9→11
   return (
-    <div className="flex items-baseline gap-3 border-b border-border/30 pb-1.5 text-[14px] last:border-b-0 last:pb-0">
+    <div className="flex items-baseline gap-3 border-b border-[#6C86CE]/30 pb-1.5 text-[14px] last:border-b-0 last:pb-0">
       <span className="w-[80px] shrink-0 text-[12px] font-medium uppercase tracking-[0.1em] text-muted-foreground/90">
         {label}
       </span>
@@ -909,18 +909,18 @@ function DataRow({
         className={cn(
           'min-w-0 flex-1 break-words',
           mono && 'font-mono',
-          primary ? 'text-[#E8A020] text-[15px] font-semibold' : 'text-[15px] text-foreground/95',
+          primary ? 'text-[#02EDAB] text-[15px] font-semibold' : 'text-[15px] text-foreground/95',
         )}
       >
         {value}
       </span>
       {badge === 'oem' && (
-        <span className="shrink-0 rounded border border-[#E8A020]/55 bg-[#E8A020]/15 px-2 py-0.5 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-[#E8A020]">
+        <span className="shrink-0 rounded border border-[#02EDAB]/55 bg-[#02EDAB]/15 px-2 py-0.5 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-[#02EDAB]">
           正廠
         </span>
       )}
       {badge === 'non-oem' && (
-        <span className="shrink-0 rounded border border-border/50 bg-muted/30 px-2 py-0.5 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground/90">
+        <span className="shrink-0 rounded border border-[#6C86CE]/50 bg-muted/30 px-2 py-0.5 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground/90">
           副廠
         </span>
       )}
@@ -935,7 +935,7 @@ function DataRow({
 
 function Kbd({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="rounded border border-border/45 bg-background/45 px-1.5 py-px font-mono text-[11px] text-muted-foreground/90">
+    <kbd className="rounded border border-[#6C86CE]/45 bg-[#241751]/45 px-1.5 py-px font-mono text-[11px] text-muted-foreground/90">
       {children}
     </kbd>
   );
@@ -976,7 +976,7 @@ function PhotoZoomOverlay({
       open
       onClose={onClose}
       ariaLabel="零件圖片放大"
-      backdropClassName="bg-black/85 animate-in fade-in duration-200"
+      backdropClassName="bg-[#0A0820]/90 animate-in fade-in duration-200"
       dialogClassName="relative flex items-center justify-center"
       dialogStyle={{ width: '90vw', height: '90vh' }}
     >
@@ -990,13 +990,13 @@ function PhotoZoomOverlay({
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 rounded-md border border-border/40 bg-background/40 p-2 text-foreground hover:bg-card/60"
+          className="absolute right-4 top-4 rounded-md border border-[#6C86CE]/40 bg-[#241751]/40 p-2 text-foreground hover:bg-[#4D47A3]/60"
           aria-label="關閉"
         >
           <X className="size-4" />
         </button>
         {photos.length > 1 && (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-md border border-border/40 bg-background/60 px-3 py-1 font-mono text-[10px] text-muted-foreground">
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-md border border-[#6C86CE]/40 bg-[#241751]/60 px-3 py-1 font-mono text-[10px] text-muted-foreground">
             {idx + 1} / {photos.length} · ← → 切圖 · Space / Esc 關
           </div>
         )}
