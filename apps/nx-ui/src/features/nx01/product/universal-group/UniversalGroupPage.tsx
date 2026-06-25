@@ -58,7 +58,10 @@ export function UniversalGroupPage() {
     (async () => {
       setLoading(true);
       try {
-        const res = await listPartCompatGroups({ pageSize: 200, isActive: true });
+        // 2026-06-25 修：對齊公司標準 pageSize=100（Nx01ListQueryDto @Max(100)）。
+        // 之前 200 違反 base dto 限制、會 400「pageSize must not be greater than 100」。
+        // 同 EntityMasterPage「取消分頁、顯前 100 筆」範式；超過再加搜尋過濾。
+        const res = await listPartCompatGroups({ pageSize: 100, isActive: true });
         if (cancelled) return;
         const membersList = await Promise.all(
           res.rows.map((g) => listGroupMembers(g.id).catch(() => [] as CompatMemberRow[])),
