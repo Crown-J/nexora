@@ -359,18 +359,20 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
     [flatRows, highlightIndex, backToInput, selectRow],
   );
 
-  // input 內按 Enter 命中第一筆 highlight
-  const handleInputEnter = useCallback(() => {
-    if (flatRows.length === 0) return;
-    const idx = Math.min(flatRows.length - 1, Math.max(0, highlightIndex));
-    selectRow(flatRows[idx].member);
-  }, [flatRows, highlightIndex, selectRow]);
-
-  // input 內 ↓ → 焦點進結果區
-  const handleInputArrowDown = useCallback(() => {
-    if (flatRows.length === 0) return;
-    triggerSearchAndFocusResult();
-  }, [flatRows.length, triggerSearchAndFocusResult]);
+  // 執行長 2026-06-25 修正單：左區 Enter 只做「焦點切右」一件事。
+  // 不重跑搜尋（即時搜尋 debounce 已跑）、不選定 row、不關窗。
+  // 右區 Enter 才是「選定 + 關窗」（在 handleResultKey 內）。
+  // ↓ 鍵在左區也走同一條路：只切焦點。
+  const moveFocusToResult = useCallback(() => {
+    if (flatRows.length === 0) return; // 無結果不切焦點、避免左區變灰但無處可選
+    setFocusedSide('result');
+    queueMicrotask(() => {
+      const el = document.querySelector('[data-pqs-row="0"]') as HTMLElement | null;
+      el?.focus();
+    });
+  }, [flatRows.length]);
+  const handleInputEnter = moveFocusToResult;
+  const handleInputArrowDown = moveFocusToResult;
 
   // 純輸入欄（料號 / 品名）共用 keydown
   const handlePlainInputKey = useCallback(
