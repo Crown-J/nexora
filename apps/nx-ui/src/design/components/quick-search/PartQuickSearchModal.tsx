@@ -577,9 +577,12 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
                   resultIsZero={Boolean(result && result.total === 0)}
                 />
               ) : (
-                <ul className="divide-y divide-border/20 pt-1 pb-3">
+                <ul className="flex flex-col gap-2 px-3 pt-3 pb-4">
                   {flatRows.map((row, idx) => (
-                    <li key={`${row.kind}-${row.member.id}-${idx}`}>
+                    <li
+                      key={`${row.kind}-${row.member.id}-${idx}`}
+                      className={cn(row.kind === 'group-alt' && 'pl-7')}
+                    >
                       <ResultRow
                         row={row}
                         index={idx}
@@ -761,6 +764,10 @@ function ResultRow({
   const m = row.member;
   const isAlt = row.kind === 'group-alt';
 
+  // 卡片式：執行長 2026-06-25 拍板
+  //   · 解決長料號 / 長品名被截的問題：所有文字 break-all 換行、不 truncate
+  //   · 上下選擇動畫加強：高亮卡片 scale 1.02 + 金色光暈 + 邊框金 + 200ms ease-out
+  //   · 群組頭 / 替代品視覺差：群組頭左側金條 + 邊框琥珀色；替代品邊框較淡 + 縮排（外層 li 控）
   return (
     <button
       type="button"
@@ -769,52 +776,80 @@ function ResultRow({
       onMouseEnter={onHover}
       onKeyDown={onKeyDown}
       className={cn(
-        'grid w-full items-center gap-3 px-5 py-2.5 text-left outline-none transition-colors',
-        isHighlighted ? 'bg-[#E8A020]/12 ring-1 ring-inset ring-[#E8A020]/60' : 'hover:bg-card/55',
+        'group/card relative flex w-full flex-col gap-1.5 overflow-hidden rounded-xl border bg-card/60 px-4 py-3 text-left outline-none',
+        'transition-[transform,box-shadow,border-color,background-color] duration-200 ease-out will-change-transform',
+        // 群組頭 vs 替代品的基準樣式
+        isAlt ? 'border-border/35 bg-card/35' : 'border-[#E8A020]/35',
+        // highlight：scale + 邊框金 + 光暈 + 背景加深
+        isHighlighted
+          ? cn(
+              'scale-[1.015] border-[#E8A020] bg-[#E8A020]/12',
+              'shadow-[0_0_0_1px_rgba(232,160,32,0.6),0_12px_32px_-6px_rgba(232,160,32,0.45)]',
+            )
+          : 'hover:border-[#E8A020]/55 hover:bg-card/75',
         !m.isActive && 'opacity-55',
       )}
-      style={{
-        gridTemplateColumns:
-          'auto minmax(160px, 200px) minmax(120px, 160px) minmax(80px, 120px) 1fr auto auto',
-      }}
     >
-      {isAlt ? (
-        <span className="ml-5 inline-block w-5 shrink-0 text-center text-muted-foreground/55">└</span>
-      ) : (
-        <span className="inline-block w-1 shrink-0 self-stretch rounded bg-[#E8A020]/55" />
+      {/* 群組頭：左側金條 */}
+      {!isAlt && (
+        <span
+          aria-hidden
+          className={cn(
+            'pointer-events-none absolute left-0 top-2 bottom-2 w-1 rounded-r transition-all duration-200',
+            isHighlighted ? 'bg-[#E8A020]' : 'bg-[#E8A020]/55',
+          )}
+        />
       )}
-      <span
-        className={cn(
-          'min-w-0 truncate font-mono tracking-wide',
-          isAlt ? 'text-sm text-[#E8A020]/85' : 'text-base text-[#E8A020]',
-        )}
-      >
-        {m.code}
-      </span>
-      <span className="min-w-0 truncate font-mono text-xs text-muted-foreground">
-        {m.secCode ?? '—'}
-      </span>
-      <span className="min-w-0 truncate text-sm text-foreground">
-        {m.brandCode ?? m.brandName ?? '—'}
-      </span>
-      <span className="min-w-0 truncate text-sm text-foreground">{m.name}</span>
-      <span
-        className={cn(
-          'shrink-0 rounded border px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider',
-          m.isOem
-            ? 'border-[#E8A020]/55 bg-[#E8A020]/12 text-[#E8A020]'
-            : 'border-border/50 bg-muted/30 text-muted-foreground',
-        )}
-      >
-        {m.isOem ? '正廠' : '副廠'}
-      </span>
-      {!m.isActive ? (
-        <span className="shrink-0 rounded border border-[#5A2A2A] bg-[#1F1212] px-1.5 py-0.5 text-[10px] text-[#E26060]">
-          停用
+
+      {/* 上排：料號（mono、大）+ 徽章群 */}
+      <div className="flex items-start justify-between gap-3">
+        <span
+          className={cn(
+            'min-w-0 flex-1 break-all font-mono font-semibold tracking-wide',
+            isAlt ? 'text-base text-[#E8A020]/90' : 'text-lg text-[#E8A020]',
+          )}
+        >
+          {m.code}
         </span>
-      ) : (
-        <span className="w-0 shrink-0" />
-      )}
+        <div className="flex shrink-0 items-center gap-1.5">
+          {isAlt && (
+            <span className="rounded border border-[#5A8FB8]/60 bg-[#3B5C7A]/20 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-[#9BD0E8]">
+              替代
+            </span>
+          )}
+          <span
+            className={cn(
+              'rounded border px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider',
+              m.isOem
+                ? 'border-[#E8A020]/55 bg-[#E8A020]/12 text-[#E8A020]'
+                : 'border-border/50 bg-muted/30 text-muted-foreground',
+            )}
+          >
+            {m.isOem ? '正廠' : '副廠'}
+          </span>
+          {!m.isActive && (
+            <span className="rounded border border-[#5A2A2A] bg-[#1F1212] px-1.5 py-0.5 text-[10px] text-[#E26060]">
+              停用
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* 中排：品名（不截、可換行）*/}
+      <div className="break-words text-sm leading-snug text-foreground">{m.name}</div>
+
+      {/* 下排：副廠料號 / 廠牌 元資訊 */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground/80">
+        <span className="inline-flex items-center gap-1">
+          <span className="uppercase tracking-wider text-muted-foreground/55">副廠料號</span>
+          <span className="font-mono text-muted-foreground">{m.secCode ?? '—'}</span>
+        </span>
+        <span className="text-muted-foreground/30">·</span>
+        <span className="inline-flex items-center gap-1">
+          <span className="uppercase tracking-wider text-muted-foreground/55">廠牌</span>
+          <span className="text-foreground/90">{m.brandCode ?? m.brandName ?? '—'}</span>
+        </span>
+      </div>
     </button>
   );
 }
