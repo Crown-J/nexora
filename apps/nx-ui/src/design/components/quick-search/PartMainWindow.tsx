@@ -350,12 +350,23 @@ export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props
         </div>
 
         {/* Footer 鍵盤提示 */}
-        <div className="flex items-center justify-between border-t border-border/30 bg-background/30 px-6 py-1.5 text-[10px] text-muted-foreground/55">
-          <span>
-            <Kbd>Tab</Kbd> 切欄 · <Kbd>↑↓</Kbd> 選通用件 · <Kbd>Enter</Kbd> 預覽（留主件）·{' '}
-            <Kbd>Alt+F</Kbd> 跳搜（換主件）· <Kbd>Space</Kbd> 放大圖 · <Kbd>Esc</Kbd> 退回搜尋窗
+        <div className="flex items-center justify-between border-t border-border/35 bg-background/35 px-6 py-2 text-[12px] text-muted-foreground/85">
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <Kbd>Tab</Kbd> 切欄
+            <span className="text-muted-foreground/35">·</span>
+            <Kbd>↑↓</Kbd> 選通用件
+            <span className="text-muted-foreground/35">·</span>
+            <Kbd>Enter</Kbd> 預覽（留主件）
+            <span className="text-muted-foreground/35">·</span>
+            <Kbd>Alt+F</Kbd> 跳搜（換主件）
+            <span className="text-muted-foreground/35">·</span>
+            <Kbd>Space</Kbd> 放大圖
+            <span className="text-muted-foreground/35">·</span>
+            <Kbd>Esc</Kbd> 退回搜尋窗
           </span>
-          <span className="font-mono text-[9px] text-muted-foreground/35">NEXORA · 視窗 2</span>
+          <span className="shrink-0 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground/55">
+            NEXORA · 視窗 2
+          </span>
         </div>
 
         {/* 圖片放大 Lightbox（疊在最上層）*/}
@@ -423,7 +434,7 @@ function LeftColumn({
               <span className="text-[10px]">無產品圖</span>
             </div>
           )}
-          <span className="pointer-events-none absolute bottom-1.5 right-1.5 rounded border border-border/40 bg-background/70 px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground/80 opacity-0 transition-opacity group-hover:opacity-100">
+          <span className="pointer-events-none absolute bottom-1.5 right-1.5 rounded border border-border/50 bg-background/80 px-2 py-0.5 font-mono text-[11px] text-foreground/90 opacity-0 transition-opacity group-hover:opacity-100">
             Space 放大
           </span>
         </button>
@@ -526,10 +537,10 @@ function MiddleColumn({
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-border/30 bg-card/40">
               {/* 表頭一行：文字自帶顏色當圖例 */}
               <div
-                className="grid shrink-0 items-center border-b border-border/30 bg-background/40 px-3 py-1.5 text-[10px] uppercase tracking-wider"
+                className="grid shrink-0 items-center border-b border-border/35 bg-background/45 px-3 py-2 text-[12px] font-medium uppercase tracking-[0.1em]"
                 style={{ gridTemplateColumns: WH_GRID_COLS }}
               >
-                <span className="text-muted-foreground/65">倉位</span>
+                <span className="text-muted-foreground/85">倉位</span>
                 <span className="text-right" style={{ color: STOCK_COLORS.onHand }}>現有</span>
                 <span className="text-right" style={{ color: STOCK_COLORS.available }}>可出</span>
                 <span className="text-right" style={{ color: STOCK_COLORS.reserved }}>不可出</span>
@@ -549,7 +560,7 @@ function MiddleColumn({
                       <button
                         type="button"
                         onClick={() => setShowZeros((v) => !v)}
-                        className="flex w-full items-center gap-1.5 px-3 py-1.5 text-left text-[11px] text-muted-foreground/60 transition-colors hover:bg-card/60 hover:text-foreground"
+                        className="flex w-full items-center gap-1.5 px-3 py-2 text-left text-[12px] text-muted-foreground/85 transition-colors hover:bg-card/60 hover:text-foreground"
                       >
                         {showZeros ? (
                           <ChevronDown className="size-3" />
@@ -596,9 +607,9 @@ function WarehouseRow({
       )}
       style={{ gridTemplateColumns: WH_GRID_COLS }}
     >
-      <span className="min-w-0 truncate text-[12px]">
-        <span className="font-mono text-[#E8A020]">{w.warehouseCode}</span>
-        <span className="ml-1.5 text-muted-foreground/85">{w.warehouseName}</span>
+      <span className="min-w-0 truncate text-[13px]">
+        <span className="font-mono font-medium text-[#E8A020]">{w.warehouseCode}</span>
+        <span className="ml-1.5 text-foreground/85">{w.warehouseName}</span>
       </span>
       <WhCell value={w.onHand} color={STOCK_COLORS.onHand} />
       <WhCell value={w.available} color={STOCK_COLORS.available} />
@@ -767,31 +778,31 @@ function CompatCard({
       )}
     >
       {/* 上排：料號 + 徽章 */}
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-baseline justify-between gap-3">
         <span
           className={cn(
-            'min-w-0 flex-1 break-all font-mono font-semibold tracking-wide',
-            isMain ? 'text-lg text-[#E8A020]' : 'text-base text-[#E8A020]/85',
+            'min-w-0 flex-1 break-all font-mono font-semibold tracking-[0.01em]',
+            isMain ? 'text-[17px] text-[#E8A020]' : 'text-[15px] text-[#E8A020]/90',
           )}
         >
           {row.code}
         </span>
         <div className="flex shrink-0 items-center gap-1.5">
           {isMain ? (
-            <span className="rounded border border-[#E8A020] bg-[#E8A020]/20 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-[#E8A020]">
+            <span className="rounded-md border border-[#E8A020] bg-[#E8A020]/25 px-2 py-0.5 font-mono text-[11px] font-bold uppercase tracking-[0.08em] text-[#E8A020]">
               主
             </span>
           ) : (
-            <span className="rounded border border-[#5A8FB8]/60 bg-[#3B5C7A]/20 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-[#9BD0E8]">
+            <span className="rounded-md border border-[#5A8FB8]/60 bg-[#3B5C7A]/25 px-2 py-0.5 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-[#9BD0E8]">
               替代
             </span>
           )}
           <span
             className={cn(
-              'rounded border px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider',
+              'rounded-md border px-2 py-0.5 font-mono text-[11px] font-medium uppercase tracking-[0.08em]',
               row.isOem
-                ? 'border-[#E8A020]/55 bg-[#E8A020]/12 text-[#E8A020]'
-                : 'border-border/50 bg-muted/30 text-muted-foreground',
+                ? 'border-[#E8A020]/55 bg-[#E8A020]/15 text-[#E8A020]'
+                : 'border-border/55 bg-muted/35 text-muted-foreground/95',
             )}
           >
             {row.isOem ? '正廠' : '副廠'}
@@ -800,31 +811,31 @@ function CompatCard({
       </div>
 
       {/* 中排：品名 */}
-      <div className="break-words text-sm leading-snug text-foreground">{row.name}</div>
+      <div className="break-words text-[15px] font-medium leading-snug text-foreground">{row.name}</div>
 
-      {/* 下排：副廠料號 / 廠牌 / 即時庫存 */}
-      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[11px] text-muted-foreground/80">
-        <span className="inline-flex items-center gap-2">
-          <span>
-            <span className="text-muted-foreground/55">副廠料號 </span>
-            <span className="font-mono text-muted-foreground">{row.secCode ?? '—'}</span>
+      {/* 下排：副廠料號 / 廠牌 / 即時庫存（字級拉到 13、灰字對比拉高）*/}
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <span className="inline-flex items-baseline gap-3">
+          <span className="inline-flex items-baseline gap-1.5">
+            <span className="text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground/75">副廠</span>
+            <span className="font-mono text-[13px] text-foreground/90">{row.secCode ?? '—'}</span>
           </span>
-          <span className="text-muted-foreground/30">·</span>
-          <span>
-            <span className="text-muted-foreground/55">廠牌 </span>
-            <span className="text-foreground/90">{row.brandCode ?? row.brandName ?? '—'}</span>
+          <span className="select-none text-muted-foreground/30">·</span>
+          <span className="inline-flex items-baseline gap-1.5">
+            <span className="text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground/75">廠牌</span>
+            <span className="text-[13px] text-foreground/90">{row.brandCode ?? row.brandName ?? '—'}</span>
           </span>
         </span>
         <span
           className={cn(
-            'inline-flex items-center gap-1 rounded px-2 py-0.5 font-mono text-[11px]',
+            'inline-flex items-baseline gap-1.5 rounded-md px-2.5 py-0.5 font-mono text-[14px] font-semibold',
             outOfStock
               ? 'border border-[#E26060]/60 bg-[#1F1212] text-[#E26060]'
-              : 'text-[#22D88F]',
+              : 'border border-[#22D88F]/40 bg-[#22D88F]/10 text-[#22D88F]',
           )}
           title={`公司總現有量 ${row.onHandTotal}`}
         >
-          <span className="text-muted-foreground/55">庫存</span>
+          <span className="text-[10px] font-medium uppercase tracking-[0.1em] opacity-75">庫存</span>
           {row.onHandTotal}
           {outOfStock ? '（缺）' : ''}
         </span>
@@ -846,15 +857,30 @@ function SectionHeader({
   loading?: boolean;
 }) {
   return (
-    <div className="flex items-center gap-2 border-b border-border/30 bg-background/20 px-5 py-2 text-[10px] uppercase tracking-[0.22em] text-muted-foreground/70">
+    <div className="flex items-center gap-2 border-b border-border/35 bg-background/25 px-5 py-2.5 text-[12px] font-medium uppercase tracking-[0.16em] text-muted-foreground/90">
       <span className="text-[#E8A020]">{icon}</span>
       <span>{label}</span>
       {sublabel ? (
-        <span className="ml-1 normal-case tracking-normal text-muted-foreground/55">
+        <span className="ml-1 text-[12px] normal-case tracking-normal text-muted-foreground/75">
           · {sublabel}
         </span>
       ) : null}
-      {loading ? <Loader2 className="ml-auto size-3 animate-spin text-[#E8A020]" /> : null}
+      {loading ? <Loader2 className="ml-auto size-3.5 animate-spin text-[#E8A020]" /> : null}
+    </div>
+  );
+}
+
+function KpiTile({ label, value, color }: { label: string; value: string | undefined; color: string }) {
+  const n = value ? Number(value) : 0;
+  const isZero = n === 0;
+  return (
+    <div className="flex flex-col gap-0.5 rounded-md border border-border/35 bg-card/55 px-3 py-2">
+      <span className="text-[12px] font-medium uppercase tracking-[0.1em] text-muted-foreground/85">
+        {label}
+      </span>
+      <span className="font-mono text-[20px] font-semibold" style={{ color: isZero ? ZERO_GREY : color }}>
+        {n.toFixed(0)}
+      </span>
     </div>
   );
 }
@@ -872,32 +898,34 @@ function DataRow({
   primary?: boolean;
   badge?: 'oem' | 'non-oem' | 'inactive';
 }) {
+  // 執行長 2026-06-25 視覺優化：20 吋低解析 + 灰字看不清。
+  // 字級 12→14、灰字透明度 65→90、邊框 15→35、value 14→15 medium、徽章 9→11
   return (
-    <div className="flex items-baseline gap-3 border-b border-border/15 pb-1 text-[12px] last:border-b-0 last:pb-0">
-      <span className="w-[78px] shrink-0 text-[10px] uppercase tracking-wider text-muted-foreground/65">
+    <div className="flex items-baseline gap-3 border-b border-border/30 pb-1.5 text-[14px] last:border-b-0 last:pb-0">
+      <span className="w-[80px] shrink-0 text-[12px] font-medium uppercase tracking-[0.1em] text-muted-foreground/90">
         {label}
       </span>
       <span
         className={cn(
           'min-w-0 flex-1 break-words',
           mono && 'font-mono',
-          primary ? 'text-[#E8A020] text-sm font-semibold' : 'text-foreground',
+          primary ? 'text-[#E8A020] text-[15px] font-semibold' : 'text-[15px] text-foreground/95',
         )}
       >
         {value}
       </span>
       {badge === 'oem' && (
-        <span className="shrink-0 rounded border border-[#E8A020]/55 bg-[#E8A020]/12 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-[#E8A020]">
+        <span className="shrink-0 rounded border border-[#E8A020]/55 bg-[#E8A020]/15 px-2 py-0.5 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-[#E8A020]">
           正廠
         </span>
       )}
       {badge === 'non-oem' && (
-        <span className="shrink-0 rounded border border-border/50 bg-muted/30 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
+        <span className="shrink-0 rounded border border-border/50 bg-muted/30 px-2 py-0.5 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground/90">
           副廠
         </span>
       )}
       {badge === 'inactive' && (
-        <span className="shrink-0 rounded border border-[#5A2A2A] bg-[#1F1212] px-1.5 py-0.5 text-[9px] text-[#E26060]">
+        <span className="shrink-0 rounded border border-[#5A2A2A] bg-[#1F1212] px-2 py-0.5 text-[11px] font-medium text-[#E26060]">
           停用
         </span>
       )}
@@ -905,23 +933,9 @@ function DataRow({
   );
 }
 
-function KpiTile({ label, value, color }: { label: string; value: string | undefined; color: string }) {
-  const n = value ? Number(value) : 0;
-  const isZero = n === 0;
-  return (
-    <div className="flex flex-col gap-0.5 rounded-md border border-border/30 bg-card/50 px-3 py-2">
-      <span className="text-[10px] uppercase tracking-wider text-muted-foreground/65">{label}</span>
-      <span className="font-mono text-lg" style={{ color: isZero ? ZERO_GREY : color }}>
-        {n.toFixed(0)}
-      </span>
-    </div>
-  );
-}
-
-
 function Kbd({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="rounded border border-border/40 bg-background/40 px-1 py-px font-mono text-[9px] text-muted-foreground/80">
+    <kbd className="rounded border border-border/45 bg-background/45 px-1.5 py-px font-mono text-[11px] text-muted-foreground/90">
       {children}
     </kbd>
   );

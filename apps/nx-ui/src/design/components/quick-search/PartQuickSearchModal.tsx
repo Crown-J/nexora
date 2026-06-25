@@ -908,20 +908,20 @@ function ResultRow({
       </div>
 
       {/* 中排：品名（L 級 medium、最易讀）*/}
-      <div className="break-words text-[15px] font-medium leading-snug text-foreground/95">
+      <div className="break-words text-[15px] font-medium leading-snug text-foreground">
         {m.name}
       </div>
 
-      {/* 下排：副廠料號 / 廠牌（M 級值 + S 級標籤、對比清晰）*/}
+      {/* 下排：副廠料號 / 廠牌（執行長 2026-06-25 視覺優化：灰字對比拉強、字級加大）*/}
       <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
         <span className="inline-flex items-baseline gap-1.5">
-          <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/55">副廠</span>
-          <span className="font-mono text-[13px] text-muted-foreground/90">{m.secCode ?? '—'}</span>
+          <span className="text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground/75">副廠</span>
+          <span className="font-mono text-[13px] text-foreground/90">{m.secCode ?? '—'}</span>
         </span>
-        <span className="select-none text-muted-foreground/25">·</span>
+        <span className="select-none text-muted-foreground/35">·</span>
         <span className="inline-flex items-baseline gap-1.5">
-          <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/55">廠牌</span>
-          <span className="text-[13px] text-foreground/85">{m.brandCode ?? m.brandName ?? '—'}</span>
+          <span className="text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground/75">廠牌</span>
+          <span className="text-[13px] text-foreground/90">{m.brandCode ?? m.brandName ?? '—'}</span>
         </span>
       </div>
     </button>
