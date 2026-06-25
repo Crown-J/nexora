@@ -14,8 +14,12 @@ import {
   Bell, Building2, ChevronDown, HelpCircle, LayoutGrid, LogOut, Lock,
   Megaphone, Moon, Settings, Sun, User,
 } from 'lucide-react';
-import { BULLETINS, NOTIFICATIONS, TENANT_NAME } from '@data/home/home-data';
+// 2026-06-25 執行長拍板「測試資料移除」Phase 1：BULLETINS / NOTIFICATIONS / TENANT_NAME mock 全拆
+import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
+import { listBulletins, type BulletinDto } from '@data/endpoints/nx01/api/bulletin';
 import { PlanetSlot } from '@design/home/SharedPlanetRoot';
+
+type BulletinVm = BulletinDto & { unread: boolean };
 
 type TopBarProps = {
   displayName: string;
@@ -74,6 +78,8 @@ export function UnifiedTopBar({ displayName, employeeNo, onLogout, onDockToggle,
   const router = useRouter();
   const { light, toggle: toggleTheme } = useTheme();
   const now = useClock();
+  const { tenantNameZh } = useSessionMe();
+  const tenantName = tenantNameZh || 'NEXORA';
 
   const [open, setOpen] = useState<null | 'bull' | 'noti' | 'set' | 'user'>(null);
   const bullRef = useRef<HTMLDivElement>(null);
@@ -82,8 +88,25 @@ export function UnifiedTopBar({ displayName, employeeNo, onLogout, onDockToggle,
   const userRef = useRef<HTMLDivElement>(null);
   useOutsideClose([bullRef, notiRef, setRef, userRef], () => setOpen(null));
 
-  const unreadBull = BULLETINS.filter((b) => b.unread).length;
-  const pendingNoti = NOTIFICATIONS.length;
+  // 2026-06-25 Phase 1：接 listBulletins、isRead 暫一律 unread=true（Phase 2 接 :id/read tracking）
+  const [bulletins, setBulletins] = useState<BulletinVm[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await listBulletins({ isActive: true, pageSize: 20 });
+        if (!cancelled) setBulletins(res.items.map((b) => ({ ...b, unread: true })));
+      } catch {
+        if (!cancelled) setBulletins([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const unreadBull = bulletins.filter((b) => b.unread).length;
+  const pendingNoti = 0; // 2026-06-25：通知後端 endpoint 待開發、暫顯空狀態
   const initial = displayName.charAt(0);
 
   const dStr = now
@@ -120,7 +143,7 @@ export function UnifiedTopBar({ displayName, employeeNo, onLogout, onDockToggle,
         {/* 租戶名 */}
         <span className="ml-1 flex items-center gap-1.5 border-l border-border/50 pl-3 text-xs text-muted-foreground whitespace-nowrap">
           <Building2 className="h-3.5 w-3.5 opacity-70" />
-          {TENANT_NAME}
+          {tenantName}
         </span>
 
         <div className="flex-1" />
@@ -156,24 +179,29 @@ export function UnifiedTopBar({ displayName, employeeNo, onLogout, onDockToggle,
                 <span className="ml-auto font-mono text-[10px] text-[var(--warning)]">未讀 {unreadBull}</span>
               </div>
               <div className="max-h-96 overflow-y-auto">
-                {BULLETINS.map((b, i) => (
-                  <div
-                    key={i}
-                    className="flex gap-2.5 border-b border-border/20 px-4 py-3 last:border-b-0 hover:bg-foreground/[0.04] cursor-pointer"
-                  >
-                    <span
-                      className="h-fit whitespace-nowrap rounded px-1.5 py-0.5 font-mono text-[9.5px] font-bold tracking-wide"
-                      style={{ color: b.color, background: `color-mix(in srgb, ${b.color} 16%, transparent)` }}
-                    >
-                      {b.type}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="text-[12.5px] leading-snug">{b.title}</div>
-                      <div className="mt-1 font-mono text-[10.5px] text-muted-foreground">{b.date}</div>
-                    </div>
-                    {b.unread && <span className="mt-1.5 h-1.5 w-1.5 flex-none rounded-full bg-[var(--color-danger,#e24b4a)]" />}
+                {bulletins.length === 0 ? (
+                  <div className="px-4 py-8 text-center text-xs text-muted-foreground">
+                    目前沒有公告
                   </div>
-                ))}
+                ) : (
+                  bulletins.map((b) => (
+                    <div
+                      key={b.id}
+                      className="flex gap-2.5 border-b border-border/20 px-4 py-3 last:border-b-0 hover:bg-foreground/[0.04] cursor-pointer"
+                    >
+                      <span className="h-fit whitespace-nowrap rounded bg-foreground/[0.06] px-1.5 py-0.5 font-mono text-[9.5px] font-bold tracking-wide text-muted-foreground">
+                        {b.type || '一般'}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[12.5px] leading-snug">{b.title}</div>
+                        <div className="mt-1 font-mono text-[10.5px] text-muted-foreground">
+                          {b.createdAt ? new Date(b.createdAt).toLocaleDateString('zh-TW') : ''}
+                        </div>
+                      </div>
+                      {b.unread && <span className="mt-1.5 h-1.5 w-1.5 flex-none rounded-full bg-[var(--color-danger,#e24b4a)]" />}
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           )}
@@ -204,27 +232,12 @@ export function UnifiedTopBar({ displayName, employeeNo, onLogout, onDockToggle,
                 <span className="ml-auto font-mono text-[10px] text-muted-foreground">{pendingNoti} 件待處理</span>
               </div>
               <div className="max-h-96 overflow-y-auto">
-                {NOTIFICATIONS.length ? (
-                  NOTIFICATIONS.map((n, i) => (
-                    <div
-                      key={i}
-                      className="flex gap-2.5 border-b border-border/20 px-4 py-3 last:border-b-0 hover:bg-foreground/[0.04] cursor-pointer"
-                    >
-                      <span
-                        className="mt-1.5 h-1.5 w-1.5 flex-none rounded-full"
-                        style={{ background: n.urgent ? 'var(--color-danger, #e24b4a)' : 'var(--muted-foreground)' }}
-                      />
-                      <div className="min-w-0 flex-1">
-                        <div className="text-[12.5px] leading-snug">{n.text}</div>
-                        <div className="mt-1 font-mono text-[10.5px] text-muted-foreground">
-                          {n.code} · {n.when}
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="py-8 text-center text-xs text-muted-foreground">目前沒有待處理事項</div>
-                )}
+                {/* 2026-06-25：通知後端 endpoint 待開發、暫顯空狀態 */}
+                <div className="px-4 py-10 text-center text-xs text-muted-foreground">
+                  <Bell className="mx-auto mb-2 h-6 w-6 opacity-40" />
+                  目前沒有通知
+                  <div className="mt-1 text-[10px] text-muted-foreground/70">通知功能即將推出</div>
+                </div>
               </div>
             </div>
           )}

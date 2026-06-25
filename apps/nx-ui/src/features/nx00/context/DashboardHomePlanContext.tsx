@@ -15,8 +15,11 @@ import {
   type ReactNode,
   type SetStateAction,
 } from 'react';
-import { mockCurrentUser, type PlanCode } from '@data/mocks/dashboard';
+// 2026-06-25：mockCurrentUser 拆除、PlanCode 從 PlanChip 引用
+import { type PlanChipPlan as PlanCode } from '@design/components/PlanChip';
 import { useDemoSession } from '@data/hooks/useDemoSession';
+
+export type { PlanCode };
 
 export type DashboardHomePlanContextValue = {
   planCode: PlanCode;
@@ -28,7 +31,7 @@ const DashboardHomePlanContext = createContext<DashboardHomePlanContextValue | n
 export function DashboardHomePlanProvider({ children }: { children: ReactNode }) {
   const { user: demoUser } = useDemoSession();
   const [planCode, setPlanCode] = useState<PlanCode>(
-    () => demoUser?.planCode ?? mockCurrentUser.planCode,
+    () => demoUser?.planCode ?? 'LITE',
   );
 
   const value = useMemo(() => ({ planCode, setPlanCode }), [planCode]);

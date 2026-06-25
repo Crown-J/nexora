@@ -43,13 +43,15 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { NavPlanetMenu } from '@design/home/Dock';
 import { useDashboardBulletinOptional } from '@/features/nx00/context/DashboardBulletinContext';
-import type { MockBulletin } from '@data/mocks/dashboard';
 import { PlanChip, type PlanChipPlan } from '@design/components/PlanChip';
 
-function bulletinTypeLabel(t: MockBulletin['type']) {
-  if (t === 'URGENT') return '緊急';
-  if (t === 'COMPANY') return '公司';
-  return '系統';
+// 2026-06-25 首頁測試資料清除 Phase 1：MockBulletin 移除、改用 BulletinDto.type (string)
+function bulletinTypeLabel(t: string) {
+  const upper = t.toUpperCase();
+  if (upper === 'URGENT') return '緊急';
+  if (upper === 'COMPANY') return '公司';
+  if (upper === 'SYSTEM') return '系統';
+  return t; // fallback：顯示後端原值
 }
 
 function isEditableTarget(el: EventTarget | null): boolean {
@@ -57,11 +59,7 @@ function isEditableTarget(el: EventTarget | null): boolean {
   return el.closest('input, textarea, select, [contenteditable="true"]') !== null;
 }
 
-const HEADER_NOTIFICATION_ITEMS = [
-  { title: '新訂單通知', desc: '客戶「大同汽車」下了一筆新訂單', time: '5 分鐘前', type: 'order' as const },
-  { title: '庫存警示', desc: '「煞車來令片 B-201」庫存不足', time: '30 分鐘前', type: 'warning' as const },
-  { title: '帳款提醒', desc: '「永昌汽材」有一筆應收帳款即將到期', time: '1 小時前', type: 'payment' as const },
-];
+// 2026-06-25 通知測試資料拿掉、通知後端 endpoint 待開發、暫顯空狀態
 
 export type HomeTopBarProps = {
   displayName: string;
@@ -384,6 +382,11 @@ export function HomeTopBar({
                 </Badge>
               </DropdownMenuLabel>
               <div className="max-h-[min(70vh,320px)] overflow-y-auto">
+                {bulletinCtx.bulletins.length === 0 ? (
+                  <div className="px-4 py-8 text-center text-xs text-muted-foreground">
+                    目前沒有公告
+                  </div>
+                ) : null}
                 {bulletinCtx.bulletins.slice(0, 5).map((b) => (
                   <div
                     key={b.id}
@@ -399,7 +402,9 @@ export function HomeTopBar({
                         ) : null}
                       </div>
                       <div className="mt-0.5 text-sm font-medium text-foreground">{b.title}</div>
-                      <div className="text-[10px] text-muted-foreground">{b.date}</div>
+                      <div className="text-[10px] text-muted-foreground">
+                        {b.createdAt ? new Date(b.createdAt).toLocaleDateString('zh-TW') : ''}
+                      </div>
                     </div>
                     <button
                       type="button"
@@ -433,39 +438,23 @@ export function HomeTopBar({
               className="relative text-foreground hover:bg-secondary/80 rounded-xl h-10 w-10"
             >
               <Bell className="w-5 h-5" />
-              <span className="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center">
-                <span className="absolute inline-flex h-full w-full rounded-full bg-primary/40 animate-ping" />
-                <span className="relative inline-flex h-4 w-4 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/80 text-[9px] font-bold text-primary-foreground">
-                  3
-                </span>
-              </span>
+              {/* 2026-06-25：通知後端 endpoint 待開發、暫無未讀計數紅點 */}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-80 glass-card p-0 overflow-hidden">
             <DropdownMenuLabel className="px-4 py-3 border-b border-border/50 flex items-center justify-between">
               <span className="font-semibold text-foreground">通知</span>
               <Badge variant="secondary" className="text-[10px]">
-                3 則未讀
+                0 則未讀
               </Badge>
             </DropdownMenuLabel>
             <div className="max-h-[300px] overflow-y-auto">
-              {HEADER_NOTIFICATION_ITEMS.map((item, i) => (
-                <DropdownMenuItem
-                  key={i}
-                  className="flex flex-col items-start gap-1 px-4 py-3 cursor-pointer hover:bg-secondary/50 border-b border-border/30 last:border-0 rounded-none"
-                >
-                  <div className="flex items-center gap-2 w-full">
-                    <div
-                      className={`w-2 h-2 rounded-full ${
-                        item.type === 'order' ? 'bg-chart-4' : item.type === 'warning' ? 'bg-destructive' : 'bg-primary'
-                      }`}
-                    />
-                    <span className="font-medium text-foreground text-sm">{item.title}</span>
-                    <span className="text-[10px] text-muted-foreground ml-auto">{item.time}</span>
-                  </div>
-                  <span className="text-xs text-muted-foreground pl-4">{item.desc}</span>
-                </DropdownMenuItem>
-              ))}
+              {/* 2026-06-25：通知後端 endpoint 待開發、暫顯空狀態 */}
+              <div className="px-4 py-10 text-center text-xs text-muted-foreground">
+                <Bell className="mx-auto mb-2 h-6 w-6 opacity-40" />
+                目前沒有通知
+                <div className="mt-1 text-[10px] text-muted-foreground/70">通知功能即將推出</div>
+              </div>
             </div>
             <div className="p-2 border-t border-border/50">
               <Button
@@ -571,32 +560,15 @@ export function HomeTopBar({
         <DialogContent className="sm:max-w-md glass-card max-h-[min(520px,85vh)] flex flex-col p-0 gap-0">
           <DialogHeader className="px-6 pt-6 pb-3 border-b border-border/50 shrink-0">
             <DialogTitle>全部通知</DialogTitle>
-            <DialogDescription className="sr-only">通知列表（測試資料）</DialogDescription>
+            <DialogDescription className="sr-only">通知列表</DialogDescription>
           </DialogHeader>
           <ScrollArea className="flex-1 min-h-0 max-h-[380px] px-2">
-            <ul className="px-4 pb-2 space-y-0">
-              {HEADER_NOTIFICATION_ITEMS.map((item, i) => (
-                <li
-                  key={i}
-                  className="flex flex-col gap-1 rounded-lg px-2 py-3 -mx-1 border-b border-border/30 last:border-0 transition-colors duration-150 hover:bg-secondary/55"
-                >
-                  <div className="flex items-center gap-2 w-full">
-                    <span
-                      className={`w-2 h-2 rounded-full shrink-0 ${
-                        item.type === 'order'
-                          ? 'bg-chart-4'
-                          : item.type === 'warning'
-                            ? 'bg-destructive'
-                            : 'bg-primary'
-                      }`}
-                    />
-                    <span className="font-medium text-foreground text-sm">{item.title}</span>
-                    <span className="text-[10px] text-muted-foreground ml-auto">{item.time}</span>
-                  </div>
-                  <span className="text-xs text-muted-foreground pl-4">{item.desc}</span>
-                </li>
-              ))}
-            </ul>
+            {/* 2026-06-25：通知後端 endpoint 待開發、暫顯空狀態 */}
+            <div className="px-6 py-12 text-center text-sm text-muted-foreground">
+              <Bell className="mx-auto mb-3 h-8 w-8 opacity-40" />
+              目前沒有通知
+              <div className="mt-1 text-xs text-muted-foreground/70">通知功能即將推出</div>
+            </div>
           </ScrollArea>
           <DialogFooter className="px-6 py-4 border-t border-border/50 shrink-0">
             <Button type="button" variant="secondary" className="w-full sm:w-auto" onClick={() => setAllNotificationsOpen(false)}>

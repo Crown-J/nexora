@@ -1,6 +1,12 @@
-// apps/nx-ui/src/features/home/home-data.ts
-// NX00 首頁儀表板 mock 資料（對齊 Hana 成品 dashboard-data.js）
-// 後端整合後改接 /home/events /home/attendance /home/tasks 等 endpoint、本檔退役
+// apps/nx-ui/src/data/home/home-data.ts
+// NX00 首頁儀表板 共用 metadata + 全域導覽 (DOCK_NAV)
+//
+// 2026-06-25 執行長拍板「移除所有測試資料」Phase 1：
+//   - CALENDAR_EVENTS / ATTENDANCE / TASKS / BULLETINS / NOTIFICATIONS / TENANT_NAME mock 全拆
+//   - 保留：type 定義、EVENT_TYPES / ATTEND_STATUS / DOC_TYPES 顯示用 metadata、TODAY 日期工具、DOCK_NAV 全域導覽
+//   - 公告 → DashboardBulletinContext + UnifiedTopBar 走 listBulletins
+//   - 行事曆 → HomeView 走 listCalendarEvents
+//   - 出勤 / 任務 / 通知 → Phase 1 暫顯空狀態（Phase 2 接 endpoint）
 
 export type EventType = 'meeting' | 'activity' | 'leave' | 'holiday';
 export type AttendStatus = 'work' | 'remote' | 'trip' | 'leave' | 'sick';
@@ -11,38 +17,6 @@ export type CalendarEvent = {
   title: string;
   type: EventType;
   meta?: string;
-};
-
-export type Attendee = {
-  name: string;
-  role: string;
-  status: AttendStatus;
-};
-
-export type Task = {
-  id: string;
-  code: string;
-  type: DocType;
-  status: string;
-  partner: string;
-  amount: string;
-  due: string; // YYYY-M-D
-  done: boolean;
-};
-
-export type Bulletin = {
-  type: string;
-  title: string;
-  date: string;
-  color: string;
-  unread: boolean;
-};
-
-export type Notification = {
-  text: string;
-  code: string;
-  when: string;
-  urgent: boolean;
 };
 
 export const EVENT_TYPES: Record<EventType, { label: string; color: string }> = {
@@ -68,147 +42,13 @@ export const DOC_TYPES: Record<DocType, { label: string; color: string }> = {
   purchase: { label: '採購', color: '#e24b4a' },
 };
 
-// today 的 YYYY-M-D（mock data 用、避免日期偏移）
+// today 工具：給行事曆 focus 起點用
 const T = new Date();
 const TY = T.getFullYear();
 const TM = T.getMonth() + 1;
 const TD = T.getDate();
 const dkey = (y: number, m: number, d: number) => `${y}-${m}-${d}`;
-const today = dkey(TY, TM, TD);
-const offset = (n: number) => {
-  const dt = new Date(TY, TM - 1, TD + n);
-  return dkey(dt.getFullYear(), dt.getMonth() + 1, dt.getDate());
-};
-
-export const TODAY = { y: TY, m: TM, d: TD, key: today };
-
-export const CALENDAR_EVENTS: Record<string, CalendarEvent[]> = {
-  [offset(-2)]: [
-    { time: '09:30', title: '與保時捷 OEM 廠商視訊', type: 'meeting', meta: 'Zoom 線上會議' },
-    { time: '14:00', title: '銷貨團隊週會', type: 'meeting', meta: '3F 會議室' },
-  ],
-  [offset(-1)]: [
-    { time: '10:00', title: '盤點作業 — 北倉', type: 'activity', meta: '北部物流中心' },
-  ],
-  [today]: [
-    { time: '09:00', title: '晨會', type: 'meeting', meta: '主廳' },
-    { time: '11:00', title: 'BMW 經銷商來訪', type: 'meeting', meta: '接待室 A' },
-    { time: '14:30', title: '保固教育訓練', type: 'activity', meta: '會議室 B' },
-    { time: '17:00', title: '客戶結帳對帳', type: 'activity', meta: '財務部' },
-  ],
-  [offset(1)]: [
-    { time: '10:00', title: '採購會議', type: 'meeting', meta: '2F 小會議室' },
-    { time: '15:00', title: '員工生日下午茶', type: 'activity' },
-  ],
-  [offset(3)]: [{ time: '00:00', title: '王小明請假', type: 'leave' }],
-  [offset(5)]: [{ time: '00:00', title: '端午連假 (店休)', type: 'holiday' }],
-};
-
-export const ATTENDANCE: Attendee[] = [
-  { name: '陳柏宏', role: '銷貨主管', status: 'work' },
-  { name: '王小明', role: '前台業務', status: 'work' },
-  { name: '陳美玲', role: '採購', status: 'work' },
-  { name: '林大偉', role: '倉管', status: 'remote' },
-  { name: '黃志豪', role: '送貨員', status: 'trip' },
-  { name: '李淑芬', role: '會計', status: 'work' },
-  { name: '周建華', role: '保養師', status: 'leave' },
-  { name: '劉雅婷', role: '前台業務', status: 'sick' },
-  { name: '張家豪', role: '銷貨', status: 'work' },
-];
-
-export const TASKS: Task[] = [
-  {
-    id: 't1',
-    code: 'QT-2026-0042',
-    type: 'quote',
-    status: '草稿',
-    partner: '亞捷汽車',
-    amount: 'NT$ 86,500',
-    due: today,
-    done: false,
-  },
-  {
-    id: 't2',
-    code: 'SO-2026-0118',
-    type: 'sales',
-    status: '待出貨',
-    partner: '正昌汽材',
-    amount: 'NT$ 372,000',
-    due: offset(-1),
-    done: false,
-  },
-  {
-    id: 't3',
-    code: 'DO-2026-0203',
-    type: 'ship',
-    status: '備貨中',
-    partner: '台中經銷',
-    amount: 'NT$ 128,400',
-    due: offset(1),
-    done: false,
-  },
-  {
-    id: 't4',
-    code: 'RC-2026-0094',
-    type: 'collect',
-    status: '待收款',
-    partner: '正昌汽材',
-    amount: 'NT$ 195,800',
-    due: offset(2),
-    done: false,
-  },
-  {
-    id: 't5',
-    code: 'PO-2026-0151',
-    type: 'purchase',
-    status: '待核准',
-    partner: 'Bosch 台灣',
-    amount: 'NT$ 540,000',
-    due: offset(3),
-    done: false,
-  },
-  {
-    id: 't6',
-    code: 'QT-2026-0040',
-    type: 'quote',
-    status: '已送出',
-    partner: '南部汽配',
-    amount: 'NT$ 47,200',
-    due: offset(-2),
-    done: true,
-  },
-];
-
-export const BULLETINS: Bulletin[] = [
-  {
-    type: '系統',
-    title: '6 月 18 日 (週四) 12:00-14:00 系統維護、請提前儲存作業',
-    date: '2 小時前',
-    color: '#378add',
-    unread: true,
-  },
-  {
-    type: '政策',
-    title: '保固申請流程更新、請參閱新版操作手冊',
-    date: '昨天',
-    color: '#e8a020',
-    unread: true,
-  },
-  {
-    type: '行銷',
-    title: '夏季促銷活動 7/1 開跑、業務部準備好了嗎',
-    date: '3 天前',
-    color: '#1d9e75',
-    unread: false,
-  },
-];
-
-export const NOTIFICATIONS: Notification[] = [
-  { text: 'QT-2026-0042 報價單等您核准', code: 'QT-2026-0042', when: '10 分鐘前', urgent: true },
-  { text: 'SO-2026-0118 已逾備貨期限', code: 'SO-2026-0118', when: '1 小時前', urgent: true },
-  { text: 'RC-2026-0094 客戶要求對帳', code: 'RC-2026-0094', when: '3 小時前', urgent: false },
-  { text: 'PO-2026-0151 採購單需附加報價單', code: 'PO-2026-0151', when: '半天前', urgent: false },
-];
+export const TODAY = { y: TY, m: TM, d: TD, key: dkey(TY, TM, TD) };
 
 // 全域導覽（小星球 Dock）8 主選單 + 主檔三層
 export type DockItem = {
@@ -245,7 +85,6 @@ export const DOCK_NAV: DockItem[] = [
         label: '權限管理',
         icon: 'shield-check',
         sub: [
-          // 2026-06-20 主檔群組模板交付（接到我新做的 OrgStructurePage）
           { key: 'orgchart', label: '組織架構圖', icon: 'network', href: '/dashboard/master/org-structure' },
           { key: 'permmatrix', label: '職務權限設定', icon: 'shield-check', href: '/dashboard/master/role-view' },
         ],
@@ -255,7 +94,6 @@ export const DOCK_NAV: DockItem[] = [
         label: '據點倉庫',
         icon: 'warehouse',
         sub: [
-          // 2026-06-20 主檔群組模板交付（接到我新做的 LocationStructurePage）
           { key: 'sitechart', label: '據點架構圖', icon: 'network', href: '/dashboard/master/location-structure' },
           { key: 'sites', label: '據點', icon: 'map-pin', href: '/dashboard/master/site' },
           { key: 'warehouses', label: '倉庫', icon: 'warehouse', href: '/dashboard/master/warehouses' },
@@ -270,7 +108,6 @@ export const DOCK_NAV: DockItem[] = [
           { key: 'partners', label: '往來對象', icon: 'handshake', href: '/dashboard/master/partners' },
           { key: 'cust-grade', label: '客戶分級', icon: 'crown', href: '/dashboard/master/customer-grade' },
           { key: 'supp-grade', label: '供應商分級', icon: 'award', href: '/dashboard/master/supplier-grade' },
-          // 2026-06-20 主檔群組模板交付（從舊 partner-part 改指 SupplierSupplyPage）
           { key: 'partner-part', label: '供應商供貨對應', icon: 'link', href: '/dashboard/master/supplier-supply' },
         ],
       },
@@ -280,10 +117,8 @@ export const DOCK_NAV: DockItem[] = [
         icon: 'boxes',
         sub: [
           { key: 'parts', label: '零件', icon: 'box', href: '/dashboard/master/parts' },
-          // 2026-06-18 廠牌合併:car-brand + part-brand 合 nx01/brands、用 isCar/isPart 雙開關
           { key: 'brand', label: '廠牌', icon: 'tag', href: '/dashboard/master/brand' },
           { key: 'part-group', label: '零件群組', icon: 'layers', href: '/dashboard/master/part-group' },
-          // 2026-06-20 主檔群組模板交付（從舊 part-compat-group 改指 UniversalGroupPage）
           { key: 'univ-group', label: '通用件群組', icon: 'combine', href: '/dashboard/master/universal-group' },
         ],
       },
@@ -361,5 +196,3 @@ export const DOCK_NAV: DockItem[] = [
   },
   { key: 'reports', label: '報表', icon: 'bar-chart', href: '/dashboard/report' },
 ];
-
-export const TENANT_NAME = '亞羅汽材行';

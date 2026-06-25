@@ -1,17 +1,23 @@
 // apps/nx-ui/src/features/home/HomeView.tsx
 // NX00 首頁儀表板：行事曆⇄事件簿（連動）+ 全體出勤 + 任務清單
-// 對齊 Hana 成品 NEXORA 系統.html #view-home + dashboard.js
-// LITE 範圍：不放營業額/毛利 BI、不放待辦摘要計數格
+//
+// 2026-06-25 執行長拍板「移除所有測試資料」Phase 1：
+//   - 公告 / 行事曆 / 通知 改接真實 API（行事曆走 listCalendarEvents）
+//   - 出勤 / 任務 暫顯空狀態（出勤 attendance endpoint 受 PRO 限制、任務需 NX02/04/05 聚合 endpoint、Phase 2 再做）
+//   - 任務 panel 移除勾選 checkbox UI（單據完成自動消失、不需 user 勾）
 
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { CalendarDays, ChevronDown, Clock, FileText, MapPin, Plus } from 'lucide-react';
+import { CalendarDays, ChevronDown, Clock, FileText, MapPin, Plus, Users } from 'lucide-react';
 import {
-  ATTENDANCE, ATTEND_STATUS, CALENDAR_EVENTS, DOC_TYPES, EVENT_TYPES, TASKS, TODAY,
-  type DocType, type Task,
+  DOC_TYPES, EVENT_TYPES, TODAY,
+  type DocType,
 } from '@data/home/home-data';
+import {
+  listCalendarEvents,
+  type CalendarEventDto,
+} from '@data/endpoints/nx01/api/calendar-event';
 
 const WD = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
 const dkey = (y: number, m: number, d: number) => `${y}-${m}-${d}`;
@@ -26,19 +32,36 @@ function addDays(dt: Date, n: number): Date {
   return d;
 }
 
-function cmpKey(a: string, b: string) {
-  const pa = a.split('-').map(Number);
-  const pb = b.split('-').map(Number);
-  return pa[0] - pb[0] || pa[1] - pb[1] || pa[2] - pb[2];
+/** 行事曆 view-model：依日期 group 後端 events */
+type CalEventVm = {
+  time: string;
+  title: string;
+  type: string;
+  meta?: string;
+};
+
+function eventVmFromDto(dto: CalendarEventDto): CalEventVm {
+  const start = dto.dateStart ? new Date(dto.dateStart) : null;
+  const hh = start && !dto.isAllDay
+    ? `${String(start.getHours()).padStart(2, '0')}:${String(start.getMinutes()).padStart(2, '0')}`
+    : '00:00';
+  return {
+    time: hh,
+    title: dto.title,
+    type: dto.type || 'meeting',
+    meta: dto.orderDocNo ?? undefined,
+  };
 }
 
 // ============ CalendarCoverflow（7 卡輪轉） ============
 function CalendarCoverflow({
   focus,
   onFocusChange,
+  eventsByDate,
 }: {
   focus: Date;
   onFocusChange: (d: Date) => void;
+  eventsByDate: Map<string, CalEventVm[]>;
 }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const lastWheel = useRef(0);
@@ -178,7 +201,7 @@ function CalendarCoverflow({
         style={{ perspective: '1200px' }}
       >
         {cards.map(({ off, dt, key }) => {
-          const evs = CALENDAR_EVENTS[key] || [];
+          const evs = eventsByDate.get(key) ?? [];
           const types = Array.from(new Set(evs.map((e) => e.type))).slice(0, 4);
           const isCenter = off === 0;
           const isToday = key === TODAY.key;
@@ -214,9 +237,11 @@ function CalendarCoverflow({
               </span>
               <span className="font-mono text-[11px] text-muted-foreground/80">{dt.getMonth() + 1} 月</span>
               <span className="flex h-1.5 items-center gap-0.5">
-                {types.map((t) => (
-                  <span key={t} className="h-1.5 w-1.5 rounded-full" style={{ background: EVENT_TYPES[t].color }} />
-                ))}
+                {types.map((t) => {
+                  const meta = EVENT_TYPES[t as keyof typeof EVENT_TYPES];
+                  const color = meta?.color ?? '#9aa0a6';
+                  return <span key={t} className="h-1.5 w-1.5 rounded-full" style={{ background: color }} />;
+                })}
               </span>
               {evs.length ? (
                 <span className="text-[10.5px] text-muted-foreground">{evs.length} 個行程</span>
@@ -237,12 +262,17 @@ function CalendarCoverflow({
 }
 
 // ============ EventBook + Attendance（3:2 split） ============
-function EventBookAndAttendance({ focusKey }: { focusKey: string }) {
+function EventBookAndAttendance({
+  focusKey,
+  eventsByDate,
+}: {
+  focusKey: string;
+  eventsByDate: Map<string, CalEventVm[]>;
+}) {
   const p = focusKey.split('-').map(Number);
   const dateObj = new Date(p[0], p[1] - 1, p[2]);
   // React Compiler 自動 memo
-  const evs = (CALENDAR_EVENTS[focusKey] || []).slice().sort((a, b) => a.time.localeCompare(b.time));
-  const present = ATTENDANCE.filter((a) => ['work', 'remote', 'trip'].includes(a.status)).length;
+  const evs = (eventsByDate.get(focusKey) ?? []).slice().sort((a, b) => a.time.localeCompare(b.time));
 
   return (
     <section className="grid grid-cols-[3fr_2fr] overflow-hidden rounded-2xl border border-border/40 bg-card/60 backdrop-blur-md flex-1 min-h-0">
@@ -264,7 +294,7 @@ function EventBookAndAttendance({ focusKey }: { focusKey: string }) {
           {evs.length ? (
             <div className="flex flex-col gap-1 p-2">
               {evs.map((e, i) => {
-                const ty = EVENT_TYPES[e.type];
+                const ty = EVENT_TYPES[e.type as keyof typeof EVENT_TYPES] ?? { label: e.type, color: '#9aa0a6' };
                 return (
                   <button
                     key={i}
@@ -302,36 +332,19 @@ function EventBookAndAttendance({ focusKey }: { focusKey: string }) {
           )}
         </div>
       </div>
-      {/* 全體出勤（右） */}
+      {/* 全體出勤（右）—— 2026-06-25 Phase 1 暫顯空狀態
+          理由：attendance endpoint 受 PRO 方案 + HR role 限定（apps/nx-api/src/nx07/attendance/）
+          + status 對應 work/remote/trip/leave/sick 需與後端 schema 對齊 Phase 2 再接 */}
       <div className="flex flex-col min-w-0 min-h-0">
         <div className="flex items-baseline gap-2.5 border-b border-border/30 px-4 py-3.5">
           <span className="whitespace-nowrap text-[14px] font-semibold">全體出勤</span>
-          <span className="ml-auto font-mono text-[11.5px] text-muted-foreground">
-            {present} / {ATTENDANCE.length} 在勤
-          </span>
         </div>
-        <div className="flex-1 min-h-0 overflow-y-auto px-2 py-1.5">
-          {ATTENDANCE.map((a) => {
-            const s = ATTEND_STATUS[a.status];
-            return (
-              <div key={a.name} className="flex items-center gap-2.5 rounded-xl px-2 py-2 hover:bg-foreground/[0.04]">
-                <span className="grid h-7 w-7 place-items-center rounded-full bg-[color-mix(in_srgb,var(--warning)_18%,transparent)] text-[12px] font-semibold text-[var(--nx-accent-strong)]">
-                  {a.name.slice(0, 1)}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-[13px] leading-tight">{a.name}</div>
-                  <div className="mt-0.5 truncate text-[11px] text-muted-foreground">{a.role}</div>
-                </div>
-                <span
-                  className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-semibold"
-                  style={{ color: s.color, background: `color-mix(in srgb, ${s.color} 14%, transparent)` }}
-                >
-                  <span className="h-1.5 w-1.5 rounded-full" style={{ background: s.color }} />
-                  {s.label}
-                </span>
-              </div>
-            );
-          })}
+        <div className="flex-1 min-h-0 grid place-items-center px-4 py-8 text-center">
+          <div className="text-muted-foreground/80">
+            <Users className="mx-auto mb-2 h-7 w-7 opacity-40" />
+            <div className="text-[13px]">尚未啟用出勤記錄</div>
+            <div className="mt-1 text-[11px] text-muted-foreground/70">出勤功能即將推出</div>
+          </div>
         </div>
       </div>
     </section>
@@ -339,26 +352,12 @@ function EventBookAndAttendance({ focusKey }: { focusKey: string }) {
 }
 
 // ============ TasksPanel ============
+// 2026-06-25 執行長拍板：
+//   - 拿掉勾選 checkbox（單據完成自動消失、不需 user 勾）
+//   - 移除測試資料 TASKS、Phase 1 暫顯空狀態
+//   - Phase 2 接 NX02 PO/PR + NX04 QT/SO/SR + NX05 應收應付 聚合 endpoint
 function TasksPanel() {
-  const router = useRouter();
   const [filter, setFilter] = useState<DocType | 'all'>('all');
-  const [taskState, setTaskState] = useState<Task[]>(TASKS);
-  const filtered = taskState
-    .filter((t) => filter === 'all' || t.type === filter)
-    .slice()
-    .sort((a, b) => Number(a.done) - Number(b.done) || cmpKey(a.due, b.due));
-
-  const pending = taskState.filter((t) => !t.done).length;
-
-  const dueLabel = (t: Task) => {
-    const c = cmpKey(t.due, TODAY.key);
-    const p = t.due.split('-');
-    const ds = `${p[1]}/${p[2].padStart(2, '0')}`;
-    if (t.done) return { txt: ds, over: false };
-    if (c < 0) return { txt: `逾期 · ${ds}`, over: true };
-    if (c === 0) return { txt: '今天到期', over: false };
-    return { txt: `${ds} 到期`, over: false };
-  };
 
   const tabs: { k: DocType | 'all'; label: string }[] = [
     { k: 'all', label: '全部' },
@@ -374,11 +373,10 @@ function TasksPanel() {
       <div className="flex items-center gap-2.5 border-b border-border/30 px-4 py-4">
         <FileText className="h-4 w-4 text-[var(--nx-accent-strong)]" />
         <span className="text-[14px] font-semibold">任務</span>
-        <span className="ml-auto font-mono text-[11.5px] text-muted-foreground">{pending} 筆待處理</span>
+        <span className="ml-auto font-mono text-[11.5px] text-muted-foreground">0 筆待處理</span>
       </div>
       <div className="flex flex-wrap gap-1.5 px-4 py-3">
         {tabs.map(({ k, label }) => {
-          const cnt = k === 'all' ? pending : taskState.filter((x) => !x.done && x.type === k).length;
           const on = filter === k;
           return (
             <button
@@ -392,91 +390,18 @@ function TasksPanel() {
               }`}
             >
               {label}
-              {cnt > 0 && <span className="ml-1 opacity-70">{cnt}</span>}
             </button>
           );
         })}
       </div>
-      <div className="flex-1 min-h-0 overflow-y-auto p-2">
-        {filtered.length ? (
-          <div className="flex flex-col gap-1.5">
-            {filtered.map((t) => {
-              const ty = DOC_TYPES[t.type];
-              const dl = dueLabel(t);
-              return (
-                <button
-                  key={t.id}
-                  type="button"
-                  onClick={() => {
-                    // 最簡 routing：依類型跳對應模組（暫時統一跳 /dashboard 不死掉）
-                    const target =
-                      t.type === 'quote' ? '/dashboard/sale/qt'
-                      : t.type === 'sales' ? '/dashboard/sale/so'
-                      : t.type === 'ship' ? '/dashboard/delivery'
-                      : t.type === 'collect' ? '/dashboard/finance'
-                      : '/dashboard/purchase';
-                    router.push(target);
-                  }}
-                  className={`flex items-start gap-3 rounded-xl border border-transparent bg-foreground/[0.02] p-3 text-left transition hover:border-border/40 hover:bg-foreground/[0.05] ${
-                    t.done ? 'opacity-60' : ''
-                  }`}
-                >
-                  <span
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setTaskState((prev) => prev.map((x) => (x.id === t.id ? { ...x, done: !x.done } : x)));
-                    }}
-                    className={`mt-0.5 grid h-[19px] w-[19px] flex-none place-items-center rounded-md border-[1.5px] transition cursor-pointer ${
-                      t.done
-                        ? 'border-[var(--warning)] bg-[var(--warning)]'
-                        : 'border-muted-foreground/70 hover:border-[var(--warning)]'
-                    }`}
-                  >
-                    {t.done && (
-                      <svg viewBox="0 0 24 24" fill="none" stroke="#0a1014" strokeWidth="3" className="h-3 w-3">
-                        <path d="m5 12 5 5L20 7" />
-                      </svg>
-                    )}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span
-                        className="rounded px-1.5 py-0.5 text-[10px] font-semibold tracking-wide"
-                        style={{ color: ty.color, background: `color-mix(in srgb, ${ty.color} 15%, transparent)` }}
-                      >
-                        {ty.label}
-                      </span>
-                      <span className="font-mono text-[12px] text-foreground/90">{t.code}</span>
-                      <span className="ml-auto font-mono text-[12px] tabular-nums text-foreground">{t.amount}</span>
-                    </div>
-                    <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[11.5px]">
-                      <span
-                        className={`rounded px-1.5 py-0.5 ${
-                          t.status === '草稿'
-                            ? 'text-muted-foreground bg-foreground/[0.05]'
-                            : 'text-[var(--nx-accent-strong)] bg-[color-mix(in_srgb,var(--warning)_16%,transparent)]'
-                        }`}
-                      >
-                        {t.status}
-                      </span>
-                      <span className="text-muted-foreground">{t.partner}</span>
-                      <span
-                        className={`inline-flex items-center gap-1 ml-auto ${
-                          dl.over ? 'text-[var(--color-danger,#e24b4a)]' : 'text-muted-foreground'
-                        }`}
-                      >
-                        <Clock className="h-3 w-3" />
-                        {dl.txt}
-                      </span>
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
+      <div className="flex-1 min-h-0 grid place-items-center p-6 text-center">
+        <div className="text-muted-foreground/80">
+          <FileText className="mx-auto mb-2 h-7 w-7 opacity-40" />
+          <div className="text-[13px]">目前沒有待處理單據</div>
+          <div className="mt-1 text-[11px] text-muted-foreground/70">
+            單據聚合功能即將推出（採購 / 銷貨 / 報價 / 出貨 / 收款）
           </div>
-        ) : (
-          <div className="py-12 text-center text-[13px] text-muted-foreground/70">此分類沒有單據</div>
-        )}
+        </div>
       </div>
     </section>
   );
@@ -486,6 +411,40 @@ function TasksPanel() {
 export function HomeView({ displayName }: { displayName: string }) {
   const [focus, setFocus] = useState(() => new Date(TODAY.y, TODAY.m - 1, TODAY.d));
   const focusKey = dKeyOf(focus);
+  // 2026-06-25 Phase 1：行事曆接 listCalendarEvents（一個月範圍）按 dateStart 分桶
+  const [eventsByDate, setEventsByDate] = useState<Map<string, CalEventVm[]>>(new Map());
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const from = new Date();
+        from.setDate(from.getDate() - 15);
+        const to = new Date();
+        to.setDate(to.getDate() + 30);
+        const rows = await listCalendarEvents({
+          from: from.toISOString(),
+          to: to.toISOString(),
+        });
+        if (cancelled) return;
+        const map = new Map<string, CalEventVm[]>();
+        for (const dto of rows) {
+          if (!dto.dateStart) continue;
+          const d = new Date(dto.dateStart);
+          const key = dkey(d.getFullYear(), d.getMonth() + 1, d.getDate());
+          const arr = map.get(key) ?? [];
+          arr.push(eventVmFromDto(dto));
+          map.set(key, arr);
+        }
+        setEventsByDate(map);
+      } catch {
+        if (!cancelled) setEventsByDate(new Map());
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // 時間敏感問候（first render 時鎖定一次、避免每秒重算）
   const [greet] = useState(() => {
@@ -503,17 +462,15 @@ export function HomeView({ displayName }: { displayName: string }) {
         <h1 className="text-[27px] font-semibold tracking-tight m-0">
           {greet}，<span className="text-[var(--nx-accent-strong)]">{displayName}</span>
         </h1>
-        <div className="text-[14px] text-muted-foreground">
-          今天還有 <span className="font-semibold text-[var(--nx-accent-strong)]">{TASKS.filter((t) => !t.done && cmpKey(t.due, TODAY.key) <= 0).length}</span> 筆待處理單據
-        </div>
+        {/* 2026-06-25 Phase 1：「今天還有 N 筆待處理單據」需任務聚合 endpoint、Phase 2 再接 */}
       </div>
       <div className="grid flex-1 min-h-0 grid-cols-1 gap-4 lg:grid-cols-[1.72fr_1fr]">
         <div className="flex flex-col gap-3.5 min-h-0">
           <div data-nx-frame className="nx-stagger-card-1">
-            <CalendarCoverflow focus={focus} onFocusChange={setFocus} />
+            <CalendarCoverflow focus={focus} onFocusChange={setFocus} eventsByDate={eventsByDate} />
           </div>
           <div data-nx-frame className="nx-stagger-card-2 flex flex-col flex-1 min-h-0">
-            <EventBookAndAttendance focusKey={focusKey} />
+            <EventBookAndAttendance focusKey={focusKey} eventsByDate={eventsByDate} />
           </div>
         </div>
         <div data-nx-frame className="nx-stagger-task flex flex-col min-h-0">
