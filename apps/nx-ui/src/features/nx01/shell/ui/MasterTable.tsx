@@ -37,6 +37,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@design/primitives/dropdown-menu';
+import { FocusZone } from '@design/primitives/focus-zone';
 import { cn } from '@design/utils/cn';
 
 export const MASTER_TABLE_PAGE_SIZES = [10, 20, 50, 100] as const;
@@ -160,14 +161,50 @@ export function MasterTable<T>({
     }
   };
 
+  // 找容器內 row tr DOM 集合 + 把焦點 / 選中切到指定 idx 的 row
+  const focusRowByIndex = (container: HTMLElement | null, idx: number) => {
+    if (!container) return;
+    const rowEls = Array.from(
+      container.querySelectorAll<HTMLTableRowElement>('[data-row-id]'),
+    );
+    if (rowEls.length === 0) return;
+    const clamped = Math.max(0, Math.min(rowEls.length - 1, idx));
+    const nextRow = rowEls[clamped];
+    nextRow?.focus();
+    const nextId = nextRow?.getAttribute('data-row-id');
+    if (nextId) onSelect(nextId);
+  };
+
+  // 容器空白 + ↑↓ → 跳到 selectedId 對應的 row（沒選 → 第一個 row）
+  const focusInitialRow = (container: HTMLElement | null) => {
+    if (!container) return;
+    const rowEls = Array.from(
+      container.querySelectorAll<HTMLTableRowElement>('[data-row-id]'),
+    );
+    if (rowEls.length === 0) return;
+    const targetIdx = selectedId
+      ? rowEls.findIndex((el) => el.getAttribute('data-row-id') === selectedId)
+      : 0;
+    focusRowByIndex(container, targetIdx >= 0 ? targetIdx : 0);
+  };
+
   // ↑↓ 在表格內 = 切換 row 焦點；Enter 在 row = 進入編輯
+  // FocusZone scope='all'：row 冒泡上來的 keydown 也走這（focus 在 tr 上時 active 有 data-row-id）
+  // 容器空白時（focus 在 FocusZone 自身、active 沒 data-row-id）→ 跳到 selectedId / 第一個 row
   const handleTableKey = (e: React.KeyboardEvent) => {
     const active = document.activeElement as HTMLElement | null;
-    if (!active || !active.hasAttribute('data-row-id')) return;
+    const onRow = !!active && active.hasAttribute('data-row-id');
+    const container = e.currentTarget as HTMLElement;
 
     if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      if (!onRow) {
+        // 容器空白 → 拉焦點到 selectedId / 第一個 row
+        e.preventDefault();
+        focusInitialRow(container);
+        return;
+      }
       const rowEls = Array.from(
-        e.currentTarget.querySelectorAll<HTMLTableRowElement>('[data-row-id]'),
+        container.querySelectorAll<HTMLTableRowElement>('[data-row-id]'),
       );
       if (rowEls.length === 0) return;
       const idx = rowEls.indexOf(active as HTMLTableRowElement);
@@ -181,6 +218,7 @@ export function MasterTable<T>({
       const nextId = nextRow?.getAttribute('data-row-id');
       if (nextId) onSelect(nextId);
     } else if (e.key === 'Enter') {
+      if (!onRow) return;
       const id = active.getAttribute('data-row-id');
       if (id) {
         e.preventDefault();
@@ -211,7 +249,8 @@ export function MasterTable<T>({
   // 2026-06-18 hydration fix:DndContext 內部 render screen-reader div、
   //   不能塞 <tr> 子層（HTML 規範違反）。改包整個 <table> 外、Sortable items 仍能找到 DraggableTh。
   const tableBody = (
-    <div
+    <FocusZone
+      scope="all"
       className="flex-1 overflow-auto nx-master-scroll [scroll-padding-top:48px]"
       onKeyDown={handleTableKey}
     >
@@ -330,7 +369,7 @@ export function MasterTable<T>({
           })}
         </tbody>
       </table>
-    </div>
+    </FocusZone>
   );
 
   // dnd 啟用時、外包 DndContext + SortableContext（context 純 React tree、不渲染 DOM 到 tr 內）

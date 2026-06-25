@@ -42,6 +42,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertCircle, Check, Search, type LucideIcon } from 'lucide-react';
 import type { PagedResult } from '@data/types/nx01/api';
 import { cn } from '@design/utils/cn';
+import { FocusZone } from '@design/primitives/focus-zone';
 import { useModalLayer } from '@design/primitives/modal-stack';
 
 export type EntityPickerDialogProps<T> = {
@@ -357,8 +358,12 @@ export function EntityPickerDialog<T>({
           </div>
         )}
 
-        {/* List */}
-        <div className="min-h-0 flex-1 overflow-auto nx-master-scroll">
+        {/* List
+            焦點黏著（執行長 2026-06-25 軌 2）：FocusZone 包列表外層、
+            鍵盤事件仍由上面 window-level capture listener 處理（focusedIndex 內部 state、
+            不依 row DOM focus）；FocusZone 的職責純粹是「點 ul 空白拉回容器、避免 focus 飄 body」。
+            tabIndex=-1 不擾 Tab 順序。scope='space-only' 防容器 onKeyDown 和 window listener 衝突。*/}
+        <FocusZone tabIndex={-1} className="min-h-0 flex-1 overflow-auto nx-master-scroll">
           {loading ? (
             <div className="px-5 py-8 text-center text-xs text-[#5A5A60]">載入中…</div>
           ) : visibleItems.length === 0 ? (
@@ -463,7 +468,7 @@ export function EntityPickerDialog<T>({
               })}
             </ul>
           )}
-        </div>
+        </FocusZone>
 
         {/* Error */}
         {error ? (

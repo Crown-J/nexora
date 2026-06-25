@@ -230,7 +230,14 @@ export function PhoneticPicker({
       />
 
       {open && candidates.length > 0 ? (
-        <ul className="absolute left-0 right-0 top-full z-50 mt-1 max-h-60 overflow-auto rounded-md border border-border/40 bg-card/60 shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+        <ul
+          className="absolute left-0 right-0 top-full z-50 mt-1 max-h-60 overflow-auto rounded-md border border-border/40 bg-card/60 shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
+          // 軌 2 minimal patch（執行長 2026-06-25）：點候選下拉 padding 區域 preventDefault、
+          // 避免 input 失焦 → 候選關 → 方向鍵失效
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) e.preventDefault();
+          }}
+        >
           {candidates.map((name, i) => (
             <li key={name}>
               <button
