@@ -39,6 +39,7 @@ import type {
   PartStockSummaryDto,
 } from '@data/types/nx01/part-search';
 import { FocusLockedDialog } from '@design/primitives/focus-locked-dialog';
+import { FocusZone } from '@design/primitives/focus-zone';
 import { cn } from '@design/utils/cn';
 
 type Props = {
@@ -163,46 +164,75 @@ export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props
     setPreviewPartId(null);
   }, []);
 
-  // 右欄列表 keydown
+  // 右欄動作 callbacks（row onKeyDown 與 FocusZone 容器共用）
+  const compatMoveDown = useCallback(() => {
+    const total = compatRows.length;
+    if (total === 0) return;
+    setHighlightIndex((i) => {
+      const next = Math.min(total - 1, i + 1);
+      focusCompatRow(next);
+      return next;
+    });
+  }, [compatRows.length]);
+  const compatMoveUp = useCallback(() => {
+    if (compatRows.length === 0) return;
+    setHighlightIndex((i) => {
+      const next = Math.max(0, i - 1);
+      focusCompatRow(next);
+      return next;
+    });
+  }, [compatRows.length]);
+  const compatEnter = useCallback(() => {
+    const r = compatRows[highlightIndex];
+    if (!r) return;
+    if (r.id === mainPartId) clearPreview();
+    else previewRow(r);
+  }, [compatRows, highlightIndex, mainPartId, clearPreview, previewRow]);
+  const compatJumpSearch = useCallback(() => {
+    const r = compatRows[highlightIndex];
+    if (r) jumpSearch(r);
+  }, [compatRows, highlightIndex, jumpSearch]);
+  const compatToggleZoom = useCallback(() => setPhotoZoom((z) => !z), []);
+
+  // row button onKeyDown（focus 在 row 時走這、FocusZone scope='space-only' 不接 row 冒泡）
   const handleCompatKey = useCallback(
     (e: React.KeyboardEvent<HTMLButtonElement>) => {
       if (e.nativeEvent.isComposing) return;
-      const total = compatRows.length;
-      if (total === 0) return;
+      if (compatRows.length === 0) return;
 
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        setHighlightIndex((i) => {
-          const next = Math.min(total - 1, i + 1);
-          focusCompatRow(next);
-          return next;
-        });
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setHighlightIndex((i) => {
-          const next = Math.max(0, i - 1);
-          focusCompatRow(next);
-          return next;
-        });
-      } else if (e.key === 'Enter') {
-        e.preventDefault();
-        const r = compatRows[highlightIndex];
-        if (!r) return;
-        // 主件 row Enter → 取消預覽（回主件）；替代品 row Enter → 預覽該件
-        if (r.id === mainPartId) clearPreview();
-        else previewRow(r);
-      } else if (e.altKey && (e.key === 'f' || e.key === 'F')) {
+      if (e.altKey && (e.key === 'f' || e.key === 'F')) {
         e.preventDefault();
         e.stopPropagation();
-        const r = compatRows[highlightIndex];
-        if (r) jumpSearch(r);
-      } else if (e.key === ' ' || e.code === 'Space') {
-        // 結果區 Space = 放大圖（規格：Space 放大零件圖）
-        e.preventDefault();
-        setPhotoZoom((z) => !z);
+        compatJumpSearch();
+        return;
+      }
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault();
+          compatMoveDown();
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          compatMoveUp();
+          break;
+        case 'Enter':
+          e.preventDefault();
+          compatEnter();
+          break;
+        case ' ':
+          e.preventDefault();
+          compatToggleZoom();
+          break;
       }
     },
-    [compatRows, highlightIndex, mainPartId, previewRow, jumpSearch, clearPreview],
+    [
+      compatRows.length,
+      compatMoveDown,
+      compatMoveUp,
+      compatEnter,
+      compatJumpSearch,
+      compatToggleZoom,
+    ],
   );
 
   // 全域 Space 放大（任何地方按、除了 input/textarea）
@@ -297,6 +327,13 @@ export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props
             loading={rightLoading}
             firstRowRef={compatFirstRowRef}
             listRef={compatListRef}
+            zoneCallbacks={{
+              onArrowDown: compatMoveDown,
+              onArrowUp: compatMoveUp,
+              onEnter: compatEnter,
+              onSpace: compatToggleZoom,
+              onAltF: compatJumpSearch,
+            }}
           />
         </div>
 
@@ -585,6 +622,7 @@ function RightColumn({
   loading,
   firstRowRef,
   listRef,
+  zoneCallbacks,
 }: {
   group: PartCompatGroupDto | null;
   rows: PartCompatMemberDto[];
@@ -597,7 +635,30 @@ function RightColumn({
   loading: boolean;
   firstRowRef: React.RefObject<HTMLButtonElement | null>;
   listRef: React.RefObject<HTMLDivElement | null>;
+  /** 軌 2 FocusZone callbacks（容器接的方向鍵、點 row 間空白後仍 work）*/
+  zoneCallbacks: {
+    onArrowDown: () => void;
+    onArrowUp: () => void;
+    onEnter: () => void;
+    onSpace: () => void;
+    onAltF: () => void;
+  };
 }) {
+  // FocusZone 容器 onKeyDown（接 Alt+F、Space 等非標準 callback 鍵）
+  const handleZoneKey = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (e.altKey && (e.key === 'f' || e.key === 'F')) {
+        e.preventDefault();
+        e.stopPropagation();
+        zoneCallbacks.onAltF();
+      } else if (e.key === ' ' || e.code === 'Space') {
+        e.preventDefault();
+        zoneCallbacks.onSpace();
+      }
+    },
+    [zoneCallbacks],
+  );
+
   return (
     <section className="flex min-h-0 flex-col bg-background/15">
       <SectionHeader
@@ -606,7 +667,16 @@ function RightColumn({
         sublabel={group ? `${group.groupCode} · ${group.groupName}` : '本料件無通用件群組'}
         loading={loading}
       />
-      <div ref={listRef} className="min-h-0 flex-1 overflow-auto px-3 py-3">
+      <FocusZone
+        ref={listRef}
+        className="min-h-0 flex-1 overflow-auto px-3 py-3"
+        onArrowDown={zoneCallbacks.onArrowDown}
+        onArrowUp={zoneCallbacks.onArrowUp}
+        onEnter={zoneCallbacks.onEnter}
+        onKeyDown={handleZoneKey}
+        role="listbox"
+        ariaLabel="通用零件清單"
+      >
         {rows.length === 0 ? (
           <div className="flex h-full min-h-[200px] items-center justify-center px-6 text-center text-sm text-muted-foreground/60">
             <span>本料件未屬於任何通用件群組</span>
@@ -634,7 +704,7 @@ function RightColumn({
             })}
           </ul>
         )}
-      </div>
+      </FocusZone>
     </section>
   );
 }

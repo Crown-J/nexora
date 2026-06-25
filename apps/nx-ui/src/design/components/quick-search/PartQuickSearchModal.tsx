@@ -36,6 +36,7 @@ import type {
   PartSearchRow,
 } from '@data/types/nx01/part-search';
 import { FocusLockedDialog } from '@design/primitives/focus-locked-dialog';
+import { FocusZone } from '@design/primitives/focus-zone';
 import { cn } from '@design/utils/cn';
 
 import { Combobox } from './Combobox';
@@ -296,64 +297,116 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
     return () => window.removeEventListener('keydown', h);
   }, [focusedSide, switchMethod, triggerSearchAndFocusResult, backToInput]);
 
-  // 結果區 keydown
+  // 結果區動作 callbacks（抽出來、給 row onKeyDown 和 FocusZone 容器共用、邏輯不重複）
+  const resultMoveDown = useCallback(() => {
+    const total = flatRows.length;
+    if (total === 0) return;
+    setHighlightIndex((i) => {
+      const next = Math.min(total - 1, i + 1);
+      focusRow(next);
+      return next;
+    });
+  }, [flatRows.length]);
+  const resultMoveUp = useCallback(() => {
+    const total = flatRows.length;
+    if (total === 0) return;
+    setHighlightIndex((i) => {
+      if (i === 0) {
+        backToInput();
+        return 0;
+      }
+      const next = i - 1;
+      focusRow(next);
+      return next;
+    });
+  }, [flatRows.length, backToInput]);
+  const resultMovePageDown = useCallback(() => {
+    const total = flatRows.length;
+    if (total === 0) return;
+    setHighlightIndex((i) => {
+      const next = Math.min(total - 1, i + RESULT_PAGE_SIZE);
+      focusRow(next);
+      return next;
+    });
+  }, [flatRows.length]);
+  const resultMovePageUp = useCallback(() => {
+    if (flatRows.length === 0) return;
+    setHighlightIndex((i) => {
+      const next = Math.max(0, i - RESULT_PAGE_SIZE);
+      focusRow(next);
+      return next;
+    });
+  }, [flatRows.length]);
+  const resultMoveHome = useCallback(() => {
+    if (flatRows.length === 0) return;
+    setHighlightIndex(0);
+    focusRow(0);
+  }, [flatRows.length]);
+  const resultMoveEnd = useCallback(() => {
+    const total = flatRows.length;
+    if (total === 0) return;
+    setHighlightIndex(total - 1);
+    focusRow(total - 1);
+  }, [flatRows.length]);
+  const resultSelect = useCallback(() => {
+    const r = flatRows[highlightIndex];
+    if (r) selectRow(r.member);
+  }, [flatRows, highlightIndex, selectRow]);
+  const resultEscape = useCallback(() => backToInput(), [backToInput]);
+
+  // row button onKeyDown（focus 在 row 時走這、scope='space-only' 的 FocusZone 不接 row 冒泡）
   const handleResultKey = useCallback(
     (e: React.KeyboardEvent<HTMLButtonElement>) => {
       if (e.nativeEvent.isComposing) return;
-      const total = flatRows.length;
-      if (total === 0) return;
+      if (flatRows.length === 0) return;
 
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        setHighlightIndex((i) => {
-          const next = Math.min(total - 1, i + 1);
-          focusRow(next);
-          return next;
-        });
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setHighlightIndex((i) => {
-          if (i === 0) {
-            backToInput();
-            return 0;
-          }
-          const next = i - 1;
-          focusRow(next);
-          return next;
-        });
-      } else if (e.key === 'PageDown') {
-        e.preventDefault();
-        setHighlightIndex((i) => {
-          const next = Math.min(total - 1, i + RESULT_PAGE_SIZE);
-          focusRow(next);
-          return next;
-        });
-      } else if (e.key === 'PageUp') {
-        e.preventDefault();
-        setHighlightIndex((i) => {
-          const next = Math.max(0, i - RESULT_PAGE_SIZE);
-          focusRow(next);
-          return next;
-        });
-      } else if (e.key === 'Home') {
-        e.preventDefault();
-        setHighlightIndex(0);
-        focusRow(0);
-      } else if (e.key === 'End') {
-        e.preventDefault();
-        setHighlightIndex(total - 1);
-        focusRow(total - 1);
-      } else if (e.key === 'Enter') {
-        e.preventDefault();
-        const r = flatRows[highlightIndex];
-        if (r) selectRow(r.member);
-      } else if (e.key === 'Escape') {
-        e.preventDefault();
-        e.stopPropagation();
-        backToInput();
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault();
+          resultMoveDown();
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          resultMoveUp();
+          break;
+        case 'PageDown':
+          e.preventDefault();
+          resultMovePageDown();
+          break;
+        case 'PageUp':
+          e.preventDefault();
+          resultMovePageUp();
+          break;
+        case 'Home':
+          e.preventDefault();
+          resultMoveHome();
+          break;
+        case 'End':
+          e.preventDefault();
+          resultMoveEnd();
+          break;
+        case 'Enter':
+          e.preventDefault();
+          resultSelect();
+          break;
+        case 'Escape':
+          e.preventDefault();
+          e.stopPropagation();
+          resultEscape();
+          break;
       }
     },
-    [flatRows, highlightIndex, backToInput, selectRow],
+    [
+      flatRows.length,
+      resultMoveDown,
+      resultMoveUp,
+      resultMovePageDown,
+      resultMovePageUp,
+      resultMoveHome,
+      resultMoveEnd,
+      resultSelect,
+      resultEscape,
+    ],
   );
 
   // 執行長 2026-06-25 修正單：左區 Enter 只做「焦點切右」一件事。
@@ -565,7 +618,20 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
               hasAnyInput={Boolean(partNo || keyword || brandQuery || partGroupQuery)}
               locked={focusedSide === 'result'}
             />
-            <div className="relative min-h-0 flex-1 overflow-auto">
+            {/* 軌 2：FocusZone 焦點黏著、點 row 間空白方向鍵不失效（scope='space-only'、row onKeyDown 仍處理 row 內事件、避免雙觸發）*/}
+            <FocusZone
+              className="relative min-h-0 flex-1 overflow-auto"
+              onArrowDown={resultMoveDown}
+              onArrowUp={resultMoveUp}
+              onPageDown={resultMovePageDown}
+              onPageUp={resultMovePageUp}
+              onHome={resultMoveHome}
+              onEnd={resultMoveEnd}
+              onEnter={resultSelect}
+              onEscape={resultEscape}
+              role="listbox"
+              ariaLabel="搜尋結果清單"
+            >
               {flatRows.length === 0 ? (
                 <EmptyState
                   hasAnyInput={Boolean(partNo || keyword || brandQuery || partGroupQuery)}
@@ -598,7 +664,7 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
                   搜尋中…
                 </div>
               ) : null}
-            </div>
+            </FocusZone>
           </section>
         </div>
 
