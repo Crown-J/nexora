@@ -250,19 +250,16 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
     [partGroups],
   );
 
-  // 選定一筆
-  const selectRow = useCallback(
-    (row: PartSearchRow) => {
-      console.log('[F2-V5] 選定料號 partId=%s code=%s name=%s', row.id, row.code, row.name);
-      window.dispatchEvent(
-        new CustomEvent('nx-part-selected', {
-          detail: { partId: row.id, code: row.code, name: row.name },
-        }),
-      );
-      onClose();
-    },
-    [onClose],
-  );
+  // 選定一筆：dispatch event 給 GlobalPartQuickSearch 接（開視窗 2）。
+  // 搜尋窗不自己關、由 Global 管控（主視窗 Esc 退回搜尋窗時搜尋條件保留）。
+  const selectRow = useCallback((row: PartSearchRow) => {
+    console.log('[F2-V5] 選定料號 partId=%s code=%s name=%s', row.id, row.code, row.name);
+    window.dispatchEvent(
+      new CustomEvent('nx-part-selected', {
+        detail: { partId: row.id, code: row.code, name: row.name },
+      }),
+    );
+  }, []);
 
   // 全域熱鍵：Alt+1~5 切 method、Alt+F 觸發搜尋 / 退回
   useEffect(() => {

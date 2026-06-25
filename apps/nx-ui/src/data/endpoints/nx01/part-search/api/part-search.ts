@@ -5,6 +5,7 @@ import { assertOk } from '@data/api/http';
 import { buildQueryString } from '@data/api/query';
 
 import type {
+  PartCompatGroupResult,
   PartDetailDto,
   PartPurchaseHistoryRow,
   PartRelatedRow,
@@ -95,6 +96,13 @@ export async function getPartRelated(id: string): Promise<{ rows: PartRelatedRow
   const res = await apiFetch(`${BASE}/${encodeURIComponent(id)}/related`, { method: 'GET' });
   await assertOk(res, 'nxui_part_quick_search_related');
   return (await res.json()) as { rows: PartRelatedRow[] };
+}
+
+/** F2 視窗 2 右欄通用件群組（含主件 + 替代品 + 各 member 庫存）*/
+export async function getPartCompatGroup(id: string): Promise<PartCompatGroupResult> {
+  const res = await apiFetch(`${BASE}/${encodeURIComponent(id)}/compat-group`, { method: 'GET' });
+  await assertOk(res, 'nxui_part_quick_search_compat_group');
+  return (await res.json()) as PartCompatGroupResult;
 }
 
 export type PartPhotoMeta = {

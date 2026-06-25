@@ -74,6 +74,12 @@ export class PartSearchController {
     return this.svc.getRelatedParts(user, id);
   }
 
+  /** F2 視窗 2 主視窗右欄通用件群組（執行長 2026-06-25）*/
+  @Get(':id/compat-group')
+  getCompatGroup(@CurrentUser() user: RequestUser, @Param('id') id: string) {
+    return this.svc.getCompatGroupForPart(user, id);
+  }
+
   /** 產品圖片 list（執行長 2026-06-17 拍板：明細區要顯示圖片）*/
   @Get(':id/photos')
   listPhotos(@CurrentUser() user: RequestUser, @Param('id') id: string) {

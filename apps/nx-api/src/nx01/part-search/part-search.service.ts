@@ -421,6 +421,109 @@ export class PartSearchService {
     return { groups: groupNodes, ungrouped };
   }
 
+  /**
+   * F2 視窗 2 主視窗右欄通用件群組（執行長 2026-06-25 拍板）。
+   * 給定 partId、回傳該 part 屬於的所有 group + 主件/替代品成員 + 各 member 庫存。
+   * 不屬任何 group 時回 groups=[]。
+   */
+  async getCompatGroupForPart(user: RequestUser, partId: string) {
+    const tenantId = requireTenantId(user);
+
+    // 查 partId 屬於哪些 group
+    const memberships = await this.prisma.nx01PartCompatGroupMember.findMany({
+      where: { tenantId, partId },
+      select: { groupId: true },
+    });
+    if (memberships.length === 0) return { groups: [] };
+
+    const groupIds = Array.from(new Set(memberships.map((m) => m.groupId)));
+
+    const [groups, allMembers] = await Promise.all([
+      this.prisma.nx01PartCompatGroup.findMany({
+        where: { tenantId, id: { in: groupIds } },
+        orderBy: [{ sortNo: 'asc' }, { code: 'asc' }],
+        select: { id: true, code: true, name: true, remark: true },
+      }),
+      this.prisma.nx01PartCompatGroupMember.findMany({
+        where: { tenantId, groupId: { in: groupIds } },
+        orderBy: [{ role: 'asc' }, { sortNo: 'asc' }],
+        select: {
+          groupId: true,
+          partId: true,
+          role: true,
+          isBidirectional: true,
+          sortNo: true,
+          part: {
+            select: {
+              id: true,
+              code: true,
+              name: true,
+              secCode: true,
+              spec: true,
+              isActive: true,
+              isOem: true,
+              brand: { select: { code: true, name: true } },
+              partGroup: { select: { code: true, name: true } },
+            },
+          },
+        },
+      }),
+    ]);
+
+    // 撈所有 member 的庫存（公司總）
+    const memberPartIds = Array.from(new Set(allMembers.map((m) => m.partId)));
+    const stockAgg = memberPartIds.length
+      ? await this.prisma.nx03StockBalance.groupBy({
+          by: ['partId'],
+          where: { tenantId, partId: { in: memberPartIds } },
+          _sum: { onHandQty: true, availableQty: true },
+        })
+      : [];
+    const stockMap = new Map(
+      stockAgg.map((s) => [
+        s.partId,
+        {
+          onHand: s._sum?.onHandQty?.toString() ?? '0',
+          available: s._sum?.availableQty?.toString() ?? '0',
+        },
+      ]),
+    );
+
+    return {
+      groups: groups.map((g) => {
+        const members = allMembers
+          .filter((m) => m.groupId === g.id)
+          .map((m) => ({
+            id: m.part.id,
+            code: m.part.code,
+            name: m.part.name,
+            secCode: m.part.secCode,
+            spec: m.part.spec,
+            isActive: m.part.isActive,
+            isOem: m.part.isOem,
+            brandCode: m.part.brand?.code ?? null,
+            brandName: m.part.brand?.name ?? null,
+            partGroupCode: m.part.partGroup?.code ?? null,
+            partGroupName: m.part.partGroup?.name ?? null,
+            onHandTotal: stockMap.get(m.partId)?.onHand ?? '0',
+            availableTotal: stockMap.get(m.partId)?.available ?? '0',
+            role: m.role,
+            isBidirectional: m.isBidirectional,
+          }));
+        const primary = members.find((m) => m.role === 1) ?? members[0];
+        const alts = members.filter((m) => m.id !== primary?.id);
+        return {
+          groupId: g.id,
+          groupCode: g.code,
+          groupName: g.name,
+          remark: g.remark,
+          primary,
+          alts,
+        };
+      }),
+    };
+  }
+
   /** 基本資料 + 正廠對應料號（供右側基本資料區）*/
   async getDetail(user: RequestUser, partId: string) {
     const tenantId = requireTenantId(user);

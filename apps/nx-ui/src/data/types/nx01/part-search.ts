@@ -211,3 +211,35 @@ export type PartRelatedRow = {
   onHandTotal: string;
   availableTotal: string;
 };
+
+/** F2 視窗 2 主視窗右欄通用件群組成員 */
+export type PartCompatMemberDto = {
+  id: string;
+  code: string;
+  name: string;
+  secCode: string | null;
+  spec: string | null;
+  isActive: boolean;
+  isOem: boolean;
+  brandCode: string | null;
+  brandName: string | null;
+  partGroupCode: string | null;
+  partGroupName: string | null;
+  onHandTotal: string;
+  availableTotal: string;
+  role: number; // 1=PRIMARY 主件 / 2=ALT 替代品
+  isBidirectional: boolean;
+};
+
+export type PartCompatGroupDto = {
+  groupId: string;
+  groupCode: string;
+  groupName: string;
+  remark: string | null;
+  primary?: PartCompatMemberDto;
+  alts: PartCompatMemberDto[];
+};
+
+export type PartCompatGroupResult = {
+  groups: PartCompatGroupDto[];
+};
