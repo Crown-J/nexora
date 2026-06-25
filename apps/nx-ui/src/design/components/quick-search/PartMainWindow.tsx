@@ -13,7 +13,16 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, Image as ImageIcon, Loader2, Package, Warehouse, X } from 'lucide-react';
+import {
+  ArrowLeft,
+  ChevronDown,
+  ChevronRight,
+  Image as ImageIcon,
+  Loader2,
+  Package,
+  Warehouse,
+  X,
+} from 'lucide-react';
 
 import {
   buildPartSearchPhotoUrl,
@@ -404,6 +413,11 @@ function LeftColumn({
 }
 
 // ─── 中欄 ────────────────────────────────────────────────
+// 執行長 2026-06-25 修正單：
+//   1. 表格化（表頭一行 + 每倉一列、數字欄對齊）
+//   2. 表頭文字自帶顏色當圖例、數字跟欄色、不另設圖例列
+//   3. 隱藏全 0 倉、底部「其他 N 倉無庫存 ▾」折疊；全倉 0 顯「各倉皆無庫存」
+//   4. 視窗尺寸恆定（鐵律）：中欄分三段、各倉位分布區塊 flex-1 內部捲動、不撐大外框
 function MiddleColumn({
   stock,
   loading,
@@ -412,12 +426,25 @@ function MiddleColumn({
   loading: boolean;
 }) {
   const company = stock?.company;
+  const warehouses = stock?.warehouses ?? [];
+
+  // 過濾全 0 倉
+  const isAllZero = (w: (typeof warehouses)[number]) =>
+    Number(w.onHand) === 0 &&
+    Number(w.available) === 0 &&
+    Number(w.reserved) === 0 &&
+    Number(w.inTransit) === 0;
+  const nonZeroWh = warehouses.filter((w) => !isAllZero(w));
+  const zeroWh = warehouses.filter(isAllZero);
+  const [showZeros, setShowZeros] = useState(false);
+  const allZero = warehouses.length > 0 && nonZeroWh.length === 0;
+
   return (
     <section className="flex min-h-0 flex-col border-r border-border/40 bg-background/20">
       <SectionHeader icon={<Warehouse className="size-3.5" />} label="庫存狀態" loading={loading} />
-      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto px-5 py-4">
-        {/* 公司總 4 顆 KPI（執行長 2026-06-25 配色：現有白/可出綠/不可出紅/在途橘）*/}
-        <div className="grid grid-cols-2 gap-2">
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden px-5 py-4">
+        {/* 上段：公司總 4 顆 KPI（shrink-0、固定高度）*/}
+        <div className="grid shrink-0 grid-cols-2 gap-2">
           <KpiTile label="公司總庫存" value={company?.onHand} color={STOCK_COLORS.onHand} />
           <KpiTile label="可出量" value={company?.available} color={STOCK_COLORS.available} />
           <KpiTile
@@ -432,41 +459,116 @@ function MiddleColumn({
           />
         </div>
 
-        {/* 各倉位分布（執行長 2026-06-25 改版：每倉 4 個獨立框、字級加大、0 弱化）*/}
-        <div>
-          <h4 className="mb-2 text-[10px] uppercase tracking-[0.22em] text-muted-foreground/70">
+        {/* 下段：各倉位分布表格（flex-1 + overflow-auto、內容多時內部捲動）*/}
+        <div className="flex min-h-0 flex-1 flex-col gap-1.5 overflow-hidden">
+          <h4 className="shrink-0 text-[10px] uppercase tracking-[0.22em] text-muted-foreground/70">
             各倉位分布
           </h4>
-          {stock && stock.warehouses.length > 0 ? (
-            <ul className="flex flex-col gap-2">
-              {stock.warehouses.map((w) => (
-                <li
-                  key={w.warehouseId}
-                  className="flex flex-col gap-1.5 rounded-md border border-border/30 bg-card/40 px-3 py-2"
-                >
-                  {/* 倉名行 */}
-                  <div className="text-sm">
-                    <span className="font-mono text-[#E8A020]">{w.warehouseCode}</span>
-                    <span className="ml-2 text-muted-foreground/90">{w.warehouseName}</span>
-                  </div>
-                  {/* 四框行：與中欄上方 KPI 視覺一致 */}
-                  <div className="grid grid-cols-4 gap-1.5">
-                    <WhTile label="現有" value={w.onHand} color={STOCK_COLORS.onHand} />
-                    <WhTile label="可出" value={w.available} color={STOCK_COLORS.available} />
-                    <WhTile label="不可出" value={w.reserved} color={STOCK_COLORS.reserved} />
-                    <WhTile label="在途" value={w.inTransit} color={STOCK_COLORS.inTransit} />
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
+
+          {warehouses.length === 0 ? (
             <div className="rounded-md border border-dashed border-border/35 px-3 py-4 text-center text-[11px] text-muted-foreground/55">
               無倉位庫存資料
+            </div>
+          ) : allZero ? (
+            <div className="rounded-md border border-dashed border-border/35 px-3 py-6 text-center text-[12px] text-muted-foreground/65">
+              各倉皆無庫存
+            </div>
+          ) : (
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-border/30 bg-card/40">
+              {/* 表頭一行：文字自帶顏色當圖例 */}
+              <div
+                className="grid shrink-0 items-center border-b border-border/30 bg-background/40 px-3 py-1.5 text-[10px] uppercase tracking-wider"
+                style={{ gridTemplateColumns: WH_GRID_COLS }}
+              >
+                <span className="text-muted-foreground/65">倉位</span>
+                <span className="text-right" style={{ color: STOCK_COLORS.onHand }}>現有</span>
+                <span className="text-right" style={{ color: STOCK_COLORS.available }}>可出</span>
+                <span className="text-right" style={{ color: STOCK_COLORS.reserved }}>不可出</span>
+                <span className="text-right" style={{ color: STOCK_COLORS.inTransit }}>在途</span>
+              </div>
+
+              {/* 內容區（內部捲動）*/}
+              <div className="min-h-0 flex-1 overflow-auto">
+                <ul className="flex flex-col">
+                  {nonZeroWh.map((w) => (
+                    <WarehouseRow key={w.warehouseId} w={w} />
+                  ))}
+
+                  {/* 隱藏空倉折疊區 */}
+                  {zeroWh.length > 0 && (
+                    <li className="border-t border-border/20">
+                      <button
+                        type="button"
+                        onClick={() => setShowZeros((v) => !v)}
+                        className="flex w-full items-center gap-1.5 px-3 py-1.5 text-left text-[11px] text-muted-foreground/60 transition-colors hover:bg-card/60 hover:text-foreground"
+                      >
+                        {showZeros ? (
+                          <ChevronDown className="size-3" />
+                        ) : (
+                          <ChevronRight className="size-3" />
+                        )}
+                        <span>
+                          其他 <span className="font-mono">{zeroWh.length}</span> 倉無庫存
+                        </span>
+                      </button>
+                      {showZeros && (
+                        <ul className="border-t border-border/15 bg-background/20">
+                          {zeroWh.map((w) => (
+                            <WarehouseRow key={w.warehouseId} w={w} dimmed />
+                          ))}
+                        </ul>
+                      )}
+                    </li>
+                  )}
+                </ul>
+              </div>
             </div>
           )}
         </div>
       </div>
     </section>
+  );
+}
+
+const WH_GRID_COLS = 'minmax(0, 1fr) 60px 60px 70px 60px';
+
+function WarehouseRow({
+  w,
+  dimmed,
+}: {
+  w: PartStockSummaryDto['warehouses'][number];
+  dimmed?: boolean;
+}) {
+  return (
+    <li
+      className={cn(
+        'grid items-center border-b border-border/15 px-3 py-1.5 last:border-b-0',
+        dimmed && 'opacity-55',
+      )}
+      style={{ gridTemplateColumns: WH_GRID_COLS }}
+    >
+      <span className="min-w-0 truncate text-[12px]">
+        <span className="font-mono text-[#E8A020]">{w.warehouseCode}</span>
+        <span className="ml-1.5 text-muted-foreground/85">{w.warehouseName}</span>
+      </span>
+      <WhCell value={w.onHand} color={STOCK_COLORS.onHand} />
+      <WhCell value={w.available} color={STOCK_COLORS.available} />
+      <WhCell value={w.reserved} color={STOCK_COLORS.reserved} />
+      <WhCell value={w.inTransit} color={STOCK_COLORS.inTransit} />
+    </li>
+  );
+}
+
+function WhCell({ value, color }: { value: string; color: string }) {
+  const n = Number(value);
+  const isZero = n === 0;
+  return (
+    <span
+      className="text-right font-mono text-base tabular-nums"
+      style={{ color: isZero ? ZERO_GREY : color }}
+    >
+      {n.toFixed(0)}
+    </span>
   );
 }
 
@@ -734,19 +836,6 @@ function KpiTile({ label, value, color }: { label: string; value: string | undef
   );
 }
 
-/** 各倉位四框（執行長 2026-06-25：與 KpiTile 視覺一致但縮小、0 值弱化）*/
-function WhTile({ label, value, color }: { label: string; value: string; color: string }) {
-  const n = Number(value);
-  const isZero = n === 0;
-  return (
-    <div className="flex flex-col items-center gap-0.5 rounded border border-border/30 bg-background/40 px-2 py-1">
-      <span className="text-[9px] uppercase tracking-wider text-muted-foreground/55">{label}</span>
-      <span className="font-mono text-base" style={{ color: isZero ? ZERO_GREY : color }}>
-        {n.toFixed(0)}
-      </span>
-    </div>
-  );
-}
 
 function Kbd({ children }: { children: React.ReactNode }) {
   return (
