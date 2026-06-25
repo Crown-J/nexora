@@ -38,6 +38,7 @@ import type {
   PartSearchResult,
   PartSearchRow,
 } from '@data/types/nx01/part-search';
+import { FocusLockedDialog } from '@design/primitives/focus-locked-dialog';
 import { cn } from '@design/utils/cn';
 
 import { Combobox } from './Combobox';
@@ -315,38 +316,27 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
     [flatRows, highlightIndex, onClose, selectRow],
   );
 
-  // Modal 全域 Esc 保險（內層元件未攔截才走這）
-  useEffect(() => {
-    const h = (e: KeyboardEvent) => {
-      if (e.isComposing) return;
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', h);
-    return () => window.removeEventListener('keydown', h);
-  }, [onClose]);
+  // 軌 A：Esc / focus trap / 背景隔離全由 FocusLockedDialog 處理、不再自帶 listener
 
   return (
-    <div
-      className={cn(
-        'fixed inset-0 z-[100] flex items-center justify-center bg-black/45 backdrop-blur-sm',
+    <FocusLockedDialog
+      open={!closing}
+      onClose={onClose}
+      initialFocusRef={partNoInputRef}
+      ariaLabel="料號即時搜尋"
+      backdropClassName={cn(
+        'bg-black/45 backdrop-blur-sm',
         closing ? 'animate-out fade-out duration-200' : 'animate-in fade-in duration-200',
       )}
+      dialogClassName={cn(
+        'flex flex-col rounded-2xl border border-border/40 bg-card/85 text-foreground shadow-[0_30px_80px_rgba(0,0,0,0.55)] backdrop-blur-2xl',
+        closing
+          ? 'animate-out fade-out zoom-out-95 duration-200'
+          : 'animate-in fade-in zoom-in-95 duration-200',
+      )}
+      dialogStyle={{ width: 'min(1100px, 96vw)', height: 'min(720px, 92vh)' }}
     >
-      <div
-        className={cn(
-          'flex flex-col rounded-2xl border border-border/40 bg-card/85 text-foreground shadow-[0_30px_80px_rgba(0,0,0,0.55)] backdrop-blur-2xl',
-          closing
-            ? 'animate-out fade-out zoom-out-95 duration-200'
-            : 'animate-in fade-in zoom-in-95 duration-200',
-        )}
-        style={{
-          width: 'min(1100px, 96vw)',
-          height: 'min(720px, 92vh)',
-        }}
-      >
+      <>
         {/* Header（收斂高度）*/}
         <div className="flex items-center gap-2.5 border-b border-border/40 px-6 py-2.5">
           <span className="size-2 rounded-full bg-[#E8A020] shadow-[0_0_10px_#E8A020]" />
@@ -477,8 +467,8 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
           </span>
           <span className="font-mono text-[9px] text-muted-foreground/35">NEXORA · 視窗 1</span>
         </div>
-      </div>
-    </div>
+      </>
+    </FocusLockedDialog>
   );
 }
 

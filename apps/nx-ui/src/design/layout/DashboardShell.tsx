@@ -22,6 +22,7 @@ import { PlanetDock } from '@design/layout/PlanetDock';
 import { ScatterPageGate } from '@design/motion/scatter/ScatterPageGate';
 import { usePlanet } from '@design/home/SharedPlanetRoot';
 import { tryNavigate } from '@design/hooks/useDirtyGuard';
+import { useModalStackGuard } from '@design/primitives/modal-stack';
 import { cn } from '@design/utils/cn';
 
 type DashboardShellProps = {
@@ -29,6 +30,10 @@ type DashboardShellProps = {
 };
 
 export function DashboardShell({ children }: DashboardShellProps) {
+  // 軌 A：全域 modal stack guard（彈出層 capture-phase 焦點隔離、執行長 2026-06-24 拍板）
+  // 一次性 install、idempotent、背景頁 21 處 keydown listener 全部自動隔離（不需改背景）
+  useModalStackGuard();
+
   const router = useRouter();
   const pathname = usePathname();
   const { me, displayName, logout, view } = useSessionMe();
