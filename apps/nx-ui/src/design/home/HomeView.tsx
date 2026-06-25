@@ -446,24 +446,10 @@ export function HomeView({ displayName }: { displayName: string }) {
     };
   }, []);
 
-  // 時間敏感問候（first render 時鎖定一次、避免每秒重算）
-  const [greet] = useState(() => {
-    const h = new Date().getHours();
-    if (h < 5) return '夜深了';
-    if (h < 12) return '早安';
-    if (h < 18) return '午安';
-    return '晚安';
-  });
+  // 2026-06-25 執行長：問候標題 + 待處理單據提示一律拿掉、首頁直接顯示行事曆 / 任務 區塊
 
   return (
     <div className="mx-auto w-full max-w-[1320px] flex flex-1 min-h-0 flex-col gap-3.5 p-4 lg:p-6">
-      {/* D 段錯落 stagger 進場：greet 0.15s / card1 0.30s / task 0.38s / card2 0.46s */}
-      <div data-nx-frame className="nx-stagger-greet flex items-end justify-between gap-4 flex-wrap">
-        <h1 className="text-[27px] font-semibold tracking-tight m-0">
-          {greet}，<span className="text-[var(--nx-accent-strong)]">{displayName}</span>
-        </h1>
-        {/* 2026-06-25 Phase 1：「今天還有 N 筆待處理單據」需任務聚合 endpoint、Phase 2 再接 */}
-      </div>
       <div className="grid flex-1 min-h-0 grid-cols-1 gap-4 lg:grid-cols-[1.72fr_1fr]">
         <div className="flex flex-col gap-3.5 min-h-0">
           <div data-nx-frame className="nx-stagger-card-1">
