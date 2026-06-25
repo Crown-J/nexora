@@ -764,10 +764,14 @@ function ResultRow({
   const m = row.member;
   const isAlt = row.kind === 'group-alt';
 
-  // 卡片式：執行長 2026-06-25 拍板
-  //   · 解決長料號 / 長品名被截的問題：所有文字 break-all 換行、不 truncate
-  //   · 上下選擇動畫加強：高亮卡片 scale 1.02 + 金色光暈 + 邊框金 + 200ms ease-out
-  //   · 群組頭 / 替代品視覺差：群組頭左側金條 + 邊框琥珀色；替代品邊框較淡 + 縮排（外層 li 控）
+  // 卡片式：執行長 2026-06-25 拍板（C3+C4 修正）
+  //   C3：解決長料號 / 長品名被截的問題（break-words）
+  //   C4：修字糊 + 卡頓
+  //     · 拿掉 scale（1.015 非整數倍 → sub-pixel anti-alias 失準、字邊緣模糊）
+  //     · 拿掉 will-change-transform（每張卡都掛會擠 GPU layer）
+  //     · 大 blur shadow (32px) → 小 blur (12px)、配 backdrop-blur 父層重繪壓力降低
+  //     · 動畫表達改：邊框加粗 + 左側金條變寬 + 背景加深、不靠 transform
+  //     · transition duration 150ms（更靈敏）、只動 border-color/box-shadow/background-color
   return (
     <button
       type="button"
@@ -776,27 +780,24 @@ function ResultRow({
       onMouseEnter={onHover}
       onKeyDown={onKeyDown}
       className={cn(
-        'group/card relative flex w-full flex-col gap-1.5 overflow-hidden rounded-xl border bg-card/60 px-4 py-3 text-left outline-none',
-        'transition-[transform,box-shadow,border-color,background-color] duration-200 ease-out will-change-transform',
-        // 群組頭 vs 替代品的基準樣式
-        isAlt ? 'border-border/35 bg-card/35' : 'border-[#E8A020]/35',
-        // highlight：scale + 邊框金 + 光暈 + 背景加深
+        'group/card relative flex w-full flex-col gap-1.5 overflow-hidden rounded-xl bg-card/60 px-4 py-3 text-left outline-none',
+        'border-2 transition-[border-color,box-shadow,background-color] duration-150 ease-out',
+        // 群組頭 vs 替代品基準
+        isAlt ? 'border-border/35 bg-card/35' : 'border-[#E8A020]/30',
+        // highlight：邊框純金 + 背景加深 + 輕量光暈（不 scale、字不糊）
         isHighlighted
-          ? cn(
-              'scale-[1.015] border-[#E8A020] bg-[#E8A020]/12',
-              'shadow-[0_0_0_1px_rgba(232,160,32,0.6),0_12px_32px_-6px_rgba(232,160,32,0.45)]',
-            )
+          ? 'border-[#E8A020] bg-[#E8A020]/12 shadow-[0_0_12px_-2px_rgba(232,160,32,0.45)]'
           : 'hover:border-[#E8A020]/55 hover:bg-card/75',
         !m.isActive && 'opacity-55',
       )}
     >
-      {/* 群組頭：左側金條 */}
+      {/* 群組頭：左側金條（highlight 時變寬、補強選擇感、純 width 變化不影響字 anti-alias）*/}
       {!isAlt && (
         <span
           aria-hidden
           className={cn(
-            'pointer-events-none absolute left-0 top-2 bottom-2 w-1 rounded-r transition-all duration-200',
-            isHighlighted ? 'bg-[#E8A020]' : 'bg-[#E8A020]/55',
+            'pointer-events-none absolute left-0 top-2 bottom-2 rounded-r transition-[width,background-color] duration-150 ease-out',
+            isHighlighted ? 'w-1.5 bg-[#E8A020]' : 'w-1 bg-[#E8A020]/55',
           )}
         />
       )}
