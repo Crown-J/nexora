@@ -59,28 +59,48 @@ export function modalStackSize(): number {
 }
 
 /**
- * Capture phase keydown guard：在 document 最早期攔截。
- * 若有彈出層且事件 target 不在最上層 layer DOM 內 → 截斷、避免穿透到背景。
- * Esc 仍交給 layer onEscape（target 在 layer 內、放行給 layer 自己的 handler）。
+ * 雙重 guard 必要性說明（執行長 2026-06-24 拍板方案 A）：
+ *
+ *   背景頁 21 處用 `window.addEventListener('keydown', ...)` 都是 bubble phase。
+ *   事件 bubble 路徑是 target → ... → react root → ... → document → window。
+ *   如果只用 capture phase guard、layer 內事件 target 在 layer 內、capture 放行 →
+ *   React handler 跑完後事件仍會 bubble 到 window、背景 listener 仍接到 → 穿透！
+ *
+ *   ➜ 解法：document 上裝兩支 guard：
+ *      A. captureGuard（capture phase）：target 不在 layer 內 → 截斷（保護 layer 外 input 等場景）
+ *      B. bubbleGuard（bubble phase）：target 在 layer 內 → 截斷 bubble 繼續傳到 window
+ *
+ *   兩支夾擊後：背景 window listener 0 機率收到事件。React handler 不受影響
+ *   （React 在 root level capture+bubble 接事件、root 在 document 內側、bubbleGuard 在 root 之後跑）。
  */
-function guard(e: KeyboardEvent) {
+
+/** Capture phase：擋「target 不在 layer 內」事件、避免外面元素亂收（如 Tab 跑出 layer 後鍵盤動作） */
+function captureGuard(e: KeyboardEvent) {
   if (stack.length === 0) return;
   const top = stack[stack.length - 1];
   const target = e.target as Node | null;
   if (target && top.element.contains(target)) {
-    // target 在最上層 layer 內 → 放行（layer 自己 handle、不擋）
+    // target 在最上層 layer 內 → capture 放行（讓 React handler 跑）
     return;
   }
-  // target 不在最上層 layer 內 → 截斷，避免穿透背景
+  // target 不在最上層 layer 內 → 截斷
   e.stopImmediatePropagation();
   e.stopPropagation();
-  // 不 preventDefault：允許瀏覽器原生行為（如 F12 開 devtools）
-  // 但要把鍵盤焦點拉回 layer：避免使用者「不小心 Tab 出去」後鍵盤永遠在背景
   if (e.key !== 'F12' && e.key !== 'Tab') {
-    // Tab 由 sentinel + layer 內部處理；F12 留給 devtools
-    // 其他鍵：把焦點拉回 layer 首個 focusable
+    // Tab 由 sentinel 接、F12 留給 devtools；其他鍵把焦點拉回 layer 首個 focusable
     focusFirstWithin(top.element);
   }
+}
+
+/** Bubble phase：擋「target 在 layer 內」事件 bubble 到 window；React handler 已跑完 */
+function bubbleGuard(e: KeyboardEvent) {
+  if (stack.length === 0) return;
+  const top = stack[stack.length - 1];
+  const target = e.target as Node | null;
+  if (!target || !top.element.contains(target)) return;
+  // 在 layer 內：bubble 已經走完 React root（React handler 已 dispatch 完）、攔下繼續傳到 window
+  e.stopImmediatePropagation();
+  e.stopPropagation();
 }
 
 /** 焦點 trap helper：拉回 layer 首個 focusable */
@@ -119,9 +139,11 @@ export function useModalStackGuard(): void {
   useEffect(() => {
     if (guardInstalled) return;
     guardInstalled = true;
-    document.addEventListener('keydown', guard, true);
+    document.addEventListener('keydown', captureGuard, true);
+    document.addEventListener('keydown', bubbleGuard, false);
     return () => {
-      document.removeEventListener('keydown', guard, true);
+      document.removeEventListener('keydown', captureGuard, true);
+      document.removeEventListener('keydown', bubbleGuard, false);
       guardInstalled = false;
     };
   }, []);
