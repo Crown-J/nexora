@@ -459,14 +459,14 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
     >
       <>
         {/* Header */}
-        <div className="flex items-center gap-2.5 border-b border-border/40 px-6 py-2.5">
+        <div className="flex items-center gap-2.5 border-b border-border/40 px-6 py-3">
           <span className="size-2 rounded-full bg-[#E8A020] shadow-[0_0_10px_#E8A020]" />
-          <PackageSearch className="size-4 text-[#E8A020]" />
-          <h2 className="text-sm font-bold tracking-wide text-foreground">料號即時搜尋</h2>
-          <span className="ml-3 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/55">
+          <PackageSearch className="size-[18px] text-[#E8A020]" />
+          <h2 className="text-[15px] font-semibold tracking-wide text-foreground">料號即時搜尋</h2>
+          <span className="ml-3 text-[11px] uppercase tracking-[0.18em] text-muted-foreground/60">
             五查法 · Alt+1~5 切換
           </span>
-          <span className="ml-auto text-[10px] font-semibold uppercase tracking-[0.28em] text-muted-foreground/60">
+          <span className="ml-auto text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground/65">
             F2 · QUICK SEARCH
           </span>
           <button
@@ -480,20 +480,20 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
         </div>
 
         {/* Method tabs */}
-        <div className="flex items-center gap-2 border-b border-border/40 bg-card/50 px-6 py-2">
+        <div className="flex items-center gap-2 border-b border-border/40 bg-card/50 px-6 py-2.5">
           {METHOD_TABS.map((t) => (
             <button
               key={t.key}
               type="button"
               onClick={() => switchMethod(t.key)}
               className={cn(
-                'inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs transition-colors',
+                'inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-[13px] font-medium transition-colors',
                 method === t.key
-                  ? 'border-[#E8A020] bg-[#E8A020]/15 text-[#E8A020]'
+                  ? 'border-[#E8A020] bg-[#E8A020]/15 text-[#E8A020] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]'
                   : 'border-border/40 bg-background/40 text-muted-foreground hover:border-[#E8A020]/40 hover:text-foreground',
               )}
             >
-              <kbd className="rounded border border-current/40 bg-current/10 px-1 text-[9px] opacity-80">
+              <kbd className="rounded border border-current/40 bg-current/10 px-1.5 py-px font-mono text-[10px] tracking-tight opacity-85">
                 Alt+{t.alt}
               </kbd>
               {t.label}
@@ -510,14 +510,14 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
               inputDisabled && 'opacity-50',
             )}
           >
-            <div className="flex items-center justify-between border-b border-border/30 bg-background/20 px-5 py-1.5 text-[10px] uppercase tracking-[0.22em] text-muted-foreground/65">
+            <div className="flex items-center justify-between border-b border-border/30 bg-background/20 px-5 py-2 text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70">
               <span>輸入條件</span>
               {inputDisabled ? (
-                <span className="text-[#E8A020]/70 normal-case tracking-normal">
+                <span className="text-[12px] text-[#E8A020]/75 normal-case tracking-normal">
                   已鎖定 · Alt+F 回此區
                 </span>
               ) : (
-                <span className="text-muted-foreground/45 normal-case tracking-normal">
+                <span className="text-[12px] text-muted-foreground/55 normal-case tracking-normal">
                   Enter / Alt+F 搜
                 </span>
               )}
@@ -581,7 +581,7 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
                 />
               )}
               {method === 'all' && (
-                <label className="flex cursor-pointer items-center gap-2 text-[12px] text-foreground">
+                <label className="flex cursor-pointer items-center gap-2 text-[13px] text-foreground/90">
                   <input
                     type="checkbox"
                     checked={includeInactive}
@@ -596,12 +596,12 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
                 <button
                   type="button"
                   onClick={triggerSearchAndFocusResult}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-[#E8A020]/60 bg-[#E8A020]/15 px-4 py-2 text-sm text-[#E8A020] transition-colors hover:bg-[#E8A020]/25"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-[#E8A020]/60 bg-[#E8A020]/15 px-4 py-2 text-[14px] font-medium text-[#E8A020] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-colors hover:bg-[#E8A020]/25"
                 >
-                  搜尋 <kbd className="rounded border border-[#E8A020]/40 bg-[#E8A020]/10 px-1.5 py-px text-[10px]">Alt+F</kbd>
+                  搜尋 <kbd className="rounded border border-[#E8A020]/40 bg-[#E8A020]/10 px-1.5 py-px font-mono text-[11px]">Alt+F</kbd>
                 </button>
                 {method !== 'all' && (
-                  <p className="mt-2 text-center text-[10px] text-muted-foreground/55">
+                  <p className="mt-2 text-center text-[11px] text-muted-foreground/55">
                     Alt+5 切「綜合」可組合多欄查
                   </p>
                 )}
@@ -669,12 +669,21 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between border-t border-border/30 bg-background/30 px-6 py-1.5 text-[10px] text-muted-foreground/55">
-          <span>
-            <Kbd>Alt+1~5</Kbd> 切查法 · <Kbd>Enter</Kbd> 命中 / 選定 · <Kbd>Alt+F</Kbd> 搜尋 / 切左右 ·{' '}
-            <Kbd>↑↓</Kbd> 切筆 · <Kbd>Esc</Kbd> 退回左區 / 關
+        <div className="flex items-center justify-between border-t border-border/30 bg-background/30 px-6 py-2 text-[11px] text-muted-foreground/70">
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <Kbd>Alt+1~5</Kbd> 切查法
+            <span className="text-muted-foreground/30">·</span>
+            <Kbd>Enter</Kbd> 命中 / 選定
+            <span className="text-muted-foreground/30">·</span>
+            <Kbd>Alt+F</Kbd> 搜尋 / 切左右
+            <span className="text-muted-foreground/30">·</span>
+            <Kbd>↑↓</Kbd> 切筆
+            <span className="text-muted-foreground/30">·</span>
+            <Kbd>Esc</Kbd> 退回左區 / 關
           </span>
-          <span className="font-mono text-[9px] text-muted-foreground/35">NEXORA · 視窗 1</span>
+          <span className="shrink-0 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground/40">
+            NEXORA · 視窗 1
+          </span>
         </div>
       </>
     </FocusLockedDialog>
@@ -710,7 +719,7 @@ function PlainInputBlock({
     <div className="flex flex-col gap-1">
       <span
         className={cn(
-          'text-[10px] uppercase tracking-[0.18em]',
+          'text-[11px] font-medium uppercase tracking-[0.14em]',
           primary ? 'text-[#E8A020]/85' : 'text-muted-foreground/70',
         )}
       >
@@ -728,9 +737,9 @@ function PlainInputBlock({
         placeholder={placeholder}
         autoComplete="off"
         className={cn(
-          'rounded-md border bg-background/60 px-3 outline-none placeholder:text-muted-foreground/50',
+          'rounded-md bg-background/60 px-3 outline-none transition-colors placeholder:text-muted-foreground/45',
           primary
-            ? 'h-12 border-2 border-[#E8A020]/55 font-mono text-lg tracking-wide text-foreground focus:border-[#E8A020]'
+            ? 'h-11 border-2 border-[#E8A020]/55 font-mono text-[15px] tracking-wide text-foreground focus:border-[#E8A020]'
             : 'h-10 border border-border/40 text-sm text-foreground focus:border-[#E8A020]/60',
         )}
       />
@@ -754,7 +763,7 @@ function ResultsHeader({
   const groupCount = result?.groups?.length ?? 0;
   const ungroupedCount = result?.ungrouped?.length ?? 0;
   return (
-    <div className="flex items-center justify-between border-b border-border/25 bg-background/30 px-5 py-1.5 text-[11px] text-muted-foreground">
+    <div className="flex items-center justify-between border-b border-border/25 bg-background/30 px-5 py-2 text-[12px] text-muted-foreground">
       {error ? (
         <span className="text-[#E26060]">⚠ {error}</span>
       ) : !hasAnyInput ? (
@@ -780,7 +789,7 @@ function ResultsHeader({
           ) : null}
         </span>
       )}
-      <span className="font-mono text-[9px] text-muted-foreground/40">↑↓ PgUp PgDn Home End</span>
+      <span className="font-mono text-[10px] text-muted-foreground/45">↑↓ PgUp PgDn Home End</span>
     </div>
   );
 }
@@ -803,7 +812,7 @@ function EmptyState({
       ? '查無符合料號 — 換個關鍵字、或勾「含停用品」（綜合模式）'
       : '搜尋中…';
   return (
-    <div className="flex h-full min-h-[220px] items-center justify-center px-6 text-center text-sm text-muted-foreground/60">
+    <div className="flex h-full min-h-[220px] items-center justify-center px-6 text-center text-[14px] text-muted-foreground/65">
       <span>{msg}</span>
     </div>
   );
@@ -827,14 +836,11 @@ function ResultRow({
   const m = row.member;
   const isAlt = row.kind === 'group-alt';
 
-  // 卡片式：執行長 2026-06-25 拍板（C3+C4 修正）
-  //   C3：解決長料號 / 長品名被截的問題（break-words）
-  //   C4：修字糊 + 卡頓
-  //     · 拿掉 scale（1.015 非整數倍 → sub-pixel anti-alias 失準、字邊緣模糊）
-  //     · 拿掉 will-change-transform（每張卡都掛會擠 GPU layer）
-  //     · 大 blur shadow (32px) → 小 blur (12px)、配 backdrop-blur 父層重繪壓力降低
-  //     · 動畫表達改：邊框加粗 + 左側金條變寬 + 背景加深、不靠 transform
-  //     · transition duration 150ms（更靈敏）、只動 border-color/box-shadow/background-color
+  // 字級階層重整（執行長 2026-06-25 質感優化）：
+  //   L 識別主資訊（料號 16px / 品名 15px medium）
+  //   M 元資訊值（13px）
+  //   S 標籤 / 徽章（11px）
+  // 卡片質感：背景 gradient（from-card/65 to-card/45）、inset highlight、邊框 / 光暈 / 金條三層動畫
   return (
     <button
       type="button"
@@ -843,18 +849,20 @@ function ResultRow({
       onMouseEnter={onHover}
       onKeyDown={onKeyDown}
       className={cn(
-        'group/card relative flex w-full flex-col gap-1.5 overflow-hidden rounded-xl bg-card/60 px-4 py-3 text-left outline-none',
-        'border-2 transition-[border-color,box-shadow,background-color] duration-150 ease-out',
+        'group/card relative flex w-full flex-col gap-2 overflow-hidden rounded-xl px-4 py-3 text-left outline-none',
+        'border bg-gradient-to-b from-card/65 to-card/45',
+        'shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]',
+        'transition-[border-color,box-shadow,background-color] duration-150 ease-out',
         // 群組頭 vs 替代品基準
-        isAlt ? 'border-border/35 bg-card/35' : 'border-[#E8A020]/30',
-        // highlight：邊框純金 + 背景加深 + 輕量光暈（不 scale、字不糊）
+        isAlt ? 'border-border/35' : 'border-[#E8A020]/30',
+        // highlight：邊框純金 + 背景加深 + 雙層光暈（不 scale、字不糊）
         isHighlighted
-          ? 'border-[#E8A020] bg-[#E8A020]/12 shadow-[0_0_12px_-2px_rgba(232,160,32,0.45)]'
-          : 'hover:border-[#E8A020]/55 hover:bg-card/75',
+          ? 'border-[#E8A020] from-[#E8A020]/15 to-[#E8A020]/8 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_0_14px_-2px_rgba(232,160,32,0.5)]'
+          : 'hover:border-[#E8A020]/55 hover:from-card/75 hover:to-card/55',
         !m.isActive && 'opacity-55',
       )}
     >
-      {/* 群組頭：左側金條（highlight 時變寬、補強選擇感、純 width 變化不影響字 anti-alias）*/}
+      {/* 群組頭：左側金條（highlight 時變寬、純 width 變化不影響字 anti-alias）*/}
       {!isAlt && (
         <span
           aria-hidden
@@ -865,53 +873,55 @@ function ResultRow({
         />
       )}
 
-      {/* 上排：料號（mono、大）+ 徽章群 */}
-      <div className="flex items-start justify-between gap-3">
+      {/* 上排：料號（L 級、mono）+ 徽章群 */}
+      <div className="flex items-baseline justify-between gap-3">
         <span
           className={cn(
-            'min-w-0 flex-1 break-all font-mono font-semibold tracking-wide',
-            isAlt ? 'text-base text-[#E8A020]/90' : 'text-lg text-[#E8A020]',
+            'min-w-0 flex-1 break-all font-mono font-semibold tracking-[0.01em]',
+            isAlt ? 'text-[15px] text-[#E8A020]/85' : 'text-[16px] text-[#E8A020]',
           )}
         >
           {m.code}
         </span>
         <div className="flex shrink-0 items-center gap-1.5">
           {isAlt && (
-            <span className="rounded border border-[#5A8FB8]/60 bg-[#3B5C7A]/20 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-[#9BD0E8]">
+            <span className="rounded-md border border-[#5A8FB8]/55 bg-[#3B5C7A]/25 px-2 py-0.5 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-[#9BD0E8]">
               替代
             </span>
           )}
           <span
             className={cn(
-              'rounded border px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider',
+              'rounded-md border px-2 py-0.5 font-mono text-[11px] font-medium uppercase tracking-[0.08em]',
               m.isOem
-                ? 'border-[#E8A020]/55 bg-[#E8A020]/12 text-[#E8A020]'
-                : 'border-border/50 bg-muted/30 text-muted-foreground',
+                ? 'border-[#E8A020]/55 bg-[#E8A020]/15 text-[#E8A020]'
+                : 'border-border/50 bg-muted/30 text-muted-foreground/85',
             )}
           >
             {m.isOem ? '正廠' : '副廠'}
           </span>
           {!m.isActive && (
-            <span className="rounded border border-[#5A2A2A] bg-[#1F1212] px-1.5 py-0.5 text-[10px] text-[#E26060]">
+            <span className="rounded-md border border-[#5A2A2A] bg-[#1F1212] px-2 py-0.5 text-[11px] font-medium text-[#E26060]">
               停用
             </span>
           )}
         </div>
       </div>
 
-      {/* 中排：品名（不截、可換行）*/}
-      <div className="break-words text-sm leading-snug text-foreground">{m.name}</div>
+      {/* 中排：品名（L 級 medium、最易讀）*/}
+      <div className="break-words text-[15px] font-medium leading-snug text-foreground/95">
+        {m.name}
+      </div>
 
-      {/* 下排：副廠料號 / 廠牌 元資訊 */}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground/80">
-        <span className="inline-flex items-center gap-1">
-          <span className="uppercase tracking-wider text-muted-foreground/55">副廠料號</span>
-          <span className="font-mono text-muted-foreground">{m.secCode ?? '—'}</span>
+      {/* 下排：副廠料號 / 廠牌（M 級值 + S 級標籤、對比清晰）*/}
+      <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+        <span className="inline-flex items-baseline gap-1.5">
+          <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/55">副廠</span>
+          <span className="font-mono text-[13px] text-muted-foreground/90">{m.secCode ?? '—'}</span>
         </span>
-        <span className="text-muted-foreground/30">·</span>
-        <span className="inline-flex items-center gap-1">
-          <span className="uppercase tracking-wider text-muted-foreground/55">廠牌</span>
-          <span className="text-foreground/90">{m.brandCode ?? m.brandName ?? '—'}</span>
+        <span className="select-none text-muted-foreground/25">·</span>
+        <span className="inline-flex items-baseline gap-1.5">
+          <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/55">廠牌</span>
+          <span className="text-[13px] text-foreground/85">{m.brandCode ?? m.brandName ?? '—'}</span>
         </span>
       </div>
     </button>
@@ -920,7 +930,7 @@ function ResultRow({
 
 function Kbd({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="rounded border border-border/40 bg-background/40 px-1 py-px font-mono text-[9px] text-muted-foreground/80">
+    <kbd className="rounded border border-border/40 bg-background/40 px-1.5 py-px font-mono text-[10px] text-muted-foreground/85">
       {children}
     </kbd>
   );
