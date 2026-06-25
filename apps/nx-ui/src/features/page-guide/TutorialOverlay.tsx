@@ -8,6 +8,7 @@ import { useEffect, useRef } from 'react';
 
 import { gsap, useGSAP } from '@design/motion/gsap';
 import { DURATION, EASE, STAGGER } from '@design/motion/gsap';
+import { useModalLayer } from '@design/primitives/modal-stack';
 
 import type { PageGuideContent } from './content';
 
@@ -19,6 +20,7 @@ interface Props {
 export function TutorialOverlay({ content, onDismiss }: Props) {
   const backdropRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
+  useModalLayer(backdropRef, onDismiss);
 
   // ESC 關閉
   useEffect(() => {

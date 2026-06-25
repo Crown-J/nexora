@@ -6,10 +6,11 @@
 // 鍵盤：↑↓ 走、Enter/Space 選、Esc 關
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Check, Filter } from 'lucide-react';
 
 import { cn } from '@design/utils/cn';
+import { useModalLayer } from '@design/primitives/modal-stack';
 
 import type { BrandDto } from '@data/endpoints/nx01/api/brand';
 
@@ -20,6 +21,8 @@ export type SelectBrandModalProps = {
 };
 
 export function SelectBrandModal({ onClose, availableBrands, onConfirm }: SelectBrandModalProps) {
+  const layerRef = useRef<HTMLDivElement>(null);
+  useModalLayer(layerRef, onClose);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [focusedIdx, setFocusedIdx] = useState(0);
 
@@ -62,6 +65,7 @@ export function SelectBrandModal({ onClose, availableBrands, onConfirm }: Select
 
   return (
     <div
+      ref={layerRef}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
       onClick={onClose}
     >

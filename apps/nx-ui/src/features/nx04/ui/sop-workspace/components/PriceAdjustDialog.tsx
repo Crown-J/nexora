@@ -9,9 +9,10 @@
 
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 
 import { cx } from '@design/utils/cx';
+import { useModalLayer } from '@design/primitives/modal-stack';
 import { TIER_TARGET_MARGIN } from '@/features/nx04/ui/inquiry/types';
 import type { CustomerTier, Part, QuoteItem } from '../types';
 
@@ -35,6 +36,8 @@ export function PriceAdjustDialog({
   onConfirm,
   onCancel,
 }: PriceAdjustDialogProps) {
+  const layerRef = useRef<HTMLDivElement>(null);
+  useModalLayer(layerRef, onCancel);
   const [edits, setEdits] = useState<Record<string, string>>(
     () =>
       items.reduce<Record<string, string>>((acc, i) => {
@@ -77,6 +80,7 @@ export function PriceAdjustDialog({
 
   return (
     <div
+      ref={layerRef}
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/80 p-4 sm:items-center"
       onClick={onCancel}
       role="dialog"

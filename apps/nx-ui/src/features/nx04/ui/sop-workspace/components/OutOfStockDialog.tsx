@@ -15,7 +15,11 @@
 
 'use client';
 
+import { useRef } from 'react';
+
 import { AlertCircle, Calendar, Search } from 'lucide-react';
+
+import { useModalLayer } from '@design/primitives/modal-stack';
 
 interface OutOfStockDialogProps {
   part: {
@@ -33,8 +37,11 @@ export function OutOfStockDialog({
   onCustomerOrder,
   onCancel,
 }: OutOfStockDialogProps) {
+  const layerRef = useRef<HTMLDivElement>(null);
+  useModalLayer(layerRef, onCancel);
   return (
     <div
+      ref={layerRef}
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/80 p-4 sm:items-center"
       onClick={onCancel}
       role="dialog"

@@ -9,10 +9,11 @@
 //   5. 確認 → call assignUserTeam (if 組別) + assignUserRole (with isPrimary)
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Briefcase, Check, X } from 'lucide-react';
 
 import { cn } from '@design/utils/cn';
+import { useModalLayer } from '@design/primitives/modal-stack';
 import { listDepartments, type DepartmentDto } from '@data/endpoints/nx01/api/department';
 import { listRoles, type RoleDto } from '@data/endpoints/nx01/api/role';
 import { listTeams, type TeamDto } from '@data/endpoints/nx01/api/team';
@@ -27,6 +28,8 @@ export type PositionAddDialogProps = {
 };
 
 export function PositionAddDialog({ open, onClose, userId, onSuccess }: PositionAddDialogProps) {
+  const layerRef = useRef<HTMLDivElement>(null);
+  useModalLayer(layerRef, onClose, open);
   const [departments, setDepartments] = useState<DepartmentDto[]>([]);
   const [teams, setTeams] = useState<TeamDto[]>([]);
   const [roles, setRoles] = useState<RoleDto[]>([]);
@@ -103,6 +106,7 @@ export function PositionAddDialog({ open, onClose, userId, onSuccess }: Position
 
   return (
     <div
+      ref={layerRef}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
       onClick={onClose}
     >

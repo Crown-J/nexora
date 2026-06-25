@@ -9,10 +9,11 @@
 // 點外不關（防誤關）、submit 後 reload
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 
 import { cn } from '@design/utils/cn';
+import { useModalLayer } from '@design/primitives/modal-stack';
 import {
   createAllowanceManual,
   getPayableView,
@@ -51,6 +52,9 @@ export function AllowanceCreateDialog({
   const [remark, setRemark] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const layerRef = useRef<HTMLDivElement>(null);
+  useModalLayer(layerRef, onClose);
 
   // 載 partner（依 S/P 過濾、防呆）
   useEffect(() => {
@@ -161,7 +165,7 @@ export function AllowanceCreateDialog({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+    <div ref={layerRef} className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
       <div className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg border border-[#2A2A30] bg-[#0E0E12] shadow-2xl">
         <div className="flex items-center justify-between border-b border-[#2A2A30] bg-[#11111A] px-4 py-3">
           <div>

@@ -8,8 +8,9 @@
 
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { useModalLayer } from '@design/primitives/modal-stack';
 import { createTiFromSo, listPendingTransferLines } from '@data/endpoints/nx04/so/api/so';
 import type { CreateTiFromSoResponse, SoItem } from '@data/types/nx04/so';
 
@@ -24,6 +25,8 @@ export function CreateTiFromSoModal({
   onClose: () => void;
   onCreated: (resp: CreateTiFromSoResponse) => void;
 }) {
+  const layerRef = useRef<HTMLDivElement>(null);
+  useModalLayer(layerRef, onClose);
   const [items, setItems] = useState<SoItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -87,6 +90,7 @@ export function CreateTiFromSoModal({
 
   return (
     <div
+      ref={layerRef}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();

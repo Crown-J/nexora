@@ -6,10 +6,11 @@
 //   - 摘要：原始金額 / 已沖總額 / 剩餘餘額
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 
 import { cn } from '@design/utils/cn';
+import { useModalLayer } from '@design/primitives/modal-stack';
 import {
   listApSettlements,
   listArSettlements,
@@ -51,6 +52,9 @@ export function SettlementHistoryDialog({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const layerRef = useRef<HTMLDivElement>(null);
+  useModalLayer(layerRef, onClose);
+
   useEffect(() => {
     if (!open || !ledgerId || !kind) {
       setData(null);
@@ -80,7 +84,7 @@ export function SettlementHistoryDialog({
   const balanceNum = data ? Number(data.balanceAmount) : 0;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+    <div ref={layerRef} className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
       <div className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg border border-[#2A2A30] bg-[#0E0E12] shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[#2A2A30] bg-[#11111A] px-4 py-3">

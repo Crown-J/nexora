@@ -8,10 +8,11 @@
 //   4. 確認 → call assignUserWarehouse({ userId, warehouseId, isPrimary })
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Check, Map, X } from 'lucide-react';
 
 import { cn } from '@design/utils/cn';
+import { useModalLayer } from '@design/primitives/modal-stack';
 import { listSites, type SiteDto } from '@data/endpoints/nx01/api/site';
 import { assignUserWarehouse } from '@data/endpoints/nx01/api/user-warehouse';
 import { listWarehouses, type WarehouseDto } from '@data/endpoints/nx01/api/warehouse';
@@ -24,6 +25,8 @@ export type WarehouseAddDialogProps = {
 };
 
 export function WarehouseAddDialog({ open, onClose, userId, onSuccess }: WarehouseAddDialogProps) {
+  const layerRef = useRef<HTMLDivElement>(null);
+  useModalLayer(layerRef, onClose, open);
   const [sites, setSites] = useState<SiteDto[]>([]);
   const [warehouses, setWarehouses] = useState<WarehouseDto[]>([]);
 
@@ -80,6 +83,7 @@ export function WarehouseAddDialog({ open, onClose, userId, onSuccess }: Warehou
 
   return (
     <div
+      ref={layerRef}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
       onClick={onClose}
     >

@@ -12,6 +12,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
+import { useModalLayer } from '@design/primitives/modal-stack';
 
 interface BarcodeScannerProps {
   open: boolean;
@@ -27,6 +28,8 @@ export function BarcodeScanner({ open, onClose, onScan, title = '掃描條碼' }
   const scannerRef = useRef<unknown>(null);
   const [error, setError] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
+  const layerRef = useRef<HTMLDivElement>(null);
+  useModalLayer(layerRef, onClose);
 
   useEffect(() => {
     if (!open) return;
@@ -101,7 +104,7 @@ export function BarcodeScanner({ open, onClose, onScan, title = '掃描條碼' }
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] flex flex-col bg-black">
+    <div ref={layerRef} className="fixed inset-0 z-[60] flex flex-col bg-black">
       <header className="flex items-center justify-between border-b border-white/10 px-4 py-3">
         <h2 className="text-sm font-semibold text-white">{title}</h2>
         <button

@@ -150,21 +150,27 @@ export function useModalStackGuard(): void {
 }
 
 /**
- * 給「不用 FocusLockedDialog 但仍是 modal」的元件用（如 Radix `<DialogContent>`）。
- * 接一個 elementRef、mount 時 push layer、unmount 時 pop + 還原 prevFocus。
+ * 給「不用 FocusLockedDialog 但仍是 modal」的元件用（如 Radix `<DialogContent>` 或
+ * 自寫 fixed inset-0 modal）。接一個 elementRef、mount 時 push layer、unmount 時 pop +
+ * 還原 prevFocus；若提供 onEscape，hook 內掛 keydown listener 在 element 上、Esc 自動呼叫。
  *
- * 用法：
+ * 用法（自寫 modal、3 行就完成 stack 註冊 + Esc 處理）：
+ *   const layerRef = useRef<HTMLDivElement>(null);
+ *   useModalLayer(layerRef, onClose);
+ *   return <div ref={layerRef} className="fixed inset-0 ..." ...>...</div>
+ *
+ * Radix Dialog 用法（不需傳 onEscape、Radix 自帶 onOpenChange 處理 Esc）：
  *   const ref = useRef<HTMLDivElement>(null);
  *   useModalLayer(ref);
  *   return <DialogPrimitive.Content ref={ref} ... />
- *
- * Esc 由 Radix 自帶 onOpenChange 處理（不用傳 onEscape）。
  */
 export function useModalLayer(
   elementRef: RefObject<HTMLElement | null>,
   onEscape?: () => void,
+  enabled: boolean = true,
 ): void {
   useEffect(() => {
+    if (!enabled) return;
     const el = elementRef.current;
     if (!el) return;
     const prevFocus = (document.activeElement instanceof HTMLElement
@@ -176,13 +182,27 @@ export function useModalLayer(
       allowBackdropClose: false,
       onEscape,
     });
+
+    // Esc handler：掛在 layer 元素上、layer 內 keydown 早於 bubbleGuard 跑
+    const handleEsc = (e: KeyboardEvent) => {
+      if (!onEscape) return;
+      if (e.key !== 'Escape') return;
+      if ((e as KeyboardEvent & { isComposing?: boolean }).isComposing) return;
+      if (!isTopLayer(id)) return; // 多層彈窗只有最上層接 Esc（驗收條件 6 逐層回退）
+      e.preventDefault();
+      e.stopPropagation();
+      onEscape();
+    };
+    el.addEventListener('keydown', handleEsc);
+
     return () => {
+      el.removeEventListener('keydown', handleEsc);
       const removed = popLayer(id);
       if (removed?.prevFocus && document.body.contains(removed.prevFocus)) {
         queueMicrotask(() => removed.prevFocus?.focus());
       }
     };
-  }, [elementRef, onEscape]);
+  }, [elementRef, onEscape, enabled]);
 }
 
 /** debug：給 devtools 用 */

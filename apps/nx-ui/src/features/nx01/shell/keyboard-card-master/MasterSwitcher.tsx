@@ -29,6 +29,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@design/utils/cn';
 import { tryNavigate } from '@design/hooks/useDirtyGuard';
 import { useReducedMotion } from '@/design/motion/gsap';
+import { useModalLayer } from '@design/primitives/modal-stack';
 
 import {
   MASTER_CATEGORIES,
@@ -50,6 +51,8 @@ export function MasterSwitcher({ open, currentPageId, onClose }: Props) {
   const rootRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const layerRef = useRef<HTMLDivElement>(null);
+  useModalLayer(layerRef, onClose);
 
   // 平鋪可用主檔（非 disabled）— 22 個固定
   const all = useMemo<MasterPageMeta[]>(
@@ -202,6 +205,7 @@ export function MasterSwitcher({ open, currentPageId, onClose }: Props) {
     <AnimatePresence>
       {open ? (
         <motion.div
+          ref={layerRef}
           className="fixed inset-0 z-50 flex items-start justify-center bg-background/65 p-6 pt-[10vh] backdrop-blur-sm"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

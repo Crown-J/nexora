@@ -42,6 +42,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertCircle, Check, Search, type LucideIcon } from 'lucide-react';
 import type { PagedResult } from '@data/types/nx01/api';
 import { cn } from '@design/utils/cn';
+import { useModalLayer } from '@design/primitives/modal-stack';
 
 export type EntityPickerDialogProps<T> = {
   open: boolean;
@@ -120,6 +121,8 @@ export function EntityPickerDialog<T>({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const layerRef = useRef<HTMLDivElement>(null);
+  useModalLayer(layerRef, onClose);
 
   // 開啟時 reset + 自動 focus
   useEffect(() => {
@@ -299,6 +302,7 @@ export function EntityPickerDialog<T>({
 
   return (
     <div
+      ref={layerRef}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
       onClick={() => {
         if (!submitting) onClose();

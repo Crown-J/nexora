@@ -7,10 +7,11 @@
 //   - 接 POST /nx05/paylog/with-settlements
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Banknote, CreditCard, FileSpreadsheet, X } from 'lucide-react';
 
 import { cn } from '@design/utils/cn';
+import { useModalLayer } from '@design/primitives/modal-stack';
 import {
   createNoteWithSettlements,
   getPayableView,
@@ -66,6 +67,9 @@ export function PaylogCreateDialog({
   const [loadingLedgers, setLoadingLedgers] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const layerRef = useRef<HTMLDivElement>(null);
+  useModalLayer(layerRef, onClose);
 
   // 載 partner（依 R/P 篩 partnerType、防呆避免實測選錯對象掛錯帳）
   //   - R 收款 → 客戶 C / 同行 O
@@ -232,7 +236,7 @@ export function PaylogCreateDialog({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+    <div ref={layerRef} className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
       <div className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg border border-[#2A2A30] bg-[#0E0E12] shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[#2A2A30] bg-[#11111A] px-4 py-3">

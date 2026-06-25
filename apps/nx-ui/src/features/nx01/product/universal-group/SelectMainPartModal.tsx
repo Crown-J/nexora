@@ -13,6 +13,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Box, Check, Loader2, Search } from 'lucide-react';
 
 import { cn } from '@design/utils/cn';
+import { useModalLayer } from '@design/primitives/modal-stack';
 import { listParts, type PartDto } from '@data/endpoints/nx01/api/part';
 
 export type SelectMainPartModalProps = {
@@ -27,6 +28,8 @@ export function SelectMainPartModal({
   excludePartIds,
   onConfirm,
 }: SelectMainPartModalProps) {
+  const layerRef = useRef<HTMLDivElement>(null);
+  useModalLayer(layerRef, onClose);
   const [keyword, setKeyword] = useState('');
   const [items, setItems] = useState<PartDto[]>([]);
   const [loading, setLoading] = useState(false);
@@ -112,6 +115,7 @@ export function SelectMainPartModal({
 
   return (
     <div
+      ref={layerRef}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
       onClick={onClose}
     >

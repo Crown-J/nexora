@@ -10,7 +10,11 @@
 
 'use client';
 
+import { useRef } from 'react';
+
 import { Plus } from 'lucide-react';
+
+import { useModalLayer } from '@design/primitives/modal-stack';
 
 interface AddMoreDialogProps {
   /** 剛加入的料號名稱,讓使用者確認加了什麼 */
@@ -24,8 +28,11 @@ export function AddMoreDialog({
   onAddMore,
   onFinish,
 }: AddMoreDialogProps) {
+  const layerRef = useRef<HTMLDivElement>(null);
+  useModalLayer(layerRef, onFinish);
   return (
     <div
+      ref={layerRef}
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/80 p-4 sm:items-center"
       onClick={onFinish}
       role="dialog"

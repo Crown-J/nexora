@@ -10,9 +10,11 @@
 
 'use client';
 
+import { useRef } from 'react';
 import { AlertCircle } from 'lucide-react';
 
 import { cx } from '@design/utils/cx';
+import { useModalLayer } from '@design/primitives/modal-stack';
 
 interface ConfirmDialogProps {
   title: string;
@@ -34,8 +36,12 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
+  const layerRef = useRef<HTMLDivElement>(null);
+  useModalLayer(layerRef, onCancel);
+
   return (
     <div
+      ref={layerRef}
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/80 p-4 sm:items-center"
       onClick={onCancel}
       role="dialog"

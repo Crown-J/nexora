@@ -13,6 +13,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { cx } from '@design/utils/cx';
+import { useModalLayer } from '@design/primitives/modal-stack';
 
 export type SignaturePadModalProps = {
   customerContact?: string;
@@ -25,6 +26,8 @@ export function SignaturePadModal({
   onComplete,
   onCancel,
 }: SignaturePadModalProps) {
+  const layerRef = useRef<HTMLDivElement>(null);
+  useModalLayer(layerRef, onCancel);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [hasSigned, setHasSigned] = useState(false);
 
@@ -107,6 +110,7 @@ export function SignaturePadModal({
 
   return (
     <div
+      ref={layerRef}
       role="dialog"
       aria-modal="true"
       aria-label="客戶簽名"

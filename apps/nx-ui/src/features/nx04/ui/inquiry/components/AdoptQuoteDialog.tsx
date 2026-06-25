@@ -14,10 +14,11 @@
 
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { CheckCircle2 } from 'lucide-react';
 
 import { cx } from '@design/utils/cx';
+import { useModalLayer } from '@design/primitives/modal-stack';
 import type { RFQ } from '../types';
 import { TIER_TARGET_MARGIN } from '../types';
 
@@ -49,6 +50,9 @@ export function AdoptQuoteDialog({
   const finalPrice = Number(finalPriceStr);
   const finalPriceValid = Number.isFinite(finalPrice) && finalPrice > 0;
 
+  const layerRef = useRef<HTMLDivElement>(null);
+  useModalLayer(layerRef, onCancel);
+
   if (!vendor) return null;
 
   const margin = finalPrice - vendor.price;
@@ -57,6 +61,7 @@ export function AdoptQuoteDialog({
 
   return (
     <div
+      ref={layerRef}
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/80 p-4 sm:items-center"
       onClick={onCancel}
       role="dialog"

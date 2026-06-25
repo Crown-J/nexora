@@ -9,9 +9,10 @@
 
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 
 import { cx } from '@design/utils/cx';
+import { useModalLayer } from '@design/primitives/modal-stack';
 import type { QuoteItem } from '../types';
 import type { Part } from '../types';
 
@@ -28,6 +29,8 @@ export function PartialAcceptDialog({
   onConfirm,
   onCancel,
 }: PartialAcceptDialogProps) {
+  const layerRef = useRef<HTMLDivElement>(null);
+  useModalLayer(layerRef, onCancel);
   const [acceptedSkus, setAcceptedSkus] = useState<Set<string>>(
     () => new Set(items.map((i) => i.sku)),
   );
@@ -54,6 +57,7 @@ export function PartialAcceptDialog({
 
   return (
     <div
+      ref={layerRef}
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/80 p-4 sm:items-center"
       onClick={onCancel}
       role="dialog"

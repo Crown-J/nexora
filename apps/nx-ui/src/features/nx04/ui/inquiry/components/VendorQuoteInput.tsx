@@ -14,9 +14,10 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { cx } from '@design/utils/cx';
+import { useModalLayer } from '@design/primitives/modal-stack';
 import { useRFQStore } from '../store';
 
 interface VendorQuoteInputProps {
@@ -51,8 +52,12 @@ export function VendorQuoteInput({ rfqId, onSaved, onCancel }: VendorQuoteInputP
     onSaved({ vendorName: trimmedName });
   };
 
+  const layerRef = useRef<HTMLDivElement>(null);
+  useModalLayer(layerRef, onCancel);
+
   return (
     <div
+      ref={layerRef}
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/80 p-4 sm:items-center"
       onClick={onCancel}
       role="dialog"

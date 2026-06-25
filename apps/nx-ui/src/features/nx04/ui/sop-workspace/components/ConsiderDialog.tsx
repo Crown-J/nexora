@@ -12,9 +12,10 @@
 
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 
 import { cx } from '@design/utils/cx';
+import { useModalLayer } from '@design/primitives/modal-stack';
 import type { Part, QuoteItem } from '../types';
 
 interface ConsiderDialogProps {
@@ -34,6 +35,8 @@ export function ConsiderDialog({
   onConfirm,
   onCancel,
 }: ConsiderDialogProps) {
+  const layerRef = useRef<HTMLDivElement>(null);
+  useModalLayer(layerRef, onCancel);
   const [daysStr, setDaysStr] = useState('7');
   const days = Number(daysStr);
   const daysValid = Number.isFinite(days) && days > 0 && days <= 90;
@@ -45,6 +48,7 @@ export function ConsiderDialog({
 
   return (
     <div
+      ref={layerRef}
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/80 p-4 sm:items-center"
       onClick={onCancel}
       role="dialog"

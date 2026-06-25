@@ -9,8 +9,10 @@
 
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
+
+import { useModalLayer } from '@design/primitives/modal-stack';
 
 export type ImageLightboxProps = {
   imageUrl: string | null;
@@ -19,6 +21,8 @@ export type ImageLightboxProps = {
 };
 
 export function ImageLightbox({ imageUrl, alt, onClose }: ImageLightboxProps) {
+  const layerRef = useRef<HTMLDivElement>(null);
+  useModalLayer(layerRef, onClose, !!imageUrl);
   useEffect(() => {
     if (!imageUrl) return;
     const handler = (e: KeyboardEvent) => {
@@ -32,6 +36,7 @@ export function ImageLightbox({ imageUrl, alt, onClose }: ImageLightboxProps) {
 
   return (
     <div
+      ref={layerRef}
       role="dialog"
       aria-modal="true"
       aria-label={alt ?? '圖片放大檢視'}

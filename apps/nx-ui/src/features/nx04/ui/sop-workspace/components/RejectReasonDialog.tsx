@@ -8,9 +8,10 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { cx } from '@design/utils/cx';
+import { useModalLayer } from '@design/primitives/modal-stack';
 import type { RejectReasonCode } from '../types';
 
 interface RejectReasonDialogProps {
@@ -28,6 +29,8 @@ const REASONS: ReadonlyArray<{ code: RejectReasonCode; label: string }> = [
 ];
 
 export function RejectReasonDialog({ onConfirm, onCancel }: RejectReasonDialogProps) {
+  const layerRef = useRef<HTMLDivElement>(null);
+  useModalLayer(layerRef, onCancel);
   const [selected, setSelected] = useState<Set<RejectReasonCode>>(new Set());
   const [note, setNote] = useState('');
 
@@ -44,6 +47,7 @@ export function RejectReasonDialog({ onConfirm, onCancel }: RejectReasonDialogPr
 
   return (
     <div
+      ref={layerRef}
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/80 p-4 sm:items-center"
       onClick={onCancel}
       role="dialog"

@@ -22,6 +22,7 @@ import { UserPlus, AlertCircle, KeyRound } from 'lucide-react';
 import { createUser, type UserDto } from '@data/endpoints/nx01/api/user';
 import { FormInput, FormSelect } from '@/features/nx01/shell/ui/FormField';
 import { cn } from '@design/utils/cn';
+import { useModalLayer } from '@design/primitives/modal-stack';
 
 /**
  * 預設密碼：所有新建使用者一律以此建立，首次登入時系統會強制要求修改。
@@ -59,6 +60,8 @@ export function CreateUserDialog({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const firstInputRef = useRef<HTMLInputElement>(null);
+  const layerRef = useRef<HTMLDivElement>(null);
+  useModalLayer(layerRef, onClose);
 
   // 開啟時 reset form + 自動 focus
   useEffect(() => {
@@ -119,6 +122,7 @@ export function CreateUserDialog({
 
   return (
     <div
+      ref={layerRef}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
       onClick={() => {
         if (!submitting) onClose();
