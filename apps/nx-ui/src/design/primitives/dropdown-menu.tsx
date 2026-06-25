@@ -32,6 +32,11 @@ function DropdownMenuTrigger({
   )
 }
 
+// 軌 3：menu 內 padding/separator 區域 mousedown pullback（執行長 2026-06-25 軌 3）
+// 點 menu 內非 item 區域時、preventDefault + focus 容器、避免 focus 飄到 body 導致方向鍵失效
+const MENU_FOCUSABLE_SELECTOR =
+  '[role="menuitem"], [role="menuitemcheckbox"], [role="menuitemradio"], button, a[href], input, [tabindex]:not([tabindex="-1"])'
+
 function DropdownMenuContent({
   className,
   sideOffset = 4,
@@ -40,10 +45,20 @@ function DropdownMenuContent({
   // 軌 A：menu 開啟期間註冊為 layer、guard 隔離背景 keydown
   const contentRef = React.useRef<HTMLDivElement>(null)
   useModalLayer(contentRef)
+  const handleMouseDown = React.useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement | null
+    if (!target) return
+    const item = target.closest(MENU_FOCUSABLE_SELECTOR)
+    const container = contentRef.current
+    if (item && container && container.contains(item)) return
+    e.preventDefault()
+    container?.focus()
+  }, [])
   return (
     <DropdownMenuPrimitive.Portal>
       <DropdownMenuPrimitive.Content
         ref={contentRef}
+        onMouseDown={handleMouseDown}
         data-slot="dropdown-menu-content"
         sideOffset={sideOffset}
         className={cn(
@@ -234,9 +249,20 @@ function DropdownMenuSubContent({
   // 軌 A：sub menu 也註冊（多層 menu 時最內層成為 top layer）
   const subRef = React.useRef<HTMLDivElement>(null)
   useModalLayer(subRef)
+  // 軌 3：sub menu 也 pullback、點 sub menu 內 padding 區域不飄 focus
+  const handleMouseDown = React.useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement | null
+    if (!target) return
+    const item = target.closest(MENU_FOCUSABLE_SELECTOR)
+    const container = subRef.current
+    if (item && container && container.contains(item)) return
+    e.preventDefault()
+    container?.focus()
+  }, [])
   return (
     <DropdownMenuPrimitive.SubContent
       ref={subRef}
+      onMouseDown={handleMouseDown}
       data-slot="dropdown-menu-sub-content"
       className={cn(
         'bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-[60] min-w-[8rem] origin-(--radix-dropdown-menu-content-transform-origin) overflow-hidden rounded-md border p-1 shadow-lg',
