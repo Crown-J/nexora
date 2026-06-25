@@ -40,6 +40,15 @@ type Props = {
   onClose: () => void;
 };
 
+// 執行長 2026-06-25 拍板的庫存四指標配色（KpiTile + WhTile 共用、視覺一致）
+const STOCK_COLORS = {
+  onHand: '#E8E8EB', // 現有 = 白
+  available: '#22D88F', // 可出 = 綠
+  reserved: '#E26060', // 不可出 = 紅
+  inTransit: '#FFB347', // 在途 = 橘
+} as const;
+const ZERO_GREY = '#5A5A60'; // 0 值弱化色
+
 export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props) {
   // 主件：Alt+F 跳搜時切換
   const [mainPartId, setMainPartId] = useState(initialPartId);
@@ -407,39 +416,46 @@ function MiddleColumn({
     <section className="flex min-h-0 flex-col border-r border-border/40 bg-background/20">
       <SectionHeader icon={<Warehouse className="size-3.5" />} label="庫存狀態" loading={loading} />
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto px-5 py-4">
-        {/* 公司總 4 顆 KPI */}
+        {/* 公司總 4 顆 KPI（執行長 2026-06-25 配色：現有白/可出綠/不可出紅/在途橘）*/}
         <div className="grid grid-cols-2 gap-2">
-          <KpiTile label="公司總庫存" value={company?.onHand} color="#22D88F" />
-          <KpiTile label="可出量" value={company?.available} color="#9BD0E8" />
+          <KpiTile label="公司總庫存" value={company?.onHand} color={STOCK_COLORS.onHand} />
+          <KpiTile label="可出量" value={company?.available} color={STOCK_COLORS.available} />
           <KpiTile
             label="不可出量"
             value={String(Number(company?.reserved ?? '0'))}
-            color="#E26060"
+            color={STOCK_COLORS.reserved}
           />
-          <KpiTile label="在進量（在途）" value={company?.inTransit} color="#FFB347" />
+          <KpiTile
+            label="在進量（在途）"
+            value={company?.inTransit}
+            color={STOCK_COLORS.inTransit}
+          />
         </div>
 
-        {/* 各倉位分布 */}
+        {/* 各倉位分布（執行長 2026-06-25 改版：每倉 4 個獨立框、字級加大、0 弱化）*/}
         <div>
           <h4 className="mb-2 text-[10px] uppercase tracking-[0.22em] text-muted-foreground/70">
             各倉位分布
           </h4>
           {stock && stock.warehouses.length > 0 ? (
-            <ul className="flex flex-col gap-1.5">
+            <ul className="flex flex-col gap-2">
               {stock.warehouses.map((w) => (
                 <li
                   key={w.warehouseId}
-                  className="grid items-center gap-3 rounded-md border border-border/30 bg-card/40 px-3 py-2"
-                  style={{ gridTemplateColumns: '1fr auto auto auto auto' }}
+                  className="flex flex-col gap-1.5 rounded-md border border-border/30 bg-card/40 px-3 py-2"
                 >
-                  <span className="min-w-0 truncate text-xs text-foreground">
+                  {/* 倉名行 */}
+                  <div className="text-sm">
                     <span className="font-mono text-[#E8A020]">{w.warehouseCode}</span>
-                    <span className="ml-1.5 text-muted-foreground/85">{w.warehouseName}</span>
-                  </span>
-                  <WhStat label="現有" value={w.onHand} color="#22D88F" />
-                  <WhStat label="可出" value={w.available} color="#9BD0E8" />
-                  <WhStat label="不可出" value={w.reserved} color="#E26060" />
-                  <WhStat label="在途" value={w.inTransit} color="#FFB347" />
+                    <span className="ml-2 text-muted-foreground/90">{w.warehouseName}</span>
+                  </div>
+                  {/* 四框行：與中欄上方 KPI 視覺一致 */}
+                  <div className="grid grid-cols-4 gap-1.5">
+                    <WhTile label="現有" value={w.onHand} color={STOCK_COLORS.onHand} />
+                    <WhTile label="可出" value={w.available} color={STOCK_COLORS.available} />
+                    <WhTile label="不可出" value={w.reserved} color={STOCK_COLORS.reserved} />
+                    <WhTile label="在途" value={w.inTransit} color={STOCK_COLORS.inTransit} />
+                  </div>
                 </li>
               ))}
             </ul>
@@ -706,24 +722,29 @@ function DataRow({
 }
 
 function KpiTile({ label, value, color }: { label: string; value: string | undefined; color: string }) {
+  const n = value ? Number(value) : 0;
+  const isZero = n === 0;
   return (
     <div className="flex flex-col gap-0.5 rounded-md border border-border/30 bg-card/50 px-3 py-2">
       <span className="text-[10px] uppercase tracking-wider text-muted-foreground/65">{label}</span>
-      <span className="font-mono text-lg" style={{ color }}>
-        {value ? Number(value).toFixed(0) : '0'}
+      <span className="font-mono text-lg" style={{ color: isZero ? ZERO_GREY : color }}>
+        {n.toFixed(0)}
       </span>
     </div>
   );
 }
 
-function WhStat({ label, value, color }: { label: string; value: string; color: string }) {
+/** 各倉位四框（執行長 2026-06-25：與 KpiTile 視覺一致但縮小、0 值弱化）*/
+function WhTile({ label, value, color }: { label: string; value: string; color: string }) {
+  const n = Number(value);
+  const isZero = n === 0;
   return (
-    <span className="flex flex-col items-end leading-tight">
+    <div className="flex flex-col items-center gap-0.5 rounded border border-border/30 bg-background/40 px-2 py-1">
       <span className="text-[9px] uppercase tracking-wider text-muted-foreground/55">{label}</span>
-      <span className="font-mono text-xs" style={{ color }}>
-        {Number(value).toFixed(0)}
+      <span className="font-mono text-base" style={{ color: isZero ? ZERO_GREY : color }}>
+        {n.toFixed(0)}
       </span>
-    </span>
+    </div>
   );
 }
 
