@@ -370,6 +370,7 @@ export function MasterBatchShell<S, M>({ config, className }: MasterBatchShellPr
         title={config.title}
         desc={config.desc}
         count={totalCount}
+        rightAddon={config.headerRight}
       />
 
       <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 px-4 pb-4 md:grid-cols-[360px_1fr]">

@@ -9,7 +9,7 @@
 //   - desc 保留下方一行
 'use client';
 
-import { Fragment } from 'react';
+import { Fragment, type ReactNode } from 'react';
 import { ChevronRight } from 'lucide-react';
 
 import { cn } from '@design/utils/cn';
@@ -27,6 +27,8 @@ export type PageHeaderProps = {
   desc?: string;
   /** 右側計數 chip（如「24 筆」）*/
   count?: string;
+  /** 2026-06-25：右側附加 slot（如 MasterQuickNav 主檔切換按鈕）、放在 count 右邊 */
+  rightAddon?: ReactNode;
   className?: string;
 };
 
@@ -36,6 +38,7 @@ export function PageHeader({
   title,
   desc,
   count,
+  rightAddon,
   className,
 }: PageHeaderProps) {
   const effective: Crumb[] =
@@ -76,6 +79,7 @@ export function PageHeader({
             {count}
           </span>
         ) : null}
+        {rightAddon ? <div className="flex shrink-0 items-center gap-2">{rightAddon}</div> : null}
       </div>
 
       {desc ? (

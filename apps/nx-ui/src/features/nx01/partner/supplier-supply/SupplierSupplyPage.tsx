@@ -20,6 +20,8 @@ import { MasterBatchShell } from '@design/components/master-batch';
 import type { MasterBatchConfig, MemberGroup } from '@design/components/master-batch';
 import { cn } from '@design/utils/cn';
 
+import { MasterQuickNav } from '@/features/nx01/shell/master-nav/MasterQuickNav';
+
 import { listPartners, type PartnerDto } from '@data/endpoints/nx01/api/partner';
 import { listBrands, type BrandDto } from '@data/endpoints/nx01/api/brand';
 import { listParts, type PartDto } from '@data/endpoints/nx01/api/part';
@@ -177,20 +179,23 @@ export function SupplierSupplyPage() {
     () => ({
       title: '供應商供貨對應',
       category: '分級與供貨設定',
-      desc: '紀錄供應商賣什麼品牌、什麼品項。按品牌 accordion 分組；「加入品牌」一次帶該品牌全品項、再個別剔除不供的。',
+      // 2026-06-25 執行長：移除介紹文字
       subjectIcon: Truck,
       subjectNoun: '供應商',
       memberNoun: '供貨品項',
       memberUnit: '項',
       addLabel: '加入品牌',
       addIcon: Filter,
-      searchPlaceholder: '搜尋供應商名稱…',
+      searchPlaceholder: '搜尋供應商編號或名稱…',
+      // 2026-06-25 執行長：右上加主檔切換按鈕
+      headerRight: <MasterQuickNav currentPageId="supplymap" />,
 
       leftMode: 'flat',
       subjects: () => suppliers,
       subjectId: (s) => s.id,
-      subjectTitle: (s) => s.name,
-      subjectSearch: (s, q) => s.name.includes(q) || s.code.toLowerCase().includes(q),
+      // 2026-06-25 執行長：左欄顯示「代號 名稱」(N0003 GEORG GROTJAHN...)、太長截斷尾巴、代號一定先出來
+      subjectTitle: (s) => `${s.code} ${s.name}`,
+      subjectSearch: (s, q) => s.name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q),
       subjectCount: (s) => recordsOf(s.id).length,
 
       rightMode: 'grouped',

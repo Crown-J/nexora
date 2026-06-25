@@ -66,6 +66,8 @@ export type MasterBatchConfig<S, M> = {
   category?: string;
   /** 標題下方一行描述 */
   desc?: string;
+  /** 2026-06-25：標頭右側附加 slot（如 MasterQuickNav 主檔切換按鈕） */
+  headerRight?: ReactNode;
   /** 左欄面板 icon */
   subjectIcon?: LucideIcon;
   /** 左欄實體名詞（如「群組」「供應商」） */
