@@ -448,18 +448,18 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
       initialFocusRef={partNoInputRef}
       ariaLabel="料號即時搜尋"
       backdropClassName={cn(
-        'bg-[#0A0820]/55 backdrop-blur-sm',
+        'bg-black/60 backdrop-blur-sm',
         closing ? 'animate-out fade-out duration-200' : 'animate-in fade-in duration-200',
       )}
       dialogClassName={cn(
-        'flex flex-col rounded-2xl border border-[#6C86CE]/35 bg-gradient-to-br from-[#241751]/90 to-[#1A0F3A]/90 text-foreground shadow-[0_30px_80px_rgba(0,0,0,0.65),0_0_60px_-20px_rgba(2,237,171,0.15)] backdrop-blur-2xl',
+        'flex flex-col rounded-2xl border border-white/12 bg-gradient-to-br from-[#0A0A0F]/92 to-black/92 text-foreground shadow-[0_30px_80px_rgba(0,0,0,0.75),0_0_60px_-20px_rgba(2,237,171,0.18)] backdrop-blur-2xl',
         closing ? 'animate-out fade-out zoom-out-95 duration-200' : 'animate-in fade-in zoom-in-95 duration-200',
       )}
       dialogStyle={{ width: 'min(1200px, 96vw)', height: 'min(720px, 92vh)' }}
     >
       <>
         {/* Header */}
-        <div className="flex items-center gap-2.5 border-b border-[#6C86CE]/40 px-6 py-3">
+        <div className="flex items-center gap-2.5 border-b border-white/40 px-6 py-3">
           <span className="size-2 rounded-full bg-[#02EDAB] shadow-[0_0_10px_#02EDAB]" />
           <PackageSearch className="size-[18px] text-[#02EDAB]" />
           <h2 className="text-[15px] font-semibold tracking-wide text-foreground">料號即時搜尋</h2>
@@ -472,7 +472,7 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
           <button
             type="button"
             onClick={onClose}
-            className="ml-1 rounded-md border border-[#6C86CE]/40 bg-[#241751]/40 p-1 text-muted-foreground hover:bg-[#4D47A3]/60 hover:text-foreground"
+            className="ml-1 rounded-md border border-white/40 bg-[#0A0A0F]/40 p-1 text-muted-foreground hover:bg-[#1A1A1F]/60 hover:text-foreground"
             aria-label="關閉"
           >
             <X className="size-3.5" />
@@ -480,7 +480,7 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
         </div>
 
         {/* Method tabs */}
-        <div className="flex items-center gap-2 border-b border-[#6C86CE]/40 bg-[#4D47A3]/50 px-6 py-2.5">
+        <div className="flex items-center gap-2 border-b border-white/40 bg-[#1A1A1F]/50 px-6 py-2.5">
           {METHOD_TABS.map((t) => (
             <button
               key={t.key}
@@ -490,7 +490,7 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
                 'inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-[13px] font-medium transition-colors',
                 method === t.key
                   ? 'border-[#02EDAB] bg-[#02EDAB]/15 text-[#02EDAB] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]'
-                  : 'border-[#6C86CE]/40 bg-[#241751]/40 text-muted-foreground hover:border-[#02EDAB]/40 hover:text-foreground',
+                  : 'border-white/40 bg-[#0A0A0F]/40 text-muted-foreground hover:border-[#02EDAB]/40 hover:text-foreground',
               )}
             >
               <kbd className="rounded border border-current/40 bg-current/10 px-1.5 py-px font-mono text-[10px] tracking-tight opacity-85">
@@ -506,11 +506,11 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
           {/* 左：輸入區 */}
           <aside
             className={cn(
-              'flex min-h-0 flex-col border-r border-[#6C86CE]/40 bg-[#241751]/30 transition-opacity',
+              'flex min-h-0 flex-col border-r border-white/40 bg-[#0A0A0F]/30 transition-opacity',
               inputDisabled && 'opacity-50',
             )}
           >
-            <div className="flex items-center justify-between border-b border-[#6C86CE]/30 bg-[#241751]/20 px-5 py-2 text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70">
+            <div className="flex items-center justify-between border-b border-white/30 bg-[#0A0A0F]/20 px-5 py-2 text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70">
               <span>輸入條件</span>
               {inputDisabled ? (
                 <span className="text-[12px] text-[#02EDAB]/75 normal-case tracking-normal">
@@ -659,7 +659,7 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
                 </ul>
               )}
               {loading ? (
-                <div className="pointer-events-none absolute right-4 top-3 flex items-center gap-2 rounded-md border border-[#02EDAB]/40 bg-[#241751]/60 px-3 py-1.5 text-xs text-[#02EDAB] shadow-lg">
+                <div className="pointer-events-none absolute right-4 top-3 flex items-center gap-2 rounded-md border border-[#02EDAB]/40 bg-[#0A0A0F]/60 px-3 py-1.5 text-xs text-[#02EDAB] shadow-lg">
                   <Loader2 className="size-3.5 animate-spin" />
                   搜尋中…
                 </div>
@@ -669,7 +669,7 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between border-t border-[#6C86CE]/30 bg-[#241751]/30 px-6 py-2 text-[11px] text-muted-foreground/70">
+        <div className="flex items-center justify-between border-t border-white/30 bg-[#0A0A0F]/30 px-6 py-2 text-[11px] text-muted-foreground/70">
           <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <Kbd>Alt+1~5</Kbd> 切查法
             <span className="text-muted-foreground/30">·</span>
@@ -737,10 +737,10 @@ function PlainInputBlock({
         placeholder={placeholder}
         autoComplete="off"
         className={cn(
-          'rounded-md bg-[#241751]/60 px-3 outline-none transition-colors placeholder:text-muted-foreground/45',
+          'rounded-md bg-[#0A0A0F]/60 px-3 outline-none transition-colors placeholder:text-muted-foreground/45',
           primary
             ? 'h-11 border-2 border-[#02EDAB]/55 font-mono text-[15px] tracking-wide text-foreground focus:border-[#02EDAB]'
-            : 'h-10 border border-[#6C86CE]/40 text-sm text-foreground focus:border-[#02EDAB]/60',
+            : 'h-10 border border-white/40 text-sm text-foreground focus:border-[#02EDAB]/60',
         )}
       />
     </div>
@@ -763,7 +763,7 @@ function ResultsHeader({
   const groupCount = result?.groups?.length ?? 0;
   const ungroupedCount = result?.ungrouped?.length ?? 0;
   return (
-    <div className="flex items-center justify-between border-b border-[#6C86CE]/25 bg-[#241751]/30 px-5 py-2 text-[12px] text-muted-foreground">
+    <div className="flex items-center justify-between border-b border-white/25 bg-[#0A0A0F]/30 px-5 py-2 text-[12px] text-muted-foreground">
       {error ? (
         <span className="text-[#E26060]">⚠ {error}</span>
       ) : !hasAnyInput ? (
@@ -854,7 +854,7 @@ function ResultRow({
         'shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]',
         'transition-[border-color,box-shadow,background-color] duration-150 ease-out',
         // 群組頭 vs 替代品基準
-        isAlt ? 'border-[#6C86CE]/35' : 'border-[#02EDAB]/30',
+        isAlt ? 'border-white/35' : 'border-[#02EDAB]/30',
         // highlight：邊框純金 + 背景加深 + 雙層光暈（不 scale、字不糊）
         isHighlighted
           ? 'border-[#02EDAB] from-[#02EDAB]/15 to-[#02EDAB]/8 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_0_14px_-2px_rgba(232,160,32,0.5)]'
@@ -885,7 +885,7 @@ function ResultRow({
         </span>
         <div className="flex shrink-0 items-center gap-1.5">
           {isAlt && (
-            <span className="rounded-md border border-[#6C86CE]/55 bg-[#4D47A3]/25 px-2 py-0.5 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-[#6C86CE]">
+            <span className="rounded-md border border-white/55 bg-[#1A1A1F]/25 px-2 py-0.5 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-[#6C86CE]">
               替代
             </span>
           )}
@@ -894,7 +894,7 @@ function ResultRow({
               'rounded-md border px-2 py-0.5 font-mono text-[11px] font-medium uppercase tracking-[0.08em]',
               m.isOem
                 ? 'border-[#02EDAB]/55 bg-[#02EDAB]/15 text-[#02EDAB]'
-                : 'border-[#6C86CE]/50 bg-muted/30 text-muted-foreground/85',
+                : 'border-white/50 bg-muted/30 text-muted-foreground/85',
             )}
           >
             {m.isOem ? '正廠' : '副廠'}
@@ -930,7 +930,7 @@ function ResultRow({
 
 function Kbd({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="rounded border border-[#6C86CE]/40 bg-[#241751]/40 px-1.5 py-px font-mono text-[10px] text-muted-foreground/85">
+    <kbd className="rounded border border-white/40 bg-[#0A0A0F]/40 px-1.5 py-px font-mono text-[10px] text-muted-foreground/85">
       {children}
     </kbd>
   );
