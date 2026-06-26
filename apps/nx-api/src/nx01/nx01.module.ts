@@ -39,14 +39,8 @@ import { RoleViewController } from './role-view/role-view.controller';
 import { RoleViewService } from './role-view/role-view.service';
 import { CustomerGradeController } from './customer-grade/customer-grade.controller';
 import { CustomerGradeService } from './customer-grade/customer-grade.service';
-import { DrivetrainController } from './drivetrain/drivetrain.controller';
-import { DrivetrainService } from './drivetrain/drivetrain.service';
-import { EngineController } from './engine/engine.controller';
-import { EngineService } from './engine/engine.service';
 import { ModelController } from './model/model.controller';
 import { ModelService } from './model/model.service';
-import { ModelTypeController } from './model-type/model-type.controller';
-import { ModelTypeService } from './model-type/model-type.service';
 import { PartGroupController } from './part-group/part-group.controller';
 import { PartGroupService } from './part-group/part-group.service';
 import { PartModelController } from './part-model/part-model.controller';
@@ -70,8 +64,6 @@ import { RoleController } from './role/role.controller';
 import { RoleService } from './role/role.service';
 import { SupplierGradeController } from './supplier-grade/supplier-grade.controller';
 import { SupplierGradeService } from './supplier-grade/supplier-grade.service';
-import { TransmissionController } from './transmission/transmission.controller';
-import { TransmissionService } from './transmission/transmission.service';
 import { UserController } from './user/user.controller';
 import { UserService } from './user/user.service';
 import { SeqCounterService } from '../shared/nx01/seq-counter.service';
@@ -128,10 +120,6 @@ import { UserTeamService } from './user-team/user-team.service';
     DepartmentController,
     TeamController,
     UserTeamController,
-    EngineController,
-    TransmissionController,
-    DrivetrainController,
-    ModelTypeController,
     ModelController,
     PartGroupController,
     PartRelationController,
@@ -175,10 +163,6 @@ import { UserTeamService } from './user-team/user-team.service';
     RoleService,
     BulletinService,
     PhoneticDictionaryService,
-    EngineService,
-    TransmissionService,
-    DrivetrainService,
-    ModelTypeService,
     ModelService,
     PartGroupService,
     PartRelationService,

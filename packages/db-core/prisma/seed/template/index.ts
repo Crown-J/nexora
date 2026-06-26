@@ -20,16 +20,13 @@ import { applyCustomerGrade } from './apply-customer-grade';
 import { applySupplierGrade } from './apply-supplier-grade';
 import { applyDepartment } from './apply-department';
 import { applyDiscountCode } from './apply-discount-code';
-import { applyDrivetrain } from './apply-drivetrain';
 import { applyLeaveType } from './apply-leave-type';
-import { applyModelType } from './apply-model-type';
 import { applyPartBrand } from './apply-part-brand';
 import { applyPartGroup } from './apply-part-group';
 import { applyRegion } from './apply-region';
 import { applyRole } from './apply-role';
 import { applySite } from './apply-site';
 import { applyTeam } from './apply-team';
-import { applyTransmission } from './apply-transmission';
 import { applyUserTeam } from './apply-user-team';
 import { applyWarehouse } from './apply-warehouse';
 import { applyWelcomeBulletin } from './apply-welcome-bulletin';
@@ -51,9 +48,7 @@ export async function applyTemplateToTenant(
   // === ALL：所有版本皆需 ===
   await applyRole(prisma, params);
   await applyCarBrand(prisma, params);
-  await applyTransmission(prisma, params);  // ⚠️ NX01-15、carBrandId 可空、依賴 carBrand 已建（部分 row 用）
-  await applyDrivetrain(prisma, params);    // ⚠️ NX01-15、無 FK 依賴
-  await applyModelType(prisma, params);     // ⚠️ NX01-15、無 FK 依賴
+  // 2026-06-26：引擎/變速箱/傳動/車體類型字典已移除（車型改自由輸入引擎代碼+CC）
   await applyPartGroup(prisma, params);
   await applyPartBrand(prisma, params);
   await applyCustomerGrade(prisma, params);

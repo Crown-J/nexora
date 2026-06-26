@@ -24,10 +24,9 @@ const SEL = {
   brandId: true,
   modelYearFrom: true,
   modelYearTo: true,
-  engineId: true,
-  transmissionId: true,
-  drivetrainId: true,
-  modelTypeId: true,
+  // 2026-06-26：引擎等外鍵已取消、改自由輸入
+  engineCode: true,
+  displacementCc: true,
   remark: true,
   sortNo: true,
   isActive: true,
@@ -36,10 +35,6 @@ const SEL = {
   updatedAt: true,
   updatedBy: true,
   brand: { select: { code: true, name: true } },
-  engine: { select: { code: true, name: true } },
-  transmission: { select: { code: true, name: true } },
-  drivetrain: { select: { code: true, name: true } },
-  modelType: { select: { code: true, name: true } },
 } as const;
 
 type Row = Prisma.Nx01ModelGetPayload<{ select: typeof SEL }>;
@@ -52,21 +47,14 @@ export class ModelService {
   ) {}
 
   private mapRow(r: Row) {
-    const { brand, engine, transmission, drivetrain, modelType, ...rest } = r;
+    const { brand, ...rest } = r;
     return {
       ...rest,
       // W6-Phase 5：前端 picker key carBrandId、值為 brand.id
       carBrandId: rest.brandId,
       carBrandCode: brand?.code ?? null,
       carBrandName: brand?.name ?? null,
-      engineCode: engine?.code ?? null,
-      engineName: engine?.name ?? null,
-      transmissionCode: transmission?.code ?? null,
-      transmissionName: transmission?.name ?? null,
-      drivetrainCode: drivetrain?.code ?? null,
-      drivetrainName: drivetrain?.name ?? null,
-      modelTypeCode: modelType?.code ?? null,
-      modelTypeName: modelType?.name ?? null,
+      // engineCode / displacementCc 為 scalar、已在 rest 內
     };
   }
 
@@ -159,10 +147,8 @@ export class ModelService {
         brandId: refs.brandId,
         modelYearFrom: dto.modelYearFrom,
         modelYearTo: dto.modelYearTo ?? null,
-        engineId: dto.engineId?.trim() || null,
-        transmissionId: dto.transmissionId?.trim() || null,
-        drivetrainId: dto.drivetrainId?.trim() || null,
-        modelTypeId: dto.modelTypeId?.trim() || null,
+        engineCode: dto.engineCode?.trim() || null,
+        displacementCc: dto.displacementCc ?? null,
         remark: dto.remark?.trim() || null,
         sortNo: dto.sortNo ?? 0,
         isActive: dto.isActive ?? true,
@@ -215,16 +201,8 @@ export class ModelService {
         ...(brandRefs ? { brandId: brandRefs.brandId } : {}),
         ...(dto.modelYearFrom !== undefined ? { modelYearFrom: dto.modelYearFrom } : {}),
         ...(dto.modelYearTo !== undefined ? { modelYearTo: dto.modelYearTo } : {}),
-        ...(dto.engineId !== undefined ? { engineId: dto.engineId?.trim() || null } : {}),
-        ...(dto.transmissionId !== undefined
-          ? { transmissionId: dto.transmissionId?.trim() || null }
-          : {}),
-        ...(dto.drivetrainId !== undefined
-          ? { drivetrainId: dto.drivetrainId?.trim() || null }
-          : {}),
-        ...(dto.modelTypeId !== undefined
-          ? { modelTypeId: dto.modelTypeId?.trim() || null }
-          : {}),
+        ...(dto.engineCode !== undefined ? { engineCode: dto.engineCode?.trim() || null } : {}),
+        ...(dto.displacementCc !== undefined ? { displacementCc: dto.displacementCc } : {}),
         ...(dto.remark !== undefined ? { remark: dto.remark } : {}),
         ...(dto.sortNo !== undefined ? { sortNo: dto.sortNo } : {}),
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),

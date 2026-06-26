@@ -69,36 +69,6 @@ export const TEAM_MASTER: EntityMasterConfig = {
 };
 
 // ── 車型字典 ────────────────────────────────────────────
-export const DRIVETRAIN_MASTER: EntityMasterConfig = {
-  basePath: 'nx01/drivetrains',
-  category: '車型字典',
-  title: '傳動方式基本資料',
-  entityNoun: '傳動方式',
-  errorCodePrefix: 'nxui_base_drivetrain',
-  deleteMode: SOFT,
-  fields: [
-    { key: 'code', label: '代碼', required: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]' },
-    { key: 'name', label: '名稱', required: true, minWidthClass: 'min-w-[140px]' },
-    { key: 'nameEn', label: '英文名稱', inList: false },
-    { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
-  ],
-};
-
-export const MODEL_TYPE_MASTER: EntityMasterConfig = {
-  basePath: 'nx01/model-types',
-  category: '車型字典',
-  title: '車體類型基本資料',
-  entityNoun: '車體類型',
-  errorCodePrefix: 'nxui_base_model_type',
-  deleteMode: SOFT,
-  fields: [
-    { key: 'code', label: '代碼', required: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]' },
-    { key: 'name', label: '名稱', required: true, minWidthClass: 'min-w-[140px]' },
-    { key: 'nameEn', label: '英文名稱', inList: false },
-    { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
-  ],
-};
-
 export const CAR_BRAND_MASTER: EntityMasterConfig = {
   basePath: 'nx01/car-brands',
   category: '車型字典',
@@ -116,54 +86,6 @@ export const CAR_BRAND_MASTER: EntityMasterConfig = {
   ],
 };
 
-export const ENGINE_MASTER: EntityMasterConfig = {
-  basePath: 'nx01/engines',
-  category: '車型字典',
-  title: '引擎基本資料',
-  entityNoun: '引擎',
-  errorCodePrefix: 'nxui_base_engine',
-  deleteMode: SOFT,
-  fields: [
-    { key: 'code', label: '引擎代碼', required: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]' },
-    { key: 'name', label: '引擎名稱', required: true, minWidthClass: 'min-w-[140px]' },
-    {
-      key: 'fuelType', label: '燃料別', type: 'select', numeric: true, required: true, minWidthClass: 'min-w-[100px]',
-      options: [{ value: 1, label: '汽油' }, { value: 2, label: '柴油' }, { value: 3, label: '油電 Hybrid' }, { value: 4, label: '純電 EV' }],
-    },
-    { key: 'displacementCc', label: '排氣量(cc)', type: 'number', inList: false },
-    {
-      key: 'aspirationType', label: '進氣方式', type: 'select', numeric: true, inList: false,
-      options: [{ value: 1, label: '自然進氣 NA' }, { value: 2, label: '渦輪 TC' }, { value: 3, label: '機械增壓 SC' }, { value: 4, label: '雙增壓' }],
-    },
-    { key: 'carBrandId', label: '車廠品牌', type: 'ref', refBasePath: 'nx01/brands', refExtraFilters: { isCar: 'true' }, inList: false },
-    { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
-  ],
-};
-
-export const TRANSMISSION_MASTER: EntityMasterConfig = {
-  basePath: 'nx01/transmissions',
-  category: '車型字典',
-  title: '變速箱基本資料',
-  entityNoun: '變速箱',
-  errorCodePrefix: 'nxui_base_transmission',
-  deleteMode: SOFT,
-  fields: [
-    { key: 'code', label: '代碼', required: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]' },
-    { key: 'name', label: '名稱', required: true, minWidthClass: 'min-w-[140px]' },
-    {
-      key: 'transmissionType', label: '變速型式', type: 'select', numeric: true, required: true, minWidthClass: 'min-w-[100px]',
-      options: [
-        { value: 1, label: '手排' }, { value: 2, label: '自排' }, { value: 3, label: '雙離合' },
-        { value: 4, label: 'CVT' }, { value: 5, label: 'AMT' }, { value: 6, label: '其他' },
-      ],
-    },
-    { key: 'gearCount', label: '檔位數', type: 'number', inList: false },
-    { key: 'nameEn', label: '英文名稱', inList: false },
-    { key: 'carBrandId', label: '車廠品牌', type: 'ref', refBasePath: 'nx01/brands', refExtraFilters: { isCar: 'true' }, inList: false },
-    { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
-  ],
-};
-
 export const MODEL_MASTER: EntityMasterConfig = {
   basePath: 'nx01/models',
   category: '車型字典',
@@ -177,10 +99,9 @@ export const MODEL_MASTER: EntityMasterConfig = {
     { key: 'carBrandId', label: '車廠品牌', type: 'ref', refBasePath: 'nx01/brands', refExtraFilters: { isCar: 'true' }, required: true, minWidthClass: 'min-w-[120px]' },
     { key: 'modelYearFrom', label: '年式(起)', type: 'number', required: true },
     { key: 'modelYearTo', label: '年式(迄)', type: 'number', inList: false },
-    { key: 'engineId', label: '引擎', type: 'ref', refBasePath: 'nx01/engines', inList: false },
-    { key: 'transmissionId', label: '變速箱', type: 'ref', refBasePath: 'nx01/transmissions', inList: false },
-    { key: 'drivetrainId', label: '傳動方式', type: 'ref', refBasePath: 'nx01/drivetrains', inList: false },
-    { key: 'modelTypeId', label: '車體類型', type: 'ref', refBasePath: 'nx01/model-types', inList: false },
+    // 2026-06-26：引擎等外鍵取消、改自由輸入
+    { key: 'engineCode', label: '引擎代碼', inList: false },
+    { key: 'displacementCc', label: '排氣量(cc)', type: 'number', inList: false },
     { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
   ],
 };

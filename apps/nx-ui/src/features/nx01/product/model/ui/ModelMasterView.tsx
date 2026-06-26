@@ -23,10 +23,8 @@ type Draft = {
   carBrandId: string;
   modelYearFrom: string;
   modelYearTo: string;
-  engineId: string;
-  transmissionId: string;
-  drivetrainId: string;
-  modelTypeId: string;
+  engineCode: string;
+  displacementCc: string;
   remark: string;
   sortNo: string;
   isActive: boolean;
@@ -41,10 +39,8 @@ function emptyDraft(): Draft {
     carBrandId: '',
     modelYearFrom: String(new Date().getFullYear()),
     modelYearTo: '',
-    engineId: '',
-    transmissionId: '',
-    drivetrainId: '',
-    modelTypeId: '',
+    engineCode: '',
+    displacementCc: '',
     remark: '',
     sortNo: '0',
     isActive: true,
@@ -58,10 +54,8 @@ function fromRow(r: ModelDto): Draft {
     carBrandId: r.carBrandId,
     modelYearFrom: r.modelYearFrom.toString(),
     modelYearTo: r.modelYearTo?.toString() ?? '',
-    engineId: r.engineId ?? '',
-    transmissionId: r.transmissionId ?? '',
-    drivetrainId: r.drivetrainId ?? '',
-    modelTypeId: r.modelTypeId ?? '',
+    engineCode: r.engineCode ?? '',
+    displacementCc: r.displacementCc?.toString() ?? '',
     remark: r.remark ?? '',
     sortNo: r.sortNo.toString(),
     isActive: r.isActive,
@@ -138,10 +132,8 @@ export function ModelMasterView() {
       carBrandId: draft.carBrandId.trim(),
       modelYearFrom: yfFrom,
       modelYearTo: yfTo,
-      engineId: draft.engineId.trim() || null,
-      transmissionId: draft.transmissionId.trim() || null,
-      drivetrainId: draft.drivetrainId.trim() || null,
-      modelTypeId: draft.modelTypeId.trim() || null,
+      engineCode: draft.engineCode.trim() || null,
+      displacementCc: draft.displacementCc.trim() ? Number.parseInt(draft.displacementCc, 10) : null,
       remark: draft.remark.trim() || null,
       sortNo: Number.isFinite(sort) ? sort : 0,
       isActive: draft.isActive,
@@ -240,8 +232,8 @@ export function ModelMasterView() {
               <th className="px-2 py-2.5">全名</th>
               <th className="px-2 py-2.5">品牌</th>
               <th className="px-2 py-2.5">年份</th>
-              <th className="px-2 py-2.5">引擎</th>
-              <th className="px-2 py-2.5">變速箱</th>
+              <th className="px-2 py-2.5">引擎代碼</th>
+              <th className="px-2 py-2.5">排氣量</th>
               <th className="px-2 py-2.5">啟用</th>
               <th className="w-20 px-2 py-2.5" aria-label="動作" />
             </tr>
@@ -269,8 +261,8 @@ export function ModelMasterView() {
                   <td className="px-2 py-2 text-xs text-muted-foreground">
                     {row.engineCode ?? '—'}
                   </td>
-                  <td className="px-2 py-2 text-xs text-muted-foreground">
-                    {row.transmissionCode ?? '—'}
+                  <td className="px-2 py-2 text-xs text-muted-foreground tabular-nums">
+                    {row.displacementCc != null ? `${row.displacementCc} cc` : '—'}
                   </td>
                   <td className="px-2 py-2 text-xs">
                     {row.isActive ? (
@@ -326,7 +318,7 @@ export function ModelMasterView() {
         <section className="glass-card nx-glass-raised rounded-2xl border border-primary/40 p-4">
           <h2 className="mb-3 text-sm font-semibold">{creating ? '新增車型' : '編輯車型'}</h2>
           <p className="mb-3 text-[11px] text-muted-foreground">
-            ⚠️ 5 個 FK 暫填 ID 字串（A065 後續軌升級下拉聯動：選 carBrand 後 engine/transmission 依品牌篩選）
+            車型品牌填 ID 字串；引擎代碼與排氣量為自由輸入（2026-06-26 取消引擎/變速箱/傳動/車體類型字典外鍵）
           </p>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <div className="space-y-1.5">
@@ -392,46 +384,24 @@ export function ModelMasterView() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="md-engine">引擎 ID（可空）</Label>
+              <Label htmlFor="md-engine">引擎代碼（可空、如 EA888）</Label>
               <Input
                 id="md-engine"
-                value={draft.engineId}
-                onChange={(e) => setDraft((d) => ({ ...d, engineId: e.target.value }))}
-                placeholder="NX01ENGN0000001"
-                maxLength={15}
+                value={draft.engineCode}
+                onChange={(e) => setDraft((d) => ({ ...d, engineCode: e.target.value }))}
+                placeholder="EA888 / 2GR-FE"
+                maxLength={30}
                 autoComplete="off"
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="md-tx">變速箱 ID（可空）</Label>
+              <Label htmlFor="md-cc">排氣量 CC（可空）</Label>
               <Input
-                id="md-tx"
-                value={draft.transmissionId}
-                onChange={(e) => setDraft((d) => ({ ...d, transmissionId: e.target.value }))}
-                placeholder="NX01TRMS0000001"
-                maxLength={15}
-                autoComplete="off"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="md-dt">傳動 ID（可空）</Label>
-              <Input
-                id="md-dt"
-                value={draft.drivetrainId}
-                onChange={(e) => setDraft((d) => ({ ...d, drivetrainId: e.target.value }))}
-                placeholder="NX01DTRN0000001"
-                maxLength={15}
-                autoComplete="off"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="md-mt">車體類型 ID（可空）</Label>
-              <Input
-                id="md-mt"
-                value={draft.modelTypeId}
-                onChange={(e) => setDraft((d) => ({ ...d, modelTypeId: e.target.value }))}
-                placeholder="NX01MDTP0000001"
-                maxLength={15}
+                id="md-cc"
+                value={draft.displacementCc}
+                onChange={(e) => setDraft((d) => ({ ...d, displacementCc: e.target.value }))}
+                placeholder="如 1984"
+                inputMode="numeric"
                 autoComplete="off"
               />
             </div>

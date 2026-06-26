@@ -25,10 +25,6 @@ import {
   Megaphone,
   Award,
   Car,
-  Cog,
-  Wrench,
-  Settings2,
-  LayoutGrid,
   BookOpen,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -344,61 +340,17 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     statValue: '—',
     href: '/dashboard/master/partners',
   },
-  // ─── 車型字典（NX01-16 業界改革 #22、PLUS 起開放）─────────────────
-  {
-    id: 'engine',
-    section: 'vehicle',
-    minPlan: 'PLUS',
-    title: '引擎基本資料',
-    description: '引擎代碼、排氣量與燃料型式',
-    icon: Cog,
-    statLabel: '引擎',
-    statValue: '—',
-    href: '/dashboard/master/engine',
-  },
+  // ─── 車型字典（2026-06-26：簡化為只留車型、引擎/變速箱/傳動/車體類型字典已移除）──
   {
     id: 'model',
     section: 'vehicle',
     minPlan: 'PLUS',
     title: '車型基本資料',
-    description: '車廠 × 車系 × 年式組合與規格摘要',
+    description: '車廠 × 車系 × 年式、引擎代碼與排氣量自由輸入',
     icon: Car,
     statLabel: '車型',
     statValue: '—',
     href: '/dashboard/master/model',
-  },
-  {
-    id: 'transmission',
-    section: 'vehicle',
-    minPlan: 'PLUS',
-    title: '變速箱基本資料',
-    description: '自手排／CVT／DCT 等變速箱類型代碼（NX01-15）',
-    icon: Settings2,
-    statLabel: '變速箱',
-    statValue: '—',
-    href: '/dashboard/master/transmission',
-  },
-  {
-    id: 'drivetrain',
-    section: 'vehicle',
-    minPlan: 'PLUS',
-    title: '傳動方式基本資料',
-    description: 'FF／FR／4WD／AWD 傳動配置代碼（NX01-15）',
-    icon: Wrench,
-    statLabel: '傳動',
-    statValue: '—',
-    href: '/dashboard/master/drivetrain',
-  },
-  {
-    id: 'model-type',
-    section: 'vehicle',
-    minPlan: 'PLUS',
-    title: '車體類型基本資料',
-    description: '轎車／掀背／休旅／旅行／跑車等大類分群（NX01-15）',
-    icon: LayoutGrid,
-    statLabel: '類型',
-    statValue: '—',
-    href: '/dashboard/master/model-type',
   },
   // ─── 交易對象延伸（客戶等級）────────────────────────────────
   // [4-1] 2026-06-05：手冊 §11.4 揭露「LITE 全版本開放」、移除 minPlan: 'PLUS' 鎖
@@ -508,12 +460,8 @@ export const BASE_SEGMENT_TITLES: Record<string, string> = {
   partner: '往來對象基本資料',
   partners: '往來對象基本資料',
   bulletins: '公告基本資料',
-  // 車型字典（NX01-16 業界改革 #22、命名對齊 NX01-13/14/15 spec）
-  engine: '引擎基本資料',
+  // 車型字典（2026-06-26 簡化、只留車型）
   model: '車型基本資料',
-  transmission: '變速箱基本資料',
-  drivetrain: '傳動方式基本資料',
-  'model-type': '車體類型基本資料',
   // 交易對象延伸 & 系統設定延伸（命名對齊 NX01-03 / NX01-10 spec）
   'customer-grade': '客戶分級基本資料',
   'phonetic-dictionary': '注音字典基本資料',

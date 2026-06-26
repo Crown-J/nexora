@@ -10,18 +10,9 @@ export type ModelDto = {
   carBrandName: string | null;
   modelYearFrom: number;
   modelYearTo: number | null;
-  engineId: string | null;
+  // 2026-06-26：取消引擎/變速箱/傳動/車體類型外鍵、改自由輸入
   engineCode: string | null;
-  engineName: string | null;
-  transmissionId: string | null;
-  transmissionCode: string | null;
-  transmissionName: string | null;
-  drivetrainId: string | null;
-  drivetrainCode: string | null;
-  drivetrainName: string | null;
-  modelTypeId: string | null;
-  modelTypeCode: string | null;
-  modelTypeName: string | null;
+  displacementCc: number | null;
   remark: string | null;
   sortNo: number;
   isActive: boolean;
@@ -53,10 +44,8 @@ export type ModelBody = {
   carBrandId?: string;
   modelYearFrom?: number;
   modelYearTo?: number | null;
-  engineId?: string | null;
-  transmissionId?: string | null;
-  drivetrainId?: string | null;
-  modelTypeId?: string | null;
+  engineCode?: string | null;
+  displacementCc?: number | null;
   remark?: string | null;
   sortNo?: number;
   isActive?: boolean;

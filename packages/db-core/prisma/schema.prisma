@@ -297,8 +297,6 @@ model Nx01Brand {
   rev_Nx01Part_brandId          Nx01Part[]          @relation("R_Nx01Part_brandId")
   rev_Nx01PartOemCode_brandId   Nx01PartOemCode[]   @relation("R_Nx01PartOemCode_brandId")
   rev_Nx03StItem_brandId        Nx03StItem[]        @relation("R_Nx03StItem_brandId")
-  rev_Nx01Engine_brandId        Nx01Engine[]        @relation("R_Nx01Engine_brandId")
-  rev_Nx01Transmission_brandId  Nx01Transmission[]  @relation("R_Nx01Transmission_brandId")
   rev_Nx01Model_brandId         Nx01Model[]         @relation("R_Nx01Model_brandId")
   rev_Nx09VinLookup_brandId     Nx09VinLookup[]     @relation("R_Nx09VinLookup_brandId")
 
@@ -6923,14 +6921,10 @@ model Nx99Tenant {
   rev_Nx01PartRelation_tenantId            Nx01PartRelation[]            @relation("R_Nx01PartRelation_tenantId")
   rev_Nx01PartVersion_tenantId             Nx01PartVersion[]             @relation("R_Nx01PartVersion_tenantId")
   rev_Nx01PartModel_tenantId               Nx01PartModel[]               @relation("R_Nx01PartModel_tenantId")
-  rev_Nx01Drivetrain_tenantId              Nx01Drivetrain[]              @relation("R_Nx01Drivetrain_tenantId")
-  rev_Nx01Engine_tenantId                  Nx01Engine[]                  @relation("R_Nx01Engine_tenantId")
   rev_Nx01Model_tenantId                   Nx01Model[]                   @relation("R_Nx01Model_tenantId")
-  rev_Nx01ModelType_tenantId               Nx01ModelType[]               @relation("R_Nx01ModelType_tenantId")
   rev_Nx01Partner_tenantId                 Nx01Partner[]                 @relation("R_Nx01Partner_tenantId")
   rev_Nx01PhoneticIndex_tenantId           Nx01PhoneticIndex[]           @relation("R_Nx01PhoneticIndex_tenantId")
   rev_Nx01Role_tenantId                    Nx01Role[]                    @relation("R_Nx01Role_tenantId")
-  rev_Nx01Transmission_tenantId            Nx01Transmission[]            @relation("R_Nx01Transmission_tenantId")
   rev_Nx01RolePermission_tenantId          Nx01RolePermission[]          @relation("R_Nx01RolePermission_tenantId")
   rev_Nx01RoleView_tenantId                Nx01RoleView[]                @relation("R_Nx01RoleView_tenantId")
   rev_Nx01Team_tenantId                    Nx01Team[]                    @relation("R_Nx01Team_tenantId")
@@ -7465,175 +7459,6 @@ model Nx01PhoneticIndex {
 }
 
 /// =======================================================
-/// Nx01Engine — DB table `nx01_engine`
-/// 引擎主檔（A 主檔、車輛分類維度核心、被 NX01-13 model 引用）
-/// 對應規格：docs/nx01/spec/intent/nx01-14-engine.md v1.0
-/// =======================================================
-model Nx01Engine {
-  /// [NX01]+[ENGN]+[7碼流水號]，EX : NX01ENGN0000001；啟用最低需求版本：LITE
-  id                     String        @id @default(dbgenerated("gen_nx01_engine_id()")) @db.VarChar(15)
-  /// 租戶 ID；啟用最低需求版本：LITE
-  tenantId               String        @map("tenant_id") @db.VarChar(15)
-  /// 引擎代碼（業界縮寫 / 數字代碼、tenant 內 unique、例：EA888 / 2GR-FE / N20）；啟用最低需求版本：LITE
-  code                   String        @db.VarChar(30)
-  /// 引擎名稱（業務描述、可中英混、例：EA888 第三代 2.0T）；啟用最低需求版本：LITE
-  name                   String        @db.VarChar(100)
-  /// 排氣量 cc（EV 可空、規格 §3.2）；啟用最低需求版本：LITE
-  displacementCc         Int?          @map("displacement_cc")
-  /// 缸數配置（直 4 / V6 / V8 / H4 / H6、業界常用字串、EV 可空）；啟用最低需求版本：LITE
-  cylinderConfig         String?       @map("cylinder_config") @db.VarChar(20)
-  /// 燃料類型（1=汽油 / 2=柴油 / 3=Hybrid / 4=EV、Crown 拍 Q1=C）；啟用最低需求版本：LITE
-  fuelType               Int           @default(1) @map("fuel_type") @db.SmallInt
-  /// 增壓方式（1=NA 自然進氣 / 2=TC 渦輪 / 3=SC 機械 / 4=TC+SC 雙增壓、EV 可空、Crown 拍 Q2=A）；啟用最低需求版本：LITE
-  aspirationType         Int?          @default(1) @map("aspiration_type") @db.SmallInt
-  /// 關聯車型品牌 FK（FK nx01_brand isCar=true、可空、業界 EA888=VAG / 2GR=TOY / N20=BMW、跨品牌通用留空）；啟用最低需求版本：LITE
-  /// W6 [3-8] Phase 5 2026-06-06 品牌合併：取代舊 carBrandId
-  brandId                String?       @map("brand_id") @db.VarChar(15)
-  /// 備註說明；啟用最低需求版本：LITE
-  remark                 String?       @db.VarChar(200)
-  /// 排序用（下拉選單顯示順序）；啟用最低需求版本：LITE
-  sortNo                 Int           @default(0) @map("sort_no")
-  /// 是否啟用（停用不刪資料）；啟用最低需求版本：LITE
-  isActive               Boolean       @default(true) @map("is_active")
-  /// 建立時間；啟用最低需求版本：LITE
-  createdAt              DateTime      @default(now()) @map("created_at")
-  /// 建立人；啟用最低需求版本：LITE
-  createdBy              String        @map("created_by") @db.VarChar(15)
-  /// 更新時間；啟用最低需求版本：LITE
-  updatedAt              DateTime      @updatedAt @map("updated_at")
-  /// 更新人；啟用最低需求版本：LITE
-  updatedBy              String        @map("updated_by") @db.VarChar(15)
-  tenant                 Nx99Tenant    @relation("R_Nx01Engine_tenantId", fields: [tenantId], references: [id])
-  /// W6 [3-8] Phase 5 2026-06-06 品牌合併
-  brand                  Nx01Brand?    @relation("R_Nx01Engine_brandId", fields: [brandId], references: [id], onDelete: SetNull)
-  rev_Nx01Model_engineId Nx01Model[]   @relation("R_Nx01Model_engineId")
-
-  @@unique([tenantId, code])
-  @@index([tenantId, fuelType])
-  @@map("nx01_engine")
-}
-
-/// =======================================================
-/// Nx01Transmission — DB table `nx01_transmission`
-/// 變速箱型錄（A 主檔複雜度、被 NX01-13 model 引用）
-/// 對應規格：docs/nx01/spec/intent/nx01-15-vehicle-classification.md v1.0 §4.1
-/// =======================================================
-model Nx01Transmission {
-  /// [NX01]+[TRMS]+[7碼流水號]；啟用最低需求版本：LITE
-  id                           String        @id @default(dbgenerated("gen_nx01_transmission_id()")) @db.VarChar(15)
-  /// 租戶 ID；啟用最低需求版本：LITE
-  tenantId                     String        @map("tenant_id") @db.VarChar(15)
-  /// 變速箱代碼（業界縮寫、tenant 內 unique、例：MT / AT / DCT / CVT / DSG7 / ZF8AT）；啟用最低需求版本：LITE
-  code                         String        @db.VarChar(30)
-  /// 變速箱中文名；啟用最低需求版本：LITE
-  name                         String        @db.VarChar(100)
-  /// 變速箱英文名（國際對照）；啟用最低需求版本：LITE
-  nameEn                       String?       @map("name_en") @db.VarChar(100)
-  /// 變速箱類型（1=手排 / 2=自排 / 3=雙離合 / 4=CVT / 5=AMT / 6=其他、規格 §3.2.1）；啟用最低需求版本：LITE
-  transmissionType             Int           @map("transmission_type") @db.SmallInt
-  /// 檔位數（手排 / 自排 / 雙離合可填、CVT 為 null）；啟用最低需求版本：LITE
-  gearCount                    Int?          @map("gear_count")
-  /// 關聯車型品牌 FK（FK nx01_brand isCar=true、可空、跨品牌通用引擎留空）；啟用最低需求版本：LITE
-  /// W6 [3-8] Phase 5 2026-06-06 品牌合併：取代舊 carBrandId
-  brandId                      String?       @map("brand_id") @db.VarChar(15)
-  /// 備註說明；啟用最低需求版本：LITE
-  remark                       String?       @db.VarChar(200)
-  /// 排序用（下拉顯示順序）；啟用最低需求版本：LITE
-  sortNo                       Int           @default(0) @map("sort_no")
-  /// 是否啟用；啟用最低需求版本：LITE
-  isActive                     Boolean       @default(true) @map("is_active")
-  /// 建立時間；啟用最低需求版本：LITE
-  createdAt                    DateTime      @default(now()) @map("created_at")
-  /// 建立人；啟用最低需求版本：LITE
-  createdBy                    String        @map("created_by") @db.VarChar(15)
-  /// 更新時間；啟用最低需求版本：LITE
-  updatedAt                    DateTime      @updatedAt @map("updated_at")
-  /// 更新人；啟用最低需求版本：LITE
-  updatedBy                    String        @map("updated_by") @db.VarChar(15)
-  tenant                       Nx99Tenant    @relation("R_Nx01Transmission_tenantId", fields: [tenantId], references: [id])
-  /// W6 [3-8] Phase 5 2026-06-06 品牌合併
-  brand                        Nx01Brand?    @relation("R_Nx01Transmission_brandId", fields: [brandId], references: [id], onDelete: SetNull)
-  rev_Nx01Model_transmissionId Nx01Model[]   @relation("R_Nx01Model_transmissionId")
-
-  @@unique([tenantId, code])
-  @@map("nx01_transmission")
-}
-
-/// =======================================================
-/// Nx01Drivetrain — DB table `nx01_drivetrain`
-/// 傳動方式型錄（B 型錄、業界 4 核心 + OWNER 自加）
-/// 對應規格：docs/nx01/spec/intent/nx01-15-vehicle-classification.md v1.0 §4.2
-/// =======================================================
-model Nx01Drivetrain {
-  /// [NX01]+[DTRN]+[7碼流水號]；啟用最低需求版本：LITE
-  id                         String      @id @default(dbgenerated("gen_nx01_drivetrain_id()")) @db.VarChar(15)
-  /// 租戶 ID；啟用最低需求版本：LITE
-  tenantId                   String      @map("tenant_id") @db.VarChar(15)
-  /// 傳動代碼（業界縮寫、tenant 內 unique、例：FF / FR / 4WD / AWD）；啟用最低需求版本：LITE
-  code                       String      @db.VarChar(30)
-  /// 傳動中文名；啟用最低需求版本：LITE
-  name                       String      @db.VarChar(100)
-  /// 傳動英文名（國際對照、Front-Engine Front-Wheel Drive 等）；啟用最低需求版本：LITE
-  nameEn                     String?     @map("name_en") @db.VarChar(100)
-  /// 備註說明；啟用最低需求版本：LITE
-  remark                     String?     @db.VarChar(200)
-  /// 排序用；啟用最低需求版本：LITE
-  sortNo                     Int         @default(0) @map("sort_no")
-  /// 是否啟用；啟用最低需求版本：LITE
-  isActive                   Boolean     @default(true) @map("is_active")
-  /// 建立時間；啟用最低需求版本：LITE
-  createdAt                  DateTime    @default(now()) @map("created_at")
-  /// 建立人；啟用最低需求版本：LITE
-  createdBy                  String      @map("created_by") @db.VarChar(15)
-  /// 更新時間；啟用最低需求版本：LITE
-  updatedAt                  DateTime    @updatedAt @map("updated_at")
-  /// 更新人；啟用最低需求版本：LITE
-  updatedBy                  String      @map("updated_by") @db.VarChar(15)
-  tenant                     Nx99Tenant  @relation("R_Nx01Drivetrain_tenantId", fields: [tenantId], references: [id])
-  rev_Nx01Model_drivetrainId Nx01Model[] @relation("R_Nx01Model_drivetrainId")
-
-  @@unique([tenantId, code])
-  @@map("nx01_drivetrain")
-}
-
-/// =======================================================
-/// Nx01ModelType — DB table `nx01_model_type`
-/// 車體類型型錄（B 型錄、業界 5 主流 + OWNER 自加）
-/// 對應規格：docs/nx01/spec/intent/nx01-15-vehicle-classification.md v1.0 §4.3
-/// =======================================================
-model Nx01ModelType {
-  /// [NX01]+[MDTP]+[7碼流水號]；啟用最低需求版本：LITE
-  id                        String      @id @default(dbgenerated("gen_nx01_model_type_id()")) @db.VarChar(15)
-  /// 租戶 ID；啟用最低需求版本：LITE
-  tenantId                  String      @map("tenant_id") @db.VarChar(15)
-  /// 車體類型代碼（業界縮寫、tenant 內 unique、例：SED / HAT / SUV / CPE / MPV）；啟用最低需求版本：LITE
-  code                      String      @db.VarChar(30)
-  /// 車體類型中文名（轎車 / 掀背 / 休旅車 / 跑車 / 多功能廂式）；啟用最低需求版本：LITE
-  name                      String      @db.VarChar(100)
-  /// 車體類型英文名（Sedan / Hatchback / SUV / Coupe / MPV）；啟用最低需求版本：LITE
-  nameEn                    String?     @map("name_en") @db.VarChar(100)
-  /// 備註說明；啟用最低需求版本：LITE
-  remark                    String?     @db.VarChar(200)
-  /// 排序用；啟用最低需求版本：LITE
-  sortNo                    Int         @default(0) @map("sort_no")
-  /// 是否啟用；啟用最低需求版本：LITE
-  isActive                  Boolean     @default(true) @map("is_active")
-  /// 建立時間；啟用最低需求版本：LITE
-  createdAt                 DateTime    @default(now()) @map("created_at")
-  /// 建立人；啟用最低需求版本：LITE
-  createdBy                 String      @map("created_by") @db.VarChar(15)
-  /// 更新時間；啟用最低需求版本：LITE
-  updatedAt                 DateTime    @updatedAt @map("updated_at")
-  /// 更新人；啟用最低需求版本：LITE
-  updatedBy                 String      @map("updated_by") @db.VarChar(15)
-  tenant                    Nx99Tenant  @relation("R_Nx01ModelType_tenantId", fields: [tenantId], references: [id])
-  rev_Nx01Model_modelTypeId Nx01Model[] @relation("R_Nx01Model_modelTypeId")
-
-  @@unique([tenantId, code])
-  @@map("nx01_model_type")
-}
-
-/// =======================================================
 /// Nx01Model — DB table `nx01_model`
 /// 車型主檔（A 主檔、30 年資料承接核心、被 NX01-16 part_model 戰略引用）
 /// 對應規格：docs/nx01/spec/intent/nx01-13-model.md v1.0
@@ -7654,14 +7479,6 @@ model Nx01Model {
   modelYearFrom                       Int                       @map("model_year_from")
   /// 結束年份（可空、現役留空、若填必 ≥ modelYearFrom、規格 §3.3）；啟用最低需求版本：LITE
   modelYearTo                         Int?                      @map("model_year_to")
-  /// 引擎 FK（可空、Crown 業界 muscle memory：詳細分類進階用戶選填）；啟用最低需求版本：LITE
-  engineId                            String?                   @map("engine_id") @db.VarChar(15)
-  /// 變速箱 FK（可空）；啟用最低需求版本：LITE
-  transmissionId                      String?                   @map("transmission_id") @db.VarChar(15)
-  /// 傳動方式 FK（可空）；啟用最低需求版本：LITE
-  drivetrainId                        String?                   @map("drivetrain_id") @db.VarChar(15)
-  /// 車體類型 FK（可空）；啟用最低需求版本：LITE
-  modelTypeId                         String?                   @map("model_type_id") @db.VarChar(15)
   /// 引擎代碼（自由輸入、取消引擎外鍵後改用此欄、例：EA888 / 2GR-FE；2026-06-26 車型分類簡化）；啟用最低需求版本：LITE
   engineCode                          String?                   @map("engine_code") @db.VarChar(30)
   /// 排氣量 CC（自由輸入、取消引擎外鍵後改用此欄；2026-06-26 車型分類簡化）；啟用最低需求版本：LITE
@@ -7683,10 +7500,6 @@ model Nx01Model {
   tenant                              Nx99Tenant                @relation("R_Nx01Model_tenantId", fields: [tenantId], references: [id])
   /// W6 [3-8] Phase 5 2026-06-06 品牌合併（SET NOT NULL）
   brand                               Nx01Brand                 @relation("R_Nx01Model_brandId", fields: [brandId], references: [id], onDelete: Restrict)
-  engine                              Nx01Engine?               @relation("R_Nx01Model_engineId", fields: [engineId], references: [id])
-  transmission                        Nx01Transmission?         @relation("R_Nx01Model_transmissionId", fields: [transmissionId], references: [id])
-  drivetrain                          Nx01Drivetrain?           @relation("R_Nx01Model_drivetrainId", fields: [drivetrainId], references: [id])
-  modelType                           Nx01ModelType?            @relation("R_Nx01Model_modelTypeId", fields: [modelTypeId], references: [id])
   rev_Nx01PartModel_modelId           Nx01PartModel[]           @relation("R_Nx01PartModel_modelId")
   rev_Nx03BrandAllocationRule_modelId Nx03BrandAllocationRule[] @relation("R_Nx03BrandAllocationRule_modelId")
   rev_Nx09VinLookup_modelId           Nx09VinLookup[]           @relation("R_Nx09VinLookup_modelId")

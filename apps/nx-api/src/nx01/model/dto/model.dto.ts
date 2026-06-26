@@ -60,25 +60,17 @@ export class CreateModelDto {
   @Max(YEAR_MAX_FUTURE)
   modelYearTo?: number | null;
 
+  // 2026-06-26：取消引擎等外鍵、改自由輸入
   @IsOptional()
   @IsString()
-  @MaxLength(15)
-  engineId?: string | null;
+  @MaxLength(30)
+  engineCode?: string | null;
 
   @IsOptional()
-  @IsString()
-  @MaxLength(15)
-  transmissionId?: string | null;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(15)
-  drivetrainId?: string | null;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(15)
-  modelTypeId?: string | null;
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  displacementCc?: number | null;
 
   @IsOptional()
   @IsString()
@@ -129,25 +121,17 @@ export class UpdateModelDto {
   @Max(YEAR_MAX_FUTURE)
   modelYearTo?: number | null;
 
+  // 2026-06-26：取消引擎等外鍵、改自由輸入
   @IsOptional()
   @IsString()
-  @MaxLength(15)
-  engineId?: string | null;
+  @MaxLength(30)
+  engineCode?: string | null;
 
   @IsOptional()
-  @IsString()
-  @MaxLength(15)
-  transmissionId?: string | null;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(15)
-  drivetrainId?: string | null;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(15)
-  modelTypeId?: string | null;
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  displacementCc?: number | null;
 
   @IsOptional()
   @IsString()
