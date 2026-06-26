@@ -47,6 +47,8 @@ import { PartModelController } from './part-model/part-model.controller';
 import { PartModelService } from './part-model/part-model.service';
 import { PartRelationController } from './part-relation/part-relation.controller';
 import { PartRelationService } from './part-relation/part-relation.service';
+import { PartKitController } from './part-kit/part-kit.controller';
+import { PartKitService } from './part-kit/part-kit.service';
 import { PartVersionController } from './part-version/part-version.controller';
 import { PartVersionService } from './part-version/part-version.service';
 import { PartController } from './part/part.controller';
@@ -123,6 +125,7 @@ import { UserTeamService } from './user-team/user-team.service';
     ModelController,
     PartGroupController,
     PartRelationController,
+    PartKitController,
     PartVersionController,
     PartModelController,
     UserRoleController,
@@ -166,6 +169,7 @@ import { UserTeamService } from './user-team/user-team.service';
     ModelService,
     PartGroupService,
     PartRelationService,
+    PartKitService,
     PartVersionService,
     PartModelService,
     UserRoleService,

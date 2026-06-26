@@ -179,15 +179,14 @@ export const PART_RELATION_MASTER: EntityMasterConfig = {
   errorCodePrefix: 'nxui_base_part_relation',
   deleteMode: SOFT,
   minPlan: 'PLUS',
+  // 2026-06-26：定位為「單向替代」（副廠一件替代多個不互通正廠）；
+  //   全互換改用通用件群組、組合/拆解改用組件關係。
   fields: [
-    { key: 'partIdFrom', label: '來源零件', type: 'ref', refBasePath: 'nx01/parts', required: true, minWidthClass: 'min-w-[160px]' },
-    { key: 'partIdTo', label: '目標零件', type: 'ref', refBasePath: 'nx01/parts', required: true, minWidthClass: 'min-w-[160px]' },
+    { key: 'partIdFrom', label: '原件（被替代）', type: 'ref', refBasePath: 'nx01/parts', required: true, minWidthClass: 'min-w-[160px]' },
+    { key: 'partIdTo', label: '替代品', type: 'ref', refBasePath: 'nx01/parts', required: true, minWidthClass: 'min-w-[160px]' },
     {
-      key: 'relationType', label: '關聯類型', type: 'select', numeric: true, required: true, minWidthClass: 'min-w-[100px]',
-      options: [
-        { value: 1, label: '改號' }, { value: 2, label: '同款' }, { value: 3, label: '改版' },
-        { value: 4, label: '組合' }, { value: 5, label: '拆解' },
-      ],
+      key: 'relationType', label: '類型', type: 'select', numeric: true, required: true, defaultValue: '2', minWidthClass: 'min-w-[100px]',
+      options: [{ value: 2, label: '替代（單向）' }],
     },
     { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
   ],
