@@ -442,8 +442,7 @@ function LeftColumn({
         {/* 文字資料 */}
         <div className="flex flex-col gap-1.5">
           <DataRow label="基準料號" value={detail?.code ?? '—'} mono primary />
-          <DataRow label="舊料號" value={v(detail?.oldCode)} mono />
-          <DataRow label="副廠料號" value={v(detail?.secCode)} mono />
+          <DataRow label="廠牌料號" value={v(detail?.secCode)} mono />
           <DataRow label="品名" value={detail?.name ?? '—'} />
           <DataRow
             label="廠牌"

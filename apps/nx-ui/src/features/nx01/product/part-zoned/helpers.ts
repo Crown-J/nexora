@@ -28,6 +28,28 @@ export const PART_TYPE_OPTIONS = [
   { value: '4', label: '4 拆解件' },
 ];
 
+// 2026-06-26 分類一・採購角度（寫死）
+export const PURCHASE_CATEGORY_OPTIONS = [
+  { value: '1', label: '保養件' },
+  { value: '2', label: '維修件' },
+  { value: '3', label: '事故件' },
+  { value: '4', label: '改裝件' },
+  { value: '5', label: '油品耗材' },
+];
+
+// 2026-06-26 分類二・技術角度（寫死）
+export const TECH_CATEGORY_OPTIONS = [
+  { value: '1', label: '引擎／動力系統' },
+  { value: '2', label: '傳動系統' },
+  { value: '3', label: '制動系統' },
+  { value: '4', label: '轉向系統' },
+  { value: '5', label: '懸吊與底盤系統' },
+  { value: '6', label: '電氣與電子系統' },
+  { value: '7', label: '冷卻與空調系統' },
+  { value: '8', label: '車體外觀與內裝' },
+  { value: '9', label: '安全與輔助系統' },
+];
+
 /** 字串/數字 Decimal 統一轉純字串、空值轉空 */
 function decimalToText(v: unknown): string {
   if (v == null || v === '') return '';
@@ -89,12 +111,12 @@ export function partDraftToBody(
   draft: PartDraft,
   editableZones: Set<PartZone> | undefined,
   options: { isCreate: boolean },
-): UpdatePartBody & { code?: string; codeRuleId?: string } {
+): UpdatePartBody & { code?: string } {
   const body: Record<string, unknown> = {};
   for (const f of PART_FIELDS) {
     if (f.isSatellite) continue;
     if (AUTO_FILLED_BY_SERVICE.has(f.key)) continue;
-    if (!options.isCreate && f.key === 'code') continue; // 編輯時 code 鎖
+    // 2026-06-26：基準料號 code 開放修改（不再於編輯時鎖定）
     if (editableZones && !editableZones.has(f.zone)) continue;
     const v = draft[f.key];
     if (f.key === 'isOem') {
@@ -116,11 +138,12 @@ export function partDraftToBody(
         continue;
       }
       if (trimmed === '' && !f.required) continue;
-      // 數值欄位（cost / price ABCD / warrantyMonths）轉 number
+      // 數值欄位（cost / price ABCD / warrantyMonths / 分類一二）轉 number
       if (
         f.key === 'cost' ||
         f.key === 'priceA' || f.key === 'priceB' || f.key === 'priceC' || f.key === 'priceD' ||
-        f.key === 'warrantyMonths'
+        f.key === 'warrantyMonths' ||
+        f.key === 'purchaseCategory' || f.key === 'techCategory'
       ) {
         const n = Number(trimmed);
         if (Number.isFinite(n)) body[f.key] = n;

@@ -21,7 +21,7 @@ export class ListBrandQueryDto extends Nx01ListQueryDto {
   @IsBoolean()
   isCar?: boolean;
 
-  /** 只列 isPart=true 的品牌（零件主檔 / BrandCodeRule / StItem picker 用）*/
+  /** 只列 isPart=true 的品牌（零件主檔 / StItem picker 用）*/
   @IsOptional()
   @Type(() => Boolean)
   @IsBoolean()

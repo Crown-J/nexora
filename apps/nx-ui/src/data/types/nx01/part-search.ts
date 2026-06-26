@@ -76,7 +76,6 @@ export type PartDetailDto = {
   code: string;
   name: string;
   secCode: string | null;
-  oldCode: string | null;
   spec: string | null;
   isOem: boolean;
   isActive: boolean;

@@ -18,18 +18,13 @@ import type { CreatePartDto, ListPartQueryDto, UpdatePartDto } from './dto/part.
 const SEL = {
   id: true,
   tenantId: true,
-  codeRuleId: true,
   code: true,
   name: true,
   isOem: true,
   secCode: true,
-  oldCode: true,
   cost: true,
-  seg1: true,
-  seg2: true,
-  seg3: true,
-  seg4: true,
-  seg5: true,
+  purchaseCategory: true,
+  techCategory: true,
   countryId: true,
   // W6-Phase 5 2026-06-06：part_brand_id 已 drop、brandId 為單一品牌欄位
   brandId: true,
@@ -74,27 +69,6 @@ function decimalStr(v: unknown): string | null {
     return (v as { toString(): string }).toString();
   }
   return String(v);
-}
-
-/**
- * 完整料號顯示格式（收尾軌、Crown 拍板）：
- *   {零件品牌代碼} - {SEG1 SEG2 …（單空格）} #{產地代碼}
- *   例：VAG - 03H 115 562 H #DEU
- * SEG 一律單空格（規則分隔符已移除）；品牌 / 產地缺則該段省略。
- */
-export function buildDisplayCode(
-  brandCode: string,
-  segs: (string | null | undefined)[],
-  countryCode: string,
-): string {
-  const segPart = segs
-    .slice(0, 5)
-    .map((s) => (s == null ? '' : String(s).trim()))
-    .filter((s) => s !== '')
-    .join(' ');
-  let out = brandCode && segPart ? `${brandCode} - ${segPart}` : segPart || brandCode;
-  if (countryCode) out = out ? `${out} #${countryCode}` : `#${countryCode}`;
-  return out;
 }
 
 /** 搜尋正規化：去空格 / 連字號 / # / * / . 後小寫
@@ -187,26 +161,6 @@ export class PartService {
   }
 
   /**
-   * 編碼規則 ID 解析（W5 [3-7] 2026-06-06 改、對齊 Crown 拍板）：
-   *   - 舊：Crown Q5=A 強制必填（業務先建 brand_code_rule、再建 part）
-   *   - 新：LITE 編碼規則引擎不在範圍（屬汽車資料庫套件）、code 改手動填預設帶 oldCode、codeRuleId optional
-   *   - schema 已 nullable、本 helper 拿掉強制必填、回傳 null 表示「未綁規則、純手動填料號」
-   */
-  private async resolveCodeRuleId(
-    tx: Prisma.TransactionClient,
-    tenantId: string,
-    codeRuleId: string | undefined,
-  ): Promise<string | null> {
-    if (!codeRuleId?.trim()) return null;
-    const r = await tx.nx01BrandCodeRule.findFirst({
-      where: { id: codeRuleId.trim(), tenantId },
-      select: { id: true },
-    });
-    if (!r) throw new NotFoundException('codeRuleId not found for tenant');
-    return r.id;
-  }
-
-  /**
    * Crown Q9=C：UNK 為系統保留字、tenant 不可用作 brand.code / country.code。
    * W6-Phase 5：partBrandId 已 drop、改驗 brand.id（isPart=true）對應 code !== 'UNK'
    */
@@ -236,43 +190,6 @@ export class PartService {
         throw new BadRequestException('country.code "UNK" 為系統保留字、不可作為 part 引用');
       }
     }
-  }
-
-  /**
-   * Crown Q7=B 拍板：part.code 拼接邏輯走後端 service（業務集中、一致性）
-   * Crown 業界 muscle memory：
-   *   - 雨刷案例 BOSCH 副廠走 VAG 編碼：VAG-5H9 955 427 9B9 #BOSCHN
-   *   - 沙漏場來路不明：VAG-5H9 955 427 9B9 #UNKUNK
-   * 格式：{carBrand.code}-{segs joined by separator} {sourceCodePrefix}{BRAND3}{COUNTRY3}
-   *   - BRAND3 = partBrand.code 前 3 字 / UNK 佔位
-   *   - COUNTRY3 = country.code（ISO 3 碼）/ UNK 佔位
-   */
-  async previewCode(input: {
-    tenantId: string;
-    codeRuleId: string;
-    segs: (string | null | undefined)[]; // up to 5 segs
-    brandId?: string | null;
-    countryId?: string | null;
-  }): Promise<string> {
-    // 收尾軌完整料號格式：{零件品牌代碼} - {SEG1 SEG2 …（單空格）} #{產地代碼}
-    // W6-Phase 5 2026-06-06：舊 nx01_part_brand 已 drop、單表查
-    let brandCode = '';
-    if (input.brandId?.trim()) {
-      const b = await this.prisma.nx01Brand.findFirst({
-        where: { id: input.brandId.trim(), tenantId: input.tenantId },
-        select: { code: true },
-      });
-      brandCode = b?.code ?? '';
-    }
-    let countryCode = '';
-    if (input.countryId?.trim()) {
-      const c = await this.prisma.nx01Country.findUnique({
-        where: { id: input.countryId.trim() },
-        select: { code: true },
-      });
-      countryCode = c?.code ?? '';
-    }
-    return buildDisplayCode(brandCode, input.segs, countryCode);
   }
 
   async list(user: RequestUser, q: ListPartQueryDto) {
@@ -305,7 +222,6 @@ export class PartService {
         `SELECT id FROM nx01_part WHERE tenant_id = $1 AND (
            regexp_replace(lower(code), '[ #\\-*.]', '', 'g') LIKE $2
            OR lower(name) LIKE $3
-           OR regexp_replace(lower(coalesce(old_code,'')), '[ #\\-*.]', '', 'g') LIKE $2
            OR regexp_replace(lower(coalesce(sec_code,'')), '[ #\\-*.]', '', 'g') LIKE $2
            OR id IN (SELECT part_id FROM nx01_part_oem_code WHERE tenant_id = $1 AND regexp_replace(lower(oem_code), '[ #\\-*.]', '', 'g') LIKE $2)
          )`,
@@ -329,7 +245,7 @@ export class PartService {
     const matchType = (r: Row): 'primary' | 'oem' | null => {
       if (!term) return null;
       const nhit = (v: string | null | undefined) => normalizeCode(v ?? '').includes(nt);
-      return nhit(r.code) || (r.name ?? '').toLowerCase().includes(rawL) || nhit(r.secCode) || nhit(r.oldCode)
+      return nhit(r.code) || (r.name ?? '').toLowerCase().includes(rawL) || nhit(r.secCode)
         ? 'primary'
         : 'oem';
     };
@@ -346,20 +262,12 @@ export class PartService {
 
   async create(user: RequestUser, dto: CreatePartDto) {
     const tenantId = requireTenantId(user);
-    // W5 [3-7] 2026-06-06 Crown 拍板四層編碼：
-    //   零件料號 code 必填、新增時若 user 未填 → fallback 帶入 oldCode（舊有料號）；
-    //   兩者皆空 → 拒收（零件料號是顯示主碼、不可為空）
-    const codeInput = dto.code?.trim();
-    const oldCodeInput = dto.oldCode?.trim();
-    const effectiveCode = codeInput || oldCodeInput;
+    // 2026-06-26：基準料號 code 純手動輸入、必填（分段編碼規則已廢）
+    const effectiveCode = dto.code?.trim();
     if (!effectiveCode) {
-      throw new BadRequestException(
-        '零件料號（code）必填；可手動填或讓系統帶入舊料號（oldCode）',
-      );
+      throw new BadRequestException('基準料號（code）必填');
     }
     const row = await this.prisma.$transaction(async (tx) => {
-      // W5 [3-7]：codeRuleId 改 optional（編碼規則引擎屬汽車資料庫套件、LITE 不在）
-      const codeRuleId = await this.resolveCodeRuleId(tx, tenantId, dto.codeRuleId);
       // W6-Phase 5：dto.brandId 為主（舊 partBrandId 接 brand.id 也認）
       const effectiveBrandId = dto.brandId?.trim() || dto.partBrandId?.trim() || null;
       await this.validateUnkReservedNotUsed(tx, tenantId, effectiveBrandId, dto.countryId);
@@ -380,18 +288,13 @@ export class PartService {
       const created = await tx.nx01Part.create({
         data: {
           tenantId,
-          codeRuleId,
           code: effectiveCode,
           name: dto.name.trim(),
           isOem: dto.isOem ?? true,
           secCode: dto.secCode.trim(),
-          oldCode: trimOrNull(dto.oldCode),
           cost: dto.cost ?? 0,
-          seg1: trimOrNull(dto.seg1),
-          seg2: trimOrNull(dto.seg2),
-          seg3: trimOrNull(dto.seg3),
-          seg4: trimOrNull(dto.seg4),
-          seg5: trimOrNull(dto.seg5),
+          purchaseCategory: dto.purchaseCategory ?? null,
+          techCategory: dto.techCategory ?? null,
           countryId: dto.countryId?.trim() || null,
           brandId: effectiveBrandId,
           partGroupId: effectivePartGroupId,
@@ -526,16 +429,13 @@ export class PartService {
       const updated = await tx.nx01Part.update({
       where: { id },
       data: {
+        ...(dto.code !== undefined ? { code: dto.code.trim() } : {}),
         ...(dto.name !== undefined ? { name: dto.name.trim() } : {}),
         ...(dto.isOem !== undefined ? { isOem: dto.isOem } : {}),
         ...(dto.secCode !== undefined ? { secCode: dto.secCode.trim() } : {}),
-        ...(dto.oldCode !== undefined ? { oldCode: trimOrNull(dto.oldCode) } : {}),
         ...(dto.cost !== undefined ? { cost: dto.cost } : {}),
-        ...(dto.seg1 !== undefined ? { seg1: trimOrNull(dto.seg1) } : {}),
-        ...(dto.seg2 !== undefined ? { seg2: trimOrNull(dto.seg2) } : {}),
-        ...(dto.seg3 !== undefined ? { seg3: trimOrNull(dto.seg3) } : {}),
-        ...(dto.seg4 !== undefined ? { seg4: trimOrNull(dto.seg4) } : {}),
-        ...(dto.seg5 !== undefined ? { seg5: trimOrNull(dto.seg5) } : {}),
+        ...(dto.purchaseCategory !== undefined ? { purchaseCategory: dto.purchaseCategory } : {}),
+        ...(dto.techCategory !== undefined ? { techCategory: dto.techCategory } : {}),
         ...(dto.countryId !== undefined ? { countryId: dto.countryId?.trim() || null } : {}),
         // W6-Phase 5：brandId 為主、舊 partBrandId（若送）也接 brand.id 值
         ...(dto.brandId !== undefined
@@ -734,11 +634,8 @@ export class PartService {
 
   private mapRow(row: Row) {
     const { type, cost, priceA, priceB, priceC, priceD, brand, country, ...rest } = row;
-    const brandCode = brand?.code ?? '';
-    // displayCode：未選編碼規則→原樣手動料號；選了→完整格式即時組合（不存 DB）
-    const displayCode = rest.codeRuleId
-      ? buildDisplayCode(brandCode, [rest.seg1, rest.seg2, rest.seg3, rest.seg4, rest.seg5], country?.code ?? '')
-      : rest.code;
+    // 2026-06-26：分段編碼已廢、displayCode 即基準料號本身
+    const displayCode = rest.code;
     return {
       ...rest,
       // W6-Phase 5：前端 picker key partBrandId、值 = brand.id（match refOptions value）

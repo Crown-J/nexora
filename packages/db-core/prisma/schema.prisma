@@ -69,49 +69,6 @@ model Nx01AuditLog {
 }
 
 /// =======================================================
-/// Nx01BrandCodeRule — DB table `nx01_brand_code_rule`
-/// =======================================================
-model Nx01BrandCodeRule {
-  /// [NX01]+[BCOR]+[7碼流水號]，EX : NX01BCOR0000001；啟用最低需求版本：LITE
-  id                      String     @id @default(dbgenerated("gen_nx01_brand_code_rule_id()")) @db.VarChar(15)
-  /// 租戶 ID（外鍵）；啟用最低需求版本：LITE
-  tenantId                String     @map("tenant_id") @db.VarChar(15)
-  /// 品牌 ID（FK nx01_brand isPart=true；軸翻轉自 carBrandId、規格下半場 A）；同品牌可多規則、以 name 區分；啟用最低需求版本：LITE
-  /// W6 [3-8] Phase 5 2026-06-06 品牌合併：取代舊 partBrandId、舊欄位已 drop
-  brandId                 String     @map("brand_id") @db.VarChar(15)
-  /// 規則名稱（區分同品牌的多個規則）；啟用最低需求版本：LITE
-  name                    String     @db.VarChar(50)
-  /// 規則描述；啟用最低需求版本：LITE
-  description             String?    @db.VarChar(200)
-  /// SEG1 最大字數（必填）；啟用最低需求版本：LITE
-  seg1Length              Int        @default(0) @map("seg1_length")
-  /// SEG2 最大字數（必填）；啟用最低需求版本：LITE
-  seg2Length              Int        @default(0) @map("seg2_length")
-  /// SEG3 最大字數（必填）；啟用最低需求版本：LITE
-  seg3Length              Int        @default(0) @map("seg3_length")
-  /// SEG4 最大字數（0=不使用）；啟用最低需求版本：LITE
-  seg4Length              Int        @default(0) @map("seg4_length")
-  /// SEG5 最大字數（0=不使用）；啟用最低需求版本：LITE
-  seg5Length              Int        @default(0) @map("seg5_length")
-  /// 是否啟用；啟用最低需求版本：LITE
-  isActive                Boolean    @default(true) @map("is_active")
-  /// 建立時間。；啟用最低需求版本：LITE
-  createdAt               DateTime   @default(now()) @map("created_at")
-  /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
-  createdBy               String     @map("created_by") @db.VarChar(15)
-  /// 更新時間。；啟用最低需求版本：LITE
-  updatedAt               DateTime   @updatedAt @map("updated_at")
-  /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
-  updatedBy               String     @map("updated_by") @db.VarChar(15)
-  tenant                  Nx99Tenant @relation("R_Nx01BrandCodeRule_tenantId", fields: [tenantId], references: [id])
-  brand                   Nx01Brand  @relation("R_Nx01BrandCodeRule_brandId", fields: [brandId], references: [id], onDelete: Restrict)
-  rev_Nx01Part_codeRuleId Nx01Part[] @relation("R_Nx01Part_codeRuleId")
-
-  @@unique([tenantId, brandId, name])
-  @@map("nx01_brand_code_rule")
-}
-
-/// =======================================================
 /// Nx01Bulletin — DB table `nx01_bulletin`
 /// =======================================================
 model Nx01Bulletin {
@@ -340,7 +297,6 @@ model Nx01Brand {
   rev_Nx01Part_brandId          Nx01Part[]          @relation("R_Nx01Part_brandId")
   rev_Nx01PartOemCode_brandId   Nx01PartOemCode[]   @relation("R_Nx01PartOemCode_brandId")
   rev_Nx03StItem_brandId        Nx03StItem[]        @relation("R_Nx03StItem_brandId")
-  rev_Nx01BrandCodeRule_brandId Nx01BrandCodeRule[] @relation("R_Nx01BrandCodeRule_brandId")
   rev_Nx01Engine_brandId        Nx01Engine[]        @relation("R_Nx01Engine_brandId")
   rev_Nx01Transmission_brandId  Nx01Transmission[]  @relation("R_Nx01Transmission_brandId")
   rev_Nx01Model_brandId         Nx01Model[]         @relation("R_Nx01Model_brandId")
@@ -778,30 +734,16 @@ model Nx01Part {
   id                              String                 @id @default(dbgenerated("gen_nx01_part_id()")) @db.VarChar(15)
   /// 租戶 ID（外鍵）；啟用最低需求版本：LITE
   tenantId                        String                 @map("tenant_id") @db.VarChar(15)
-  /// 編碼規則 ID（FK nx01_brand_code_rule；下半場 B：改選填，未選＝手動輸入完整料號）；啟用最低需求版本：LITE
-  codeRuleId                      String?                @map("code_rule_id") @db.VarChar(15)
-  /// 零件料號 ( [零件品牌代碼]-[seg1] [seg2] [seg3] [seg4] [seg3]，EX : VAG-8K0 819 439 B）；啟用最低需求版本：LITE
+  /// 基準料號（客戶自訂、純手動輸入、必填、開放修改；2026-06-26 分段編碼規則已廢）；啟用最低需求版本：LITE
   code                            String                 @db.VarChar(50)
   /// 零件名稱/品名（例：機油濾芯）；啟用最低需求版本：LITE
   name                            String                 @db.VarChar(200)
   /// 是否為正廠件；啟用最低需求版本：LITE
   isOem                           Boolean                @default(true) @map("is_oem")
-  /// 廠牌料號（記「該廠牌對這料件的料號」、可能原廠可能副廠；用詞 2026-06-08 由「副廠料號」更正為「廠牌料號」；2026-06-26 改必填 NOT NULL：基準料號+廠牌料號皆必填）。；啟用最低需求版本：LITE
+  /// 廠牌料號（記「該廠牌對這料件的料號」、可能原廠可能副廠；2026-06-26 改必填 NOT NULL：基準料號+廠牌料號皆必填）。；啟用最低需求版本：LITE
   secCode                         String                 @map("sec_code") @db.VarChar(50)
-  /// 舊料號（轉系統客戶用、永遠可填、下半場 B）；啟用最低需求版本：LITE
-  oldCode                         String?                @map("old_code") @db.VarChar(50)
   /// 成本（業務員填、價格重算基準、下半場 B）；啟用最低需求版本：LITE
   cost                            Decimal?               @default(0) @db.Decimal(14, 4)
-  /// 第一組料號規則；啟用最低需求版本：LITE
-  seg1                            String?                @db.VarChar(10)
-  /// 第二組料號規則；啟用最低需求版本：LITE
-  seg2                            String?                @db.VarChar(10)
-  /// 第三組料號規則；啟用最低需求版本：LITE
-  seg3                            String?                @db.VarChar(10)
-  /// 第四組料號規則；啟用最低需求版本：LITE
-  seg4                            String?                @db.VarChar(10)
-  /// 第五組料號規則；啟用最低需求版本：LITE
-  seg5                            String?                @db.VarChar(10)
   /// 產地 (外鍵)；啟用最低需求版本：LITE
   countryId                       String?                @map("country_id") @db.VarChar(15)
   /// 品牌 ID（FK nx01_brand、可空 = 部分料號尚未補齊）；啟用最低需求版本：LITE
@@ -861,7 +803,6 @@ model Nx01Part {
   ///   - 業務員可手改此欄（不動族群）；effective = COALESCE(part.shelfLifeMonths, partGroup.defaultShelfLifeMonths)
   shelfLifeMonths                 Int?                   @map("shelf_life_months")
   tenant                          Nx99Tenant             @relation("R_Nx01Part_tenantId", fields: [tenantId], references: [id])
-  codeRule                        Nx01BrandCodeRule?     @relation("R_Nx01Part_codeRuleId", fields: [codeRuleId], references: [id])
   country                         Nx01Country?           @relation("R_Nx01Part_countryId", fields: [countryId], references: [id])
   brand                           Nx01Brand?             @relation("R_Nx01Part_brandId", fields: [brandId], references: [id], onDelete: SetNull)
   partGroup                       Nx01PartGroup?         @relation("R_Nx01Part_partGroupId", fields: [partGroupId], references: [id])
@@ -6965,7 +6906,6 @@ model Nx99Tenant {
   rev_Nx01UserPageGuide_tenantId           Nx01UserPageGuide[]           @relation("R_Nx01UserPageGuide_tenantId")
   rev_Nx01UserPref_tenantId                Nx01UserPref[]                @relation("R_Nx01UserPref_tenantId")
   rev_Nx01AuditLog_tenantId                Nx01AuditLog[]                @relation("R_Nx01AuditLog_tenantId")
-  rev_Nx01BrandCodeRule_tenantId           Nx01BrandCodeRule[]           @relation("R_Nx01BrandCodeRule_tenantId")
   rev_Nx01Bulletin_tenantId                Nx01Bulletin[]                @relation("R_Nx01Bulletin_tenantId")
   rev_Nx01BulletinCategory_tenantId        Nx01BulletinCategory[]        @relation("R_Nx01BulletinCategory_tenantId")
   rev_Nx01BulletinAttachment_tenantId      Nx01BulletinAttachment[]      @relation("R_Nx01BulletinAttachment_tenantId")

@@ -16,8 +16,6 @@ import { PartnerContactController } from './partner-contact/partner-contact.cont
 import { PartnerContactService } from './partner-contact/partner-contact.service';
 import { PartPhotoController } from './part-photo/part-photo.controller';
 import { PartPhotoService } from './part-photo/part-photo.service';
-import { BrandCodeRuleController } from './brand-code-rule/brand-code-rule.controller';
-import { BrandCodeRuleService } from './brand-code-rule/brand-code-rule.service';
 import { BulletinController } from './bulletin/bulletin.controller';
 import { BulletinService } from './bulletin/bulletin.service';
 import { CalendarEventController } from './calendar-event/calendar-event.controller';
@@ -130,7 +128,6 @@ import { UserTeamService } from './user-team/user-team.service';
     DepartmentController,
     TeamController,
     UserTeamController,
-    BrandCodeRuleController,
     EngineController,
     TransmissionController,
     DrivetrainController,
@@ -178,7 +175,6 @@ import { UserTeamService } from './user-team/user-team.service';
     RoleService,
     BulletinService,
     PhoneticDictionaryService,
-    BrandCodeRuleService,
     EngineService,
     TransmissionService,
     DrivetrainService,

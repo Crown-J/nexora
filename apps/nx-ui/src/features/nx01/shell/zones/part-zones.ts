@@ -23,23 +23,16 @@ export const PART_ZONES: ZoneDef<PartZone>[] = [
 
 export const PART_FIELDS: FieldDef<PartZone>[] = [
   // ─── basic 基本資料區 ───
-  // W5 [3-7] Crown 拍板四層編碼：①內碼=part.id ②舊料號 ③零件料號（必填、新增留空帶入舊料號、建立後鎖）④副廠料號
-  // 編碼規則引擎屬汽車資料庫套件、LITE 不在範圍（codeRuleId optional）
-  { key: 'code', label: '零件料號（顯示主碼）', zone: 'basic', notes: '必填顯示主碼；新增時可留空、系統自動帶入「舊料號」；建立後鎖定不可改' },
+  // 2026-06-26：①內碼=part.id（定位器）②基準料號 code（必填、純手動、可改）③廠牌料號 secCode（必填）
+  { key: 'code', label: '基準料號（顯示主碼）', zone: 'basic', required: true, notes: '必填、純手動輸入、可修改' },
   { key: 'name', label: '品名', zone: 'basic', required: true },
-  // 02 第四批 軌 3a 2026-06-07：編碼規則屬汽車資料庫套件、LITE 隱藏（資料結構保留、可留空）
-  { key: 'codeRuleId', label: '編碼規則', zone: 'basic', minPlan: 'PLUS', notes: '汽車資料庫套件、LITE 隱藏；可留空' },
   { key: 'isOem', label: '正廠件', zone: 'basic' },
-  { key: 'secCode', label: '副廠料號', zone: 'basic', notes: '可空、廠牌對照用' },
-  { key: 'oldCode', label: '舊料號', zone: 'basic', notes: '舊系統料號、新增時 service 端會 fallback 進「零件料號」' },
-  // 02 第四批 軌 3a 2026-06-07：seg1~5 屬汽車資料庫套件、LITE 隱藏（資料結構保留）
-  { key: 'seg1', label: '料號段 1', zone: 'basic', minPlan: 'PLUS' },
-  { key: 'seg2', label: '料號段 2', zone: 'basic', minPlan: 'PLUS' },
-  { key: 'seg3', label: '料號段 3', zone: 'basic', minPlan: 'PLUS' },
-  { key: 'seg4', label: '料號段 4', zone: 'basic', minPlan: 'PLUS' },
-  { key: 'seg5', label: '料號段 5', zone: 'basic', minPlan: 'PLUS' },
+  { key: 'secCode', label: '廠牌料號', zone: 'basic', required: true, notes: '必填、記該廠牌對此料件的料號' },
   { key: 'partBrandId', label: '零件品牌', zone: 'basic' },
-  { key: 'partGroupId', label: '零件族群', zone: 'basic' },
+  { key: 'partGroupId', label: '零件族群（分類三）', zone: 'basic' },
+  // 2026-06-26 分類一/二（寫死選項）
+  { key: 'purchaseCategory', label: '採購分類（分類一）', zone: 'basic' },
+  { key: 'techCategory', label: '技術分類（分類二）', zone: 'basic' },
   { key: 'type', label: '零件類型', zone: 'basic', notes: '1 專用 / 2 通用 / 3 組合 / 4 拆解' },
   { key: 'countryId', label: '產地', zone: 'basic' },
   { key: 'spec', label: '規格 / 備註', zone: 'basic' },

@@ -8,8 +8,6 @@
 
 export type PartDto = {
   id: string;
-  codeRuleId: string;
-  codeRuleName?: string | null;
   code: string;
   name: string;
 
@@ -22,12 +20,10 @@ export type PartDto = {
   /** A/B/C/D */
   partType: string | null;
 
-  secCode: string | null;
-  seg1: string | null;
-  seg2: string | null;
-  seg3: string | null;
-  seg4: string | null;
-  seg5: string | null;
+  secCode: string;
+  // 2026-06-26 分類一（採購角度）/ 分類二（技術角度）寫死 SmallInt、選填
+  purchaseCategory: number | null;
+  techCategory: number | null;
 
   countryId: string | null;
   countryCode?: string | null;
@@ -58,7 +54,6 @@ export type PartDto = {
 
   // v1.2 階段 E P3 補（DTO 已支援、types 對齊）
   cost: string | null;
-  oldCode: string | null;
 
   // v1.2 階段 E P5：part 衛星表 oemCodes（service.getById 回傳整批；其他衛星走獨立 endpoint）
   oemCodes?: PartOemCodeItem[];
@@ -95,18 +90,14 @@ export type PartsListQuery = {
   pageSize?: number;
 };
 
-// v1.2 階段 E P3：共用 part 寫入欄位（cost / oldCode 補對齊 DTO）
+// 共用 part 寫入欄位（2026-06-26：移除 seg/oldCode、加分類一二）
 export type PartWritableFields = {
   partBrandId?: string | null;
   isOem?: boolean;
   partType?: string | null;
-  secCode?: string | null;
-  oldCode?: string | null;
-  seg1?: string | null;
-  seg2?: string | null;
-  seg3?: string | null;
-  seg4?: string | null;
-  seg5?: string | null;
+  secCode?: string;
+  purchaseCategory?: number | null;
+  techCategory?: number | null;
   countryId?: string | null;
   partGroupId?: string | null;
   spec?: string | null;
@@ -124,13 +115,12 @@ export type PartWritableFields = {
 };
 
 export type CreatePartBody = PartWritableFields & {
-  codeRuleId: string;
   code: string;
+  secCode: string;
   name: string;
 };
 
 export type UpdatePartBody = PartWritableFields & {
-  codeRuleId?: string;
   code?: string;
   name?: string;
 };

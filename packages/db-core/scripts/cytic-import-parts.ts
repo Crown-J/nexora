@@ -341,8 +341,10 @@ async function importParts(prisma: PrismaClient, tenantId: string, rawToBrandId:
       continue;
     }
     const name = clean(row['品名']) ?? code;
-    const oldCode = clean(row['舊料號']);
-    const secCode = null; // 沒對應
+    // 2026-06-26：舊料號欄已從 schema 移除（內碼 part.id 即定位器、不需另存舊號）
+    // ⚠️ TODO 廠牌料號（sec_code）現為 NOT NULL、但此 CSV 來源無對應欄。
+    //    執行長 2026-06-26：等準備新上傳檔時再定來源。暫以基準料號 code 頂替、屆時須換成真實廠牌料號。
+    const secCode = code; // ⚠️ STOPGAP、見上
     const brandRaw = row['廠牌'];
     const brandId = brandRaw ? rawToBrandId.get(String(brandRaw)) ?? null : null;
     const cost = cleanNum(row['平均進價']);
@@ -362,8 +364,7 @@ async function importParts(prisma: PrismaClient, tenantId: string, rawToBrandId:
       tenantId,
       code: code.slice(0, 50),
       name: name.slice(0, 200),
-      oldCode: oldCode ? oldCode.slice(0, 50) : null,
-      secCode,
+      secCode: secCode.slice(0, 50),
       brandId,
       countryId: twCountry.id,
       partGroupId: null, // Q54

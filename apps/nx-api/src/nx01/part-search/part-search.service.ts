@@ -169,13 +169,12 @@ export class PartSearchService {
       ANDs.push({ OR: orConds });
     }
 
-    // 使用料號（正規化 raw query：code / oldCode / secCode / oemCode）
+    // 使用料號（正規化 raw query：code / secCode / oemCode）
     if (partNo) {
       const norm = `%${normalizeCode(partNo)}%`;
       const matched = await this.prisma.$queryRawUnsafe<{ id: string }[]>(
         `SELECT id FROM nx01_part WHERE tenant_id = $1 AND (
            regexp_replace(lower(code), '[ #\\-*.]', '', 'g') LIKE $2
-           OR regexp_replace(lower(coalesce(old_code,'')), '[ #\\-*.]', '', 'g') LIKE $2
            OR regexp_replace(lower(coalesce(sec_code,'')), '[ #\\-*.]', '', 'g') LIKE $2
            OR id IN (SELECT part_id FROM nx01_part_oem_code WHERE tenant_id = $1 AND regexp_replace(lower(oem_code), '[ #\\-*.]', '', 'g') LIKE $2)
          )`,
@@ -556,7 +555,6 @@ export class PartSearchService {
         code: true,
         name: true,
         secCode: true,
-        oldCode: true,
         spec: true,
         isOem: true,
         cost: true,
@@ -593,7 +591,6 @@ export class PartSearchService {
       code: part.code,
       name: part.name,
       secCode: part.secCode,
-      oldCode: part.oldCode,
       spec: part.spec,
       isOem: part.isOem,
       isActive: part.isActive,

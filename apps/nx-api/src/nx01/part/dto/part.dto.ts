@@ -60,38 +60,7 @@ export class ListPartQueryDto extends Nx01ListQueryDto {
   brandId?: string;
 }
 
-/**
- * Crown Q7=B：part.code 預覽 DTO
- * 前端 onChange 即時呼叫 POST /nx01/parts/preview-code、回 { code: string }
- */
-export class PreviewPartCodeDto {
-  @IsString()
-  @MinLength(1)
-  @MaxLength(15)
-  codeRuleId!: string;
-
-  @IsOptional() @IsString() @MaxLength(10) seg1?: string;
-  @IsOptional() @IsString() @MaxLength(10) seg2?: string;
-  @IsOptional() @IsString() @MaxLength(10) seg3?: string;
-  @IsOptional() @IsString() @MaxLength(10) seg4?: string;
-  @IsOptional() @IsString() @MaxLength(10) seg5?: string;
-
-  @IsOptional() @IsString() @MaxLength(15) partBrandId?: string;
-  /** W6-切換軌 2026-06-06：brandId 為主、service 端 fallback partBrandId 查 part_brand 表 */
-  @IsOptional() @IsString() @MaxLength(15) brandId?: string;
-  @IsOptional() @IsString() @MaxLength(15) countryId?: string;
-}
-
 export class CreatePartDto {
-  /**
-   * 規格 §3 + Crown Q5=A 拍板：codeRuleId 必填（業務先建 brand_code_rule、再建 part）
-   * @IsOptional 保 DTO 形式相容、但 service 強制檢核（非空檢查 + verify 存在）
-   */
-  @IsOptional()
-  @IsString()
-  @MaxLength(15)
-  codeRuleId?: string;
-
   @IsOptional()
   @IsString()
   @MaxLength(15)
@@ -104,15 +73,13 @@ export class CreatePartDto {
   brandId?: string;
 
   /**
-   * W5 [3-7] 2026-06-06 Crown 拍板四層編碼：
-   *   零件料號 = 顯示主碼、必填。新增時若 user 未填、service 端 fallback 帶入 oldCode（舊有料號）。
-   *   DTO 改 optional 讓 service 決定（兩者皆空才拒收）；UI 端表單應 oldCode → code mirror。
-   *   建立後 code 鎖定不可改（UpdatePartDto 已無 code 欄位、確保 NX 內碼錨點不漂移）。
+   * 基準料號 = 顯示主碼、純手動輸入、必填（2026-06-26 分段編碼規則已廢）。
+   * 建立後 code 仍可改（執行長 2026-06-26 拍板：開放修改）。
    */
-  @IsOptional()
   @IsString()
+  @IsNotEmpty()
   @MaxLength(50)
-  code?: string;
+  code!: string;
 
   @IsString()
   @MinLength(1)
@@ -131,40 +98,26 @@ export class CreatePartDto {
   secCode!: string;
 
   @IsOptional()
-  @IsString()
-  @MaxLength(50)
-  oldCode?: string;
-
-  @IsOptional()
   @Type(() => Number)
   @IsNumber({ maxDecimalPlaces: 4 })
   @Min(0)
   cost?: number;
 
+  // 2026-06-26 分類一・採購角度（選填、1=保養 / 2=維修 / 3=事故 / 4=改裝 / 5=油品耗材）
   @IsOptional()
-  @IsString()
-  @MaxLength(10)
-  seg1?: string;
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(5)
+  purchaseCategory?: number;
 
+  // 2026-06-26 分類二・技術角度（選填、1~9 寫死）
   @IsOptional()
-  @IsString()
-  @MaxLength(10)
-  seg2?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(10)
-  seg3?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(10)
-  seg4?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(10)
-  seg5?: string;
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(9)
+  techCategory?: number;
 
   @IsOptional()
   @IsString()
@@ -258,12 +211,19 @@ export class CreatePartDto {
 }
 
 /**
- * W5 [3-7] 2026-06-06 Crown 拍板四層編碼鎖定：
- *   零件料號（code）建立後鎖定不可改、本 DTO 無 code 欄位 = service.update 不會寫 code。
- *   舊料號（oldCode）+ 副廠料號（secCode）仍可改、僅內碼（part.id）+ 顯示主碼（code）鎖定。
- *   內碼錨點：part.id（NX01PART0000001）= 17+ 業務單據明細 FK、永不變、單據顯示用 partNo snapshot。
+ * 2026-06-26 Crown 拍板：
+ *   基準料號（code）開放修改（不再鎖定）；廠牌料號（secCode）必填。
+ *   內碼錨點：part.id（NX01PART0000001）= 17+ 業務單據明細 FK、永不變、為真正的定位器。
+ *   分段編碼（codeRuleId/seg）與舊料號（oldCode）已廢除。
  */
 export class UpdatePartDto {
+  // 2026-06-26 基準料號開放修改
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(50)
+  code?: string;
+
   @IsOptional()
   @IsString()
   @MinLength(1)
@@ -282,40 +242,26 @@ export class UpdatePartDto {
   secCode?: string;
 
   @IsOptional()
-  @IsString()
-  @MaxLength(50)
-  oldCode?: string | null;
-
-  @IsOptional()
   @Type(() => Number)
   @IsNumber({ maxDecimalPlaces: 4 })
   @Min(0)
   cost?: number;
 
+  // 2026-06-26 分類一・採購角度（選填）
   @IsOptional()
-  @IsString()
-  @MaxLength(10)
-  seg1?: string | null;
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(5)
+  purchaseCategory?: number;
 
+  // 2026-06-26 分類二・技術角度（選填）
   @IsOptional()
-  @IsString()
-  @MaxLength(10)
-  seg2?: string | null;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(10)
-  seg3?: string | null;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(10)
-  seg4?: string | null;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(10)
-  seg5?: string | null;
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(9)
+  techCategory?: number;
 
   @IsOptional()
   @IsString()

@@ -1,5 +1,5 @@
 // apps/nx-ui/src/features/base/api/part.ts
-// 零件主檔 API client（下半場 B/C：oldCode/cost/oemCodes 子表 + 搜尋 matchType + 料號預覽）。
+// 零件主檔 API client（2026-06-26：分段編碼/oldCode 已廢、加分類一二；cost/oemCodes 子表 + 搜尋 matchType）。
 import { apiFetch } from '@data/api/client';
 import { buildQueryString } from '@data/api/query';
 import { assertOk } from '@data/api/http';
@@ -15,18 +15,13 @@ export type PartOemCode = {
 
 export type PartDto = {
   id: string;
-  codeRuleId: string | null;
   code: string;
   name: string;
   isOem: boolean;
-  secCode: string | null;
-  oldCode: string | null;
+  secCode: string;
   cost: string | null;
-  seg1: string | null;
-  seg2: string | null;
-  seg3: string | null;
-  seg4: string | null;
-  seg5: string | null;
+  purchaseCategory: number | null;
+  techCategory: number | null;
   countryId: string | null;
   partBrandId: string | null;
   partGroupId: string | null;
@@ -45,7 +40,7 @@ export type PartDto = {
   updatedAt: string;
   updatedByName?: string | null;
   updatedByUsername?: string | null;
-  /** 完整料號顯示（即時組合、不存 DB）：{品牌} - {SEG…空格} #{產地} */
+  /** 顯示料號（2026-06-26 起即基準料號本身） */
   displayCode?: string;
   partBrandCode?: string | null;
   countryCode?: string | null;
@@ -56,18 +51,13 @@ export type PartDto = {
 };
 
 export type PartWriteBody = {
-  codeRuleId?: string | null;
   code?: string;
   name?: string;
   isOem?: boolean;
-  secCode?: string | null;
-  oldCode?: string | null;
+  secCode?: string;
   cost?: number;
-  seg1?: string | null;
-  seg2?: string | null;
-  seg3?: string | null;
-  seg4?: string | null;
-  seg5?: string | null;
+  purchaseCategory?: number | null;
+  techCategory?: number | null;
   countryId?: string | null;
   partBrandId?: string | null;
   /** W6-切換軌 2026-06-06：新 brand 表 id；後端 dual-write 過渡期 */
@@ -139,20 +129,3 @@ export async function setPartActive(id: string, isActive: boolean): Promise<void
   await assertOk(res, 'nxui_base_part_deactivate');
 }
 
-export async function previewPartCode(body: {
-  codeRuleId: string;
-  seg1?: string;
-  seg2?: string;
-  seg3?: string;
-  seg4?: string;
-  seg5?: string;
-  partBrandId?: string;
-  /** W6-切換軌 2026-06-06：新 brand 表 id；後端優先用此 lookup brand code */
-  brandId?: string;
-  countryId?: string;
-}): Promise<string> {
-  const res = await apiFetch(`${BASE}/preview-code`, { method: 'POST', body: JSON.stringify(body) });
-  await assertOk(res, 'nxui_base_part_preview_code');
-  const j = (await res.json()) as { code?: string };
-  return j.code ?? '';
-}

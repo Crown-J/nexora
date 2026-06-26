@@ -54,12 +54,6 @@ import {
   updatePart,
 } from '@data/endpoints/shared/master/part/api/part';
 import type { PartDto, PartOemCodeItem } from '@data/types/shared/master/part';
-import { previewPartCode } from '@data/endpoints/nx01/api/part';
-import {
-  listBrandCodeRules,
-  ruleSegLengths,
-  type BrandCodeRuleDto,
-} from '@data/endpoints/nx01/api/brand-code-rule';
 import { listCustomerGrades, type CustomerGradeDto } from '@data/endpoints/nx01/api/customer-grade';
 
 import { PartFormZoned, type RefOption } from './PartFormZoned';
@@ -143,15 +137,10 @@ export function PartZonedPage({
 
   // ── 外鍵下拉 ──
   const [refOptions, setRefOptions] = useState<{
-    codeRuleId?: RefOption[];
     partBrandId?: RefOption[];
     partGroupId?: RefOption[];
     countryId?: RefOption[];
   }>({});
-
-  // ── A1：編碼規則（含 SEG 字數限制邏輯） ──
-  const [brandCodeRules, setBrandCodeRules] = useState<BrandCodeRuleDto[]>([]);
-  const [codePreview, setCodePreview] = useState('');
 
   // ── A2：oemCodes 子表 staged（編輯 / 新增時 staged、存檔整批送）──
   const [oemCodesDraft, setOemCodesDraft] = useState<PartOemCodeItem[]>([]);
@@ -169,26 +158,21 @@ export function PartZonedPage({
   useEffect(() => {
     let cancelled = false;
     void (async () => {
-      const [cr, pb, pg, co, ruleRes, gradeRes] = await Promise.all([
-        fetchRefOptions('nx01/brand-code-rules', ['name']),
+      const [pb, pg, co, gradeRes] = await Promise.all([
         // W6-切換軌 2026-06-06：picker 走新 brand API + isPart=true 過濾
         // value = brand.id（非 part_brand.id）；submit body 走 brandId 寫入 part.brand_id
         fetchRefOptions('nx01/brands', ['code', 'name'], { isPart: 'true' }),
         fetchRefOptions('nx01/part-groups'),
         fetchRefOptions('nx01/countries'),
-        // A1：載入完整 brand-code-rule（含 SEG 字數限制欄位、後面 ruleSegLengths 用）
-        listBrandCodeRules({ isActive: true, pageSize: 100 }),
         // A3：載入 customer-grades 取 marginPct（取代舊版 hard-code）
         listCustomerGrades({ isActive: true, pageSize: 100 }),
       ]);
       if (cancelled) return;
       setRefOptions({
-        codeRuleId: toRefOptions(cr),
         partBrandId: toRefOptions(pb),
         partGroupId: toRefOptions(pg),
         countryId: toRefOptions(co),
       });
-      setBrandCodeRules(ruleRes.items);
       setCustomerGrades(gradeRes.items);
     })();
     return () => {
@@ -254,60 +238,6 @@ export function PartZonedPage({
     };
   }, [selectedId, reloadTick]);
   const selected = fullSelected ?? listSelected;
-
-  // ── A1：依規則 + SEG + brand + country 即時預覽料號（debounce 250ms） ──
-  useEffect(() => {
-    const codeRuleId = String(draft.codeRuleId ?? '');
-    if (mode !== 'edit' || !codeRuleId) {
-      setCodePreview('');
-      return;
-    }
-    let alive = true;
-    const t = setTimeout(() => {
-      void (async () => {
-        try {
-          const res = await previewPartCode({
-            codeRuleId,
-            seg1: String(draft.seg1 ?? ''),
-            seg2: String(draft.seg2 ?? ''),
-            seg3: String(draft.seg3 ?? ''),
-            seg4: String(draft.seg4 ?? ''),
-            seg5: String(draft.seg5 ?? ''),
-            // W6-切換軌 2026-06-06：draft.partBrandId 內容已是 brand.id、走 brandId 預覽
-            brandId: String(draft.partBrandId ?? '') || undefined,
-            countryId: String(draft.countryId ?? '') || undefined,
-          });
-          if (alive) setCodePreview(typeof res === 'string' ? res : (res as { code: string }).code ?? '');
-        } catch {
-          /* 預覽失敗不擋編輯 */
-        }
-      })();
-    }, 250);
-    return () => {
-      alive = false;
-      clearTimeout(t);
-    };
-  }, [
-    mode,
-    draft.codeRuleId,
-    draft.seg1,
-    draft.seg2,
-    draft.seg3,
-    draft.seg4,
-    draft.seg5,
-    draft.partBrandId,
-    draft.countryId,
-  ]);
-
-  /** A1：依 codeRuleId 算 SEG 字數限制 */
-  const segLensFor = useCallback(
-    (codeRuleId: string): number[] => {
-      const rule = brandCodeRules.find((r) => r.id === codeRuleId);
-      if (!rule) return [0, 0, 0, 0, 0];
-      return ruleSegLengths(rule);
-    },
-    [brandCodeRules],
-  );
 
   /**
    * A3：依成本重算 ABCD（取代舊版 PartMasterPage hard-code MARGINS）
@@ -490,13 +420,10 @@ export function PartZonedPage({
       }
     }
     const body = partDraftToBody(draft, editableZones, { isCreate: creating });
-    // A1：codeRuleId 模式下、用 server 預覽組好的料號（覆蓋手動 code 欄位）
-    const codeRuleId = String(draft.codeRuleId ?? '').trim();
-    const finalCode = codeRuleId
-      ? (codePreview || String(draft.code ?? '')).trim()
-      : String(draft.code ?? '').trim();
+    // 2026-06-26：基準料號純手動輸入（分段編碼/預覽已廢）
+    const finalCode = String(draft.code ?? '').trim();
     if (creating && !finalCode) {
-      showToast('料號為必填', 'danger');
+      showToast('基準料號為必填', 'danger');
       return;
     }
     // A2：oemCodes 子表 staged 整批送（屬 basic zone、編輯中 zone 包含 basic 才送）
@@ -507,8 +434,8 @@ export function PartZonedPage({
         const created = await createPart({
           ...body,
           code: finalCode,
+          secCode: String(draft.secCode ?? '').trim(),
           name: String(draft.name ?? '').trim(),
-          codeRuleId,
           ...(oemCodesBody !== undefined ? { oemCodes: oemCodesBody } : {}),
         });
         showToast(`已新增${entityNoun}`, 'success');
@@ -529,7 +456,6 @@ export function PartZonedPage({
   }, [
     creating,
     draft,
-    codePreview,
     oemCodesDraft,
     editableZones,
     entityNoun,
@@ -987,9 +913,6 @@ export function PartZonedPage({
             editableZones={editableZones}
             refOptions={refOptions}
             entityNoun={entityNoun}
-            brandCodeRules={brandCodeRules}
-            codePreview={codePreview}
-            segLensFor={segLensFor}
             oemCodesDraft={oemCodesDraft}
             onOemCodesChange={setOemCodesDraft}
             onRecalcPrices={recalcPrices}
@@ -1016,9 +939,6 @@ function DetailPane({
   editableZones,
   refOptions,
   entityNoun,
-  brandCodeRules,
-  codePreview,
-  segLensFor,
   oemCodesDraft,
   onOemCodesChange,
   onRecalcPrices,
@@ -1033,15 +953,11 @@ function DetailPane({
   setActiveZone: (z: PartZone) => void;
   editableZones?: Set<PartZone>;
   refOptions: {
-    codeRuleId?: RefOption[];
     partBrandId?: RefOption[];
     partGroupId?: RefOption[];
     countryId?: RefOption[];
   };
   entityNoun: string;
-  brandCodeRules: BrandCodeRuleDto[];
-  codePreview: string;
-  segLensFor: (codeRuleId: string) => number[];
   oemCodesDraft: PartOemCodeItem[];
   onOemCodesChange: (next: PartOemCodeItem[]) => void;
   onRecalcPrices: () => void;
@@ -1093,9 +1009,6 @@ function DetailPane({
             editableZones={editableZones}
             refOptions={refOptions}
             selected={selected}
-            brandCodeRules={brandCodeRules}
-            codePreview={codePreview}
-            segLensFor={segLensFor}
             oemCodesDraft={oemCodesDraft}
             onOemCodesChange={onOemCodesChange}
             onRecalcPrices={onRecalcPrices}

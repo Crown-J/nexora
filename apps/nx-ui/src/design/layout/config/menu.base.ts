@@ -45,7 +45,6 @@ export function getNx00SideMenu(): SideMenuGroup[] {
         { key: 'base.car-brand',       label: '車廠品牌基本資料',   href: '/dashboard/master/car-brand' },
         { key: 'base.part-brand',      label: '零件廠牌基本資料',   href: '/dashboard/master/part-brand' },
         { key: 'base.part-group',      label: '零件群組基本資料',   href: '/dashboard/master/part-group' },
-        { key: 'base.brand-code-rule', label: '品牌料號規則基本資料', href: '/dashboard/master/brand-code-rule' },
         { key: 'base.part-relation',   label: '零件關聯基本資料',   href: '/dashboard/master/part-relation' },
         { key: 'base.part-model',      label: '料件車型適配基本資料', href: '/dashboard/master/part-model' },
       ],

@@ -13,13 +13,6 @@ import type { EntityMasterConfig } from '@/features/nx01/shell/entity-master/con
 
 const SOFT = 'soft-delete-rest' as const;
 
-/** 品牌料號規則：依 SEG 字數即時組出料號樣式預覽（SEG 一律單空格、不加品牌 / 產地）：XXX XXX XXX X */
-function brandCodeRulePreview(v: Record<string, unknown>): string {
-  const lens = [1, 2, 3, 4, 5].map((n) => Number(v[`seg${n}Length`] ?? 0));
-  const parts = lens.filter((n) => n > 0).map((n) => 'X'.repeat(n));
-  return parts.length > 0 ? parts.join(' ') : '—';
-}
-
 // ── 帳號與權限 ──────────────────────────────────────────
 export const ROLE_MASTER: EntityMasterConfig = {
   basePath: 'nx01/roles',
@@ -500,12 +493,27 @@ export const PART_MASTER: EntityMasterConfig = {
   errorCodePrefix: 'nxui_base_part',
   deleteMode: SOFT,
   fields: [
-    { key: 'code', label: '料號', required: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[140px]' },
+    // 2026-06-26：基準料號開放修改（取消 lockedOnEdit）、純手動輸入
+    { key: 'code', label: '基準料號', required: true, mono: true, minWidthClass: 'min-w-[140px]' },
     { key: 'name', label: '品名', required: true, minWidthClass: 'min-w-[160px]' },
-    // codeRuleId 後端強制必填（須先有品牌料號規則）
-    { key: 'codeRuleId', label: '編碼規則', type: 'ref', refBasePath: 'nx01/brand-code-rules', refLabelKeys: ['name'], required: true, inList: false },
+    // 2026-06-26：廠牌料號必填
+    { key: 'secCode', label: '廠牌料號', required: true, mono: true, minWidthClass: 'min-w-[140px]' },
     { key: 'partBrandId', label: '零件廠牌', type: 'ref', refBasePath: 'nx01/brands', refExtraFilters: { isPart: 'true' }, minWidthClass: 'min-w-[120px]' },
-    { key: 'partGroupId', label: '零件群組', type: 'ref', refBasePath: 'nx01/part-groups', inList: false },
+    { key: 'partGroupId', label: '零件族群（分類三）', type: 'ref', refBasePath: 'nx01/part-groups', inList: false },
+    // 2026-06-26 分類一・採購角度（寫死）
+    {
+      key: 'purchaseCategory', label: '採購分類', type: 'select', numeric: true, inList: false,
+      options: [{ value: 1, label: '保養件' }, { value: 2, label: '維修件' }, { value: 3, label: '事故件' }, { value: 4, label: '改裝件' }, { value: 5, label: '油品耗材' }],
+    },
+    // 2026-06-26 分類二・技術角度（寫死）
+    {
+      key: 'techCategory', label: '技術分類', type: 'select', numeric: true, inList: false,
+      options: [
+        { value: 1, label: '引擎／動力系統' }, { value: 2, label: '傳動系統' }, { value: 3, label: '制動系統' },
+        { value: 4, label: '轉向系統' }, { value: 5, label: '懸吊與底盤系統' }, { value: 6, label: '電氣與電子系統' },
+        { value: 7, label: '冷卻與空調系統' }, { value: 8, label: '車體外觀與內裝' }, { value: 9, label: '安全與輔助系統' },
+      ],
+    },
     { key: 'countryId', label: '產地', type: 'ref', refBasePath: 'nx01/countries', inList: false },
     {
       key: 'partType', label: '料件類型', type: 'select', numeric: true, inList: false,
@@ -519,27 +527,6 @@ export const PART_MASTER: EntityMasterConfig = {
     { key: 'priceB', label: '售價 B', type: 'number', inList: false },
     { key: 'priceC', label: '售價 C', type: 'number', inList: false },
     { key: 'priceD', label: '售價 D', type: 'number', inList: false },
-  ],
-};
-
-export const BRAND_CODE_RULE_MASTER: EntityMasterConfig = {
-  basePath: 'nx01/brand-code-rules',
-  category: '產品料號',
-  title: '品牌料號規則基本資料',
-  entityNoun: '品牌料號規則',
-  errorCodePrefix: 'nxui_base_brand_code_rule',
-  deleteMode: SOFT,
-  minPlan: 'PLUS',
-  fields: [
-    { key: 'name', label: '規則名稱', required: true, minWidthClass: 'min-w-[160px]' },
-    { key: 'partBrandId', label: '零件品牌', type: 'ref', refBasePath: 'nx01/brands', refExtraFilters: { isPart: 'true' }, required: true, minWidthClass: 'min-w-[140px]' },
-    { key: 'description', label: '說明', type: 'textarea', inList: false },
-    { key: 'seg1Length', label: 'SEG1 最大字數', type: 'number', required: true, defaultValue: '3', minWidthClass: 'min-w-[90px]' },
-    { key: 'seg2Length', label: 'SEG2 最大字數', type: 'number', required: true, defaultValue: '3', inList: false },
-    { key: 'seg3Length', label: 'SEG3 最大字數', type: 'number', required: true, defaultValue: '3', inList: false },
-    { key: 'seg4Length', label: 'SEG4 最大字數（0=不使用）', type: 'number', defaultValue: '1', inList: false },
-    { key: 'seg5Length', label: 'SEG5 最大字數（0=不使用）', type: 'number', defaultValue: '0', inList: false },
-    { key: 'preview', label: '分段預覽（SEG 單空格）', type: 'computed', inList: false, compute: brandCodeRulePreview },
   ],
 };
 

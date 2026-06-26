@@ -79,45 +79,7 @@ export async function loadOrCreateB5Fixture(prisma: PrismaClient): Promise<B5Fix
   });
   if (!newBrand) throw new Error('No nx01_brand isPart=true in LITE tenant');
 
-  // brand_code_rule（W6-Phase 5：軸 brandId、同品牌可多規則以 name 區分；SEG1~3 各 3 字）
-  const codeRule = await prisma.nx01BrandCodeRule.upsert({
-    where: {
-      tenantId_brandId_name: { tenantId: tenant.id, brandId: newBrand.id, name: 'B5TEST-RULE' },
-    } as never,
-    create: {
-      tenantId: tenant.id,
-      brandId: newBrand.id,
-      name: 'B5TEST-RULE',
-      seg1Length: 3,
-      seg2Length: 3,
-      seg3Length: 3,
-      createdBy: user.id,
-      updatedBy: user.id,
-    } as never,
-    update: {},
-    select: { id: true },
-  } as never).catch(async () => {
-    const found = await prisma.nx01BrandCodeRule.findFirst({
-      where: { tenantId: tenant.id, brandId: newBrand.id },
-      select: { id: true },
-    });
-    if (found) return found;
-    return prisma.nx01BrandCodeRule.create({
-      data: {
-        tenantId: tenant.id,
-        brandId: newBrand.id,
-        name: 'B5TEST-RULE',
-        seg1Length: 3,
-        seg2Length: 3,
-        seg3Length: 3,
-        createdBy: user.id,
-        updatedBy: user.id,
-      },
-      select: { id: true },
-    });
-  });
-
-  // part：upsert by code
+  // part：upsert by code（2026-06-26 分段編碼規則已廢、料號純手動）
   const partCode = `${FIXTURE_PREFIX}-PART-001`;
   let part = await prisma.nx01Part.findFirst({
     where: { tenantId: tenant.id, code: partCode },
@@ -127,7 +89,6 @@ export async function loadOrCreateB5Fixture(prisma: PrismaClient): Promise<B5Fix
     part = await prisma.nx01Part.create({
       data: {
         tenantId: tenant.id,
-        codeRuleId: (codeRule as { id: string }).id,
         code: partCode,
         secCode: partCode,
         name: 'B5 測試用零件',

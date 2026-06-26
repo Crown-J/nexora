@@ -30,17 +30,15 @@ import { KeyboardSelect } from '@/features/nx01/shell/ui/KeyboardSelect';
 import { SatelliteSection } from '@/features/nx01/shell/satellite/SatelliteSection';
 import { StockSettingsSatellite } from './StockSettingsSatellite';
 import type { PartDto, PartOemCodeItem } from '@data/types/shared/master/part';
-import type { BrandCodeRuleDto } from '@data/endpoints/nx01/api/brand-code-rule';
 import { Calculator, Plus, X } from 'lucide-react';
 
 import {
   PART_TYPE_OPTIONS,
+  PURCHASE_CATEGORY_OPTIONS,
+  TECH_CATEGORY_OPTIONS,
   RETURN_POLICY_OPTIONS,
   type PartDraft,
 } from './helpers';
-
-/** A1：basic zone 的編碼規則 / 料號 / SEG 抽出特殊處理、不走通用 loop */
-const SPECIAL_BASIC_KEYS = new Set(['codeRuleId', 'code', 'seg1', 'seg2', 'seg3', 'seg4', 'seg5']);
 
 export type RefOption = { value: string; label: string };
 
@@ -58,22 +56,12 @@ export type PartFormZonedProps = {
    */
   editableZones?: Set<PartZone>;
   refOptions: {
-    codeRuleId?: RefOption[];
     partBrandId?: RefOption[];
     partGroupId?: RefOption[];
     countryId?: RefOption[];
   };
   /** v1.2 階段 E P5：衛星表渲染需要 part 主 row（id + oemCodes 等） */
   selected?: PartDto | null;
-  /**
-   * A1：編碼規則資料
-   * - brandCodeRules：所有 active 編碼規則（PartZonedPage 載入）
-   * - codePreview：依當前 draft 的 codeRuleId + seg1~5 + brand + country、server 端組好的料號預覽
-   * - segLensFor：依 codeRuleId 回傳 [seg1Len, seg2Len, seg3Len, seg4Len, seg5Len]、0 表示該段不啟用
-   */
-  brandCodeRules?: BrandCodeRuleDto[];
-  codePreview?: string;
-  segLensFor?: (codeRuleId: string) => number[];
   /**
    * A2：oemCodes 子表 inline 編輯
    * - oemCodesDraft：當前編輯中的子表（staged、存檔時整批送）
@@ -90,7 +78,6 @@ export type PartFormZonedProps = {
 };
 
 const FK_REF_KEYS: Record<string, keyof PartFormZonedProps['refOptions']> = {
-  codeRuleId: 'codeRuleId',
   partBrandId: 'partBrandId',
   partGroupId: 'partGroupId',
   countryId: 'countryId',
@@ -106,20 +93,15 @@ export function PartFormZoned({
   editableZones,
   refOptions,
   selected,
-  brandCodeRules,
-  codePreview,
-  segLensFor,
   oemCodesDraft,
   onOemCodesChange,
   onRecalcPrices,
 }: PartFormZonedProps) {
   const editing = mode === 'edit';
 
-  // 02 第四批 軌 3a 2026-06-07：LITE 隱藏汽車資料庫套件欄位（編碼規則 / SEG / 車型適配）。
-  // 載入未完成期間保守視為 LITE、避免 LITE 用戶 flicker 看到不該見的欄位。
+  // 02 第四批 軌 3a 2026-06-07：版本門檻欄位顯示控制（車型適配等）。
   const { planCode } = useSessionMe();
   const currentPlan = normalizePlanTier(planCode);
-  const isLite = currentPlan === 'LITE';
 
   /** 主檔中心 → 全 zone；模組頁 → editableZones 即可見 zones */
   const visibleZones = useMemo<Set<PartZone>>(
@@ -140,26 +122,12 @@ export function PartFormZoned({
     () =>
       PART_FIELDS.filter((f) => {
         if (f.zone !== safeActiveZone) return false;
-        // A1：basic zone 的編碼規則 / 料號 / SEG 用專屬區塊渲染、不走通用 loop
-        if (safeActiveZone === 'basic' && SPECIAL_BASIC_KEYS.has(f.key)) return false;
         // 02 第四批 軌 3a 2026-06-07：版本門檻 — 低於 minPlan 的 UI 隱藏（資料保留）
         if (!isFieldVisibleAtPlan(f, currentPlan)) return false;
         return true;
       }),
     [safeActiveZone, currentPlan],
   );
-
-  // A1：當前選的 codeRule（顯示「依規則 XX 字數限制」用）
-  const selectedRule = useMemo(() => {
-    const id = String(draft.codeRuleId ?? '');
-    if (!id || !brandCodeRules) return null;
-    return brandCodeRules.find((r) => r.id === id) ?? null;
-  }, [draft.codeRuleId, brandCodeRules]);
-  const segLens = useMemo(() => {
-    if (!selectedRule || !segLensFor) return [0, 0, 0, 0, 0];
-    return segLensFor(selectedRule.id);
-  }, [selectedRule, segLensFor]);
-  const lockedCodeNow = editing && !creating;
 
   return (
     <div className="flex flex-col gap-4">
@@ -188,38 +156,6 @@ export function PartFormZoned({
         ) : null}
       </div>
 
-      {/* A1：basic zone 的編碼規則 + 料號 + SEG 分段輸入區（從舊版 PartMasterPage 移植）
-            02 第四批 軌 3a：LITE 隱藏編碼規則 + SEG 分段（屬汽車資料庫套件）、保留料號 + 舊料號（核心） */}
-      {safeActiveZone === 'basic' ? (
-        <CodeRuleSection
-          editing={editing}
-          showCodeRuleAndSeg={!isLite}
-          codeRuleId={String(draft.codeRuleId ?? '')}
-          code={String(draft.code ?? '')}
-          oldCode={String(draft.oldCode ?? '')}
-          brandCodeRules={brandCodeRules ?? []}
-          selectedRule={selectedRule}
-          segLens={segLens}
-          codePreview={codePreview ?? ''}
-          segValues={[
-            String(draft.seg1 ?? ''),
-            String(draft.seg2 ?? ''),
-            String(draft.seg3 ?? ''),
-            String(draft.seg4 ?? ''),
-            String(draft.seg5 ?? ''),
-          ]}
-          lockedCodeNow={lockedCodeNow}
-          onCodeRuleChange={(v) =>
-            setDraft({ ...draft, codeRuleId: v, seg1: '', seg2: '', seg3: '', seg4: '', seg5: '' })
-          }
-          onCodeChange={(v) => setDraft({ ...draft, code: v })}
-          onOldCodeChange={(v) => setDraft({ ...draft, oldCode: v })}
-          onSegChange={(i, v) => {
-            const key = (['seg1', 'seg2', 'seg3', 'seg4', 'seg5'] as const)[i];
-            setDraft({ ...draft, [key]: v });
-          }}
-        />
-      ) : null}
 
       {/* A3：sales zone「依成本重算」按鈕（讀客戶分級毛利率） */}
       {editing && safeActiveZone === 'sales' && onRecalcPrices ? (
@@ -283,8 +219,8 @@ export function PartFormZoned({
           }
 
           const zoneEditable = editableZones ? editableZones.has(f.zone) : true;
-          const lockedNow = editing && !creating && f.key === 'code';
-          const fieldEditable = editing && zoneEditable && !lockedNow;
+          // 2026-06-26：基準料號 code 開放修改、不再鎖定
+          const fieldEditable = editing && zoneEditable;
 
           // FK ref 欄位
           const refKey = FK_REF_KEYS[f.key];
@@ -305,9 +241,19 @@ export function PartFormZoned({
             );
           }
 
-          // returnPolicy / type 靜態下拉
-          if (fieldEditable && (f.key === 'returnPolicy' || f.key === 'type')) {
-            const opts = f.key === 'returnPolicy' ? RETURN_POLICY_OPTIONS : PART_TYPE_OPTIONS;
+          // returnPolicy / type / 分類一二 靜態下拉
+          if (
+            fieldEditable &&
+            (f.key === 'returnPolicy' || f.key === 'type' || f.key === 'purchaseCategory' || f.key === 'techCategory')
+          ) {
+            const opts =
+              f.key === 'returnPolicy'
+                ? RETURN_POLICY_OPTIONS
+                : f.key === 'type'
+                ? PART_TYPE_OPTIONS
+                : f.key === 'purchaseCategory'
+                ? PURCHASE_CATEGORY_OPTIONS
+                : TECH_CATEGORY_OPTIONS;
             return (
               <FieldShell key={f.key} label={f.label} required={f.required}>
                 <KeyboardSelect
@@ -364,7 +310,7 @@ export function PartFormZoned({
               key={f.key}
               label={f.label}
               value={display}
-              mono={f.key === 'code' || f.key === 'oldCode'}
+              mono={f.key === 'code' || f.key === 'secCode'}
               tone={
                 f.key === 'isOem'
                   ? (raw ? 'green' : 'muted')
@@ -506,126 +452,6 @@ function renderPartSatellite(
 }
 
 /**
- * A1：編碼規則選擇 + 料號 + 舊料號 + 分段 SEG 輸入
- * 移植自舊版 PartMasterPage line 485-541
- * - 選了規則 → code 顯示為 server 預覽（唯讀）+ 顯示 SEG 分段輸入框（依規則字數限制）
- * - 未選規則 → code 手動輸入、SEG 區塊隱藏
- * - 編輯既有資料時 code 永遠鎖死
- */
-function CodeRuleSection({
-  editing,
-  showCodeRuleAndSeg,
-  codeRuleId,
-  code,
-  oldCode,
-  brandCodeRules,
-  selectedRule,
-  segLens,
-  codePreview,
-  segValues,
-  lockedCodeNow,
-  onCodeRuleChange,
-  onCodeChange,
-  onOldCodeChange,
-  onSegChange,
-}: {
-  editing: boolean;
-  // 02 第四批 軌 3a 2026-06-07：LITE 不顯示編碼規則 / SEG 分段（屬汽車資料庫套件）
-  showCodeRuleAndSeg: boolean;
-  codeRuleId: string;
-  code: string;
-  oldCode: string;
-  brandCodeRules: BrandCodeRuleDto[];
-  selectedRule: BrandCodeRuleDto | null;
-  segLens: number[];
-  codePreview: string;
-  segValues: string[];
-  lockedCodeNow: boolean;
-  onCodeRuleChange: (v: string) => void;
-  onCodeChange: (v: string) => void;
-  onOldCodeChange: (v: string) => void;
-  onSegChange: (i: number, v: string) => void;
-}) {
-  const ruleOpts = brandCodeRules.map((r) => ({ value: r.id, label: r.name }));
-  // LITE 模式：強制走「手動料號」路徑（即使 draft 已存 codeRuleId、預覽 widget 也不顯）
-  const useAutoCode = showCodeRuleAndSeg && editing && Boolean(codeRuleId);
-  return (
-    <div className="flex flex-col gap-3">
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {/* 編碼規則（LITE 隱藏） */}
-        {showCodeRuleAndSeg ? (
-          editing ? (
-            <div className="flex flex-col gap-1">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#B8B8C0]">
-                編碼規則
-              </span>
-              <KeyboardSelect
-                value={codeRuleId}
-                options={[{ value: '', label: '（不套用、手動輸入料號）' }, ...ruleOpts]}
-                placeholder="（不套用、手動輸入料號）"
-                ariaLabel="編碼規則"
-                onChange={onCodeRuleChange}
-              />
-            </div>
-          ) : (
-            <FormField label="編碼規則" value={selectedRule?.name ?? '（手動料號）'} />
-          )
-        ) : null}
-
-        {/* 料號：(PLUS+ 選規則 → 預覽唯讀)；(未選 / LITE) 編輯中 → 手動輸入；鎖定中 → readonly */}
-        {useAutoCode ? (
-          <FormField label="料號（自動）" value={codePreview || '（輸入分段後預覽）'} mono />
-        ) : editing && !lockedCodeNow ? (
-          <FormInput label="料號 *" value={code} onChange={onCodeChange} />
-        ) : (
-          <FormField label="料號" value={code || '—'} mono />
-        )}
-
-        {/* 舊料號（轉系統客戶用） */}
-        {editing ? (
-          <FormInput label="舊料號" value={oldCode} onChange={onOldCodeChange} placeholder="轉系統客戶用" />
-        ) : (
-          <FormField label="舊料號" value={oldCode || '—'} mono />
-        )}
-      </div>
-
-      {/* 分段 SEG 輸入（LITE 隱藏；PLUS+ 選了規則才出現） */}
-      {showCodeRuleAndSeg && editing && selectedRule ? (
-        <div className="rounded-lg border border-[#2A2A30] bg-[#0E0E12] p-3">
-          <div className="mb-2 text-[11px] font-semibold text-[#B8B8C0]">
-            分段輸入（依規則「{selectedRule.name}」字數限制）
-          </div>
-          <div className="flex flex-wrap gap-3">
-            {segLens.map((maxLen, i) => {
-              if (maxLen <= 0) return null;
-              return (
-                <div key={i} className="flex flex-col gap-1">
-                  <span className="text-[10px] text-[#888892]">SEG{i + 1}（≤{maxLen}）</span>
-                  <input
-                    value={segValues[i]}
-                    maxLength={maxLen}
-                    onChange={(e) => onSegChange(i, e.target.value)}
-                    className="w-24 rounded-md border border-[#E8A020]/30 bg-[#0A0A0C] px-2 py-1 font-mono text-sm text-[#E8E8EB] outline-none focus:border-[#E8A020]/60"
-                  />
-                </div>
-              );
-            })}
-          </div>
-          <div className="mt-2 font-mono text-xs text-[#E8A020]">預覽：{codePreview || '—'}</div>
-        </div>
-      ) : null}
-
-      {/* 瀏覽既有資料時的 SEG 顯示（LITE 隱藏） */}
-      {showCodeRuleAndSeg && !editing && segValues.some((v) => v) ? (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-5">
-          {segValues.map((v, i) => (v ? <FormField key={i} label={`SEG${i + 1}`} value={v} mono /> : null))}
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
-/**
  * A2：oemCodes 子表 inline 編輯
  * 移植自舊版 PartMasterPage line 573-603
  * - 新增空筆 / 改某筆 / 刪某筆、staged 在父單 oemCodesDraft、存檔時整批送
@@ -722,6 +548,12 @@ function renderBrowseValue(
   if (key === 'isOem') return raw ? '正廠件' : '副廠件';
   if (key === 'type') {
     return PART_TYPE_OPTIONS.find((o) => o.value === String(raw))?.label ?? String(raw);
+  }
+  if (key === 'purchaseCategory') {
+    return PURCHASE_CATEGORY_OPTIONS.find((o) => o.value === String(raw))?.label ?? String(raw);
+  }
+  if (key === 'techCategory') {
+    return TECH_CATEGORY_OPTIONS.find((o) => o.value === String(raw))?.label ?? String(raw);
   }
   if (key === 'returnPolicy') {
     return RETURN_POLICY_OPTIONS.find((o) => o.value === raw)?.label ?? String(raw);

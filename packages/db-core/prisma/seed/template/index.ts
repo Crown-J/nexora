@@ -14,7 +14,6 @@ import type { SeedTier } from '../lib/seed-tier';
 import { seedNx01RoleView } from '../system/nx01_role_view';
 
 import { applyAccountCode } from './apply-account-code';
-import { applyBrandCodeRule } from './apply-brand-code-rule';
 import { applyBulletinCategory } from './apply-bulletin-category';
 import { applyCarBrand } from './apply-car-brand';
 import { applyCustomerGrade } from './apply-customer-grade';
@@ -57,7 +56,6 @@ export async function applyTemplateToTenant(
   await applyModelType(prisma, params);     // ⚠️ NX01-15、無 FK 依賴
   await applyPartGroup(prisma, params);
   await applyPartBrand(prisma, params);
-  await applyBrandCodeRule(prisma, params); // ⚠️ 下半場 A：軸翻轉後依賴 applyPartBrand（規則對應零件品牌）
   await applyCustomerGrade(prisma, params);
   await applySupplierGrade(prisma, params);
   await applyRegion(prisma, params);
