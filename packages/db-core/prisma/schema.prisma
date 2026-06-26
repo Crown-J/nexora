@@ -809,8 +809,12 @@ model Nx01Part {
   brandId                         String?                @map("brand_id") @db.VarChar(15)
   /// 零件類型 (1=專用型 / 2=通用型 / 3=組合型 / 4=拆解型、軸 1 升 SmallInt、對齊 NX01-14/15 範式)；啟用最低需求版本：LITE
   type                            Int?                   @default(1) @db.SmallInt
-  /// 零件種類 id (外鍵)；啟用最低需求版本：LITE
+  /// 零件種類 id (外鍵、分類三＝客戶自定義群組)；啟用最低需求版本：LITE
   partGroupId                     String?                @map("part_group_id") @db.VarChar(15)
+  /// 分類一・採購角度（選填、寫死 SmallInt：1=保養件 / 2=維修件 / 3=事故件 / 4=改裝件 / 5=油品耗材；2026-06-26 新增）；啟用最低需求版本：LITE
+  purchaseCategory                Int?                   @map("purchase_category") @db.SmallInt
+  /// 分類二・技術角度（選填、寫死 SmallInt：1=引擎動力 / 2=傳動 / 3=制動 / 4=轉向 / 5=懸吊底盤 / 6=電氣電子 / 7=冷卻空調 / 8=車體內外裝 / 9=安全輔助；2026-06-26 新增）；啟用最低需求版本：LITE
+  techCategory                    Int?                   @map("tech_category") @db.SmallInt
   /// 規格/備註（例：MANN / 含墊片 / 06L…適用）；啟用最低需求版本：LITE
   spec                            String?                @db.VarChar(200)
   /// 單位（LITE 固定單位即可；未來再做多單位換算）；啟用最低需求版本：LITE
@@ -900,6 +904,9 @@ model Nx01Part {
   rev_Nx01PartCompatGroupMember_partId Nx01PartCompatGroupMember[] @relation("R_Nx01PartCompatGroupMember_partId")
   // 02 第三批 T4 2026-06-07：零件照片子表
   rev_Nx01PartPhoto_partId             Nx01PartPhoto[]              @relation("R_Nx01PartPhoto_partId")
+  // 2026-06-26：組合/拆解組件關係（whole=整體件、item=組件）
+  rev_Nx01PartKit_wholePartId          Nx01PartKit[]               @relation("R_Nx01PartKit_wholePartId")
+  rev_Nx01PartKitItem_partId           Nx01PartKitItem[]           @relation("R_Nx01PartKitItem_partId")
 
   @@unique([tenantId, code, countryId])
   @@index([tenantId, code])
@@ -7090,6 +7097,9 @@ model Nx99Tenant {
   rev_Nx01Region_tenantId                  Nx01Region[]                  @relation("R_Nx01Region_tenantId")
   rev_Nx01PartCompatGroup_tenantId         Nx01PartCompatGroup[]         @relation("R_Nx01PartCompatGroup_tenantId")
   rev_Nx01PartCompatGroupMember_tenantId   Nx01PartCompatGroupMember[]   @relation("R_Nx01PartCompatGroupMember_tenantId")
+  // 2026-06-26：組合/拆解組件關係
+  rev_Nx01PartKit_tenantId                 Nx01PartKit[]                 @relation("R_Nx01PartKit_tenantId")
+  rev_Nx01PartKitItem_tenantId             Nx01PartKitItem[]             @relation("R_Nx01PartKitItem_tenantId")
   /// 階段 F P5 加：一票對多沖銷 + 催款歷史
   rev_Nx05PaylogSettlement_tenantId        Nx05PaylogSettlement[]        @relation("R_Nx05PaylogSettlement_tenantId")
   rev_Nx05ArReminderLog_tenantId           Nx05ArReminderLog[]           @relation("R_Nx05ArReminderLog_tenantId")
@@ -7712,6 +7722,10 @@ model Nx01Model {
   drivetrainId                        String?                   @map("drivetrain_id") @db.VarChar(15)
   /// 車體類型 FK（可空）；啟用最低需求版本：LITE
   modelTypeId                         String?                   @map("model_type_id") @db.VarChar(15)
+  /// 引擎代碼（自由輸入、取消引擎外鍵後改用此欄、例：EA888 / 2GR-FE；2026-06-26 車型分類簡化）；啟用最低需求版本：LITE
+  engineCode                          String?                   @map("engine_code") @db.VarChar(30)
+  /// 排氣量 CC（自由輸入、取消引擎外鍵後改用此欄；2026-06-26 車型分類簡化）；啟用最低需求版本：LITE
+  displacementCc                      Int?                      @map("displacement_cc")
   /// 備註說明；啟用最低需求版本：LITE
   remark                              String?                   @db.VarChar(200)
   /// 排序用；啟用最低需求版本：LITE
@@ -7840,6 +7854,73 @@ model Nx01PartModel {
   @@index([tenantId, partId])
   @@index([tenantId, modelId])
   @@map("nx01_part_model")
+}
+
+/// =======================================================
+/// Nx01PartKit — DB table `nx01_part_kit`（組合/拆解組件關係表頭，2026-06-26 新增）
+/// =======================================================
+/// 業務範式：一個「整體件」等同於一組「組件（含數量）」。
+///   - 種類 3 拆解：整體＝正廠總成、組件＝副廠拆出的多個零件（A ＝ B×1 + C×2 + D×1）
+///   - 種類 4 組合：整體＝副廠合成件、組件＝多個正廠分售件（X + Y ＝ Z）
+model Nx01PartKit {
+  /// [NX01]+[PKIT]+[7碼流水號]，EX : NX01PKIT0000001；啟用最低需求版本：LITE
+  id          String            @id @default(dbgenerated("gen_nx01_part_kit_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵）；啟用最低需求版本：LITE
+  tenantId    String            @map("tenant_id") @db.VarChar(15)
+  /// 整體件 FK（被替代的單一料號：種類3=正廠總成 / 種類4=副廠合成件）；啟用最低需求版本：LITE
+  wholePartId String            @map("whole_part_id") @db.VarChar(15)
+  /// 關係名稱（顯示用、例：1K0407621 副廠拆解組）；啟用最低需求版本：LITE
+  name        String            @db.VarChar(100)
+  /// 備註；啟用最低需求版本：LITE
+  remark      String?           @db.VarChar(200)
+  /// 排序；啟用最低需求版本：LITE
+  sortNo      Int               @default(0) @map("sort_no")
+  /// 是否啟用；啟用最低需求版本：LITE
+  isActive    Boolean           @default(true) @map("is_active")
+  createdAt   DateTime          @default(now()) @map("created_at")
+  createdBy   String            @map("created_by") @db.VarChar(15)
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+  updatedBy   String            @map("updated_by") @db.VarChar(15)
+  tenant      Nx99Tenant        @relation("R_Nx01PartKit_tenantId", fields: [tenantId], references: [id])
+  wholePart   Nx01Part          @relation("R_Nx01PartKit_wholePartId", fields: [wholePartId], references: [id])
+  items       Nx01PartKitItem[] @relation("R_Nx01PartKitItem_kitId")
+
+  @@index([tenantId, wholePartId])
+  @@map("nx01_part_kit")
+}
+
+/// =======================================================
+/// Nx01PartKitItem — DB table `nx01_part_kit_item`（組合/拆解組件明細，2026-06-26 新增）
+/// =======================================================
+model Nx01PartKitItem {
+  /// [NX01]+[PKII]+[7碼流水號]，EX : NX01PKII0000001；啟用最低需求版本：LITE
+  id        String      @id @default(dbgenerated("gen_nx01_part_kit_item_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵）；啟用最低需求版本：LITE
+  tenantId  String      @map("tenant_id") @db.VarChar(15)
+  /// 所屬 kit 表頭 FK（ON DELETE CASCADE）；啟用最低需求版本：LITE
+  kitId     String      @map("kit_id") @db.VarChar(15)
+  /// 組件料號 FK；啟用最低需求版本：LITE
+  partId    String      @map("part_id") @db.VarChar(15)
+  /// 此組件在整體件中的數量；啟用最低需求版本：LITE
+  qty       Decimal     @db.Decimal(14, 4)
+  /// 排序；啟用最低需求版本：LITE
+  sortNo    Int         @default(0) @map("sort_no")
+  /// 備註；啟用最低需求版本：LITE
+  remark    String?     @db.VarChar(200)
+  /// 是否啟用；啟用最低需求版本：LITE
+  isActive  Boolean     @default(true) @map("is_active")
+  createdAt DateTime    @default(now()) @map("created_at")
+  createdBy String      @map("created_by") @db.VarChar(15)
+  updatedAt DateTime    @updatedAt @map("updated_at")
+  updatedBy String      @map("updated_by") @db.VarChar(15)
+  tenant    Nx99Tenant  @relation("R_Nx01PartKitItem_tenantId", fields: [tenantId], references: [id])
+  kit       Nx01PartKit @relation("R_Nx01PartKitItem_kitId", fields: [kitId], references: [id], onDelete: Cascade)
+  part      Nx01Part    @relation("R_Nx01PartKitItem_partId", fields: [partId], references: [id])
+
+  @@unique([tenantId, kitId, partId])
+  @@index([tenantId, kitId])
+  @@index([tenantId, partId])
+  @@map("nx01_part_kit_item")
 }
 
 /// =======================================================
