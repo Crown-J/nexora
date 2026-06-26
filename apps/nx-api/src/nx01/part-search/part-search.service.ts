@@ -107,9 +107,10 @@ export class PartSearchService {
     const partGroupQuery = q.partGroupQuery?.trim();
     const keyword = q.keyword?.trim();
     const partNo = q.partNo?.trim();
+    const modelQuery = q.modelQuery?.trim();
 
-    if (!brandId && !brandQuery && !partGroupId && !partGroupQuery && !keyword && !partNo) {
-      throw new BadRequestException('至少需提供一個篩選條件（廠牌 / 品名 / 族群 / 料號）');
+    if (!brandId && !brandQuery && !partGroupId && !partGroupQuery && !keyword && !partNo && !modelQuery) {
+      throw new BadRequestException('至少需提供一個篩選條件（廠牌 / 品名 / 族群 / 料號 / 車型）');
     }
 
     const where: Prisma.Nx01PartWhereInput = { tenantId };
@@ -185,6 +186,27 @@ export class PartSearchService {
         return { page, pageSize, total: 0, rawTotal: 0, limitReached: false, rows: [] };
       }
       ANDs.push({ id: { in: matched.map((m) => m.id) } });
+    }
+
+    // 車型關鍵字（執行長 2026-06-26 F2 加車型）：model.code/name contains → 經 part_model 關聯篩出適用該車型之 part
+    if (modelQuery) {
+      const models = await this.prisma.nx01Model.findMany({
+        where: {
+          tenantId,
+          OR: [
+            { code: { contains: modelQuery, mode: 'insensitive' } },
+            { name: { contains: modelQuery, mode: 'insensitive' } },
+          ],
+        },
+        select: { id: true },
+        take: 200,
+      });
+      if (models.length === 0) {
+        return { page, pageSize, total: 0, rawTotal: 0, limitReached: false, rows: [] };
+      }
+      ANDs.push({
+        rev_Nx01PartModel_partId: { some: { modelId: { in: models.map((m) => m.id) } } },
+      });
     }
 
     if (ANDs.length > 0) where.AND = ANDs;

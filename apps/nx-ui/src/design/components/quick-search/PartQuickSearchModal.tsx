@@ -79,6 +79,8 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
   const [keyword, setKeyword] = useState('');
   const [brandQuery, setBrandQuery] = useState('');
   const [partGroupQuery, setPartGroupQuery] = useState('');
+  // 執行長 2026-06-26：品名/廠牌/族群 加車型縮小範圍（次要 AND 篩選欄）
+  const [modelQuery, setModelQuery] = useState('');
   const [includeInactive, setIncludeInactive] = useState(false);
 
   const [result, setResult] = useState<PartSearchResult | null>(null);
@@ -94,6 +96,7 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
   const keywordInputRef = useRef<HTMLInputElement>(null);
   const brandInputRef = useRef<HTMLInputElement>(null);
   const partGroupInputRef = useRef<HTMLInputElement>(null);
+  const modelInputRef = useRef<HTMLInputElement>(null);
 
   const reqIdRef = useRef(0);
 
@@ -121,6 +124,7 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
     setKeyword('');
     setBrandQuery('');
     setPartGroupQuery('');
+    setModelQuery('');
     setIncludeInactive(false);
     setResult(null);
     setError(null);
@@ -135,6 +139,7 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
     setKeyword('');
     setBrandQuery('');
     setPartGroupQuery('');
+    setModelQuery('');
     setIncludeInactive(false);
     setResult(null);
     setError(null);
@@ -183,8 +188,12 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
     if (method === 'name' || method === 'all') q.keyword = keyword.trim() || undefined;
     if (method === 'brand' || method === 'all') q.brandQuery = brandQuery.trim() || undefined;
     if (method === 'group' || method === 'all') q.partGroupQuery = partGroupQuery.trim() || undefined;
+    if (method === 'name' || method === 'brand' || method === 'group' || method === 'all')
+      q.modelQuery = modelQuery.trim() || undefined;
     q.includeInactive = includeInactive;
-    const hasAny = Boolean(q.partNo || q.keyword || q.brandQuery || q.partGroupQuery);
+    const hasAny = Boolean(
+      q.partNo || q.keyword || q.brandQuery || q.partGroupQuery || q.modelQuery,
+    );
     if (!hasAny) {
       setResult(null);
       setError(null);
@@ -204,13 +213,13 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
     } finally {
       if (reqIdRef.current === myReqId) setLoading(false);
     }
-  }, [method, partNo, keyword, brandQuery, partGroupQuery, includeInactive]);
+  }, [method, partNo, keyword, brandQuery, partGroupQuery, modelQuery, includeInactive]);
 
   // 打字 debounce 自動搜尋（資料即時更新、不動焦點）
   useEffect(() => {
     const handle = setTimeout(() => void runSearch(), SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(handle);
-  }, [partNo, keyword, brandQuery, partGroupQuery, includeInactive, method, runSearch]);
+  }, [partNo, keyword, brandQuery, partGroupQuery, modelQuery, includeInactive, method, runSearch]);
 
   // 觸發搜尋 + 焦點鎖定到右側
   const triggerSearchAndFocusResult = useCallback(() => {
@@ -452,16 +461,16 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
         closing ? 'animate-out fade-out duration-200' : 'animate-in fade-in duration-200',
       )}
       dialogClassName={cn(
-        'flex flex-col rounded-2xl border border-white/12 bg-gradient-to-br from-[#0A0A0F]/92 to-black/92 text-foreground shadow-[0_30px_80px_rgba(0,0,0,0.75),0_0_60px_-20px_rgba(2,237,171,0.18)] backdrop-blur-2xl',
+        'flex flex-col rounded-2xl border border-border/60 bg-popover text-foreground shadow-[0_24px_70px_rgba(0,0,0,0.55),0_0_50px_-18px_rgba(232,160,32,0.22)]',
         closing ? 'animate-out fade-out zoom-out-95 duration-200' : 'animate-in fade-in zoom-in-95 duration-200',
       )}
       dialogStyle={{ width: 'min(1200px, 96vw)', height: 'min(720px, 92vh)' }}
     >
       <>
         {/* Header */}
-        <div className="flex items-center gap-2.5 border-b border-white/40 px-6 py-3">
-          <span className="size-2 rounded-full bg-[#02EDAB] shadow-[0_0_10px_#02EDAB]" />
-          <PackageSearch className="size-[18px] text-[#02EDAB]" />
+        <div className="flex items-center gap-2.5 border-b border-border/40 px-6 py-3">
+          <span className="size-2 rounded-full bg-primary shadow-[0_0_10px_#02EDAB]" />
+          <PackageSearch className="size-[18px] text-primary" />
           <h2 className="text-[15px] font-semibold tracking-wide text-foreground">料號即時搜尋</h2>
           <span className="ml-3 text-[11px] uppercase tracking-[0.18em] text-muted-foreground/60">
             五查法 · Alt+1~5 切換
@@ -472,7 +481,7 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
           <button
             type="button"
             onClick={onClose}
-            className="ml-1 rounded-md border border-white/40 bg-[#0A0A0F]/40 p-1 text-muted-foreground hover:bg-[#1A1A1F]/60 hover:text-foreground"
+            className="ml-1 rounded-md border border-border/40 bg-background/40 p-1 text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
             aria-label="關閉"
           >
             <X className="size-3.5" />
@@ -480,7 +489,7 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
         </div>
 
         {/* Method tabs */}
-        <div className="flex items-center gap-2 border-b border-white/40 bg-[#1A1A1F]/50 px-6 py-2.5">
+        <div className="flex items-center gap-2 border-b border-border/40 bg-secondary/50 px-6 py-2.5">
           {METHOD_TABS.map((t) => (
             <button
               key={t.key}
@@ -489,8 +498,8 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
               className={cn(
                 'inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-[13px] font-medium transition-colors',
                 method === t.key
-                  ? 'border-[#02EDAB] bg-[#02EDAB]/15 text-[#02EDAB] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]'
-                  : 'border-white/40 bg-[#0A0A0F]/40 text-muted-foreground hover:border-[#02EDAB]/40 hover:text-foreground',
+                  ? 'border-primary bg-primary/15 text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]'
+                  : 'border-border/40 bg-background/40 text-muted-foreground hover:border-primary/40 hover:text-foreground',
               )}
             >
               <kbd className="rounded border border-current/40 bg-current/10 px-1.5 py-px font-mono text-[10px] tracking-tight opacity-85">
@@ -506,14 +515,14 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
           {/* 左：輸入區 */}
           <aside
             className={cn(
-              'flex min-h-0 flex-col border-r border-white/40 bg-[#0A0A0F]/30 transition-opacity',
+              'flex min-h-0 flex-col border-r border-border/40 bg-background/30 transition-opacity',
               inputDisabled && 'opacity-50',
             )}
           >
-            <div className="flex items-center justify-between border-b border-white/30 bg-[#0A0A0F]/20 px-5 py-2 text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70">
+            <div className="flex items-center justify-between border-b border-border/30 bg-background/20 px-5 py-2 text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70">
               <span>輸入條件</span>
               {inputDisabled ? (
-                <span className="text-[12px] text-[#02EDAB]/75 normal-case tracking-normal">
+                <span className="text-[12px] text-primary/75 normal-case tracking-normal">
                   已鎖定 · Alt+F 回此區
                 </span>
               ) : (
@@ -580,13 +589,23 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
                   onArrowDownEmpty={handleInputArrowDown}
                 />
               )}
+              {(method === 'name' || method === 'brand' || method === 'group' || method === 'all') && (
+                <PlainInputBlock
+                  label="車型（縮小範圍）"
+                  value={modelQuery}
+                  onChange={setModelQuery}
+                  inputRef={modelInputRef}
+                  placeholder="車型代碼/名稱，如 T5 / F30（可空）"
+                  onKeyDown={handlePlainInputKey}
+                />
+              )}
               {method === 'all' && (
                 <label className="flex cursor-pointer items-center gap-2 text-[13px] text-foreground/90">
                   <input
                     type="checkbox"
                     checked={includeInactive}
                     onChange={(e) => setIncludeInactive(e.target.checked)}
-                    className="size-4 accent-[#02EDAB]"
+                    className="size-4 accent-primary"
                   />
                   含停用品
                 </label>
@@ -596,9 +615,9 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
                 <button
                   type="button"
                   onClick={triggerSearchAndFocusResult}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-[#02EDAB]/60 bg-[#02EDAB]/15 px-4 py-2 text-[14px] font-medium text-[#02EDAB] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-colors hover:bg-[#02EDAB]/25"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-primary/60 bg-primary/15 px-4 py-2 text-[14px] font-medium text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-colors hover:bg-primary/25"
                 >
-                  搜尋 <kbd className="rounded border border-[#02EDAB]/40 bg-[#02EDAB]/10 px-1.5 py-px font-mono text-[11px]">Alt+F</kbd>
+                  搜尋 <kbd className="rounded border border-primary/40 bg-primary/10 px-1.5 py-px font-mono text-[11px]">Alt+F</kbd>
                 </button>
                 {method !== 'all' && (
                   <p className="mt-2 text-center text-[11px] text-muted-foreground/55">
@@ -659,7 +678,7 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
                 </ul>
               )}
               {loading ? (
-                <div className="pointer-events-none absolute right-4 top-3 flex items-center gap-2 rounded-md border border-[#02EDAB]/40 bg-[#0A0A0F]/60 px-3 py-1.5 text-xs text-[#02EDAB] shadow-lg">
+                <div className="pointer-events-none absolute right-4 top-3 flex items-center gap-2 rounded-md border border-primary/40 bg-background/60 px-3 py-1.5 text-xs text-primary shadow-lg">
                   <Loader2 className="size-3.5 animate-spin" />
                   搜尋中…
                 </div>
@@ -669,7 +688,7 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between border-t border-white/30 bg-[#0A0A0F]/30 px-6 py-2 text-[11px] text-muted-foreground/70">
+        <div className="flex items-center justify-between border-t border-border/30 bg-background/30 px-6 py-2 text-[11px] text-muted-foreground/70">
           <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <Kbd>Alt+1~5</Kbd> 切查法
             <span className="text-muted-foreground/30">·</span>
@@ -720,7 +739,7 @@ function PlainInputBlock({
       <span
         className={cn(
           'text-[11px] font-medium uppercase tracking-[0.14em]',
-          primary ? 'text-[#02EDAB]/85' : 'text-muted-foreground/70',
+          primary ? 'text-primary/85' : 'text-muted-foreground/70',
         )}
       >
         {label}
@@ -737,10 +756,10 @@ function PlainInputBlock({
         placeholder={placeholder}
         autoComplete="off"
         className={cn(
-          'rounded-md bg-[#0A0A0F]/60 px-3 outline-none transition-colors placeholder:text-muted-foreground/45',
+          'rounded-md bg-background/60 px-3 outline-none transition-colors placeholder:text-muted-foreground/45',
           primary
-            ? 'h-11 border-2 border-[#02EDAB]/55 font-mono text-[15px] tracking-wide text-foreground focus:border-[#02EDAB]'
-            : 'h-10 border border-white/40 text-sm text-foreground focus:border-[#02EDAB]/60',
+            ? 'h-11 border-2 border-primary/55 font-mono text-[15px] tracking-wide text-foreground focus:border-primary'
+            : 'h-10 border border-border/40 text-sm text-foreground focus:border-primary/60',
         )}
       />
     </div>
@@ -763,21 +782,21 @@ function ResultsHeader({
   const groupCount = result?.groups?.length ?? 0;
   const ungroupedCount = result?.ungrouped?.length ?? 0;
   return (
-    <div className="flex items-center justify-between border-b border-white/25 bg-[#0A0A0F]/30 px-5 py-2 text-[12px] text-muted-foreground">
+    <div className="flex items-center justify-between border-b border-border/25 bg-background/30 px-5 py-2 text-[12px] text-muted-foreground">
       {error ? (
-        <span className="text-[#E26060]">⚠ {error}</span>
+        <span className="text-destructive">⚠ {error}</span>
       ) : !hasAnyInput ? (
         <span className="text-muted-foreground/65">輸入條件即時搜尋</span>
       ) : !result ? (
-        loading ? <span className="text-[#02EDAB]">搜尋中…</span> : <span>—</span>
+        loading ? <span className="text-primary">搜尋中…</span> : <span>—</span>
       ) : (
         <span>
-          {locked ? <span className="mr-2 text-[#02EDAB]">▶</span> : null}
+          {locked ? <span className="mr-2 text-primary">▶</span> : null}
           找到{' '}
           <span
             className={cn(
               'font-mono font-semibold',
-              result.total === 0 ? 'text-[#E26060]' : 'text-[#02EDAB]',
+              result.total === 0 ? 'text-destructive' : 'text-primary',
             )}
           >
             {result.total.toLocaleString()}
@@ -785,7 +804,7 @@ function ResultsHeader({
           筆 · 群組 <span className="font-mono">{groupCount}</span> · 散件{' '}
           <span className="font-mono">{ungroupedCount}</span>
           {result.limitReached ? (
-            <span className="ml-2 text-[#E26060]">⚠ 已達上限 500</span>
+            <span className="ml-2 text-destructive">⚠ 已達上限 500</span>
           ) : null}
         </span>
       )}
@@ -854,11 +873,11 @@ function ResultRow({
         'shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]',
         'transition-[border-color,box-shadow,background-color] duration-150 ease-out',
         // 群組頭 vs 替代品基準
-        isAlt ? 'border-white/35' : 'border-[#02EDAB]/30',
+        isAlt ? 'border-border/35' : 'border-primary/30',
         // highlight：邊框純金 + 背景加深 + 雙層光暈（不 scale、字不糊）
         isHighlighted
-          ? 'border-[#02EDAB] from-[#02EDAB]/15 to-[#02EDAB]/8 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_0_14px_-2px_rgba(232,160,32,0.5)]'
-          : 'hover:border-[#02EDAB]/55 hover:from-card/75 hover:to-card/55',
+          ? 'border-primary from-primary/15 to-primary/8 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_0_14px_-2px_rgba(232,160,32,0.5)]'
+          : 'hover:border-primary/55 hover:from-card/75 hover:to-card/55',
         !m.isActive && 'opacity-55',
       )}
     >
@@ -868,7 +887,7 @@ function ResultRow({
           aria-hidden
           className={cn(
             'pointer-events-none absolute left-0 top-2 bottom-2 rounded-r transition-[width,background-color] duration-150 ease-out',
-            isHighlighted ? 'w-1.5 bg-[#02EDAB]' : 'w-1 bg-[#02EDAB]/55',
+            isHighlighted ? 'w-1.5 bg-primary' : 'w-1 bg-primary/55',
           )}
         />
       )}
@@ -878,14 +897,14 @@ function ResultRow({
         <span
           className={cn(
             'min-w-0 flex-1 break-all font-mono font-semibold tracking-[0.01em]',
-            isAlt ? 'text-[15px] text-[#02EDAB]/85' : 'text-[16px] text-[#02EDAB]',
+            isAlt ? 'text-[15px] text-primary/85' : 'text-[16px] text-primary',
           )}
         >
           {m.code}
         </span>
         <div className="flex shrink-0 items-center gap-1.5">
           {isAlt && (
-            <span className="rounded-md border border-white/55 bg-[#1A1A1F]/25 px-2 py-0.5 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-[#6C86CE]">
+            <span className="rounded-md border border-border/55 bg-secondary/25 px-2 py-0.5 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
               替代
             </span>
           )}
@@ -893,14 +912,14 @@ function ResultRow({
             className={cn(
               'rounded-md border px-2 py-0.5 font-mono text-[11px] font-medium uppercase tracking-[0.08em]',
               m.isOem
-                ? 'border-[#02EDAB]/55 bg-[#02EDAB]/15 text-[#02EDAB]'
-                : 'border-white/50 bg-muted/30 text-muted-foreground/85',
+                ? 'border-primary/55 bg-primary/15 text-primary'
+                : 'border-border/50 bg-muted/30 text-muted-foreground/85',
             )}
           >
             {m.isOem ? '正廠' : '副廠'}
           </span>
           {!m.isActive && (
-            <span className="rounded-md border border-[#5A2A2A] bg-[#1F1212] px-2 py-0.5 text-[11px] font-medium text-[#E26060]">
+            <span className="rounded-md border border-destructive/40 bg-destructive/10 px-2 py-0.5 text-[11px] font-medium text-destructive">
               停用
             </span>
           )}
@@ -930,7 +949,7 @@ function ResultRow({
 
 function Kbd({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="rounded border border-white/40 bg-[#0A0A0F]/40 px-1.5 py-px font-mono text-[10px] text-muted-foreground/85">
+    <kbd className="rounded border border-border/40 bg-background/40 px-1.5 py-px font-mono text-[10px] text-muted-foreground/85">
       {children}
     </kbd>
   );

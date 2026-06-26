@@ -31,6 +31,12 @@ export class PartSearchQueryDto {
   @IsOptional() @IsString() @MaxLength(100) partGroupQuery?: string;
 
   /**
+   * 車型關鍵字（model.code 或 name 含此字、經 part_model 關聯篩出適用該車型之料件）。
+   * 執行長 2026-06-26：品名/廠牌/族群 三查法加車型縮小範圍用（次要 AND 篩選）。
+   */
+  @IsOptional() @IsString() @MaxLength(100) modelQuery?: string;
+
+  /**
    * 品名關鍵字（同時打：name contains + 注音聲母碼 contains）。
    * 前端 F4 候選下拉若選定具體中文詞，會把該詞填回此欄。
    */
