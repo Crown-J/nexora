@@ -1,8 +1,9 @@
 // apps/nx-api/src/sys-admin/importer/handlers/product.handler.ts
 // v1.2 對齊軌 C-FU FU-import-03：產品 importer
 //
-// 範本欄位：name / code / category / safetyQty / maxQty / defaultLocation
+// 範本欄位：name / code / secCode(廠牌料號) / category / safetyQty / maxQty / defaultLocation
 // 寫 Nx01Part + Nx03PartStockSetting
+// 2026-06-26：廠牌料號 secCode 改必填
 
 import type { HandlerContext, HandlerResult, ImportRow } from './base';
 import { parseNumber } from './base';
@@ -20,8 +21,8 @@ export async function importProducts(
   });
 
   for (const { rowNo, data } of rows) {
-    if (!data.name || !data.code) {
-      result.errors.push({ rowNo, reason: '產品名稱 / 編碼必填' });
+    if (!data.name || !data.code || !data.secCode) {
+      result.errors.push({ rowNo, reason: '產品名稱 / 基準料號 / 廠牌料號必填' });
       continue;
     }
     // 檢編碼重複
@@ -38,6 +39,7 @@ export async function importProducts(
       data: {
         tenantId: ctx.tenantId,
         code: data.code,
+        secCode: data.secCode,
         name: data.name,
         isActive: true,
         createdBy: ctx.userId,

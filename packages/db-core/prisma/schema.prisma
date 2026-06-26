@@ -786,8 +786,8 @@ model Nx01Part {
   name                            String                 @db.VarChar(200)
   /// 是否為正廠件；啟用最低需求版本：LITE
   isOem                           Boolean                @default(true) @map("is_oem")
-  /// 廠牌料號（T8 進貨對齊批次 2026-06-08 用詞修正：總經理確認該欄記「該廠牌對這料件的料號」、可能原廠可能副廠、用詞由「副廠料號」更正為「廠牌料號」；欄名 sec_code 沿用、無需 DDL）。；啟用最低需求版本：LITE
-  secCode                         String?                @map("sec_code") @db.VarChar(50)
+  /// 廠牌料號（記「該廠牌對這料件的料號」、可能原廠可能副廠；用詞 2026-06-08 由「副廠料號」更正為「廠牌料號」；2026-06-26 改必填 NOT NULL：基準料號+廠牌料號皆必填）。；啟用最低需求版本：LITE
+  secCode                         String                 @map("sec_code") @db.VarChar(50)
   /// 舊料號（轉系統客戶用、永遠可填、下半場 B）；啟用最低需求版本：LITE
   oldCode                         String?                @map("old_code") @db.VarChar(50)
   /// 成本（業務員填、價格重算基準、下半場 B）；啟用最低需求版本：LITE

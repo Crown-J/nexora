@@ -129,6 +129,7 @@ export async function loadOrCreateB5Fixture(prisma: PrismaClient): Promise<B5Fix
         tenantId: tenant.id,
         codeRuleId: (codeRule as { id: string }).id,
         code: partCode,
+        secCode: partCode,
         name: 'B5 測試用零件',
         brandId: newBrand.id,
         isActive: true,

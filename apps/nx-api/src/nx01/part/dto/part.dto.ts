@@ -4,6 +4,7 @@ import {
   IsBoolean,
   IsIn,
   IsInt,
+  IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
@@ -123,10 +124,11 @@ export class CreatePartDto {
   @IsBoolean()
   isOem?: boolean;
 
-  @IsOptional()
+  // 2026-06-26 廠牌料號改必填（基準料號 + 廠牌料號皆必填）
   @IsString()
+  @IsNotEmpty()
   @MaxLength(50)
-  secCode?: string;
+  secCode!: string;
 
   @IsOptional()
   @IsString()
@@ -273,10 +275,11 @@ export class UpdatePartDto {
   @IsBoolean()
   isOem?: boolean;
 
+  // 2026-06-26 廠牌料號必填、更新時若帶入不可為 null
   @IsOptional()
   @IsString()
   @MaxLength(50)
-  secCode?: string | null;
+  secCode?: string;
 
   @IsOptional()
   @IsString()

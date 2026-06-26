@@ -384,7 +384,7 @@ export class PartService {
           code: effectiveCode,
           name: dto.name.trim(),
           isOem: dto.isOem ?? true,
-          secCode: trimOrNull(dto.secCode),
+          secCode: dto.secCode.trim(),
           oldCode: trimOrNull(dto.oldCode),
           cost: dto.cost ?? 0,
           seg1: trimOrNull(dto.seg1),
@@ -528,7 +528,7 @@ export class PartService {
       data: {
         ...(dto.name !== undefined ? { name: dto.name.trim() } : {}),
         ...(dto.isOem !== undefined ? { isOem: dto.isOem } : {}),
-        ...(dto.secCode !== undefined ? { secCode: trimOrNull(dto.secCode) } : {}),
+        ...(dto.secCode !== undefined ? { secCode: dto.secCode.trim() } : {}),
         ...(dto.oldCode !== undefined ? { oldCode: trimOrNull(dto.oldCode) } : {}),
         ...(dto.cost !== undefined ? { cost: dto.cost } : {}),
         ...(dto.seg1 !== undefined ? { seg1: trimOrNull(dto.seg1) } : {}),
