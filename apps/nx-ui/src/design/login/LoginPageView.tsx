@@ -91,40 +91,44 @@ export function LoginPageView({
     >
       {/* 左：品牌價值區（漸層 + 點狀紋理 + logo + 產品亮點） */}
       <section
-        className="relative flex shrink-0 flex-col justify-between overflow-hidden px-8 py-8 text-primary-foreground lg:w-1/2 lg:px-14 lg:py-12 xl:w-[55%]"
+        className="relative flex shrink-0 flex-col justify-between overflow-hidden px-8 py-8 lg:w-1/2 lg:px-14 lg:py-12 xl:w-[55%]"
         style={{
-          background:
-            'linear-gradient(135deg, var(--primary) 0%, color-mix(in srgb, var(--primary) 60%, #0b1220) 100%)',
+          // 石墨深底（執行長 2026-06-28 選定方案 B）：深炭底 + 鋼藍點綴
+          background: 'linear-gradient(160deg, #243140 0%, #141b22 100%)',
+          color: '#eef2f6',
         }}
       >
         {/* 點狀紋理 */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-[0.16]"
+          className="pointer-events-none absolute inset-0 opacity-[0.14]"
           style={{
             backgroundImage:
               'radial-gradient(circle at center, rgba(255,255,255,0.9) 1px, transparent 1px)',
             backgroundSize: '22px 22px',
           }}
         />
-        {/* 右上柔光 */}
+        {/* 右上鋼藍柔光 */}
         <div
           aria-hidden
-          className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full opacity-30"
-          style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.5), transparent 70%)' }}
+          className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full opacity-40"
+          style={{ background: 'radial-gradient(circle, rgba(90,147,196,0.45), transparent 70%)' }}
         />
 
         {/* 上：logo + 品牌 */}
         <div className="relative">
           <div className="flex items-center gap-3">
-            <span className="grid h-11 w-11 place-items-center rounded-xl bg-white/15 ring-1 ring-white/25 backdrop-blur-sm">
-              <Boxes className="h-6 w-6" />
+            <span
+              className="grid h-11 w-11 place-items-center rounded-xl ring-1 ring-white/10"
+              style={{ background: '#2f5d8a' }}
+            >
+              <Boxes className="h-6 w-6 text-white" />
             </span>
             <div>
               <div className="text-xl font-bold leading-none tracking-wide">
-                NEXORA <span className="opacity-85">GRID</span>
+                NEXORA <span style={{ color: '#7fb0db' }}>GRID</span>
               </div>
-              <div className="mt-1 text-[10px] tracking-[0.32em] opacity-75">
+              <div className="mt-1 text-[10px] tracking-[0.32em] opacity-70">
                 ENTERPRISE RESOURCE PLANNING
               </div>
             </div>
@@ -141,7 +145,10 @@ export function LoginPageView({
           <ul className="mt-6 hidden space-y-3 lg:block">
             {FEATURES.map((f) => (
               <li key={f.text} className="flex items-center gap-3 text-[14px] opacity-95">
-                <span className="grid h-6 w-6 place-items-center rounded-full bg-white/15">
+                <span
+                  className="grid h-6 w-6 place-items-center rounded-full text-white"
+                  style={{ background: '#5a93c4' }}
+                >
                   <Check className="h-3.5 w-3.5" />
                 </span>
                 {f.text}
