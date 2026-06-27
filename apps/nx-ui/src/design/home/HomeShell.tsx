@@ -11,6 +11,7 @@ import { ScatterPageGate } from '@design/motion/scatter/ScatterPageGate';
 import { HomeView } from '@design/home/HomeView';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import { usePlanet } from '@design/home/SharedPlanetRoot';
+import { DashboardPaletteProvider } from '@/features/nx00/context/DashboardPaletteContext';
 
 export function HomeShell() {
   const router = useRouter();
@@ -65,28 +66,31 @@ export function HomeShell() {
   const empNo = me?.username ?? '';
 
   return (
-    <div className="relative flex h-dvh flex-col text-foreground overflow-hidden">
-      {/* 底色 backdrop + 互動層（深色粒子 / 淺色六角凸出）由 root layout 統一掛、本層不重 mount */}
-      {/* 內容層 z-10、mount 時 fade-in / logout 時 fade-out */}
-      <div
-        className={`relative z-10 flex flex-1 min-h-0 flex-col transition-all duration-500 ease-out ${
-          isLeaving ? 'opacity-0 scale-[0.96]' : 'animate-in fade-in duration-500'
-        }`}
-      >
-        <UnifiedTopBar
-          displayName={nameText}
-          employeeNo={empNo}
-          onLogout={handleLogout}
-          onDockToggle={toggleDock}
-          onHome={() => router.push('/dashboard')}
-        />
-        <PlanetDock open={dockOpen} onClose={closeDock} />
-        <main className="flex flex-1 min-h-0 flex-col">
-          <ScatterPageGate>
-            <HomeView displayName={nameText} />
-          </ScatterPageGate>
-        </main>
+    // UnifiedTopBar 內「介面風格」切換鈕需 DashboardPaletteProvider（與 DashboardShell 一致）
+    <DashboardPaletteProvider>
+      <div className="relative flex h-dvh flex-col text-foreground overflow-hidden">
+        {/* 底色 backdrop + 互動層（深色粒子 / 淺色六角凸出）由 root layout 統一掛、本層不重 mount */}
+        {/* 內容層 z-10、mount 時 fade-in / logout 時 fade-out */}
+        <div
+          className={`relative z-10 flex flex-1 min-h-0 flex-col transition-all duration-500 ease-out ${
+            isLeaving ? 'opacity-0 scale-[0.96]' : 'animate-in fade-in duration-500'
+          }`}
+        >
+          <UnifiedTopBar
+            displayName={nameText}
+            employeeNo={empNo}
+            onLogout={handleLogout}
+            onDockToggle={toggleDock}
+            onHome={() => router.push('/dashboard')}
+          />
+          <PlanetDock open={dockOpen} onClose={closeDock} />
+          <main className="flex flex-1 min-h-0 flex-col">
+            <ScatterPageGate>
+              <HomeView displayName={nameText} />
+            </ScatterPageGate>
+          </main>
+        </div>
       </div>
-    </div>
+    </DashboardPaletteProvider>
   );
 }
