@@ -107,17 +107,15 @@ export function WorkbenchTabsProvider({ children }: { children: ReactNode }) {
 
   const close = useCallback(
     (href: string) => {
-      setTabs((prev) => {
-        const next = prev.filter((t) => t.href !== href);
-        // 關掉的是作用中分頁 → 切到鄰近分頁或首頁
-        if (href === active.href) {
-          const fallback = next.length ? next[next.length - 1].href : HOME_HREF;
-          tryNavigate(() => router.push(fallback), 'workbench: 關閉分頁後切換');
-        }
-        return next;
-      });
+      // 先算剩餘分頁（純）、再 setState；跳頁（副作用）放在更新函式外、避免「render 中改 Router」
+      const remaining = tabs.filter((t) => t.href !== href);
+      setTabs(remaining);
+      if (href === active.href) {
+        const fallback = remaining.length ? remaining[remaining.length - 1].href : HOME_HREF;
+        tryNavigate(() => router.push(fallback), 'workbench: 關閉分頁後切換');
+      }
     },
-    [active.href, router],
+    [tabs, active.href, router],
   );
 
   const closeAll = useCallback(() => {
