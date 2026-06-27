@@ -16,7 +16,7 @@ export function NxPaletteHydration() {
   useLayoutEffect(() => {
     const raw = window.localStorage.getItem(NX_DASHBOARD_PALETTE_STORAGE_KEY);
     const v: DashboardPalette =
-      raw && VALID.has(raw) ? (raw as DashboardPalette) : 'steel';
+      raw && VALID.has(raw) ? (raw as DashboardPalette) : 'pro';
     document.documentElement.setAttribute('data-nx-palette', v);
   }, []);
 

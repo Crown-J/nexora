@@ -576,7 +576,12 @@ export function SharedPlanetRoot({ children }: { children: ReactNode }) {
           .nx-sp-halo, .nx-sp-reactor { animation: none; }
         }
       `}</style>
-      <div ref={planetRef} className="nx-shared-planet">
+      {/* 2026-06-27 大改版：TopBar 星球位已隨太空風外殼封存；星球僅在登入頁顯示（dashboard 隱藏、避免浮在傳統外殼上） */}
+      <div
+        ref={planetRef}
+        className="nx-shared-planet"
+        style={{ display: pathname === '/login' ? undefined : 'none' }}
+      >
         <div className="nx-sp-halo" />
         <div className="nx-sp-sphere">
           <PlanetSVG uid="root" />
