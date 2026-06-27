@@ -300,125 +300,78 @@ html.light select {
 }
 
 /* ============================================================
-   pro 專業版 palette（2026-06-27 起；2026-06-28 執行長選定「石墨藍灰」方案 2）
-   風格：SAP Fiori 風冷靜鋼藍灰、單一克制鋼藍 accent（primary #2f5d8a）
-   - 共用基底（不分深淺）：圓角縮小、字級回 100%、glow 歸零、漸層壓平
-   - 深色：石墨藍灰深色（鋼藍 accent）
-   - 淺色：石墨藍灰白底（主力展示）
-   特效壓平（glass / stars / aurora / orbit）見 utilities-and-animations.css 末段
+   pro 統一主題 palette（2026-06-28 執行長定案：墨藍 × 銀 × 白、不分深淺）
+   方案 4「墨藍頂＋銀質工具列」：
+   - 選單列 L1 墨藍 / 工具列 L3 刷銀金屬漸層 / 工作區 L5 白底黑字 / 其餘銀框
+   - 不再有深/淺切換；本 palette 與 .light 無關、一律套用（forced light）
+   - 護眼：底用銀白、文字近黑、白不刺眼；質感靠銀框反光 + 工具列陰影
 ============================================================ */
 html[data-nx-palette='pro'] {
-  --radius: 0.3rem;                  /* 大圓角 → 收斂、企業感 */
-  --nx-root-font-size: 100%;         /* 110% → 100%、提資訊密度 */
-  --nx-glow-primary: none;           /* 發光特效歸零 */
-  --nx-exp-gradient: var(--primary); /* 經驗條等漸層 → 純色 */
-}
-
-/* pro 深色：石墨藍灰深色（鋼藍 accent、SAP Fiori dark 風） */
-html:not(.light)[data-nx-palette='pro'] {
-  --background: #11161c;
-  --foreground: #dde3ea;
-  --card: #1a212a;
-  --card-foreground: #dde3ea;
-  --popover: #1a212a;
-  --popover-foreground: #dde3ea;
-  --primary: #5a93c4;
-  --primary-foreground: #ffffff;
-  --secondary: #232c37;
-  --secondary-foreground: #c5cdd7;
-  --muted: #222b35;
-  --muted-foreground: #8b97a5;
-  --accent: #5a93c4;
-  --accent-foreground: #ffffff;
-  --destructive: #ef4444;
-  --destructive-foreground: #ffffff;
-  --border: #2c3743;
-  --input: #1a212a;
-  --ring: #5a93c4;
-  --chart-1: #5a93c4;
-  --chart-2: #6fb0c4;
-  --chart-3: #8aa6c0;
-  --chart-4: #d9a23b;
-  --chart-5: #7a8794;
-  --sidebar: #0d1218;
-  --sidebar-foreground: #c5cdd7;
-  --sidebar-primary: #5a93c4;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #1f2832;
-  --sidebar-accent-foreground: #c5cdd7;
-  --sidebar-border: #26303b;
-  --sidebar-ring: #5a93c4;
-  --nx-scroll-track: #161d24;
-  --nx-scroll-thumb: #344150;
-  --nx-scroll-thumb-hover: #455463;
-  --warning: #d99a2b;
-  --color-primary-light: #7fb0db;
-  --color-primary-bg: rgba(90, 147, 196, 0.16);
-  --color-success: #22c55e;
-  --color-danger: #ef4444;
-  --color-meeting: #5a93c4;
-  --nx-accent-strong: #7fb0db;
-  --nx-surface-input: #141b22;
-  --nx-surface-input-border: #2c3743;
-  --nx-surface-input-fg: #dde3ea;
-  --nx-surface-input-muted: #647082;
-  --nx-surface-input-label: #8b97a5;
-  --nx-surface-toolbar-from: #1a212a;
-  --nx-surface-toolbar-to: #141b22;
-}
-
-/* pro 淺色：石墨藍灰（鋼藍 accent、SAP Fiori 風、主力展示）— 執行長 2026-06-28 選定方案 2 */
-html.light[data-nx-palette='pro'] {
   color-scheme: light;
-  --background: #f1f3f5;
-  --foreground: #1e293b;
-  --card: #ffffff;
-  --card-foreground: #1e293b;
+  --radius: 0.3rem;
+  --nx-root-font-size: 100%;
+  --nx-glow-primary: none;
+
+  --background: #eef1f4;             /* 銀白頁底 */
+  --foreground: #1a1d24;             /* 近黑字 */
+  --card: #ffffff;                   /* 白卡面 */
+  --card-foreground: #1a1d24;
   --popover: #ffffff;
-  --popover-foreground: #1e293b;
-  --primary: #2f5d8a;
+  --popover-foreground: #1a1d24;
+  --primary: #25365a;               /* 墨藍主色 */
   --primary-foreground: #ffffff;
-  --secondary: #e4e8ec;
-  --secondary-foreground: #334155;
-  --muted: #eceff2;
-  --muted-foreground: #647082;
-  --accent: #3b82a6;
+  --secondary: #e4e8ec;             /* 銀 */
+  --secondary-foreground: #2b3445;
+  --muted: #ebeef2;                 /* 銀淺 */
+  --muted-foreground: #5b6573;      /* 銀灰字 */
+  --accent: #25365a;               /* 墨藍 accent */
   --accent-foreground: #ffffff;
-  --destructive: #dc2626;
+  --destructive: #c8373b;
   --destructive-foreground: #ffffff;
-  --border: #d8dde3;
+  --border: #d4d9e0;               /* 銀邊 */
   --input: #ffffff;
-  --ring: #2f5d8a;
-  --chart-1: #2f5d8a;
-  --chart-2: #3b82a6;
-  --chart-3: #6b8aa6;
+  --ring: #25365a;
+  --chart-1: #25365a;
+  --chart-2: #6b87b0;
+  --chart-3: #9aa7b8;
   --chart-4: #c2820c;
-  --chart-5: #647082;
-  --sidebar: #eef1f4;
-  --sidebar-foreground: #1e293b;
-  --sidebar-primary: #2f5d8a;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #e4e8ec;
-  --sidebar-accent-foreground: #334155;
-  --sidebar-border: #dadfe5;
-  --sidebar-ring: #2f5d8a;
+  --chart-5: #5b6573;
+  --sidebar: #1f2d4d;
+  --sidebar-foreground: #cfd9e8;
+  --sidebar-primary: #ffffff;
+  --sidebar-primary-foreground: #1f2d4d;
+  --sidebar-accent: #2a3a5e;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #2c3c60;
+  --sidebar-ring: #6b87b0;
   --nx-scroll-track: #e4e8ec;
-  --nx-scroll-thumb: #b9c1cb;
+  --nx-scroll-thumb: #c0c8d2;
   --nx-scroll-thumb-hover: #94a0ad;
+  --nx-exp-gradient: var(--primary);
   --warning: #b45309;
-  --color-primary-light: #3b82a6;
-  --color-primary-bg: rgba(47, 93, 138, 0.1);
+  --color-primary-light: #3b5a86;
+  --color-primary-bg: rgba(37, 54, 90, 0.1);
   --color-success: #15803d;
-  --color-danger: #dc2626;
-  --color-meeting: #2f5d8a;
-  --nx-accent-strong: #2f5d8a;
+  --color-danger: #c8373b;
+  --color-meeting: #25365a;
+  --nx-accent-strong: #25365a;
   --nx-surface-input: #ffffff;
-  --nx-surface-input-border: #d8dde3;
-  --nx-surface-input-fg: #1e293b;
-  --nx-surface-input-muted: #647082;
+  --nx-surface-input-border: #d4d9e0;
+  --nx-surface-input-fg: #1a1d24;
+  --nx-surface-input-muted: #5b6573;
   --nx-surface-input-label: #475569;
-  --nx-surface-toolbar-from: #eef1f4;
-  --nx-surface-toolbar-to: #e6eaee;
+  /* L3 工具列：刷銀金屬漸層 */
+  --nx-surface-toolbar-from: #f4f6f9;
+  --nx-surface-toolbar-to: #e0e4ea;
+  /* L1 選單列：墨藍底 + 銀白字 */
+  --nx-menubar-bg: #1f2d4d;
+  --nx-menubar-fg: #cdd8e8;
+  --nx-menubar-fg-strong: #ffffff;
+}
+
+/* 統一主題下原生 select 一律淺色面板（不受 .light 與否影響） */
+html[data-nx-palette='pro'] select {
+  color-scheme: light;
 }
 
 @theme inline {

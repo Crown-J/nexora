@@ -7,7 +7,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ChevronRight, Home, Moon, Search, Sun } from 'lucide-react';
+import { ChevronRight, Home, Search } from 'lucide-react';
 import type { MenuNode } from './menu-data';
 
 type Props = {
@@ -16,8 +16,6 @@ type Props = {
   onHome: () => void;
   /** 全域料號搜尋（F2） */
   onSearch: () => void;
-  light: boolean;
-  onToggleTheme: () => void;
 };
 
 function SubMenu({ items, onPick }: { items: MenuNode[]; onPick: (n: MenuNode) => void }) {
@@ -60,7 +58,7 @@ function SubMenu({ items, onPick }: { items: MenuNode[]; onPick: (n: MenuNode) =
   );
 }
 
-export function TopMenuBar({ menus, onSelect, onHome, onSearch, light, onToggleTheme }: Props) {
+export function TopMenuBar({ menus, onSelect, onHome, onSearch }: Props) {
   const [open, setOpen] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -91,16 +89,19 @@ export function TopMenuBar({ menus, onSelect, onHome, onSearch, light, onToggleT
   );
 
   return (
-    <div ref={ref} className="flex items-center gap-0.5 border-b border-border bg-card px-1.5">
+    <div
+      ref={ref}
+      className="flex items-center gap-0.5 border-b border-black/20 bg-[var(--nx-menubar-bg)] px-1.5 text-[var(--nx-menubar-fg)]"
+    >
       <button
         type="button"
         onClick={onHome}
         title="首頁"
-        className="grid h-7 w-7 place-items-center rounded-sm text-muted-foreground hover:bg-foreground/[0.06] hover:text-foreground"
+        className="grid h-7 w-7 place-items-center rounded-sm text-[var(--nx-menubar-fg)] hover:bg-white/10 hover:text-white"
       >
         <Home className="h-[15px] w-[15px]" />
       </button>
-      <span className="mx-1 h-4 w-px bg-border" />
+      <span className="mx-1 h-4 w-px bg-white/15" />
       {menus.map((m) => {
         const hasChildren = !!m.children?.length;
         const isOpen = open === m.key;
@@ -116,7 +117,9 @@ export function TopMenuBar({ menus, onSelect, onHome, onSearch, light, onToggleT
                 if (open && hasChildren) setOpen(m.key);
               }}
               className={`rounded-sm px-3 py-1.5 text-[13px] transition ${
-                isOpen ? 'bg-primary/12 text-foreground' : 'text-foreground hover:bg-foreground/[0.06]'
+                isOpen
+                  ? 'bg-white/15 text-white'
+                  : 'text-[var(--nx-menubar-fg-strong)] hover:bg-white/10'
               }`}
             >
               {m.label}
@@ -134,17 +137,9 @@ export function TopMenuBar({ menus, onSelect, onHome, onSearch, light, onToggleT
         type="button"
         onClick={onSearch}
         title="料號即時查詢（F2）"
-        className="grid h-7 w-7 place-items-center rounded-sm text-muted-foreground hover:bg-foreground/[0.06] hover:text-foreground"
+        className="grid h-7 w-7 place-items-center rounded-sm text-[var(--nx-menubar-fg)] hover:bg-white/10 hover:text-white"
       >
         <Search className="h-[15px] w-[15px]" />
-      </button>
-      <button
-        type="button"
-        onClick={onToggleTheme}
-        title={light ? '切換深色' : '切換淺色'}
-        className="grid h-7 w-7 place-items-center rounded-sm text-muted-foreground hover:bg-foreground/[0.06] hover:text-foreground"
-      >
-        {light ? <Moon className="h-[15px] w-[15px]" /> : <Sun className="h-[15px] w-[15px]" />}
       </button>
     </div>
   );

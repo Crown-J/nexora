@@ -18,6 +18,8 @@ export function NxPaletteHydration() {
     const v: DashboardPalette =
       raw && VALID.has(raw) ? (raw as DashboardPalette) : 'pro';
     document.documentElement.setAttribute('data-nx-palette', v);
+    // 2026-06-28 統一墨藍×銀×白主題：不再分深淺、一律 light（native 控制項面板淺色 + 淺色 utility 規則）
+    document.documentElement.classList.add('light');
   }, []);
 
   return null;

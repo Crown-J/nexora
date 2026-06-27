@@ -24,14 +24,12 @@ import {
   useWorkbenchToolbarSlot,
 } from './WorkbenchToolbarSlot';
 import { BUSINESS_MENUS, SYSTEM_MENU, type MenuNode } from './menu-data';
-import { useUiTheme } from './useUiTheme';
 
 type Props = { children: React.ReactNode };
 
 /** 內層：可用 useWorkbenchTabs（須在 Provider 內） */
 function WorkbenchChrome({ children }: Props) {
   const { open, closeAll } = useWorkbenchTabs();
-  const { light, toggle: toggleTheme } = useUiTheme();
   const { displayName, employeeNo, tenantName, onLogout } = useShellSession();
   const toolbarSlot = useWorkbenchToolbarSlot();
 
@@ -58,8 +56,6 @@ function WorkbenchChrome({ children }: Props) {
         onSelect={onSelect}
         onHome={() => open('/dashboard', 'menu: 首頁')}
         onSearch={onSearch}
-        light={light}
-        onToggleTheme={toggleTheme}
       />
       {/* 第 2 層：內容分頁（已開功能） */}
       <WorkbenchTabStrip />
