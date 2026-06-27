@@ -52,7 +52,7 @@ export function WorkbenchHome() {
   const name = displayName || me?.username || '系統管理員';
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="mx-auto max-w-5xl p-6">
       <div className="rounded-lg border border-border bg-card px-6 py-5">
         <div className="text-[13px] tracking-[0.3em] text-muted-foreground">NEXORA GRID</div>
         <h1 className="mt-1 text-xl font-semibold text-foreground">{name}，您好</h1>

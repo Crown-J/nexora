@@ -11,7 +11,7 @@
 'use client';
 
 import { MasterTabs, type MasterTab } from '@/features/nx01/shell/entity-master/MasterTabs';
-import { MasterQuickNav } from './MasterQuickNav';
+// 2026-06-28 執行長：清除右側主檔快速入口按鈕（MasterQuickNav 不再 render；prop 保留向後相容）
 
 export type MasterPageHeadProps = {
   tab: MasterTab;
@@ -29,7 +29,6 @@ export function MasterPageHead({
   onTabChange,
   detailTitle,
   detailSubtitle,
-  currentPageId,
 }: MasterPageHeadProps) {
   const showDetailTitle = tab === 'detail' && (detailTitle || detailSubtitle);
   return (
@@ -47,12 +46,7 @@ export function MasterPageHead({
             </span>
           ) : null}
         </div>
-      ) : (
-        // 沒標題時用 flex-1 spacer 把 nav 推到最右
-        <div className="flex-1" />
-      )}
-      {/* 主檔快速入口（icon 按鈕 + 翻頁切分組）→ 永遠最右 */}
-      <MasterQuickNav currentPageId={currentPageId} />
+      ) : null}
     </div>
   );
 }

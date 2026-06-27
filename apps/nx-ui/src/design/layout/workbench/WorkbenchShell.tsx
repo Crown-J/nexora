@@ -61,11 +61,12 @@ function WorkbenchChrome({ children }: Props) {
         light={light}
         onToggleTheme={toggleTheme}
       />
-      {/* 第 2 層：情境工具列插槽（頁面 ErpToolbar 投影至此；無工具列頁面自動收合） */}
-      <div ref={toolbarSlot?.setSlotEl} className={toolbarSlot?.count ? '' : 'hidden'} />
+      {/* 第 2 層：內容分頁（已開功能） */}
       <WorkbenchTabStrip />
-      {/* flex 撐高容器：讓填滿視窗高度的主檔頁（h-full/flex-1）正常撐開，內容過高才捲動 */}
-      <main className="flex min-h-0 flex-1 flex-col overflow-auto bg-background px-3 py-3">
+      {/* 第 3 層：情境工具列插槽（頁面 ErpToolbar 投影至此；無工具列頁面自動收合） */}
+      <div ref={toolbarSlot?.setSlotEl} className={toolbarSlot?.count ? '' : 'hidden'} />
+      {/* 第 5 層：主內容（無邊距、表格完整全展開；需留白的頁面自帶內距，如 WorkbenchHome） */}
+      <main className="flex min-h-0 flex-1 flex-col overflow-auto bg-background">
         {children}
         <AutoPageGuide />
       </main>

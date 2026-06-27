@@ -51,7 +51,7 @@ import {
 } from '@/features/nx01/shell/ui/MasterTable';
 import { MasterDetailScroll, EmptyDetail } from '@/features/nx01/shell/ui/MasterDetail';
 import { FormField } from '@/features/nx01/shell/ui/FormField';
-import { PageHeader } from '@design/components/page-header/PageHeader';
+// 2026-06-28 執行長：清除麵包屑（PageHeader 不再 render）
 import { useDirtyGuard } from '@design/hooks/useDirtyGuard';
 import { MasterPageHead } from '@/features/nx01/shell/master-nav';
 import { formatDateTimeZh } from '@/features/nx01/shell/entity-master/format';
@@ -116,7 +116,7 @@ export type UserZonedPageProps = {
 };
 
 export function UserZonedPage({
-  pageCategory,
+  // pageCategory 保留於 props 型別（向後相容）、麵包屑移除後不再使用
   pageTitle,
   editableZones,
   entityNoun,
@@ -1108,11 +1108,8 @@ export function UserZonedPage({
     [columnsOrder, ALL_COLUMN_MAP],
   );
 
-  const countText = `${total} 筆${entityNoun}`;
-
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden text-foreground">
-      <PageHeader category={pageCategory} title={pageTitle} count={countText} />
       <MasterPageHead
         tab={tab}
         onTabChange={attemptTabChange}
@@ -1122,7 +1119,6 @@ export function UserZonedPage({
         }
         detailSubtitle={mode === 'edit' ? (creating ? '新增中' : '編輯中') : '瀏覽'}
       />
-      <div className="overflow-x-auto">
         <ErpToolbar
           mode={mode}
           hasActiveRow={!!selected}
@@ -1190,7 +1186,6 @@ export function UserZonedPage({
           onBatchEnable={() => {}}
           onBatchDisable={() => {}}
         />
-      </div>
       <SearchPanel
         open={searchOpen}
         value={keyword}
