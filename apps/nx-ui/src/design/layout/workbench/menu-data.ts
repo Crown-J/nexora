@@ -30,15 +30,4 @@ const BUSINESS_KEYS = ['master', 'purchase', 'sales', 'inventory', 'finance', 'r
 export const BUSINESS_MENUS: MenuNode[] = DOCK_NAV.filter((d) => BUSINESS_KEYS.includes(d.key)).map(
   fromDock,
 );
-
-// 系統選單（外殼層、非業務模組）
-export const SYSTEM_MENU: MenuNode = {
-  key: 'system',
-  label: '系統',
-  children: [
-    { key: 'me', label: '個人資料', href: '/dashboard/me' },
-    { key: 'change-password', label: '修改密碼', href: '/dashboard/me/change-password' },
-    { key: 'settings', label: '環境設定', href: '/dashboard/settings' },
-    { key: 'logout', label: '登出', action: 'logout' },
-  ],
-};
+// 註：系統類動作（個人/密碼/設定/登出）已移至頂列使用者下拉（WorkbenchTopBar），不在側欄。
