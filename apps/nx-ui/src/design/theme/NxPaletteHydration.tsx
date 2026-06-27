@@ -10,7 +10,7 @@ import {
   type DashboardPalette,
 } from '@/features/nx00/context/DashboardPaletteContext';
 
-const VALID = new Set(['classic', 'steel']);
+const VALID = new Set(['classic', 'steel', 'pro']);
 
 export function NxPaletteHydration() {
   useLayoutEffect(() => {

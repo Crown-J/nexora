@@ -12,10 +12,11 @@ import { useRouter } from 'next/navigation';
 import { tryNavigate } from '@design/hooks/useDirtyGuard';
 import {
   Bell, Building2, ChevronDown, HelpCircle, LayoutGrid, LogOut, Lock,
-  Megaphone, Moon, Settings, Sun, User,
+  Megaphone, Moon, Palette, Settings, Sun, User,
 } from 'lucide-react';
 // 2026-06-25 執行長拍板「測試資料移除」Phase 1：BULLETINS / NOTIFICATIONS / TENANT_NAME mock 全拆
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
+import { useDashboardPalette, type DashboardPalette } from '@/features/nx00/context/DashboardPaletteContext';
 import { listBulletins, type BulletinDto } from '@data/endpoints/nx01/api/bulletin';
 import { PlanetSlot } from '@design/home/SharedPlanetRoot';
 
@@ -77,6 +78,7 @@ function useOutsideClose(refs: React.RefObject<HTMLElement | null>[], onClose: (
 export function UnifiedTopBar({ displayName, employeeNo, onLogout, onDockToggle, onHome }: TopBarProps) {
   const router = useRouter();
   const { light, toggle: toggleTheme } = useTheme();
+  const { palette, setPalette } = useDashboardPalette();
   const now = useClock();
   const { tenantNameZh } = useSessionMe();
   const tenantName = tenantNameZh || 'NEXORA';
@@ -304,9 +306,35 @@ export function UnifiedTopBar({ displayName, employeeNo, onLogout, onDockToggle,
                 <span className="flex-1">語言</span>
                 <span className="font-mono text-[11px]">繁體中文</span>
               </div>
-              <div className="flex items-center gap-2.5 px-4 py-2.5 text-[12.5px] text-muted-foreground">
-                <span className="flex-1">字級密度</span>
-                <span className="font-mono text-[11px]">標準</span>
+              {/* 介面風格切換（2026-06-27）：經典/鋼鐵=現行金色系、專業=客戶友善企業版 */}
+              <div className="flex items-center gap-2.5 px-4 py-2.5 text-[12.5px]">
+                <span className="flex flex-1 items-center gap-2">
+                  <Palette className="h-4 w-4" />
+                  介面風格
+                </span>
+                <span className="flex overflow-hidden rounded-md border border-border/60">
+                  {([
+                    ['steel', '鋼鐵'],
+                    ['classic', '經典'],
+                    ['pro', '專業'],
+                  ] as [DashboardPalette, string][]).map(([key, label]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPalette(key);
+                      }}
+                      className={`px-2 py-1 text-[11px] transition ${
+                        palette === key
+                          ? 'bg-[color-mix(in_srgb,var(--primary)_85%,transparent)] text-[var(--primary-foreground)] font-semibold'
+                          : 'text-muted-foreground hover:bg-foreground/[0.06]'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </span>
               </div>
               <div className="flex items-center gap-2.5 px-4 py-2.5 text-[12.5px] text-muted-foreground">
                 <span className="flex-1">快捷鍵</span>

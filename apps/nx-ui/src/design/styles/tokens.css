@@ -299,6 +299,128 @@ html.light select {
   color-scheme: light;
 }
 
+/* ============================================================
+   pro 專業版 palette（2026-06-27 執行長：客戶反映電玩感太重、缺專業感）
+   參考 ECOUNT 等傳統企業 ERP：白底 / 冷灰藍 / 單一克制藍 accent
+   - 共用基底（不分深淺）：圓角縮小、字級回 100%、glow 歸零、漸層壓平
+   - 深色：slate 專業深色（GitHub / Linear dark 風）
+   - 淺色：白底冷灰藍（主力展示、最接近客戶期待）
+   特效壓平（glass / stars / aurora / orbit）見 utilities-and-animations.css 末段
+============================================================ */
+html[data-nx-palette='pro'] {
+  --radius: 0.3rem;                  /* 大圓角 → 收斂、企業感 */
+  --nx-root-font-size: 100%;         /* 110% → 100%、提資訊密度 */
+  --nx-glow-primary: none;           /* 發光特效歸零 */
+  --nx-exp-gradient: var(--primary); /* 經驗條等漸層 → 純色 */
+}
+
+/* pro 深色：slate 專業深色 */
+html:not(.light)[data-nx-palette='pro'] {
+  --background: #0f1620;
+  --foreground: #e2e8f0;
+  --card: #1a2230;
+  --card-foreground: #e2e8f0;
+  --popover: #1a2230;
+  --popover-foreground: #e2e8f0;
+  --primary: #4b8ce0;
+  --primary-foreground: #ffffff;
+  --secondary: #232d3d;
+  --secondary-foreground: #cbd5e1;
+  --muted: #222c3a;
+  --muted-foreground: #94a3b8;
+  --accent: #4b8ce0;
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #2c3a4d;
+  --input: #1a2230;
+  --ring: #4b8ce0;
+  --chart-1: #4b8ce0;
+  --chart-2: #2dd4bf;
+  --chart-3: #a3b1c6;
+  --chart-4: #f0b34a;
+  --chart-5: #64748b;
+  --sidebar: #0c121b;
+  --sidebar-foreground: #cbd5e1;
+  --sidebar-primary: #4b8ce0;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1f2937;
+  --sidebar-accent-foreground: #cbd5e1;
+  --sidebar-border: #243044;
+  --sidebar-ring: #4b8ce0;
+  --nx-scroll-track: #161e29;
+  --nx-scroll-thumb: #33455b;
+  --nx-scroll-thumb-hover: #44597490;
+  --warning: #d99a2b;
+  --color-primary-light: #6aa5ec;
+  --color-primary-bg: rgba(75, 140, 224, 0.14);
+  --color-success: #22c55e;
+  --color-danger: #ef4444;
+  --color-meeting: #4b8ce0;
+  --nx-accent-strong: #6aa5ec;
+  --nx-surface-input: #131a25;
+  --nx-surface-input-border: #2c3a4d;
+  --nx-surface-input-fg: #e2e8f0;
+  --nx-surface-input-muted: #64748b;
+  --nx-surface-input-label: #94a3b8;
+  --nx-surface-toolbar-from: #1a2230;
+  --nx-surface-toolbar-to: #131a25;
+}
+
+/* pro 淺色：白底冷灰藍（主力展示） */
+html.light[data-nx-palette='pro'] {
+  color-scheme: light;
+  --background: #eceff3;
+  --foreground: #1f2937;
+  --card: #ffffff;
+  --card-foreground: #1f2937;
+  --popover: #ffffff;
+  --popover-foreground: #1f2937;
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+  --secondary: #e5e9ef;
+  --secondary-foreground: #334155;
+  --muted: #eef1f5;
+  --muted-foreground: #64748b;
+  --accent: #2563eb;
+  --accent-foreground: #ffffff;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: #d4dae2;
+  --input: #ffffff;
+  --ring: #2563eb;
+  --chart-1: #2563eb;
+  --chart-2: #0891b2;
+  --chart-3: #059669;
+  --chart-4: #d97706;
+  --chart-5: #64748b;
+  --sidebar: #f5f7f9;
+  --sidebar-foreground: #1f2937;
+  --sidebar-primary: #2563eb;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e5e9ef;
+  --sidebar-accent-foreground: #334155;
+  --sidebar-border: #dce1e8;
+  --sidebar-ring: #2563eb;
+  --nx-scroll-track: #e5e9ef;
+  --nx-scroll-thumb: #c0c8d2;
+  --nx-scroll-thumb-hover: #9aa6b4;
+  --warning: #b45309;
+  --color-primary-light: #3b82f6;
+  --color-primary-bg: rgba(37, 99, 235, 0.1);
+  --color-success: #15803d;
+  --color-danger: #dc2626;
+  --color-meeting: #2563eb;
+  --nx-accent-strong: #2563eb;
+  --nx-surface-input: #ffffff;
+  --nx-surface-input-border: #d4dae2;
+  --nx-surface-input-fg: #1f2937;
+  --nx-surface-input-muted: #64748b;
+  --nx-surface-input-label: #475569;
+  --nx-surface-toolbar-from: #f5f7f9;
+  --nx-surface-toolbar-to: #eaeef3;
+}
+
 @theme inline {
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;

@@ -610,3 +610,70 @@ html.light .nx-topbar .nx-menu button:hover {
     animation: none;
   }
 }
+
+/* ============================================================
+   pro 專業版：壓平所有「電玩感」特效（2026-06-27）
+   不進 @layer utilities → 無層級者勝、確保覆寫 .glass-* / steel 變體
+   配色 token 見 tokens.css「pro 專業版 palette」段
+============================================================ */
+/* 發光、漸層字 → 純色 */
+[data-nx-palette='pro'] .glow-primary {
+  box-shadow: none;
+}
+[data-nx-palette='pro'] .gradient-text {
+  background: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  color: var(--foreground);
+}
+/* 毛玻璃卡 → 純色卡 + 細邊 + 極淡陰影（企業扁平感） */
+[data-nx-palette='pro'] .glass-card,
+[data-nx-palette='pro'] .glass-panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+[data-nx-palette='pro'] .glass-card.nx-glass-raised {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border-color: var(--border);
+}
+/* 星空 / 極光 / 天幕輝光 → 關閉 */
+[data-nx-palette='pro'] .home-stars,
+[data-nx-palette='pro'] .home-stars-canvas,
+[data-nx-palette='pro'] .login-stars {
+  opacity: 0 !important;
+}
+[data-nx-palette='pro'] .home-aurora-light,
+[data-nx-palette='pro'] .home-sky-glow {
+  background: none !important;
+}
+/* 軌道旋轉動畫 → 停 */
+[data-nx-palette='pro'] .animate-orbit,
+[data-nx-palette='pro'] .animate-orbit-reverse {
+  animation: none;
+}
+
+/* pro 淺色頂欄：覆寫預設橘色 gradient → 中性白卡條（專業感） */
+html.light[data-nx-palette='pro'] .nx-topbar {
+  background: color-mix(in srgb, var(--card) 88%, transparent) !important;
+  border-bottom-color: var(--border) !important;
+  color: var(--foreground);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+html.light[data-nx-palette='pro'] .nx-topbar > div,
+html.light[data-nx-palette='pro'] .nx-topbar > div :where(.text-foreground, svg) {
+  color: var(--foreground);
+}
+html.light[data-nx-palette='pro'] .nx-topbar > div .text-muted-foreground {
+  color: var(--muted-foreground) !important;
+}
+html.light[data-nx-palette='pro'] .nx-topbar > div :where([class*='border-border']) {
+  border-color: var(--border) !important;
+}
+html.light[data-nx-palette='pro'] .nx-topbar > div > div > button:hover,
+html.light[data-nx-palette='pro'] .nx-topbar > div > button:hover {
+  background: color-mix(in srgb, var(--foreground) 6%, transparent) !important;
+}

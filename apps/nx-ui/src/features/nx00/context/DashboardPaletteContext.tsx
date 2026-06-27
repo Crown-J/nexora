@@ -17,9 +17,9 @@ import {
 
 export const NX_DASHBOARD_PALETTE_STORAGE_KEY = 'nx-dashboard-palette';
 
-export type DashboardPalette = 'classic' | 'steel';
+export type DashboardPalette = 'classic' | 'steel' | 'pro';
 
-const VALID: ReadonlySet<string> = new Set(['classic', 'steel']);
+const VALID: ReadonlySet<string> = new Set(['classic', 'steel', 'pro']);
 
 function readStoredPalette(): DashboardPalette {
   if (typeof window === 'undefined') return 'steel';
