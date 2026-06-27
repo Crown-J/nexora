@@ -300,11 +300,11 @@ html.light select {
 }
 
 /* ============================================================
-   pro 專業版 palette（2026-06-27 執行長：客戶反映電玩感太重、缺專業感）
-   參考 ECOUNT 等傳統企業 ERP：白底 / 冷灰藍 / 單一克制藍 accent
+   pro 專業版 palette（2026-06-27 起；2026-06-28 執行長選定「石墨藍灰」方案 2）
+   風格：SAP Fiori 風冷靜鋼藍灰、單一克制鋼藍 accent（primary #2f5d8a）
    - 共用基底（不分深淺）：圓角縮小、字級回 100%、glow 歸零、漸層壓平
-   - 深色：slate 專業深色（GitHub / Linear dark 風）
-   - 淺色：白底冷灰藍（主力展示、最接近客戶期待）
+   - 深色：石墨藍灰深色（鋼藍 accent）
+   - 淺色：石墨藍灰白底（主力展示）
    特效壓平（glass / stars / aurora / orbit）見 utilities-and-animations.css 末段
 ============================================================ */
 html[data-nx-palette='pro'] {
@@ -314,111 +314,111 @@ html[data-nx-palette='pro'] {
   --nx-exp-gradient: var(--primary); /* 經驗條等漸層 → 純色 */
 }
 
-/* pro 深色：slate 專業深色 */
+/* pro 深色：石墨藍灰深色（鋼藍 accent、SAP Fiori dark 風） */
 html:not(.light)[data-nx-palette='pro'] {
-  --background: #0f1620;
-  --foreground: #e2e8f0;
-  --card: #1a2230;
-  --card-foreground: #e2e8f0;
-  --popover: #1a2230;
-  --popover-foreground: #e2e8f0;
-  --primary: #4b8ce0;
+  --background: #11161c;
+  --foreground: #dde3ea;
+  --card: #1a212a;
+  --card-foreground: #dde3ea;
+  --popover: #1a212a;
+  --popover-foreground: #dde3ea;
+  --primary: #5a93c4;
   --primary-foreground: #ffffff;
-  --secondary: #232d3d;
-  --secondary-foreground: #cbd5e1;
-  --muted: #222c3a;
-  --muted-foreground: #94a3b8;
-  --accent: #4b8ce0;
+  --secondary: #232c37;
+  --secondary-foreground: #c5cdd7;
+  --muted: #222b35;
+  --muted-foreground: #8b97a5;
+  --accent: #5a93c4;
   --accent-foreground: #ffffff;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: #2c3a4d;
-  --input: #1a2230;
-  --ring: #4b8ce0;
-  --chart-1: #4b8ce0;
-  --chart-2: #2dd4bf;
-  --chart-3: #a3b1c6;
-  --chart-4: #f0b34a;
-  --chart-5: #64748b;
-  --sidebar: #0c121b;
-  --sidebar-foreground: #cbd5e1;
-  --sidebar-primary: #4b8ce0;
+  --border: #2c3743;
+  --input: #1a212a;
+  --ring: #5a93c4;
+  --chart-1: #5a93c4;
+  --chart-2: #6fb0c4;
+  --chart-3: #8aa6c0;
+  --chart-4: #d9a23b;
+  --chart-5: #7a8794;
+  --sidebar: #0d1218;
+  --sidebar-foreground: #c5cdd7;
+  --sidebar-primary: #5a93c4;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #1f2937;
-  --sidebar-accent-foreground: #cbd5e1;
-  --sidebar-border: #243044;
-  --sidebar-ring: #4b8ce0;
-  --nx-scroll-track: #161e29;
-  --nx-scroll-thumb: #33455b;
-  --nx-scroll-thumb-hover: #44597490;
+  --sidebar-accent: #1f2832;
+  --sidebar-accent-foreground: #c5cdd7;
+  --sidebar-border: #26303b;
+  --sidebar-ring: #5a93c4;
+  --nx-scroll-track: #161d24;
+  --nx-scroll-thumb: #344150;
+  --nx-scroll-thumb-hover: #455463;
   --warning: #d99a2b;
-  --color-primary-light: #6aa5ec;
-  --color-primary-bg: rgba(75, 140, 224, 0.14);
+  --color-primary-light: #7fb0db;
+  --color-primary-bg: rgba(90, 147, 196, 0.16);
   --color-success: #22c55e;
   --color-danger: #ef4444;
-  --color-meeting: #4b8ce0;
-  --nx-accent-strong: #6aa5ec;
-  --nx-surface-input: #131a25;
-  --nx-surface-input-border: #2c3a4d;
-  --nx-surface-input-fg: #e2e8f0;
-  --nx-surface-input-muted: #64748b;
-  --nx-surface-input-label: #94a3b8;
-  --nx-surface-toolbar-from: #1a2230;
-  --nx-surface-toolbar-to: #131a25;
+  --color-meeting: #5a93c4;
+  --nx-accent-strong: #7fb0db;
+  --nx-surface-input: #141b22;
+  --nx-surface-input-border: #2c3743;
+  --nx-surface-input-fg: #dde3ea;
+  --nx-surface-input-muted: #647082;
+  --nx-surface-input-label: #8b97a5;
+  --nx-surface-toolbar-from: #1a212a;
+  --nx-surface-toolbar-to: #141b22;
 }
 
-/* pro 淺色：白底冷灰藍（主力展示） */
+/* pro 淺色：石墨藍灰（鋼藍 accent、SAP Fiori 風、主力展示）— 執行長 2026-06-28 選定方案 2 */
 html.light[data-nx-palette='pro'] {
   color-scheme: light;
-  --background: #eceff3;
-  --foreground: #1f2937;
+  --background: #f1f3f5;
+  --foreground: #1e293b;
   --card: #ffffff;
-  --card-foreground: #1f2937;
+  --card-foreground: #1e293b;
   --popover: #ffffff;
-  --popover-foreground: #1f2937;
-  --primary: #2563eb;
+  --popover-foreground: #1e293b;
+  --primary: #2f5d8a;
   --primary-foreground: #ffffff;
-  --secondary: #e5e9ef;
+  --secondary: #e4e8ec;
   --secondary-foreground: #334155;
-  --muted: #eef1f5;
-  --muted-foreground: #64748b;
-  --accent: #2563eb;
+  --muted: #eceff2;
+  --muted-foreground: #647082;
+  --accent: #3b82a6;
   --accent-foreground: #ffffff;
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
-  --border: #d4dae2;
+  --border: #d8dde3;
   --input: #ffffff;
-  --ring: #2563eb;
-  --chart-1: #2563eb;
-  --chart-2: #0891b2;
-  --chart-3: #059669;
-  --chart-4: #d97706;
-  --chart-5: #64748b;
-  --sidebar: #f5f7f9;
-  --sidebar-foreground: #1f2937;
-  --sidebar-primary: #2563eb;
+  --ring: #2f5d8a;
+  --chart-1: #2f5d8a;
+  --chart-2: #3b82a6;
+  --chart-3: #6b8aa6;
+  --chart-4: #c2820c;
+  --chart-5: #647082;
+  --sidebar: #eef1f4;
+  --sidebar-foreground: #1e293b;
+  --sidebar-primary: #2f5d8a;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #e5e9ef;
+  --sidebar-accent: #e4e8ec;
   --sidebar-accent-foreground: #334155;
-  --sidebar-border: #dce1e8;
-  --sidebar-ring: #2563eb;
-  --nx-scroll-track: #e5e9ef;
-  --nx-scroll-thumb: #c0c8d2;
-  --nx-scroll-thumb-hover: #9aa6b4;
+  --sidebar-border: #dadfe5;
+  --sidebar-ring: #2f5d8a;
+  --nx-scroll-track: #e4e8ec;
+  --nx-scroll-thumb: #b9c1cb;
+  --nx-scroll-thumb-hover: #94a0ad;
   --warning: #b45309;
-  --color-primary-light: #3b82f6;
-  --color-primary-bg: rgba(37, 99, 235, 0.1);
+  --color-primary-light: #3b82a6;
+  --color-primary-bg: rgba(47, 93, 138, 0.1);
   --color-success: #15803d;
   --color-danger: #dc2626;
-  --color-meeting: #2563eb;
-  --nx-accent-strong: #2563eb;
+  --color-meeting: #2f5d8a;
+  --nx-accent-strong: #2f5d8a;
   --nx-surface-input: #ffffff;
-  --nx-surface-input-border: #d4dae2;
-  --nx-surface-input-fg: #1f2937;
-  --nx-surface-input-muted: #64748b;
+  --nx-surface-input-border: #d8dde3;
+  --nx-surface-input-fg: #1e293b;
+  --nx-surface-input-muted: #647082;
   --nx-surface-input-label: #475569;
-  --nx-surface-toolbar-from: #f5f7f9;
-  --nx-surface-toolbar-to: #eaeef3;
+  --nx-surface-toolbar-from: #eef1f4;
+  --nx-surface-toolbar-to: #e6eaee;
 }
 
 @theme inline {
