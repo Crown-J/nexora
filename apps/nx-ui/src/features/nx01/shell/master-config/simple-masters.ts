@@ -47,7 +47,7 @@ export const PART_GROUP_MASTER: EntityMasterConfig = {
   category: '產品料號',
   title: '零件群組基本資料',
   entityNoun: '零件群組',
-  pageId: 'partgroup',
+  pageId: 'part-group',
   errorCodePrefix: 'nxui_base_part_group',
   deleteMode: 'soft-delete-rest',
   fields: [

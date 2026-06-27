@@ -19,7 +19,7 @@ export const ROLE_MASTER: EntityMasterConfig = {
   category: '帳號與權限',
   title: '職務基本資料',
   entityNoun: '職務',
-  pageId: 'role',
+  pageId: 'roles',
   errorCodePrefix: 'nxui_base_role',
   deleteMode: SOFT,
   fields: [
@@ -39,7 +39,7 @@ export const DEPARTMENT_MASTER: EntityMasterConfig = {
   category: '帳號與權限',
   title: '部門基本資料',
   entityNoun: '部門',
-  pageId: 'dept',
+  pageId: 'department',
   errorCodePrefix: 'nxui_base_department',
   deleteMode: SOFT,
   fields: [
@@ -55,7 +55,7 @@ export const TEAM_MASTER: EntityMasterConfig = {
   category: '帳號與權限',
   title: '組基本資料',
   entityNoun: '組',
-  pageId: 'group',
+  pageId: 'team',
   errorCodePrefix: 'nxui_base_team',
   deleteMode: SOFT,
   fields: [
@@ -217,7 +217,7 @@ export const WAREHOUSE_MASTER: EntityMasterConfig = {
   category: '組織架構',
   title: '倉庫基本資料',
   entityNoun: '倉庫',
-  pageId: 'warehouse',
+  pageId: 'warehouses',
   errorCodePrefix: 'nxui_base_warehouse',
   deleteMode: SOFT,
   fields: [
@@ -252,7 +252,7 @@ export const CUSTOMER_GRADE_MASTER: EntityMasterConfig = {
   category: '交易對象',
   title: '客戶分級基本資料',
   entityNoun: '客戶分級',
-  pageId: 'custgrade',
+  pageId: 'customer-grade',
   errorCodePrefix: 'nxui_base_customer_grade',
   deleteMode: 'update-active',
   canCreate: false,
@@ -272,7 +272,7 @@ export const SUPPLIER_GRADE_MASTER: EntityMasterConfig = {
   category: '交易對象',
   title: '供應商分級基本資料',
   entityNoun: '供應商分級',
-  pageId: 'suppgrade',
+  pageId: 'supplier-grade',
   errorCodePrefix: 'nxui_base_supplier_grade',
   deleteMode: 'soft-delete-rest',
   fields: [
@@ -347,7 +347,7 @@ export const PHONETIC_DICTIONARY_MASTER: EntityMasterConfig = {
   category: '系統設定',
   title: '注音字典基本資料',
   entityNoun: '注音字',
-  pageId: 'zhuyin',
+  pageId: 'phonetic-dictionary',
   errorCodePrefix: 'nxui_base_phonetic',
   deleteMode: SOFT,
   fields: [
@@ -365,7 +365,7 @@ export const SITE_MASTER: EntityMasterConfig = {
   category: '組織架構',
   title: '據點基本資料',
   entityNoun: '據點',
-  pageId: 'sitebase',
+  pageId: 'site',
   errorCodePrefix: 'nxui_base_site',
   deleteMode: SOFT,
   fields: [
@@ -385,7 +385,7 @@ export const LOCATION_MASTER: EntityMasterConfig = {
   category: '組織架構',
   title: '庫位基本資料',
   entityNoun: '庫位',
-  pageId: 'bin',
+  pageId: 'location',
   errorCodePrefix: 'nxui_base_location',
   deleteMode: SOFT,
   fields: [

@@ -7,6 +7,13 @@
 //   - 公告 → DashboardBulletinContext + UnifiedTopBar 走 listBulletins
 //   - 行事曆 → HomeView 走 listCalendarEvents
 //   - 出勤 / 任務 / 通知 → Phase 1 暫顯空狀態（Phase 2 接 endpoint）
+//
+// 2026-06-27：主檔子樹改從單一來源 master-registry 衍生（不再各自寫死）。
+
+import {
+  masterEntriesByCategory,
+  type MasterCategoryKey,
+} from '@/features/nx01/shell/master-nav/master-registry';
 
 export type EventType = 'meeting' | 'activity' | 'leave' | 'holiday';
 export type AttendStatus = 'work' | 'remote' | 'trip' | 'leave' | 'sick';
@@ -59,6 +66,24 @@ export type DockItem = {
   sub?: DockItem[];
 };
 
+// 2026-06-27：主檔六分區字串 icon（首頁 dock 用字串 icon）
+const MASTER_CATEGORY_ICON: Record<MasterCategoryKey, string> = {
+  org: 'network',
+  perm: 'shield-check',
+  site: 'warehouse',
+  partner: 'handshake',
+  product: 'boxes',
+  dict: 'book-open',
+};
+
+// 主檔子樹從登錄表（surfaces 含 'home'）衍生、六分區分組
+const MASTER_DOCK_SUB: DockItem[] = masterEntriesByCategory('home').map((cat) => ({
+  key: cat.key,
+  label: cat.label,
+  icon: MASTER_CATEGORY_ICON[cat.key],
+  sub: cat.entries.map((e) => ({ key: e.id, label: e.label, icon: e.iconKey, href: e.href })),
+}));
+
 // DOCK_NAV 對齊 docs/專案/規格書/核心/NEXORA-模組架構總覽 v3.0
 // 8 主選單（首頁/個人/主檔/採購/銷貨/庫存/財務/報表）+ 主檔 6 分區 + 各模組規格列出的子畫面
 export const DOCK_NAV: DockItem[] = [
@@ -68,72 +93,7 @@ export const DOCK_NAV: DockItem[] = [
     key: 'master',
     label: '主檔',
     icon: 'database',
-    sub: [
-      {
-        key: 'org',
-        label: '組織架構',
-        icon: 'network',
-        sub: [
-          { key: 'users', label: '員工', icon: 'user-square', href: '/dashboard/master/users' },
-          { key: 'roles', label: '職務', icon: 'briefcase', href: '/dashboard/master/roles' },
-          { key: 'department', label: '部門', icon: 'building', href: '/dashboard/master/department' },
-          { key: 'team', label: '組別', icon: 'users', href: '/dashboard/master/team' },
-        ],
-      },
-      {
-        key: 'rbac',
-        label: '權限管理',
-        icon: 'shield-check',
-        sub: [
-          { key: 'orgchart', label: '組織架構圖', icon: 'network', href: '/dashboard/master/org-structure' },
-          { key: 'permmatrix', label: '職務權限設定', icon: 'shield-check', href: '/dashboard/master/role-view' },
-        ],
-      },
-      {
-        key: 'site',
-        label: '據點倉庫',
-        icon: 'warehouse',
-        sub: [
-          { key: 'sitechart', label: '據點架構圖', icon: 'network', href: '/dashboard/master/location-structure' },
-          { key: 'sites', label: '據點', icon: 'map-pin', href: '/dashboard/master/site' },
-          { key: 'warehouses', label: '倉庫', icon: 'warehouse', href: '/dashboard/master/warehouses' },
-          { key: 'location', label: '庫位', icon: 'package-open', href: '/dashboard/master/location' },
-        ],
-      },
-      {
-        key: 'partner',
-        label: '往來對象',
-        icon: 'handshake',
-        sub: [
-          { key: 'partners', label: '往來對象', icon: 'handshake', href: '/dashboard/master/partners' },
-          { key: 'cust-grade', label: '客戶分級', icon: 'crown', href: '/dashboard/master/customer-grade' },
-          { key: 'supp-grade', label: '供應商分級', icon: 'award', href: '/dashboard/master/supplier-grade' },
-          { key: 'partner-part', label: '供應商供貨對應', icon: 'link', href: '/dashboard/master/supplier-supply' },
-        ],
-      },
-      {
-        key: 'part',
-        label: '產品與廠牌',
-        icon: 'boxes',
-        sub: [
-          { key: 'parts', label: '零件', icon: 'box', href: '/dashboard/master/parts' },
-          { key: 'brand', label: '廠牌', icon: 'tag', href: '/dashboard/master/brand' },
-          { key: 'part-group', label: '零件群組', icon: 'layers', href: '/dashboard/master/part-group' },
-          { key: 'univ-group', label: '通用件群組', icon: 'combine', href: '/dashboard/master/universal-group' },
-        ],
-      },
-      {
-        key: 'dict',
-        label: '字典主檔',
-        icon: 'book-open',
-        sub: [
-          { key: 'region', label: '地區', icon: 'globe', href: '/dashboard/master/region' },
-          { key: 'country', label: '國家', icon: 'flag', href: '/dashboard/master/country' },
-          { key: 'currency', label: '幣別', icon: 'coins', href: '/dashboard/master/currency' },
-          { key: 'phonetic', label: '注音字典', icon: 'book-open', href: '/dashboard/master/phonetic-dictionary' },
-        ],
-      },
-    ],
+    sub: MASTER_DOCK_SUB,
   },
   {
     key: 'purchase',
