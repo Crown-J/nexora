@@ -1,22 +1,20 @@
 // apps/nx-ui/src/design/login/LoginPageView.tsx
-// 登入頁畫面層（presenter）— 試點協作：Hana 可單檔替換、邏輯層不受影響
+// 登入頁畫面層（presenter）。2026-06-27 大改版：太空風（星球/金色漸層/金光暈/玻璃卡）封存，
+// 改傳統 ERP 乾淨登入——左品牌色塊 + 右表單、純色主鈕、無動畫無星球。
 //
-// 接口契約（Hana 替換時保持不變）：
+// 接口契約（與邏輯層 page.tsx 維持不變）：
 //   props 進：errorMsg / isSubmitting / isLeaving / isDemoMode / versionInfo
 //   callback 出：onSubmit(e, fields) / onForgotPassword
 //   fields 含：companyAccount / userAccount / password / rememberMe（UI 狀態 view 自管）
 //
-// ⚠️ 接口預留但目前邏輯層未實作（拆分時保持與拆前完全一致、未擴大範圍）：
-//   - rememberMe：UI 有勾選框、邏輯層 noop
-//   - onForgotPassword：UI 有連結、邏輯層 noop
+// ⚠️ 接口預留但邏輯層未實作（rememberMe / onForgotPassword）— 與改版前一致。
 
 'use client';
 
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { Eye, EyeOff, Building2, User, Lock, ArrowRight, XCircle } from 'lucide-react';
+import { useMemo, useState, type FormEvent } from 'react';
+import { ArrowRight, Building2, Eye, EyeOff, Lock, User, XCircle } from 'lucide-react';
 
 import type { NexoraClientError } from '@data/errors/nexora-error';
-import { PlanetSlot, usePlanet } from '@design/home/SharedPlanetRoot';
 
 /** 表單欄位（含 rememberMe UI slot、邏輯層目前 noop） */
 export type LoginFields = {
@@ -35,21 +33,17 @@ export type LoginVersionInfo = {
 
 /** LoginPageView 對外接口契約 */
 export type LoginPageViewProps = {
-  /** API 錯誤訊息（含 errorCode），null 不顯示 */
   errorMsg: NexoraClientError | null;
-  /** 送出中（按鈕轉圈、disable）*/
   isSubmitting: boolean;
-  /** 登入成功後的 fade-out 動畫（main 透明度+縮放）*/
   isLeaving: boolean;
-  /** 是否顯示展示模式提示條 */
   isDemoMode: boolean;
-  /** 版本號頁尾資訊 */
   versionInfo: LoginVersionInfo;
-  /** 表單送出（fields 包整批欄位、logic 層處理 normalize/validate/API）*/
   onSubmit: (e: FormEvent, fields: LoginFields) => void | Promise<void>;
-  /** 忘記密碼點擊（⚠️ 目前邏輯層 noop、UI slot 預留）*/
   onForgotPassword?: () => void;
 };
+
+const FIELD_CLS =
+  'w-full h-11 rounded-md border border-border bg-background pl-10 pr-4 text-[14px] text-foreground placeholder:text-muted-foreground/50 transition-colors focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/40';
 
 export function LoginPageView({
   errorMsg,
@@ -60,7 +54,6 @@ export function LoginPageView({
   onSubmit,
   onForgotPassword,
 }: LoginPageViewProps) {
-  // UI 狀態：view 自管（formData / showPassword）
   const [formData, setFormData] = useState<LoginFields>({
     companyAccount: '',
     userAccount: '',
@@ -68,17 +61,6 @@ export function LoginPageView({
     rememberMe: false,
   });
   const [showPassword, setShowPassword] = useState(false);
-
-  // 進場淡入：登出回 /login 時等星球飛到 login slot 再顯示文字內容、避免「星球還在飛、字已經出來」
-  // 直接打 /login（非從 dashboard 登出）時 isFlying=false、即刻顯示
-  // lazy init 讀星球當前狀態決定初值、避免「先顯示再隱藏」的閃爍
-  const { isFlying } = usePlanet();
-  const [contentReady, setContentReady] = useState(() => !isFlying());
-  useEffect(() => {
-    if (contentReady) return;
-    const t = setTimeout(() => setContentReady(true), 950);
-    return () => clearTimeout(t);
-  }, [contentReady]);
 
   const canSubmit = useMemo(() => {
     if (isSubmitting) return false;
@@ -90,252 +72,162 @@ export function LoginPageView({
 
   return (
     <main
-      className={`login-shell h-dvh relative overflow-hidden font-sans lg:h-auto lg:min-h-screen transition-all duration-500 ease-out ${
-        isLeaving ? 'opacity-0 scale-[0.96]' : 'opacity-100 scale-100'
+      className={`relative z-10 flex h-dvh flex-col bg-background font-sans text-foreground transition-opacity duration-300 lg:flex-row ${
+        isLeaving ? 'opacity-0' : 'opacity-100'
       }`}
     >
-      {/* 底色 backdrop + 互動層（深色粒子 / 淺色六角凸出）由 root layout 統一掛、本層不重 mount */}
-
-      <div
-        className={`relative z-10 h-full flex flex-col lg:min-h-screen lg:flex-row transition-opacity duration-500 ease-out ${
-          contentReady ? 'opacity-100' : 'opacity-0'
-        }`}
-      >
-        {/* Mobile：品牌字 NEXORA + GRID + amber kicker 線條 */}
-        <div className="lg:hidden shrink-0 flex flex-col items-center pt-4 pb-1 px-6">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="h-px w-8 bg-gradient-to-r from-transparent to-[var(--warning)]" />
-            <span className="text-[10px] tracking-[0.42em] text-[var(--warning)] font-mono">
-              ERP PLATFORM
-            </span>
-            <div className="h-px w-8 bg-gradient-to-l from-transparent to-[var(--warning)]" />
+      {/* 左：品牌色塊（desktop）/ 頂部品牌條（mobile） */}
+      <div className="flex shrink-0 flex-col justify-center bg-primary px-8 py-8 text-primary-foreground lg:w-2/5 lg:px-12 lg:py-0">
+        <div className="mx-auto w-full max-w-sm lg:mx-0">
+          <div className="text-[11px] font-medium tracking-[0.4em] opacity-80">
+            ENTERPRISE RESOURCE PLANNING
           </div>
-          <h1 className="text-3xl font-bold tracking-[0.04em] leading-[0.95] text-foreground">
-            NEXORA
+          <h1 className="mt-2 text-3xl font-bold tracking-wide lg:text-5xl">
+            NEXORA <span className="opacity-90">GRID</span>
           </h1>
-          <p className="mt-2 text-sm font-normal tracking-[0.5em] text-muted-foreground/85 ml-[0.5em]">
-            GRID
+          <p className="mt-3 text-[13px] opacity-85 lg:mt-5 lg:text-[15px]">
+            汽車零件零售 ERP 企業管理平台
           </p>
         </div>
+      </div>
 
-        {/* Mobile：星球佔位（SharedPlanet 飛到此 slot rect、登入時放大顯示） */}
-        <div className="lg:hidden flex-1 min-h-0 flex items-center justify-center px-6 overflow-hidden">
-          <div className="relative aspect-square w-[min(60vw,360px)] max-w-full">
-            <PlanetSlot id="login" className="absolute inset-0" />
-          </div>
-        </div>
-
-        {/* Desktop：左半星球 + NEXORA 品牌字 + tagline */}
-        <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 relative flex-col items-center justify-center">
-          <div className="relative z-10 aspect-square w-[min(42vw,440px)] max-w-[440px]">
-            <PlanetSlot id="login" className="absolute inset-0" />
+      {/* 右：登入表單 */}
+      <div className="flex flex-1 items-center justify-center px-6 py-8">
+        <div className="w-full max-w-sm">
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold text-foreground">系統登入</h2>
+            <p className="mt-1 text-[13px] text-muted-foreground">請輸入您的帳號資訊以存取系統</p>
           </div>
 
-          <div className="relative z-10 mt-8 text-center px-8">
-            <div className="flex items-center justify-center gap-3 mb-5">
-              <div className="h-px w-12 bg-gradient-to-r from-transparent to-[var(--warning)]" />
-              <span className="text-[11px] tracking-[0.42em] text-[var(--warning)] font-mono font-medium">
-                ENTERPRISE RESOURCE PLANNING
-              </span>
-              <div className="h-px w-12 bg-gradient-to-l from-transparent to-[var(--warning)]" />
+          {isDemoMode ? (
+            <div className="mb-4 rounded-md border border-primary/40 bg-primary/10 px-3 py-2 text-[12px] text-foreground">
+              <span className="font-semibold">展示模式</span>
+              ：跳過真實登入驗證（NEXT_PUBLIC_NEXORA_RUN_MODE=demo）。
             </div>
-            <h1 className="text-5xl xl:text-6xl font-bold tracking-[0.04em] leading-[0.95] text-foreground">
-              NEXORA
-            </h1>
-            <p className="mt-3 text-xl xl:text-2xl font-normal tracking-[0.5em] text-muted-foreground/85 ml-[0.5em]">
-              GRID
-            </p>
-            <p className="mt-5 text-sm text-muted-foreground tracking-[0.08em]">
-              汽車零件零售 ERP 企業管理平台
-            </p>
-          </div>
-        </div>
+          ) : null}
 
-        {/* 右半（desktop）/ 底部（mobile）：登入卡 + 版本號 */}
-        <div className="w-full shrink-0 flex flex-col px-6 pb-2 lg:w-1/2 xl:w-2/5 lg:shrink lg:p-0 lg:pb-0">
-          <div className="flex items-start justify-center lg:flex-1 lg:items-center lg:p-12">
-            <div className="w-full max-w-md space-y-3 lg:space-y-6">
-              <div className="space-y-1 text-center lg:space-y-2">
-                <div className="hidden lg:flex items-center gap-3 justify-center">
-                  <div className="h-px w-9 bg-gradient-to-r from-transparent to-[var(--warning)]" />
-                  <span className="text-[11px] tracking-[0.4em] text-[var(--warning)] font-mono font-medium">
-                    WELCOME
-                  </span>
-                  <div className="h-px w-9 bg-gradient-to-l from-transparent to-[var(--warning)]" />
-                </div>
-                <h2 className="text-base font-semibold tracking-tight text-foreground lg:text-2xl">
-                  系統登入
-                </h2>
-                <p className="hidden lg:block text-xs lg:text-sm text-muted-foreground">
-                  請輸入您的帳號資訊以存取系統
-                </p>
-                {isDemoMode ? (
-                  <div
-                    role="status"
-                    className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-left text-xs text-amber-200/90"
-                  >
-                    <span className="font-semibold text-amber-100">ℹ️ 展示模式</span>
-                    ：跳過真實登入驗證（環境變數 NEXT_PUBLIC_NEXORA_RUN_MODE=demo）。
-                  </div>
-                ) : null}
+          <form onSubmit={(e) => onSubmit(e, formData)} className="space-y-4">
+            <div className="space-y-1.5">
+              <label htmlFor="company" className="block text-[12.5px] font-medium text-foreground">
+                公司帳號
+              </label>
+              <div className="relative">
+                <Building2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  id="company"
+                  type="text"
+                  value={formData.companyAccount}
+                  onChange={(e) => setFormData({ ...formData, companyAccount: e.target.value })}
+                  className={FIELD_CLS}
+                  placeholder="公司代碼"
+                  autoComplete="organization"
+                  required
+                />
               </div>
+            </div>
 
-              {/* 登入卡（18px 圓角 + 半透明漸層內襯 + 兩角金光暈） */}
-              <div className="login-card relative overflow-hidden rounded-[18px] border border-foreground/[0.085] bg-gradient-to-b from-foreground/[0.045] to-foreground/[0.015] p-4 backdrop-blur-md lg:p-8">
-                <div className="absolute -top-20 -right-20 w-40 h-40 bg-accent/10 rounded-full blur-3xl" />
-                <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-accent/5 rounded-full blur-3xl" />
+            <div className="space-y-1.5">
+              <label htmlFor="user" className="block text-[12.5px] font-medium text-foreground">
+                員工編號
+              </label>
+              <div className="relative">
+                <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  id="user"
+                  type="text"
+                  value={formData.userAccount}
+                  onChange={(e) => setFormData({ ...formData, userAccount: e.target.value })}
+                  className={FIELD_CLS}
+                  placeholder="員工編號"
+                  autoComplete="username"
+                  required
+                />
+              </div>
+            </div>
 
-                <div className="relative">
-                  <form
-                    onSubmit={(e) => onSubmit(e, formData)}
-                    className="w-full space-y-5"
-                  >
-                    <div className="space-y-2">
-                      <label
-                        htmlFor="company"
-                        className="block text-xs font-medium tracking-[0.15em] uppercase text-muted-foreground"
-                      >
-                        公司帳號
-                      </label>
-                      <div className="relative group">
-                        <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-accent transition-colors" />
-                        <input
-                          id="company"
-                          type="text"
-                          value={formData.companyAccount}
-                          onChange={(e) => setFormData({ ...formData, companyAccount: e.target.value })}
-                          className="w-full h-12 bg-secondary/50 border border-border/50 rounded-lg pl-11 pr-4 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/50 transition-all duration-300"
-                          placeholder="Company ID"
-                          autoComplete="organization"
-                          required
-                        />
-                      </div>
-                    </div>
+            <div className="space-y-1.5">
+              <label htmlFor="password" className="block text-[12.5px] font-medium text-foreground">
+                使用者密碼
+              </label>
+              <div className="relative">
+                <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  className={`${FIELD_CLS} pr-10`}
+                  placeholder="密碼"
+                  autoComplete="current-password"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  aria-label={showPassword ? '隱藏密碼' : '顯示密碼'}
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
 
-                    <div className="space-y-2">
-                      <label
-                        htmlFor="user"
-                        className="block text-xs font-medium tracking-[0.15em] uppercase text-muted-foreground"
-                      >
-                        員工編號
-                      </label>
-                      <div className="relative group">
-                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-accent transition-colors" />
-                        <input
-                          id="user"
-                          type="text"
-                          value={formData.userAccount}
-                          onChange={(e) => setFormData({ ...formData, userAccount: e.target.value })}
-                          className="w-full h-12 bg-secondary/50 border border-border/50 rounded-lg pl-11 pr-4 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/50 transition-all duration-300"
-                          placeholder="Employee ID"
-                          autoComplete="username"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label
-                        htmlFor="password"
-                        className="block text-xs font-medium tracking-[0.15em] uppercase text-muted-foreground"
-                      >
-                        使用者密碼
-                      </label>
-                      <div className="relative group">
-                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-accent transition-colors" />
-                        <input
-                          id="password"
-                          type={showPassword ? 'text' : 'password'}
-                          value={formData.password}
-                          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                          className="w-full h-12 bg-secondary/50 border border-border/50 rounded-lg pl-11 pr-11 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/50 transition-all duration-300"
-                          placeholder="Password"
-                          autoComplete="current-password"
-                          required
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                          aria-label={showPassword ? '隱藏密碼' : '顯示密碼'}
-                        >
-                          {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                        </button>
-                      </div>
-                    </div>
-
-                    {errorMsg ? (
-                      <div
-                        role="alert"
-                        className="rounded-lg border border-warning/40 bg-warning/10 p-3.5 text-warning"
-                      >
-                        <div className="flex items-start gap-2">
-                          <XCircle className="mt-0.5 size-5 shrink-0" aria-hidden />
-                          <div className="flex-1">
-                            <p className="text-base leading-snug">{errorMsg.message}</p>
-                            <p className="mt-1 text-xs opacity-70">[Error Code : {errorMsg.errorCode}]</p>
-                          </div>
-                        </div>
-                      </div>
-                    ) : null}
-
-                    {/* 記住我 + 忘記密碼（⚠️ 兩者邏輯層目前 noop、UI slot 預留給後續軌） */}
-                    <div className="flex items-center justify-between">
-                      <label className="flex items-center gap-2 cursor-pointer select-none">
-                        <input
-                          type="checkbox"
-                          checked={formData.rememberMe}
-                          onChange={(e) => setFormData({ ...formData, rememberMe: e.target.checked })}
-                          className="size-4 rounded border-border/50 bg-secondary/50 accent-accent cursor-pointer"
-                        />
-                        <span className="text-xs tracking-wide text-muted-foreground">
-                          記住我
-                        </span>
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => onForgotPassword?.()}
-                        className="text-xs tracking-wide text-muted-foreground hover:text-accent transition-colors duration-300"
-                      >
-                        忘記密碼？
-                      </button>
-                    </div>
-
-                    {/* amber gradient 登入按鈕（金色 + 寬字距 + 金黃光暈陰影） */}
-                    <button
-                      type="submit"
-                      disabled={!canSubmit || isSubmitting}
-                      style={{
-                        background: 'linear-gradient(180deg, var(--color-primary-light), var(--warning))',
-                        boxShadow: '0 6px 18px -7px rgba(232, 160, 32, 0.55)',
-                        color: '#1a1a1f',
-                      }}
-                      className="group relative flex w-full h-[50px] items-center justify-center gap-2 overflow-hidden rounded-[10px] text-[14.5px] font-semibold tracking-[0.12em] transition-all duration-200 hover:brightness-[1.04] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-70"
-                    >
-                      {isSubmitting ? (
-                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-black/20 border-t-black" />
-                      ) : (
-                        <>
-                          <span>登入系統</span>
-                          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                        </>
-                      )}
-                    </button>
-                  </form>
+            {errorMsg ? (
+              <div
+                role="alert"
+                className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-destructive"
+              >
+                <XCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
+                <div className="flex-1">
+                  <p className="text-[13px] leading-snug">{errorMsg.message}</p>
+                  <p className="mt-0.5 text-[11px] opacity-70">[{errorMsg.errorCode}]</p>
                 </div>
               </div>
+            ) : null}
 
-              {/* 版本號 footer（brand | version + suffix、3 段 design token） */}
-              <p className="mt-4 text-center font-mono text-sm tracking-[0.1em] text-muted-foreground">
-                <span>{versionInfo.brand}</span>
-                <span className="mx-2 opacity-50">|</span>
-                <span className="text-primary">{versionInfo.version}</span>
-                {versionInfo.suffix ? (
-                  <span className="ml-2 text-muted-foreground">{versionInfo.suffix}</span>
-                ) : null}
-              </p>
+            <div className="flex items-center justify-between">
+              <label className="flex cursor-pointer select-none items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={formData.rememberMe}
+                  onChange={(e) => setFormData({ ...formData, rememberMe: e.target.checked })}
+                  className="size-4 rounded border-border accent-primary"
+                />
+                <span className="text-[12.5px] text-muted-foreground">記住我</span>
+              </label>
+              <button
+                type="button"
+                onClick={() => onForgotPassword?.()}
+                className="text-[12.5px] text-primary hover:underline"
+              >
+                忘記密碼？
+              </button>
             </div>
-          </div>
+
+            <button
+              type="submit"
+              disabled={!canSubmit || isSubmitting}
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-md bg-primary text-[14px] font-semibold text-primary-foreground transition hover:brightness-105 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isSubmitting ? (
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
+              ) : (
+                <>
+                  <span>登入系統</span>
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
+            </button>
+          </form>
+
+          <p className="mt-6 text-center font-mono text-[12px] tracking-wide text-muted-foreground">
+            <span>{versionInfo.brand}</span>
+            <span className="mx-2 opacity-50">|</span>
+            <span className="text-primary">{versionInfo.version}</span>
+            {versionInfo.suffix ? (
+              <span className="ml-2 text-muted-foreground">{versionInfo.suffix}</span>
+            ) : null}
+          </p>
         </div>
       </div>
     </main>

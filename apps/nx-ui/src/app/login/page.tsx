@@ -30,7 +30,6 @@ import { callLoginApi } from '@data/endpoints/auth/api/login';
 import { isNexoraDemoMode } from '@data/auth/run-mode';
 import { setToken } from '@data/auth/token';
 import { LoginPageView, type LoginFields } from '@design/login/LoginPageView';
-import { usePlanet } from '@design/home/SharedPlanetRoot';
 import { getVersionParts } from '@data/config/version';
 import { toNexoraClientError, type NexoraClientError } from '@data/errors/nexora-error';
 
@@ -64,7 +63,6 @@ function validateLoginForm(fields: LoginFields): NexoraClientError | null {
 
 export default function LoginPage() {
   const router = useRouter();
-  const { flyToCenter, flyTo } = usePlanet();
   const [view, setView] = useState<LoginViewState>({ isSubmitting: false, errorMsg: null });
   const [isLeaving, setIsLeaving] = useState(false);
 
@@ -95,14 +93,9 @@ export default function LoginPage() {
         }));
       }
       setToken(result.token);
-      // 對齊 Hana A 段主轉場、修正路由順序：先 router.replace 讓 topbar slot 開始掛載、再 flyTo 等它出現
-      // （原本順序：flyToCenter → flyTo('topbar') → replace、topbar slot 那刻還沒 mount、placeAt 重試 40 幀放棄、星球僵在中央 → router 完進 dashboard 才被 useLayoutEffect 瞬移）
+      // 2026-06-27 大改版：移除星球飛行轉場（太空風封存）、改單純淡出 + 轉址
       setIsLeaving(true);
-      void (async () => {
-        await flyToCenter(800);
-        router.replace('/dashboard');
-        await flyTo('topbar', 950);
-      })();
+      router.replace('/dashboard');
       return;
     } catch (e: unknown) {
       setView((prev) => ({ ...prev, errorMsg: getError(e) }));
