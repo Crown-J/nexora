@@ -60,6 +60,8 @@ import {
   DropdownMenuTrigger,
 } from '@design/primitives/dropdown-menu';
 import { cn } from '@design/utils/cn';
+// 情境工具列：投影到外殼第 2 層插槽（執行長 2026-06-28 六層介面）
+import { ToolbarPortal } from '@design/layout/workbench/WorkbenchToolbarSlot';
 
 import type { ExportFormat } from '@/features/nx01/shell/hooks/useExportTable';
 
@@ -193,6 +195,7 @@ export function ErpToolbar({
   if (selectionMode) {
     const hasChecked = selectedCount > 0;
     return (
+      <ToolbarPortal>
       <div className="flex items-center gap-1 border-b border-[#E8A020]/30 bg-gradient-to-r from-[#E8A020]/6 to-[#E8A020]/3 px-3 py-1.5">
         <ToolbarButton icon={Check} label="完成選取" enabled onClick={onToggleSelection} accent />
         <ToolbarSeparator />
@@ -214,11 +217,13 @@ export function ErpToolbar({
           onClick={onBatchDisable}
         />
       </div>
+      </ToolbarPortal>
     );
   }
 
   if (mode === 'edit') {
     return (
+      <ToolbarPortal>
       <div className="flex items-center gap-1 border-b border-[#E8A020]/30 bg-gradient-to-r from-[#E8A020]/6 to-[#E8A020]/3 px-3 py-1.5">
         <span className="inline-flex items-center gap-1 rounded-md border border-[#E8A020]/40 bg-[#E8A020]/12 px-2 py-0.5 text-[11px] font-medium text-[#E8A020]">
           <Pencil className="size-3" />
@@ -232,6 +237,7 @@ export function ErpToolbar({
           編輯模式 · Alt+S 存檔 / Alt+C 取消
         </span>
       </div>
+      </ToolbarPortal>
     );
   }
 
@@ -264,6 +270,7 @@ export function ErpToolbar({
   const navLabel = useItemNav ? '項目' : '頁';
 
   return (
+    <ToolbarPortal>
     <div
       data-nx-frame
       className="flex items-center gap-1 border-b border-border/40 px-3 py-2"
@@ -355,6 +362,7 @@ export function ErpToolbar({
       ) : null}
       <div className="flex-1" />
     </div>
+    </ToolbarPortal>
   );
 }
 

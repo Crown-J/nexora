@@ -16,10 +16,13 @@ import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import { AutoPageGuide, PageGuideProvider } from '@/features/page-guide';
 import { useModalStackGuard } from '@design/primitives/modal-stack';
 import { TopMenuBar } from './TopMenuBar';
-import { WorkbenchToolbar } from './WorkbenchToolbar';
 import { WorkbenchTabStrip } from './WorkbenchTabStrip';
 import { WorkbenchStatusBar } from './WorkbenchStatusBar';
 import { WorkbenchTabsProvider, useWorkbenchTabs } from './WorkbenchTabsContext';
+import {
+  WorkbenchToolbarSlotProvider,
+  useWorkbenchToolbarSlot,
+} from './WorkbenchToolbarSlot';
 import { BUSINESS_MENUS, SYSTEM_MENU, type MenuNode } from './menu-data';
 import { useUiTheme } from './useUiTheme';
 
@@ -27,10 +30,10 @@ type Props = { children: React.ReactNode };
 
 /** 內層：可用 useWorkbenchTabs（須在 Provider 內） */
 function WorkbenchChrome({ children }: Props) {
-  const router = useRouter();
   const { open, closeAll } = useWorkbenchTabs();
   const { light, toggle: toggleTheme } = useUiTheme();
   const { displayName, employeeNo, tenantName, onLogout } = useShellSession();
+  const toolbarSlot = useWorkbenchToolbarSlot();
 
   const menus: MenuNode[] = [SYSTEM_MENU, ...BUSINESS_MENUS];
 
@@ -43,7 +46,6 @@ function WorkbenchChrome({ children }: Props) {
     [onLogout, closeAll, open],
   );
 
-  const onRefresh = useCallback(() => router.refresh(), [router]);
   const onSearch = useCallback(() => {
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'F2', bubbles: true }));
   }, []);
@@ -51,13 +53,16 @@ function WorkbenchChrome({ children }: Props) {
   return (
     // relative z-10：壓在全域 NxAppBackdrop（z-0 星空/六角背景）之上；bg-background 不透明蓋滿
     <div className="relative z-10 flex h-dvh flex-col bg-background text-foreground">
-      <TopMenuBar menus={menus} onSelect={onSelect} onHome={() => open('/dashboard', 'menu: 首頁')} />
-      <WorkbenchToolbar
+      <TopMenuBar
+        menus={menus}
+        onSelect={onSelect}
+        onHome={() => open('/dashboard', 'menu: 首頁')}
+        onSearch={onSearch}
         light={light}
         onToggleTheme={toggleTheme}
-        onRefresh={onRefresh}
-        onSearch={onSearch}
       />
+      {/* 第 2 層：情境工具列插槽（頁面 ErpToolbar 投影至此；無工具列頁面自動收合） */}
+      <div ref={toolbarSlot?.setSlotEl} className={toolbarSlot?.count ? '' : 'hidden'} />
       <WorkbenchTabStrip />
       {/* flex 撐高容器：讓填滿視窗高度的主檔頁（h-full/flex-1）正常撐開，內容過高才捲動 */}
       <main className="flex min-h-0 flex-1 flex-col overflow-auto bg-background px-3 py-3">
@@ -126,7 +131,9 @@ export function WorkbenchShell({ children }: Props) {
       <DashboardBulletinProvider>
         <PageGuideProvider>
           <WorkbenchTabsProvider>
-            <WorkbenchChrome>{children}</WorkbenchChrome>
+            <WorkbenchToolbarSlotProvider>
+              <WorkbenchChrome>{children}</WorkbenchChrome>
+            </WorkbenchToolbarSlotProvider>
           </WorkbenchTabsProvider>
         </PageGuideProvider>
       </DashboardBulletinProvider>

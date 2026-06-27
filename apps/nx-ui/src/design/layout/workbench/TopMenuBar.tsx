@@ -7,13 +7,17 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ChevronRight, Home } from 'lucide-react';
+import { ChevronRight, Home, Moon, Search, Sun } from 'lucide-react';
 import type { MenuNode } from './menu-data';
 
 type Props = {
   menus: MenuNode[];
   onSelect: (node: MenuNode) => void;
   onHome: () => void;
+  /** 全域料號搜尋（F2） */
+  onSearch: () => void;
+  light: boolean;
+  onToggleTheme: () => void;
 };
 
 function SubMenu({ items, onPick }: { items: MenuNode[]; onPick: (n: MenuNode) => void }) {
@@ -56,7 +60,7 @@ function SubMenu({ items, onPick }: { items: MenuNode[]; onPick: (n: MenuNode) =
   );
 }
 
-export function TopMenuBar({ menus, onSelect, onHome }: Props) {
+export function TopMenuBar({ menus, onSelect, onHome, onSearch, light, onToggleTheme }: Props) {
   const [open, setOpen] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -125,6 +129,23 @@ export function TopMenuBar({ menus, onSelect, onHome }: Props) {
           </div>
         );
       })}
+      <div className="flex-1" />
+      <button
+        type="button"
+        onClick={onSearch}
+        title="料號即時查詢（F2）"
+        className="grid h-7 w-7 place-items-center rounded-sm text-muted-foreground hover:bg-foreground/[0.06] hover:text-foreground"
+      >
+        <Search className="h-[15px] w-[15px]" />
+      </button>
+      <button
+        type="button"
+        onClick={onToggleTheme}
+        title={light ? '切換深色' : '切換淺色'}
+        className="grid h-7 w-7 place-items-center rounded-sm text-muted-foreground hover:bg-foreground/[0.06] hover:text-foreground"
+      >
+        {light ? <Moon className="h-[15px] w-[15px]" /> : <Sun className="h-[15px] w-[15px]" />}
+      </button>
     </div>
   );
 }
