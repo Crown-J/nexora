@@ -6,7 +6,7 @@
 //   - perm     權限管理 (2): 組織架構圖 / 職務權限
 //   - site     據點倉庫 (4): 據點架構圖 / 據點 / 倉庫 / 庫位
 //   - partner  往來對象 (4): 對象 / 客戶分級 / 供應商分級 / 供應商供貨對應
-//   - product  產品與廠牌 (4): 零件 / 廠牌 / 群組 / 通用件群組
+//   - product  產品與廠牌 (8): 零件 / 廠牌 / 群組 / 通用件群組 / 零件關聯 / 組合拆解 / 料件車型適配 / 車型（2026-06-26 重構補齊）
 //   - dict     字典主檔 (4): 地區 / 國家 / 幣別 / 注音
 //
 // disabled=true 代表尚未實作（demo 列出但 UI 還沒做）→ icon 灰色不可點
@@ -34,6 +34,10 @@ import {
   Users,
   UsersRound,
   Warehouse as WarehouseIcon,
+  Blocks,
+  Car,
+  Link2,
+  Workflow,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -82,6 +86,11 @@ export const MASTER_PAGES: MasterPageMeta[] = [
   { id: 'brand', label: '廠牌', href: '/dashboard/master/brand', category: 'product', icon: Tag },
   { id: 'partgroup', label: '零件群組', href: '/dashboard/master/part-group', category: 'product', icon: Layers },
   { id: 'univgroup', label: '通用件群組', href: '/dashboard/master/universal-group', category: 'product', icon: Combine },
+  // 2026-06-26 重構補齊：替代料三機制（通用件群組=全互換 / 零件關聯=單向替代 / 組合拆解）+ 車型
+  { id: 'partrelation', label: '零件關聯', href: '/dashboard/master/part-relation', category: 'product', icon: Link2 },
+  { id: 'partkit', label: '組合／拆解組件關係', href: '/dashboard/master/part-kit', category: 'product', icon: Blocks },
+  { id: 'partmodel', label: '料件車型適配', href: '/dashboard/master/part-model', category: 'product', icon: Workflow },
+  { id: 'model', label: '車型', href: '/dashboard/master/model', category: 'product', icon: Car },
   // dict 字典主檔
   { id: 'region', label: '地區', href: '/dashboard/master/region', category: 'dict', icon: Map },
   { id: 'country', label: '國家', href: '/dashboard/master/country', category: 'dict', icon: Globe },
