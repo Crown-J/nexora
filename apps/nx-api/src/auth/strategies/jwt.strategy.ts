@@ -37,6 +37,8 @@ export type RequestUser = {
   tenantId: string | null;
   tenantCode: string | null;
   planCode: string | null;
+  /** 職務↔權限拆分軌：使用者的權限等級代碼（'S'=全權限；null=未指派）。每 request 即時查 DB。*/
+  permissionLevelCode: string | null;
 };
 
 @Injectable()
@@ -65,11 +67,19 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     const userRow = await this.prisma.nx01User.findUnique({
       where: { id: payload.sub },
-      select: { tenantId: true },
+      select: {
+        tenantId: true,
+        // 職務↔權限拆分軌：使用者的權限等級（每 request 即時帶 code）
+        permissionLevel: { select: { code: true, isActive: true } },
+      },
     });
     if (!userRow) {
       throw new UnauthorizedException('User not found');
     }
+    const permissionLevelCode =
+      userRow.permissionLevel && userRow.permissionLevel.isActive
+        ? userRow.permissionLevel.code
+        : null;
 
     const urWhere: { userId: string; isActive: boolean; tenantId?: string } = {
       userId: payload.sub,
@@ -129,6 +139,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       tenantId,
       tenantCode,
       planCode,
+      permissionLevelCode,
     };
   }
 }

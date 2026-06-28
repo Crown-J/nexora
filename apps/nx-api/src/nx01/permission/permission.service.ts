@@ -151,7 +151,11 @@ export class PermissionService {
       String(r.role.code).trim().toUpperCase(),
     );
     const SUPER_ROLES = new Set(['SYSADMIN', 'OWNER']);
-    if (codes.some((c) => SUPER_ROLES.has(c))) {
+    // 職務↔權限拆分軌：權限等級 S 視為全擁有（與 OWNER 等效、加性過渡）
+    if (
+      codes.some((c) => SUPER_ROLES.has(c)) ||
+      String(user.permissionLevelCode ?? '').trim().toUpperCase() === 'S'
+    ) {
       return ['*'];
     }
     const roleIds = activeRoles.map((r) => r.role.id);

@@ -77,6 +77,12 @@ export class RolesGuard implements CanActivate {
       return true;
     }
 
+    // 職務↔權限拆分軌（2026-06-28）：權限等級 S = 全通行（與 OWNER 等效）。
+    // 加性過渡雙認——只「加」存取、不移除舊 role 判斷，確保拆分期間不鎖死。
+    if (String(user.permissionLevelCode ?? '').trim().toUpperCase() === 'S') {
+      return true;
+    }
+
     const hasPermission = requiredRoles.some((role) =>
       roleCodes.some((c) => String(c).trim().toUpperCase() === String(role).trim().toUpperCase()),
     );
