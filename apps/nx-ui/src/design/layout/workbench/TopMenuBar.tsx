@@ -144,7 +144,7 @@ export function TopMenuBar({ menus, onSelect, onHome, onSearch }: Props) {
               className={`rounded-sm px-3 py-1.5 text-[13px] transition ${
                 isOpen
                   ? 'bg-white/15 text-white'
-                  : 'text-[var(--nx-menubar-fg-strong)] hover:bg-white/10'
+                  : `text-[var(--nx-menubar-fg-strong)] hover:bg-white/10 ${m.comingSoon ? 'opacity-55' : ''}`
               }`}
             >
               {m.label}
@@ -152,7 +152,13 @@ export function TopMenuBar({ menus, onSelect, onHome, onSearch }: Props) {
             </button>
             {isOpen && hasChildren && (
               <div className="absolute left-0 top-full z-30 mt-px rounded-sm border border-border bg-popover shadow-xl">
-                <SubMenu items={m.children!} onPick={pick} />
+                {m.comingSoon ? (
+                  <div className="min-w-[12rem] px-4 py-3 text-[12.5px] text-muted-foreground">
+                    此模組即將推出
+                  </div>
+                ) : (
+                  <SubMenu items={m.children!} onPick={pick} />
+                )}
               </div>
             )}
           </div>

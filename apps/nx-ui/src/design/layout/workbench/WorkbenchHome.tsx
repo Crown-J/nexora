@@ -71,13 +71,14 @@ export function WorkbenchHome() {
         {HOME_GROUPS.map((g) => {
           const Icon = GROUP_ICON[g.key] ?? Database;
           const href = firstHref(g);
+          const disabled = !href || !!g.comingSoon;
           return (
             <button
               key={g.key}
               type="button"
-              disabled={!href}
+              disabled={disabled}
               onClick={() => href && tryNavigate(() => router.push(href), `home: ${g.label}`)}
-              className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3.5 text-left transition hover:border-primary/50 hover:bg-primary/[0.04] disabled:opacity-50"
+              className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3.5 text-left transition hover:border-primary/50 hover:bg-primary/[0.04] disabled:opacity-50 disabled:hover:border-border disabled:hover:bg-card"
             >
               <span className="grid h-9 w-9 place-items-center rounded-md bg-primary/10 text-primary">
                 <Icon className="h-[18px] w-[18px]" />
@@ -85,7 +86,7 @@ export function WorkbenchHome() {
               <span>
                 <span className="block text-[14px] font-medium text-foreground">{g.label}</span>
                 <span className="block text-[11.5px] text-muted-foreground">
-                  {GROUP_DESC[g.key] ?? ''}
+                  {g.comingSoon ? '即將推出' : (GROUP_DESC[g.key] ?? '')}
                 </span>
               </span>
             </button>
