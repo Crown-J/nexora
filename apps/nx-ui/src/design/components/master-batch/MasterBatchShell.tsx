@@ -26,8 +26,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { Plus, type LucideIcon } from 'lucide-react';
+
 import { cn } from '@design/utils/cn';
-import { PageHeader } from '@design/components/page-header/PageHeader';
+import { ToolbarPortal } from '@design/layout/workbench/WorkbenchToolbarSlot';
 import { ToastStack, useToast } from '@design/components/toast/ToastStack';
 
 import { SubjectPanel } from './SubjectPanel';
@@ -207,6 +209,17 @@ export function MasterBatchShell<S, M>({ config, className }: MasterBatchShellPr
         }
         return;
       }
+      // Alt+1 / Alt+2：切左右欄（六層 L4 分頁）
+      if (e.altKey && e.key === '1') {
+        e.preventDefault();
+        setFocusZone('left');
+        return;
+      }
+      if (e.altKey && e.key === '2') {
+        e.preventDefault();
+        setFocusZone('right');
+        return;
+      }
 
       if (focusZone === 'left') {
         if (config.leftMode === 'flat') handleFlatKey(e);
@@ -337,10 +350,6 @@ export function MasterBatchShell<S, M>({ config, className }: MasterBatchShellPr
     treeRows,
   ]);
 
-  // ---------- 計數 chip ----------
-  const totalCount =
-    config.leftMode === 'flat' ? `${flatSubjects.length} 項` : `${treeSelectableCount} 項`;
-
   // ---------- grouped 模式：右欄分組（給 MemberPanel）----------
   const memberGroupsForPanel = useMemo(() => {
     if (config.rightMode !== 'grouped' || !selectedSubject || !config.memberGroups) return [];
@@ -362,18 +371,53 @@ export function MasterBatchShell<S, M>({ config, className }: MasterBatchShellPr
     [config, treeRows],
   );
 
-  return (
-    <div className={cn('flex min-h-0 flex-1 flex-col gap-3', className)}>
-      <PageHeader
-        crumbs={config.crumbs}
-        category={config.category}
-        title={config.title}
-        desc={config.desc}
-        count={totalCount}
-        rightAddon={config.headerRight}
-      />
+  const leftCount = config.leftMode === 'flat' ? flatSubjects.length : treeSelectableCount;
+  const rightCount = selectedSubject ? config.members(selectedSubject).length : 0;
+  const addEnabled = !!selectedSubject && (config.isAddEnabled?.(selectedSubject) ?? true);
 
-      <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 px-4 pb-4 md:grid-cols-[360px_1fr]">
+  return (
+    <div className={cn('flex min-h-0 flex-1 flex-col', className)}>
+      {/* 2026-06-28 六層化：清麵包屑、L3 銀質工具列 + L4 兩分頁（Alt+1 主體 / Alt+2 明細）；標題由工作區分頁顯示 */}
+      <ToolbarPortal>
+        <div
+          data-nx-frame
+          className="flex items-center gap-1 border-b border-border/40 px-3 py-2"
+          style={{
+            backgroundImage:
+              'linear-gradient(180deg, var(--nx-surface-toolbar-from) 0%, var(--nx-surface-toolbar-to) 100%)',
+            boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.04), 0 1px 0 0 rgba(0,0,0,0.5)',
+          }}
+        >
+          {config.leftCreatable && config.onCreate ? (
+            <BatchToolBtn
+              icon={Plus}
+              label={config.createLabel ?? `新增${config.subjectNoun}`}
+              enabled
+              onClick={() => config.onCreate!(ctx)}
+            />
+          ) : null}
+          <BatchToolBtn
+            icon={config.addIcon ?? Plus}
+            letter="A"
+            label={config.addLabel}
+            enabled={addEnabled}
+            onClick={() => {
+              if (selectedSubject) config.onAdd(selectedSubject, ctx);
+            }}
+          />
+          <div className="flex-1" />
+          <span className="hidden text-[11px] text-muted-foreground lg:inline">
+            Alt+1/2 切欄 · ↑↓ 移動 · A 加入 · Del 移除
+          </span>
+        </div>
+      </ToolbarPortal>
+
+      <div className="flex shrink-0 flex-wrap items-center gap-1 border-b border-border bg-background px-3 py-1">
+        <BatchTab label={config.subjectNoun} count={leftCount} hint="1" active={focusZone === 'left'} onClick={() => setFocusZone('left')} />
+        <BatchTab label={config.memberNoun} count={rightCount} hint="2" active={focusZone === 'right'} onClick={() => setFocusZone('right')} />
+      </div>
+
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 px-4 pb-4 pt-3 md:grid-cols-[360px_1fr]">
         <SubjectPanel
           mode={config.leftMode}
           subjectIcon={config.subjectIcon}
@@ -397,10 +441,10 @@ export function MasterBatchShell<S, M>({ config, className }: MasterBatchShellPr
           // tree
           treeRows={treeRowVMs}
           onToggleExpand={toggleExpand}
-          // create
-          leftCreatable={config.leftCreatable}
+          // create 已上移 L3 工具列、不在 L5 重複（六層）
+          leftCreatable={false}
           createLabel={config.createLabel}
-          onCreate={config.onCreate ? () => config.onCreate!(ctx) : undefined}
+          onCreate={undefined}
         />
 
         <MemberPanel
@@ -434,11 +478,8 @@ export function MasterBatchShell<S, M>({ config, className }: MasterBatchShellPr
               ? (memberId) => config.onRemoveMember!(selectedSubject, memberId, ctx)
               : undefined
           }
-          onAdd={
-            selectedSubject && (config.isAddEnabled?.(selectedSubject) ?? true)
-              ? () => config.onAdd(selectedSubject, ctx)
-              : undefined
-          }
+          // 加入鈕已上移 L3 工具列（Alt+A / 工具列）、不在 L5 重複（六層）
+          onAdd={undefined}
           emptyText={
             selectedSubject && config.emptyText ? config.emptyText(selectedSubject) : undefined
           }
@@ -448,5 +489,82 @@ export function MasterBatchShell<S, M>({ config, className }: MasterBatchShellPr
 
       <ToastStack toasts={toasts} />
     </div>
+  );
+}
+
+// ============ 六層子元件 ============
+
+/** L3 工具列按鈕（內聯、不依賴 features 層 ErpToolbar）*/
+function BatchToolBtn({
+  icon: Icon,
+  letter,
+  label,
+  enabled,
+  onClick,
+}: {
+  icon: LucideIcon;
+  letter?: string;
+  label: string;
+  enabled: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={!enabled}
+      onClick={onClick}
+      title={letter ? `${label}（${letter}）` : label}
+      className={cn(
+        'inline-flex h-7 items-center gap-1 rounded-md border px-2 text-[11px] font-medium transition-all',
+        enabled
+          ? 'border-border/50 bg-card text-foreground/80 hover:border-border hover:bg-accent/15 hover:text-foreground'
+          : 'cursor-not-allowed border-border/30 bg-muted/30 text-muted-foreground/50',
+      )}
+    >
+      <Icon className="size-3" />
+      <span className="hidden sm:inline">
+        {letter ? <span className={cn('mr-0.5 font-mono', enabled && 'text-primary')}>{letter}</span> : null}
+        {label}
+      </span>
+    </button>
+  );
+}
+
+/** L4 頁內分頁（兩欄列表、active 標焦點欄、附 Alt 提示）*/
+function BatchTab({
+  label,
+  count,
+  hint,
+  active,
+  onClick,
+}: {
+  label: string;
+  count: number;
+  hint: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'inline-flex h-7 items-center gap-1.5 rounded-md border px-2.5 text-[12px] font-medium transition-colors',
+        active
+          ? 'border-primary/50 bg-primary/10 text-primary'
+          : 'border-transparent text-muted-foreground hover:bg-accent/15 hover:text-foreground',
+      )}
+    >
+      <span className="font-mono text-[10px] opacity-60">Alt+{hint}</span>
+      {label}
+      <span
+        className={cn(
+          'inline-flex min-w-4 items-center justify-center rounded px-1 text-[10px]',
+          active ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground',
+        )}
+      >
+        {count}
+      </span>
+    </button>
   );
 }
