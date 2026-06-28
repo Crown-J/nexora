@@ -19,9 +19,10 @@ import {
   updatePartKit,
   type PartKitDto,
 } from '@data/endpoints/nx01/api/part-kit';
+import { PartSearchSelect } from './PartSearchSelect';
 
-type ItemDraft = { partId: string; qty: string; remark: string };
-type Draft = { wholePartId: string; name: string; remark: string; items: ItemDraft[] };
+type ItemDraft = { partId: string; partLabel?: string; qty: string; remark: string };
+type Draft = { wholePartId: string; wholePartLabel?: string; name: string; remark: string; items: ItemDraft[] };
 
 const PAGE_SIZE = 20;
 
@@ -32,10 +33,11 @@ function emptyDraft(): Draft {
 function fromRow(r: PartKitDto): Draft {
   return {
     wholePartId: r.wholePartId,
+    wholePartLabel: r.wholePartCode ?? r.wholePartId,
     name: r.name,
     remark: r.remark ?? '',
     items: r.items.length
-      ? r.items.map((it) => ({ partId: it.partId, qty: it.qty, remark: it.remark ?? '' }))
+      ? r.items.map((it) => ({ partId: it.partId, partLabel: it.partCode ?? it.partId, qty: it.qty, remark: it.remark ?? '' }))
       : [{ partId: '', qty: '1', remark: '' }],
   };
 }
@@ -331,15 +333,13 @@ export function PartKitMasterView() {
             </header>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label htmlFor="pk-whole">整體件料號 ID *（建立後不可改）</Label>
-                <Input
-                  id="pk-whole"
+                <Label>整體件 *（建立後不可改）</Label>
+                <PartSearchSelect
                   value={draft.wholePartId}
+                  label={draft.wholePartLabel}
                   disabled={!!editingId}
-                  onChange={(e) => setDraft((d) => ({ ...d, wholePartId: e.target.value }))}
-                  placeholder="NX01PART0000001"
-                  maxLength={15}
-                  autoComplete="off"
+                  placeholder="搜尋整體件料號 / 品名…"
+                  onChange={(p) => setDraft((d) => ({ ...d, wholePartId: p.id, wholePartLabel: `${p.code}　${p.name}` }))}
                 />
               </div>
               <div className="space-y-1.5">
@@ -375,14 +375,14 @@ export function PartKitMasterView() {
               <div className="space-y-1.5">
                 {draft.items.map((it, i) => (
                   <div key={i} className="flex flex-wrap items-center gap-2">
-                    <Input
-                      className="w-44 font-mono"
-                      value={it.partId}
-                      onChange={(e) => setItem(i, { partId: e.target.value })}
-                      placeholder="組件料號 ID"
-                      maxLength={15}
-                      autoComplete="off"
-                    />
+                    <div className="w-56">
+                      <PartSearchSelect
+                        value={it.partId}
+                        label={it.partLabel}
+                        placeholder="搜尋組件…"
+                        onChange={(p) => setItem(i, { partId: p.id, partLabel: `${p.code}　${p.name}` })}
+                      />
+                    </div>
                     <Input
                       className="w-24"
                       value={it.qty}
