@@ -38,6 +38,7 @@ import {
 
 import { cn } from '@design/utils/cn';
 import { ToolbarPortal } from '@design/layout/workbench/WorkbenchToolbarSlot';
+import { ToolbarButton, ToolbarSeparator } from '@/features/nx01/shell/ui/ErpToolbar';
 import { ToastStack, useToast } from '@design/components/toast/ToastStack';
 import { EntityPickerDialog } from '@design/components/multi-select-modal/EntityPickerDialog';
 import { useReducedMotion } from '@/design/motion/gsap';
@@ -413,43 +414,60 @@ export function OrgStructurePage() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      {/* ── L3 情境工具列（投影到外殼第 3 層、依聚焦欄分流）── */}
+      {/* ── L3 情境工具列：共用 ErpToolbar 銀質 bar 模組、按鈕依頁面/聚焦欄變換 ── */}
       <ToolbarPortal>
-        <div className="flex items-center gap-1 px-3 py-1.5">
-          <button
-            type="button"
+        <div
+          data-nx-frame
+          className="flex items-center gap-1 border-b border-border/40 px-3 py-2"
+          style={{
+            backgroundImage:
+              'linear-gradient(180deg, var(--nx-surface-toolbar-from) 0%, var(--nx-surface-toolbar-to) 100%)',
+            boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.04), 0 1px 0 0 rgba(0,0,0,0.5)',
+          }}
+        >
+          <ToolbarButton
+            icon={zone === 'member' ? UserPlus : Plus}
+            letter="A"
+            label={
+              zone === 'dept'
+                ? '新增部門'
+                : zone === 'team'
+                  ? '新增組別'
+                  : zone === 'role'
+                    ? '新增職務'
+                    : '指派員工'
+            }
+            enabled={
+              zone === 'dept' ||
+              (zone === 'team' && !!deptId) ||
+              (zone === 'role' && !!teamId) ||
+              (zone === 'member' && !!roleId)
+            }
             onClick={() => {
               if (zone === 'dept') setCreateOpen('dept');
               else if (zone === 'team' && deptId) setCreateOpen('team');
               else if (zone === 'role' && teamId) setCreateOpen('role');
               else if (zone === 'member' && roleId) setPickerOpen(true);
             }}
-            className="inline-flex h-7 items-center gap-1 rounded-md border border-border/50 bg-card px-2 text-[11px] font-medium text-foreground/80 hover:border-border hover:bg-accent/15"
-            title="新增（A）：依目前聚焦欄分流"
-          >
-            {zone === 'member' ? <UserPlus className="size-3.5" /> : <Plus className="size-3.5" />}
-            <span className="font-mono text-primary">A</span>
-            {zone === 'dept' ? '新增部門' : zone === 'team' ? '新增組別' : zone === 'role' ? '新增職務' : '指派員工'}
-          </button>
-          <button
-            type="button"
+          />
+          <ToolbarSeparator />
+          <ToolbarButton
+            icon={RefreshCw}
+            letter="R"
+            label="重新整理"
+            enabled
             onClick={() => setReloadTick((t) => t + 1)}
-            className="inline-flex h-7 items-center gap-1 rounded-md border border-border/50 bg-card px-2 text-[11px] font-medium text-foreground/80 hover:border-border hover:bg-accent/15"
-            title="重新整理（R）"
-          >
-            <RefreshCw className="size-3.5" />重新整理
-          </button>
-          <button
-            type="button"
+          />
+          <ToolbarButton
+            icon={Keyboard}
+            letter="?"
+            label="熱鍵"
+            enabled
             onClick={() => setHelpOpen(true)}
-            className="inline-flex h-7 items-center gap-1 rounded-md border border-border/50 bg-card px-2 text-[11px] font-medium text-foreground/80 hover:border-border hover:bg-accent/15"
-            title="熱鍵指南（?）"
-          >
-            <Keyboard className="size-3.5" /><span className="font-mono text-primary">?</span>熱鍵
-          </button>
+          />
           <div className="flex-1" />
           <span className="hidden text-[11px] text-muted-foreground lg:inline">
-            Alt+1~4 切欄 · ↑↓ 移卡 · ←→ 切欄 · Enter 選定 · A 新增
+            Alt+1~4 切欄 · ↑↓ 移卡 · ←→ 切欄 · Enter 選定
           </span>
         </div>
       </ToolbarPortal>
@@ -471,7 +489,6 @@ export function OrgStructurePage() {
           active={zone === 'dept'}
           onClick={() => setZone('dept')}
           shortcut="1"
-          headerAction={<AddBtn onClick={() => setCreateOpen('dept')} title="新增部門（A）" />}
         >
           {departments.length === 0 ? (
             <EmptyHint text="尚無部門" />
@@ -504,9 +521,6 @@ export function OrgStructurePage() {
           onClick={() => setZone('team')}
           shortcut="2"
           disabled={!deptId}
-          headerAction={
-            deptId ? <AddBtn onClick={() => setCreateOpen('team')} title="新增組別（A）" /> : null
-          }
         >
           {!deptId ? (
             <EmptyHint text="← 請先選部門" />
@@ -541,9 +555,6 @@ export function OrgStructurePage() {
           onClick={() => setZone('role')}
           shortcut="3"
           disabled={!teamId}
-          headerAction={
-            teamId ? <AddBtn onClick={() => setCreateOpen('role')} title="新增職務（A）" /> : null
-          }
         >
           {!teamId ? (
             <EmptyHint text="← 請先選組別" />
@@ -578,22 +589,6 @@ export function OrgStructurePage() {
           onClick={() => setZone('member')}
           shortcut="4"
           disabled={!roleId}
-          headerAction={
-            roleId ? (
-              <button
-                type="button"
-                onClick={() => setPickerOpen(true)}
-                className="inline-flex h-6 items-center gap-1 rounded-md border border-primary/50 bg-primary/10 px-2 text-[11px] font-medium text-primary hover:bg-primary/20"
-                title="指派員工（A）"
-              >
-                <UserPlus className="size-3" />
-                <span className="hidden sm:inline">
-                  <span className="mr-0.5 font-mono">A</span>
-                  指派
-                </span>
-              </button>
-            ) : null
-          }
         >
           {!roleId ? (
             <EmptyHint text="← 請先選職務" />
@@ -934,6 +929,8 @@ function OrgTab({
   );
 }
 
+// 移除（2026-06-28 六層化）：各欄 header「A新增」按鈕已上移至 L3 工具列、避免功能按鈕重複出現於主內容層
+/* eslint-disable-next-line @typescript-eslint/no-unused-vars -- 保留以備單欄快速新增需求復原 */
 function AddBtn({ onClick, title }: { onClick: () => void; title: string }) {
   return (
     <button
