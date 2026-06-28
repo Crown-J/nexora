@@ -15,6 +15,8 @@ export type LocationDto = {
 
     /** 2026-06-22 執行長拍板新增四層架構 zone FK */
     zoneId?: string | null;
+    /** 2026-06-28 五層架構：rack FK（區域→貨架→庫位） */
+    rackId?: string | null;
 
     code: string;
     name: string | null;
@@ -51,6 +53,8 @@ export type CreateLocationBody = {
     warehouseId: string;
     /** 2026-06-22 執行長拍板新增四層架構 zone FK */
     zoneId?: string | null;
+    /** 2026-06-28 五層架構：rack FK */
+    rackId?: string | null;
 
     code: string;
     name?: string | null;
@@ -72,6 +76,8 @@ export type UpdateLocationBody = {
     warehouseId?: string;
     /** 2026-06-22 執行長拍板新增四層架構 zone FK */
     zoneId?: string | null;
+    /** 2026-06-28 五層架構：rack FK */
+    rackId?: string | null;
 
     code?: string;
     name?: string | null;

@@ -1,57 +1,40 @@
 // apps/nx-ui/src/features/nx01/location/structure/LocationStructurePage.tsx
-// 據點架構圖 v3：雙版面切換 + 全鍵盤 + 主檔切換按鈕
+// 據點架構圖 v4：五層架構 + 六層介面 + 全鍵盤（2026-06-28 執行長拍板）
 //
-// 2026-06-24 執行長拍板：對齊組織架構圖範式、共用前兩欄、後段 cascade 不同
-//   Alt+1 員工版面：據點 → 倉庫 → 員工指派（3 欄、員工歸倉庫）
-//   Alt+2 結構版面：據點 → 倉庫 → 分區 → 庫位 （4 欄、純架構）
+// 五層 cascade（單一版面、不再分員工/結構兩版）：
+//   據點 → 倉庫 → 區域 → 貨架 → 庫位
+//   （員工歸屬已移除：一人一據點、改在「使用者基本資料」設 primarySiteId）
 //
-// Alt+A 依當前欄分流：
-//   據點欄  → 新增據點 (createSite)
-//   倉庫欄  → 新增倉庫 (createWarehouse、自動帶 siteId)
-//   員工欄  → 指派員工到倉庫 (assignUserWarehouse)
-//   分區欄  → 新增分區 (createWarehouseZone、自動帶 warehouseId)
-//   庫位欄  → 新增庫位 (createLocation、自動帶 warehouseId + zoneId)
-//
-// 倉庫負責人 (warehouse.managerUserId)：員工欄 row 加 ⭐ toggle、點 = updateWarehouse
+// 六層介面：L3 情境工具列（ErpToolbar 銀質 bar）+ L4 五分頁（Alt+1~5）+ L5 五欄
 //
 // 全鍵盤（window listener）：
-//   ← →   切欄
-//   ↑ ↓   欄內移卡
-//   Enter cascade
-//   Alt+1 / Alt+2 切版面
-//   Alt+A / A 新增/指派
-//   Delete 移除員工（員工欄聚焦時）
-//   [ ]   上/下個主檔
-//   F3    主檔切換 modal
-//   ?     熱鍵指南
+//   Alt+1~5 直接切欄 / ← → 切欄 / ↑ ↓ 欄內移卡 / Enter cascade
+//   A 依當前欄新增（據點/倉庫/區域/貨架/庫位）/ [ ] 上下主檔 / F3 主檔切換 / ? 熱鍵
 
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
+  Boxes,
   Building2,
   HelpCircle,
   Keyboard,
   Layers,
-  MapPin,
   Network,
   Package,
-  Star,
-  Trash2,
-  UserPlus,
-  Users2,
+  Plus,
+  RefreshCw,
   Warehouse as WarehouseIcon,
 } from 'lucide-react';
 
 import { cn } from '@design/utils/cn';
-import { PageHeader } from '@design/components/page-header/PageHeader';
+import { ToolbarPortal } from '@design/layout/workbench/WorkbenchToolbarSlot';
+import { ToolbarButton, ToolbarSeparator } from '@/features/nx01/shell/ui/ErpToolbar';
 import { ToastStack, useToast } from '@design/components/toast/ToastStack';
-import { EntityPickerDialog } from '@design/components/multi-select-modal/EntityPickerDialog';
 import { useReducedMotion } from '@/design/motion/gsap';
 import { tryNavigate } from '@design/hooks/useDirtyGuard';
 
-import { MasterQuickNav } from '@/features/nx01/shell/master-nav/MasterQuickNav';
 import { MasterSwitcher } from '@/features/nx01/shell/keyboard-card-master/MasterSwitcher';
 import { MASTER_PAGES } from '@/features/nx01/shell/master-nav/master-pages';
 
@@ -59,7 +42,6 @@ import { createSite, listSites, type SiteDto } from '@data/endpoints/nx01/api/si
 import {
   createWarehouse,
   listWarehouses,
-  updateWarehouse,
   type WarehouseDto,
 } from '@data/endpoints/nx01/api/warehouse';
 import {
@@ -68,75 +50,57 @@ import {
   type WarehouseZoneRow,
 } from '@data/endpoints/nx01/api/warehouse-zone';
 import {
+  createWarehouseRack,
+  listWarehouseRacks,
+  type WarehouseRackRow,
+} from '@data/endpoints/nx01/api/warehouse-rack';
+import {
   createLocation,
   listLocation,
 } from '@data/endpoints/shared/master/location/api/location';
 import type { LocationDto } from '@data/types/shared/master/location';
-import { listUsers, type UserDto } from '@data/endpoints/nx01/api/user';
-import {
-  assignUserWarehouse,
-  listUserWarehouses,
-  revokeUserWarehouse,
-  type UserWarehouseDto,
-} from '@data/endpoints/nx01/api/user-warehouse';
-import type { PagedResult } from '@data/types/nx01/api';
 
 const CURRENT_PAGE_ID = 'sitechart';
 
-type View = 'employee' | 'structure';
-type Zone = 'site' | 'warehouse' | 'employee' | 'zone' | 'location';
+type Zone = 'site' | 'warehouse' | 'zone' | 'rack' | 'location';
+const ZONES: Zone[] = ['site', 'warehouse', 'zone', 'rack', 'location'];
 
-const ZONES_EMPLOYEE: Zone[] = ['site', 'warehouse', 'employee'];
-const ZONES_STRUCTURE: Zone[] = ['site', 'warehouse', 'zone', 'location'];
-
-type Member = {
-  /** user_warehouse.id (revoke 用) */
-  assignmentId: string;
-  userId: string;
-  userAccount: string | null;
-  userDisplayName: string | null;
-  isPrimary: boolean;
-};
+// LocationDto 尚未型別化 zoneId / rackId（後端已回傳）→ 視窗讀取用 cast
+type LocRow = LocationDto & { zoneId?: string | null; rackId?: string | null };
 
 export function LocationStructurePage() {
   const router = useRouter();
   const { toasts, showToast } = useToast();
   const reducedMotion = useReducedMotion();
 
-  // ---------- 版面 ----------
-  const [view, setView] = useState<View>('employee');
-
   // ---------- 資料 ----------
   const [sites, setSites] = useState<SiteDto[]>([]);
   const [warehouses, setWarehouses] = useState<WarehouseDto[]>([]);
   const [zones, setZones] = useState<WarehouseZoneRow[]>([]);
-  const [locations, setLocations] = useState<LocationDto[]>([]);
-  /** Map<warehouseId, Member[]> */
-  const [warehouseEmployees, setWarehouseEmployees] = useState<Map<string, Member[]>>(new Map());
+  const [racks, setRacks] = useState<WarehouseRackRow[]>([]);
+  const [locations, setLocations] = useState<LocRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [reloadTick, setReloadTick] = useState(0);
 
-  // ---------- cascade 選擇（共用） ----------
+  // ---------- cascade 選擇 ----------
   const [siteId, setSiteId] = useState<string | null>(null);
   const [warehouseId, setWarehouseId] = useState<string | null>(null);
   const [zoneId, setZoneId] = useState<string | null>(null);
+  const [rackId, setRackId] = useState<string | null>(null);
   const [locationId, setLocationId] = useState<string | null>(null);
 
   // ---------- 焦點 ----------
   const [zone, setZone] = useState<Zone>('site');
   const [siteIdx, setSiteIdx] = useState(0);
   const [warehouseIdx, setWarehouseIdx] = useState(0);
-  const [employeeIdx, setEmployeeIdx] = useState(0);
   const [zoneIdx, setZoneIdx] = useState(0);
+  const [rackIdx, setRackIdx] = useState(0);
   const [locationIdx, setLocationIdx] = useState(0);
 
   // ---------- modal / overlay ----------
-  const [pickerOpen, setPickerOpen] = useState(false);
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
-  const [createOpen, setCreateOpen] = useState<'site' | 'warehouse' | 'zone' | 'location' | null>(
-    null,
-  );
+  const [createOpen, setCreateOpen] = useState<Zone | null>(null);
 
   // ---------- 載入 ----------
   useEffect(() => {
@@ -144,43 +108,20 @@ export function LocationStructurePage() {
     setLoading(true);
     void (async () => {
       try {
-        // 後端 Nx01ListQueryDto @Max(100)、單頁上限 100、超過會 400
-        // 假設 LITE 客戶資料量小、暫不做分頁迭代；超出時再改 paginate loop
-        const [siteRes, whRes, zoneRes, locRes] = await Promise.all([
+        // 後端 Nx01ListQueryDto @Max(100)、單頁上限 100；LITE 客戶資料量小、暫不分頁迭代
+        const [siteRes, whRes, zoneRes, rackRes, locRes] = await Promise.all([
           listSites({ pageSize: 100, isActive: true }),
           listWarehouses({ pageSize: 100, isActive: true }),
           listWarehouseZones({ pageSize: 100, isActive: true }),
+          listWarehouseRacks({ pageSize: 100, isActive: true }),
           listLocation({ page: 1, pageSize: 100, isActive: true }),
         ]);
         if (cancelled) return;
         setSites(siteRes.items);
         setWarehouses(whRes.items);
         setZones(zoneRes.rows);
-        setLocations(locRes.items);
-
-        const empMap = new Map<string, Member[]>();
-        await Promise.all(
-          whRes.items.map(async (w) => {
-            const r = await listUserWarehouses({
-              warehouseId: w.id,
-              isActive: true,
-              pageSize: 100,
-            }).catch(() => null);
-            if (!r) return;
-            empMap.set(
-              w.id,
-              r.items.map((uw: UserWarehouseDto) => ({
-                assignmentId: uw.id,
-                userId: uw.userId,
-                userAccount: uw.userAccount,
-                userDisplayName: uw.userDisplayName,
-                isPrimary: uw.isPrimary,
-              })),
-            );
-          }),
-        );
-        if (cancelled) return;
-        setWarehouseEmployees(empMap);
+        setRacks(rackRes.rows);
+        setLocations(locRes.items as LocRow[]);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -201,20 +142,13 @@ export function LocationStructurePage() {
     () => (warehouseId ? zones.filter((z) => z.warehouseId === warehouseId) : []),
     [zones, warehouseId],
   );
-  const locationsForZone = useMemo(
-    () =>
-      zoneId
-        ? locations.filter(
-            (l) => (l as LocationDto & { zoneId?: string | null }).zoneId === zoneId,
-          )
-        : warehouseId
-          ? locations.filter((l) => l.warehouseId === warehouseId)
-          : [],
-    [locations, zoneId, warehouseId],
+  const racksForZone = useMemo(
+    () => (zoneId ? racks.filter((r) => r.zoneId === zoneId) : []),
+    [racks, zoneId],
   );
-  const employeesForWarehouse = useMemo(
-    () => (warehouseId ? (warehouseEmployees.get(warehouseId) ?? []) : []),
-    [warehouseEmployees, warehouseId],
+  const locationsForRack = useMemo(
+    () => (rackId ? locations.filter((l) => l.rackId === rackId) : []),
+    [locations, rackId],
   );
 
   // ---------- 選定 helpers ----------
@@ -222,36 +156,34 @@ export function LocationStructurePage() {
     setSiteId(id);
     setWarehouseId(null);
     setZoneId(null);
+    setRackId(null);
     setLocationId(null);
     setWarehouseIdx(0);
     setZoneIdx(0);
+    setRackIdx(0);
     setLocationIdx(0);
-    setEmployeeIdx(0);
   }, []);
   const selectWarehouse = useCallback((id: string) => {
     setWarehouseId(id);
     setZoneId(null);
+    setRackId(null);
     setLocationId(null);
     setZoneIdx(0);
+    setRackIdx(0);
     setLocationIdx(0);
-    setEmployeeIdx(0);
   }, []);
   const selectZone = useCallback((id: string) => {
     setZoneId(id);
+    setRackId(null);
+    setLocationId(null);
+    setRackIdx(0);
+    setLocationIdx(0);
+  }, []);
+  const selectRack = useCallback((id: string) => {
+    setRackId(id);
     setLocationId(null);
     setLocationIdx(0);
   }, []);
-
-  // ---------- 版面切換 ----------
-  const switchView = useCallback(
-    (v: View) => {
-      setView(v);
-      const valid = v === 'employee' ? ZONES_EMPLOYEE : ZONES_STRUCTURE;
-      // 當前 zone 不在新版面內、退回 'warehouse'（共用欄、最安全）
-      if (!valid.includes(zone)) setZone('warehouse');
-    },
-    [zone],
-  );
 
   // ---------- 主檔切換 ----------
   const switchMaster = useCallback(
@@ -265,67 +197,14 @@ export function LocationStructurePage() {
     [router],
   );
 
-  // ---------- 操作：員工 ----------
-  const handleRevokeMember = useCallback(
-    async (member: Member) => {
-      try {
-        await revokeUserWarehouse(member.assignmentId);
-        showToast(
-          `已將 ${member.userDisplayName ?? member.userAccount ?? '員工'} 移出此倉庫`,
-          'success',
-        );
-        triggerReload();
-      } catch (e) {
-        showToast(`移除失敗：${e instanceof Error ? e.message : String(e)}`, 'danger');
-      }
-    },
-    [showToast, triggerReload],
-  );
-
-  const handleSetManager = useCallback(
-    async (member: Member) => {
-      if (!warehouseId) return;
-      try {
-        await updateWarehouse(warehouseId, { managerUserId: member.userId });
-        showToast(
-          `已設定 ${member.userDisplayName ?? member.userAccount ?? '員工'} 為負責人`,
-          'success',
-        );
-        triggerReload();
-      } catch (e) {
-        showToast(`設定失敗：${e instanceof Error ? e.message : String(e)}`, 'danger');
-      }
-    },
-    [warehouseId, showToast, triggerReload],
-  );
-
-  // ---------- picker ----------
-  const pickerSearch = useCallback(
-    async (q: string): Promise<PagedResult<UserDto>> => {
-      if (!warehouseId) return { items: [], page: 1, pageSize: 0, total: 0 };
-      const existing = new Set(employeesForWarehouse.map((m) => m.userId));
-      const res = await listUsers({ q: q.trim() || undefined, pageSize: 50, isActive: true });
-      const items = res.items.filter((u) => !existing.has(u.id));
-      return { items, page: 1, pageSize: items.length, total: items.length };
-    },
-    [warehouseId, employeesForWarehouse],
-  );
-
-  const handlePickerConfirm = useCallback(
-    async (selected: UserDto[]) => {
-      if (!warehouseId) return;
-      try {
-        for (const u of selected) {
-          await assignUserWarehouse({ userId: u.id, warehouseId });
-        }
-        showToast(`已指派 ${selected.length} 位員工`, 'success');
-        triggerReload();
-      } catch (e) {
-        showToast(`指派失敗：${e instanceof Error ? e.message : String(e)}`, 'danger');
-      }
-    },
-    [warehouseId, showToast, triggerReload],
-  );
+  // 依當前欄分流新增（A 鍵 + 工具列共用）
+  const addByZone = useCallback(() => {
+    if (zone === 'site') setCreateOpen('site');
+    else if (zone === 'warehouse' && siteId) setCreateOpen('warehouse');
+    else if (zone === 'zone' && warehouseId) setCreateOpen('zone');
+    else if (zone === 'rack' && zoneId) setCreateOpen('rack');
+    else if (zone === 'location' && rackId) setCreateOpen('location');
+  }, [zone, siteId, warehouseId, zoneId, rackId]);
 
   // ---------- 鍵盤 ----------
   useEffect(() => {
@@ -336,30 +215,23 @@ export function LocationStructurePage() {
         if (e.key === 'Escape') (t as HTMLElement).blur();
         return;
       }
-      if (switcherOpen || helpOpen || pickerOpen || createOpen) {
+      if (switcherOpen || helpOpen || createOpen) {
         if (e.key === 'Escape') {
           setSwitcherOpen(false);
           setHelpOpen(false);
-          setPickerOpen(false);
           setCreateOpen(null);
           e.preventDefault();
         }
         return;
       }
 
-      // Alt+1 / Alt+2 切版面
-      if (e.altKey && e.key === '1') {
+      // Alt+1~5：直接切欄
+      if (e.altKey && ['1', '2', '3', '4', '5'].includes(e.key)) {
         e.preventDefault();
-        switchView('employee');
-        return;
-      }
-      if (e.altKey && e.key === '2') {
-        e.preventDefault();
-        switchView('structure');
+        setZone(ZONES[Number(e.key) - 1]);
         return;
       }
 
-      // F3 主檔切換
       if (e.key === 'F3') {
         e.preventDefault();
         setSwitcherOpen(true);
@@ -381,47 +253,29 @@ export function LocationStructurePage() {
         return;
       }
 
-      // A / Alt+A：依當前 focused 欄分流
+      // A：依當前 focused 欄分流新增
       if (e.key === 'a' || e.key === 'A') {
         e.preventDefault();
-        if (zone === 'site') setCreateOpen('site');
-        else if (zone === 'warehouse' && siteId) setCreateOpen('warehouse');
-        else if (zone === 'employee' && warehouseId) setPickerOpen(true);
-        else if (zone === 'zone' && warehouseId) setCreateOpen('zone');
-        else if (zone === 'location' && warehouseId) setCreateOpen('location');
+        addByZone();
         return;
       }
 
       // ← → 切欄
       if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
         e.preventDefault();
-        const order = view === 'employee' ? ZONES_EMPLOYEE : ZONES_STRUCTURE;
         const dir = e.key === 'ArrowRight' ? 1 : -1;
-        const idx = order.indexOf(zone);
-        const nextIdx = (idx + dir + order.length) % order.length;
-        setZone(order[nextIdx]);
+        const idx = ZONES.indexOf(zone);
+        setZone(ZONES[(idx + dir + ZONES.length) % ZONES.length]);
         return;
       }
 
-      // 欄內 ↑ ↓ / Home / End / Enter / Delete
+      // 欄內 ↑ ↓ / Home / End / Enter
       const lists: Record<Zone, { count: number; idx: number; setIdx: (i: number) => void }> = {
         site: { count: sites.length, idx: siteIdx, setIdx: setSiteIdx },
-        warehouse: {
-          count: warehousesForSite.length,
-          idx: warehouseIdx,
-          setIdx: setWarehouseIdx,
-        },
-        employee: {
-          count: employeesForWarehouse.length,
-          idx: employeeIdx,
-          setIdx: setEmployeeIdx,
-        },
+        warehouse: { count: warehousesForSite.length, idx: warehouseIdx, setIdx: setWarehouseIdx },
         zone: { count: zonesForWarehouse.length, idx: zoneIdx, setIdx: setZoneIdx },
-        location: {
-          count: locationsForZone.length,
-          idx: locationIdx,
-          setIdx: setLocationIdx,
-        },
+        rack: { count: racksForZone.length, idx: rackIdx, setIdx: setRackIdx },
+        location: { count: locationsForRack.length, idx: locationIdx, setIdx: setLocationIdx },
       };
       const cur = lists[zone];
       if (e.key === 'ArrowDown' && cur.count > 0) {
@@ -451,22 +305,16 @@ export function LocationStructurePage() {
           setZone('warehouse');
         } else if (zone === 'warehouse' && warehousesForSite[warehouseIdx]) {
           selectWarehouse(warehousesForSite[warehouseIdx].id);
-          setZone(view === 'employee' ? 'employee' : 'zone');
+          setZone('zone');
         } else if (zone === 'zone' && zonesForWarehouse[zoneIdx]) {
           selectZone(zonesForWarehouse[zoneIdx].id);
+          setZone('rack');
+        } else if (zone === 'rack' && racksForZone[rackIdx]) {
+          selectRack(racksForZone[rackIdx].id);
           setZone('location');
-        } else if (zone === 'location' && locationsForZone[locationIdx]) {
-          setLocationId(locationsForZone[locationIdx].id);
+        } else if (zone === 'location' && locationsForRack[locationIdx]) {
+          setLocationId(locationsForRack[locationIdx].id);
         }
-        return;
-      }
-      if (
-        (e.key === 'Delete' || e.key === 'Backspace') &&
-        zone === 'employee' &&
-        employeesForWarehouse[employeeIdx]
-      ) {
-        e.preventDefault();
-        void handleRevokeMember(employeesForWarehouse[employeeIdx]);
         return;
       }
     }
@@ -474,29 +322,28 @@ export function LocationStructurePage() {
     return () => window.removeEventListener('keydown', onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    view,
     zone,
     siteIdx,
     warehouseIdx,
-    employeeIdx,
     zoneIdx,
+    rackIdx,
     locationIdx,
     sites,
     warehousesForSite,
-    employeesForWarehouse,
     zonesForWarehouse,
-    locationsForZone,
+    racksForZone,
+    locationsForRack,
     siteId,
     warehouseId,
+    zoneId,
+    rackId,
     switcherOpen,
     helpOpen,
-    pickerOpen,
     createOpen,
     switchMaster,
-    switchView,
+    addByZone,
   ]);
 
-  // ---------- render helpers ----------
   if (loading) {
     return (
       <div className="flex h-[60vh] items-center justify-center text-sm text-muted-foreground">
@@ -508,70 +355,67 @@ export function LocationStructurePage() {
   const selectedSite = siteId ? sites.find((s) => s.id === siteId) : null;
   const selectedWarehouse = warehouseId ? warehouses.find((w) => w.id === warehouseId) : null;
   const selectedZone = zoneId ? zones.find((z) => z.id === zoneId) : null;
-  const managerUserId = selectedWarehouse?.managerUserId ?? null;
+  const selectedRack = rackId ? racks.find((r) => r.id === rackId) : null;
 
-  const totalCount = `${sites.length} 據點 / ${warehouses.length} 倉庫 / ${zones.length} 分區 / ${locations.length} 庫位`;
+  const addLabel =
+    zone === 'site'
+      ? '新增據點'
+      : zone === 'warehouse'
+        ? '新增倉庫'
+        : zone === 'zone'
+          ? '新增區域'
+          : zone === 'rack'
+            ? '新增貨架'
+            : '新增庫位';
+  const addEnabled =
+    zone === 'site' ||
+    (zone === 'warehouse' && !!siteId) ||
+    (zone === 'zone' && !!warehouseId) ||
+    (zone === 'rack' && !!zoneId) ||
+    (zone === 'location' && !!rackId);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-3">
-      {/* 頂部：標題 + 版面 tab + MasterQuickNav */}
-      <div className="flex flex-wrap items-start justify-between gap-3 px-4 pt-3">
-        <PageHeader
-          crumbs={[{ label: '主檔' }, { label: '據點架構圖' }]}
-          category="據點與倉庫"
-          title="據點架構圖"
-          desc={
-            view === 'employee'
-              ? '據點 → 倉庫 → 員工指派（Alt+1）'
-              : '據點 → 倉庫 → 分區 → 庫位（Alt+2）'
-          }
-          count={totalCount}
-        />
-        <div data-nx-frame className="flex items-center gap-2">
-          <ViewTab
-            active={view === 'employee'}
-            label="員工歸屬"
-            shortcut="1"
-            onClick={() => switchView('employee')}
-          />
-          <ViewTab
-            active={view === 'structure'}
-            label="實體結構"
-            shortcut="2"
-            onClick={() => switchView('structure')}
-          />
-          <span className="mx-1 h-5 w-px bg-border/60" aria-hidden />
-          <button
-            type="button"
-            onClick={() => setHelpOpen(true)}
-            className="inline-flex h-7 items-center gap-1 rounded-md border border-border/50 bg-card px-2 text-[11px] font-medium text-foreground/80 hover:border-border hover:bg-accent/15"
-            title="熱鍵指南（?）"
-          >
-            <Keyboard className="size-3" />
-            <span className="hidden sm:inline">
-              <span className="mr-0.5 font-mono text-primary">?</span>
-              熱鍵
-            </span>
-          </button>
-          <MasterQuickNav currentPageId={CURRENT_PAGE_ID} />
+    <div className="flex min-h-0 flex-1 flex-col">
+      {/* ── L3 情境工具列：共用 ErpToolbar 銀質 bar、按鈕依聚焦欄變換 ── */}
+      <ToolbarPortal>
+        <div
+          data-nx-frame
+          className="flex items-center gap-1 border-b border-border/40 px-3 py-2"
+          style={{
+            backgroundImage:
+              'linear-gradient(180deg, var(--nx-surface-toolbar-from) 0%, var(--nx-surface-toolbar-to) 100%)',
+            boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.04), 0 1px 0 0 rgba(0,0,0,0.5)',
+          }}
+        >
+          <ToolbarButton icon={Plus} letter="A" label={addLabel} enabled={addEnabled} onClick={addByZone} />
+          <ToolbarSeparator />
+          <ToolbarButton icon={RefreshCw} letter="R" label="重新整理" enabled onClick={triggerReload} />
+          <ToolbarButton icon={Keyboard} letter="?" label="熱鍵" enabled onClick={() => setHelpOpen(true)} />
+          <div className="flex-1" />
+          <span className="hidden text-[11px] text-muted-foreground lg:inline">
+            Alt+1~5 切欄 · ↑↓ 移卡 · ←→ 切欄 · Enter 選定 · A 新增
+          </span>
         </div>
+      </ToolbarPortal>
+
+      {/* ── L4 頁內分頁：五欄同時顯示、tab 標示焦點欄（Alt+1~5）── */}
+      <div className="flex shrink-0 flex-wrap items-center gap-1 border-b border-border bg-background px-3 py-1">
+        <ColTab label="據點" count={sites.length} hint="1" active={zone === 'site'} onClick={() => setZone('site')} />
+        <ColTab label="倉庫" count={warehousesForSite.length} hint="2" active={zone === 'warehouse'} onClick={() => setZone('warehouse')} />
+        <ColTab label="區域" count={zonesForWarehouse.length} hint="3" active={zone === 'zone'} onClick={() => setZone('zone')} />
+        <ColTab label="貨架" count={racksForZone.length} hint="4" active={zone === 'rack'} onClick={() => setZone('rack')} />
+        <ColTab label="庫位" count={locationsForRack.length} hint="5" active={zone === 'location'} onClick={() => setZone('location')} />
       </div>
 
-      {/* 欄群組 */}
-      <div
-        className={cn(
-          'grid min-h-0 flex-1 grid-cols-1 gap-3 px-4 pb-4',
-          view === 'employee' ? 'md:grid-cols-3' : 'md:grid-cols-4',
-        )}
-      >
+      {/* ── L5 主內容：五欄並列 ── */}
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 px-4 py-3 md:grid-cols-5">
         <ColumnPanel
           title="據點"
           subtitle={`${sites.length} 項`}
           icon={Building2}
           active={zone === 'site'}
           onClick={() => setZone('site')}
-          shortcut="←1"
-          headerAction={<AddBtn onClick={() => setCreateOpen('site')} title="新增據點（A）" />}
+          shortcut="1"
         >
           {sites.length === 0 ? (
             <EmptyHint text="尚無據點" />
@@ -598,17 +442,12 @@ export function LocationStructurePage() {
 
         <ColumnPanel
           title="倉庫"
-          subtitle={
-            selectedSite ? `${selectedSite.name} ▸ ${warehousesForSite.length} 項` : '請先選據點'
-          }
+          subtitle={selectedSite ? `${selectedSite.name} ▸ ${warehousesForSite.length} 項` : '請先選據點'}
           icon={WarehouseIcon}
           active={zone === 'warehouse'}
           onClick={() => setZone('warehouse')}
           shortcut="2"
           disabled={!siteId}
-          headerAction={
-            siteId ? <AddBtn onClick={() => setCreateOpen('warehouse')} title="新增倉庫（A）" /> : null
-          }
         >
           {!siteId ? (
             <EmptyHint text="← 請先選據點" />
@@ -620,12 +459,8 @@ export function LocationStructurePage() {
                 key={w.id}
                 title={`${w.name}${w.isMain ? ' ⭐' : ''}`}
                 code={w.code}
-                count={
-                  view === 'employee'
-                    ? warehouseEmployees.get(w.id)?.length ?? 0
-                    : zones.filter((z) => z.warehouseId === w.id).length
-                }
-                countLabel={view === 'employee' ? '人' : '區'}
+                count={zones.filter((z) => z.warehouseId === w.id).length}
+                countLabel="區"
                 focused={zone === 'warehouse' && warehouseIdx === i}
                 selected={warehouseId === w.id}
                 reducedMotion={reducedMotion}
@@ -639,170 +474,111 @@ export function LocationStructurePage() {
           )}
         </ColumnPanel>
 
-        {/* Alt+1 員工版面：第 3 欄 = 員工 */}
-        {view === 'employee' ? (
-          <ColumnPanel
-            title="員工"
-            subtitle={
-              selectedWarehouse
-                ? `${selectedWarehouse.name} ▸ ${employeesForWarehouse.length} 人`
-                : '請先選倉庫'
-            }
-            icon={Users2}
-            active={zone === 'employee'}
-            onClick={() => setZone('employee')}
-            shortcut="3"
-            disabled={!warehouseId}
-            headerAction={
-              warehouseId ? (
-                <AddBtn onClick={() => setPickerOpen(true)} title="指派員工（A）" iconKind="user" />
-              ) : null
-            }
-          >
-            {!warehouseId ? (
-              <EmptyHint text="← 請先選倉庫" />
-            ) : employeesForWarehouse.length === 0 ? (
-              <EmptyHint text="此倉庫尚無員工、按 A 指派" />
-            ) : (
-              employeesForWarehouse.map((m, i) => (
-                <EmployeeCard
-                  key={m.userId}
-                  member={m}
-                  isManager={managerUserId === m.userId}
-                  focused={zone === 'employee' && employeeIdx === i}
-                  reducedMotion={reducedMotion}
-                  onClick={() => {
-                    setZone('employee');
-                    setEmployeeIdx(i);
-                  }}
-                  onSetManager={() => void handleSetManager(m)}
-                  onRemove={() => void handleRevokeMember(m)}
-                />
-              ))
-            )}
-          </ColumnPanel>
-        ) : null}
+        <ColumnPanel
+          title="區域"
+          subtitle={selectedWarehouse ? `${selectedWarehouse.name} ▸ ${zonesForWarehouse.length} 項` : '請先選倉庫'}
+          icon={Layers}
+          active={zone === 'zone'}
+          onClick={() => setZone('zone')}
+          shortcut="3"
+          disabled={!warehouseId}
+        >
+          {!warehouseId ? (
+            <EmptyHint text="← 請先選倉庫" />
+          ) : zonesForWarehouse.length === 0 ? (
+            <EmptyHint text="此倉庫尚無區域" />
+          ) : (
+            zonesForWarehouse.map((z, i) => (
+              <Card
+                key={z.id}
+                title={z.name}
+                code={z.code}
+                count={racks.filter((r) => r.zoneId === z.id).length}
+                countLabel="架"
+                focused={zone === 'zone' && zoneIdx === i}
+                selected={zoneId === z.id}
+                reducedMotion={reducedMotion}
+                onClick={() => {
+                  setZone('zone');
+                  setZoneIdx(i);
+                  selectZone(z.id);
+                }}
+              />
+            ))
+          )}
+        </ColumnPanel>
 
-        {/* Alt+2 結構版面：第 3 欄 = 分區、第 4 欄 = 庫位 */}
-        {view === 'structure' ? (
-          <>
-            <ColumnPanel
-              title="分區"
-              subtitle={
-                selectedWarehouse
-                  ? `${selectedWarehouse.name} ▸ ${zonesForWarehouse.length} 項`
-                  : '請先選倉庫'
-              }
-              icon={Layers}
-              active={zone === 'zone'}
-              onClick={() => setZone('zone')}
-              shortcut="3"
-              disabled={!warehouseId}
-              headerAction={
-                warehouseId ? (
-                  <AddBtn onClick={() => setCreateOpen('zone')} title="新增分區（A）" />
-                ) : null
-              }
-            >
-              {!warehouseId ? (
-                <EmptyHint text="← 請先選倉庫" />
-              ) : zonesForWarehouse.length === 0 ? (
-                <EmptyHint text="此倉庫尚無分區" />
-              ) : (
-                zonesForWarehouse.map((z, i) => (
-                  <Card
-                    key={z.id}
-                    title={z.name}
-                    code={z.code}
-                    count={
-                      locations.filter(
-                        (l) => (l as LocationDto & { zoneId?: string | null }).zoneId === z.id,
-                      ).length
-                    }
-                    countLabel="位"
-                    focused={zone === 'zone' && zoneIdx === i}
-                    selected={zoneId === z.id}
-                    reducedMotion={reducedMotion}
-                    onClick={() => {
-                      setZone('zone');
-                      setZoneIdx(i);
-                      selectZone(z.id);
-                    }}
-                  />
-                ))
-              )}
-            </ColumnPanel>
+        <ColumnPanel
+          title="貨架"
+          subtitle={selectedZone ? `${selectedZone.name} ▸ ${racksForZone.length} 項` : '請先選區域'}
+          icon={Boxes}
+          active={zone === 'rack'}
+          onClick={() => setZone('rack')}
+          shortcut="4"
+          disabled={!zoneId}
+        >
+          {!zoneId ? (
+            <EmptyHint text="← 請先選區域" />
+          ) : racksForZone.length === 0 ? (
+            <EmptyHint text="此區域尚無貨架" />
+          ) : (
+            racksForZone.map((r, i) => (
+              <Card
+                key={r.id}
+                title={r.name}
+                code={r.code}
+                count={locations.filter((l) => l.rackId === r.id).length}
+                countLabel="位"
+                focused={zone === 'rack' && rackIdx === i}
+                selected={rackId === r.id}
+                reducedMotion={reducedMotion}
+                onClick={() => {
+                  setZone('rack');
+                  setRackIdx(i);
+                  selectRack(r.id);
+                }}
+              />
+            ))
+          )}
+        </ColumnPanel>
 
-            <ColumnPanel
-              title="庫位"
-              subtitle={
-                selectedZone
-                  ? `${selectedZone.name} ▸ ${locationsForZone.length} 項`
-                  : '請先選分區'
-              }
-              icon={Package}
-              active={zone === 'location'}
-              onClick={() => setZone('location')}
-              shortcut="4"
-              disabled={!warehouseId}
-              headerAction={
-                warehouseId ? (
-                  <AddBtn onClick={() => setCreateOpen('location')} title="新增庫位（A）" />
-                ) : null
-              }
-            >
-              {!warehouseId ? (
-                <EmptyHint text="← 請先選倉庫" />
-              ) : !zoneId ? (
-                <EmptyHint text="← 請先選分區" />
-              ) : locationsForZone.length === 0 ? (
-                <EmptyHint text="此分區尚無庫位" />
-              ) : (
-                locationsForZone.map((l, i) => (
-                  <Card
-                    key={l.id}
-                    title={l.name ?? l.code}
-                    code={l.code}
-                    count={0}
-                    countLabel=""
-                    focused={zone === 'location' && locationIdx === i}
-                    selected={locationId === l.id}
-                    reducedMotion={reducedMotion}
-                    onClick={() => {
-                      setZone('location');
-                      setLocationIdx(i);
-                      setLocationId(l.id);
-                    }}
-                  />
-                ))
-              )}
-            </ColumnPanel>
-          </>
-        ) : null}
+        <ColumnPanel
+          title="庫位"
+          subtitle={selectedRack ? `${selectedRack.name} ▸ ${locationsForRack.length} 項` : '請先選貨架'}
+          icon={Package}
+          active={zone === 'location'}
+          onClick={() => setZone('location')}
+          shortcut="5"
+          disabled={!rackId}
+        >
+          {!rackId ? (
+            <EmptyHint text="← 請先選貨架" />
+          ) : locationsForRack.length === 0 ? (
+            <EmptyHint text="此貨架尚無庫位、按 A 新增" />
+          ) : (
+            locationsForRack.map((l, i) => (
+              <Card
+                key={l.id}
+                title={l.name ?? l.code}
+                code={l.code}
+                count={0}
+                countLabel=""
+                focused={zone === 'location' && locationIdx === i}
+                selected={locationId === l.id}
+                reducedMotion={reducedMotion}
+                onClick={() => {
+                  setZone('location');
+                  setLocationIdx(i);
+                  setLocationId(l.id);
+                }}
+              />
+            ))
+          )}
+        </ColumnPanel>
       </div>
 
       {/* 主檔切換 modal */}
-      <MasterSwitcher
-        open={switcherOpen}
-        currentPageId={CURRENT_PAGE_ID}
-        onClose={() => setSwitcherOpen(false)}
-      />
-
-      {/* 指派員工 picker */}
-      <EntityPickerDialog<UserDto>
-        open={pickerOpen && !!warehouseId}
-        onClose={() => setPickerOpen(false)}
-        title={selectedWarehouse ? `指派員工到「${selectedWarehouse.name}」` : '指派員工'}
-        subtitle="Assign Warehouse Members"
-        icon={MapPin}
-        searchPlaceholder="搜尋姓名或員工編號…"
-        search={pickerSearch}
-        getId={(u) => u.id}
-        getLabel={(u) => `${u.username} · ${u.displayName}`}
-        getDescription={(u) => u.email ?? u.phone ?? ''}
-        onConfirm={handlePickerConfirm}
-        confirmLabel="指派"
-      />
+      <MasterSwitcher open={switcherOpen} currentPageId={CURRENT_PAGE_ID} onClose={() => setSwitcherOpen(false)} />
 
       {/* 熱鍵指南 */}
       {helpOpen ? <HelpOverlay onClose={() => setHelpOpen(false)} /> : null}
@@ -843,13 +619,13 @@ export function LocationStructurePage() {
             showToast(`已新增倉庫「${w.name}」`, 'success');
             triggerReload();
             selectWarehouse(w.id);
-            setZone(view === 'employee' ? 'employee' : 'zone');
+            setZone('zone');
           }}
         />
       ) : null}
       {createOpen === 'zone' && warehouseId && selectedWarehouse ? (
         <QuickCreateDialog
-          title="新增分區"
+          title="新增區域"
           subtitle="Create Zone"
           icon={Layers}
           contextLine={`隸屬倉庫：${selectedWarehouse.name}（${selectedWarehouse.code}）`}
@@ -860,28 +636,45 @@ export function LocationStructurePage() {
               code: code || `Z${Date.now().toString(36).toUpperCase().slice(0, 5)}`,
               name,
             });
-            showToast(`已新增分區「${z.name}」`, 'success');
+            showToast(`已新增區域「${z.name}」`, 'success');
             triggerReload();
             selectZone(z.id);
+            setZone('rack');
+          }}
+        />
+      ) : null}
+      {createOpen === 'rack' && zoneId && selectedZone ? (
+        <QuickCreateDialog
+          title="新增貨架"
+          subtitle="Create Rack"
+          icon={Boxes}
+          contextLine={`隸屬區域：${selectedZone.name}（${selectedWarehouse?.name ?? ''}）`}
+          onClose={() => setCreateOpen(null)}
+          onSubmit={async ({ code, name }) => {
+            const r = await createWarehouseRack({
+              zoneId,
+              code: code || `R${Date.now().toString(36).toUpperCase().slice(0, 5)}`,
+              name,
+            });
+            showToast(`已新增貨架「${r.name}」`, 'success');
+            triggerReload();
+            selectRack(r.id);
             setZone('location');
           }}
         />
       ) : null}
-      {createOpen === 'location' && warehouseId && selectedWarehouse ? (
+      {createOpen === 'location' && warehouseId && rackId && selectedRack ? (
         <QuickCreateDialog
           title="新增庫位"
           subtitle="Create Location"
           icon={Package}
-          contextLine={
-            selectedZone
-              ? `隸屬分區：${selectedZone.name}（${selectedWarehouse.name}）`
-              : `隸屬倉庫：${selectedWarehouse.name}（未選分區）`
-          }
+          contextLine={`隸屬貨架：${selectedRack.name}（${selectedZone?.name ?? ''} ▸ ${selectedWarehouse?.name ?? ''}）`}
           onClose={() => setCreateOpen(null)}
           onSubmit={async ({ code, name }) => {
             const l = await createLocation({
               warehouseId,
               zoneId: zoneId ?? null,
+              rackId,
               code: code || `L_${Date.now().toString(36).toUpperCase()}`,
               name: name || null,
             });
@@ -899,15 +692,18 @@ export function LocationStructurePage() {
 
 // ============ 子元件 ============
 
-function ViewTab({
-  active,
+/** L4 頁內分頁的一個欄位 tab（五欄同時顯示、active 標示焦點欄、附 Alt 提示）*/
+function ColTab({
   label,
-  shortcut,
+  count,
+  hint,
+  active,
   onClick,
 }: {
-  active: boolean;
   label: string;
-  shortcut: string;
+  count: number;
+  hint: string;
+  active: boolean;
   onClick: () => void;
 }) {
   return (
@@ -915,15 +711,22 @@ function ViewTab({
       type="button"
       onClick={onClick}
       className={cn(
-        'inline-flex h-7 items-center gap-1 rounded-md border px-2 text-[11px] font-medium transition-all',
+        'inline-flex h-7 items-center gap-1.5 rounded-md border px-2.5 text-[12px] font-medium transition-colors',
         active
-          ? 'border-primary/60 bg-primary/15 text-primary'
-          : 'border-border/50 bg-card text-foreground/80 hover:border-border hover:bg-accent/15',
+          ? 'border-primary/50 bg-primary/10 text-primary'
+          : 'border-transparent text-muted-foreground hover:bg-accent/15 hover:text-foreground',
       )}
-      title={`${label}（Alt+${shortcut}）`}
     >
-      <span className="font-mono text-[10px]">Alt+{shortcut}</span>
-      <span className="hidden sm:inline">{label}</span>
+      <span className="font-mono text-[10px] opacity-60">Alt+{hint}</span>
+      {label}
+      <span
+        className={cn(
+          'inline-flex min-w-4 items-center justify-center rounded px-1 text-[10px]',
+          active ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground',
+        )}
+      >
+        {count}
+      </span>
     </button>
   );
 }
@@ -937,7 +740,6 @@ function ColumnPanel({
   shortcut,
   disabled,
   children,
-  headerAction,
 }: {
   title: string;
   subtitle: string;
@@ -947,7 +749,6 @@ function ColumnPanel({
   shortcut: string;
   disabled?: boolean;
   children: React.ReactNode;
-  headerAction?: React.ReactNode;
 }) {
   return (
     <section
@@ -984,7 +785,6 @@ function ColumnPanel({
           </div>
           <div className="truncate text-[11px] text-muted-foreground">{subtitle}</div>
         </div>
-        {headerAction}
       </header>
       <div className="flex flex-col gap-1.5 overflow-y-auto p-2">{children}</div>
     </section>
@@ -1053,86 +853,6 @@ function Card({
   );
 }
 
-function EmployeeCard({
-  member,
-  isManager,
-  focused,
-  reducedMotion,
-  onClick,
-  onSetManager,
-  onRemove,
-}: {
-  member: Member;
-  isManager: boolean;
-  focused: boolean;
-  reducedMotion: boolean;
-  onClick: () => void;
-  onSetManager: () => void;
-  onRemove: () => void;
-}) {
-  const display = member.userDisplayName ?? member.userAccount ?? member.userId;
-  return (
-    <div
-      onClick={onClick}
-      className={cn(
-        'group flex items-center gap-2 rounded-md border px-2.5 py-2 transition-all',
-        focused
-          ? 'border-primary/70 bg-primary/12 shadow-md'
-          : isManager
-            ? 'border-amber-400/50 bg-amber-50/50 dark:bg-amber-900/10'
-            : 'border-border/40 bg-card hover:border-border hover:bg-accent/15',
-        !reducedMotion && focused && 'scale-[1.01]',
-      )}
-    >
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          onSetManager();
-        }}
-        className={cn(
-          'rounded-md p-1 transition-colors',
-          isManager
-            ? 'text-amber-500'
-            : 'text-muted-foreground/40 hover:text-amber-500',
-        )}
-        title={isManager ? '此倉負責人' : '設為此倉負責人'}
-      >
-        <Star className={cn('size-4', isManager && 'fill-amber-400')} />
-      </button>
-      <span className="grid size-8 flex-none place-items-center rounded-full bg-[#E8A020]/18 text-xs font-semibold text-[#E8A020]">
-        {display.slice(0, 1)}
-      </span>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-1.5 text-[13px] text-foreground">
-          <span className="truncate">{display}</span>
-          {isManager ? (
-            <span className="rounded bg-amber-200/70 px-1 text-[9px] font-semibold text-amber-900 dark:bg-amber-700/40 dark:text-amber-100">
-              負責人
-            </span>
-          ) : null}
-        </div>
-        {member.userAccount ? (
-          <div className="truncate font-mono text-[10px] text-muted-foreground">
-            {member.userAccount}
-          </div>
-        ) : null}
-      </div>
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          onRemove();
-        }}
-        className="rounded-md p-1 text-muted-foreground opacity-0 transition-all hover:bg-destructive/15 hover:text-destructive group-hover:opacity-100"
-        title="移除（Delete）"
-      >
-        <Trash2 className="size-3.5" />
-      </button>
-    </div>
-  );
-}
-
 function EmptyHint({ text }: { text: string }) {
   return (
     <div className="grid place-items-center py-8 text-center text-[12px] text-muted-foreground">
@@ -1142,41 +862,9 @@ function EmptyHint({ text }: { text: string }) {
   );
 }
 
-function AddBtn({
-  onClick,
-  title,
-  iconKind = 'plus',
-}: {
-  onClick: () => void;
-  title: string;
-  iconKind?: 'plus' | 'user';
-}) {
-  const Icon = iconKind === 'user' ? UserPlus : UserPlus;
-  return (
-    <button
-      type="button"
-      onClick={(e) => {
-        e.stopPropagation();
-        onClick();
-      }}
-      className="inline-flex h-6 items-center gap-1 rounded-md border border-primary/50 bg-primary/10 px-2 text-[11px] font-medium text-primary hover:bg-primary/20"
-      title={title}
-    >
-      <Icon className="size-3" />
-      <span className="hidden sm:inline">
-        <span className="mr-0.5 font-mono">A</span>
-        {iconKind === 'user' ? '指派' : '新增'}
-      </span>
-    </button>
-  );
-}
-
 function HelpOverlay({ onClose }: { onClose: () => void }) {
   return (
-    <div
-      className="fixed inset-0 z-50 grid place-items-center bg-black/70"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/70" onClick={onClose}>
       <div
         className="w-full max-w-md rounded-2xl border border-border/40 bg-popover p-5 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
@@ -1186,15 +874,12 @@ function HelpOverlay({ onClose }: { onClose: () => void }) {
           <h2 className="text-sm font-bold tracking-wide text-foreground">據點架構圖 · 鍵盤指南</h2>
         </header>
         <div className="space-y-2 text-[12px] text-foreground/85">
-          <Row k="Alt+1" desc="切到「員工歸屬」版面（據點 → 倉庫 → 員工）" />
-          <Row k="Alt+2" desc="切到「實體結構」版面（據點 → 倉庫 → 分區 → 庫位）" />
-          <Row k="← →" desc="切換欄（前兩欄共用、後段依版面）" />
+          <Row k="Alt+1~5" desc="直接切到 據點 / 倉庫 / 區域 / 貨架 / 庫位 欄" />
+          <Row k="← →" desc="左右切換欄" />
           <Row k="↑ ↓" desc="欄內上下移卡片" />
           <Row k="Home / End" desc="欄內跳頭尾" />
           <Row k="Enter / Space" desc="選定 + cascade 到下一欄" />
-          <Row k="A / Alt+A" desc="依當前欄：新增據點 / 倉庫 / 分區 / 庫位、或指派員工" />
-          <Row k="⭐" desc="員工 row 點星 = 設為此倉負責人" />
-          <Row k="Delete / Backspace" desc="移除員工（員工欄聚焦時）" />
+          <Row k="A" desc="依當前欄：新增 據點 / 倉庫 / 區域 / 貨架 / 庫位" />
           <Row k="[ / ]" desc="上 / 下個主檔" />
           <Row k="F3" desc="主檔切換 modal" />
           <Row k="?" desc="開 / 關 此指南" />
