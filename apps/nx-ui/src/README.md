@@ -177,7 +177,7 @@ features/
 nx01/
 ├── shell/                 主檔殼框架
 │   ├── entity-master/     EntityMasterPage 通用 config-driven 主檔頁 + MasterTabs / format
-│   ├── master-config/     22 個 master config（catalog-masters / simple-masters）
+│   ├── master-config/     25+ 個 master config（catalog-masters / simple-masters）
 │   ├── master-nav/        主檔快速入口（master-pages.ts 22 主檔 metadata / MasterPageHead / MasterQuickNav 分組翻頁）
 │   ├── ui/                共用 UI 元件
 │   │   ├── ErpToolbar.tsx  工具列（A/E/D/F/M/R/P/O/T、跨主檔 / 單據共用）
@@ -201,28 +201,47 @@ nx01/
 └── dict/          NX01-19~22 字典主檔（country / currency / phonetic-dictionary / region）
 ```
 
-主檔頁全部走員工範式（範本:`features/nx01/org/user-zoned/UserZonedPage.tsx`、文件:`docs/_team/master-page-shell-範式.md`）：
-- `EntityMasterPage` 通用配置驅動 13 個簡單表（dept/role/team/sitebase/warehouse/bin/custgrade/suppgrade/region/brand/currency/country/partgroup/zhuyin）
-- 4 個 zoned 頁（user / part / warehouse / partner）各自有衛星表 + zone 分區
-- 統一支援:item-level 導航（⏮◀N/M▶⏭）+ 表頭拖拉欄位 + M 排序 dropdown + P 列印預覽 + O 匯出 + T 垃圾桶 + mount/save/cancel 自動 focus 第一筆 + 全 light theme tokens
+### ⭐ 六層介面鐵則（2026-06-28 執行長定、傳統 ERP 外殼）
 
-#### 主檔群組模板 `MasterBatchShell`（`design/components/master-batch/`）
+任何頁面一律由六層組成、無一例外：
+1. **選單列**（頂部八大組 Alt+字母）2. **內容分頁**（已開啟頁的 tab 列）3. **情境工具列**（銀質、依頁變按鈕）
+4. **頁內分頁**（list/detail 或 Alt+1~N 切欄）5. **主內容** 6. **底部狀態列**
 
-「左主體列表 + 右成員」型主檔頁的雙欄殼、config-driven。支援兩種左欄模式（`flat` / `tree`）+ 三種右欄模式（`list` / `list-with-extra` / `grouped`）。已交付 4 案例：
+- 層 1 / 2 / 6 由 **WorkbenchShell** 全頁自動給；層 3 由各頁用 **ToolbarPortal** 投影到外殼插槽；層 4 / 5 各頁提供。
+- **麵包屑已全面退場**：頁標題改由「內容分頁（L2）」顯示，主檔模板不再 render `PageHeader`。
+- L3 銀質工具列共用 `ErpToolbar`（`features/nx01/shell/ui/`）的 bar 樣式 + `ToolbarButton`；按鈕內容隨頁/聚焦欄變換。
 
-| Case | leftMode | rightMode | feature 落點 | 路由 |
+### 主檔模板總覽（六層化後・主檔群基本完成）
+
+> 乾淨六層基準範本 = **`UserZonedPage`（使用者基本資料）**；新主檔對照 `docs/_team/master-page-shell-範式.md`。
+
+| # | 模板 | 型態 | 落點 | 代表頁 |
 |---|---|---|---|---|
-| 組織架構圖 | tree | list | `features/nx01/org/structure/` | `/master/org-structure` |
-| 據點架構圖 | tree | list-with-extra | `features/nx01/location/structure/` | `/master/location-structure` |
-| 通用件群組 | flat | list | `features/nx01/product/universal-group/` | `/master/universal-group` |
-| 供應商供貨對應 | flat | grouped | `features/nx01/partner/supplier-supply/` | `/master/supplier-supply` |
+| 1 | **EntityMasterPage** | config 驅動的表格主檔（最常用）| `shell/entity-master/` + config `shell/master-config/`（catalog-masters / simple-masters）| 國家/幣別/部門/職務/權限等級/區域/貨架/自訂群組/廠牌/車型…（25+ 個）|
+| 2 | **Zoned 主檔** | 分區編輯（衛星表 + zone 分頁）、複雜主檔 | `shell/zones/` + 各頁 | 使用者 / 零件 / 倉庫 / 往來對象 |
+| 3 | **InlineEditMasterPage** | L0 字典・列雙擊 inline 編輯 | `shell/inline-master/` | 國家 / 注音 / 部門（字典級）|
+| 4 | **KeyboardCardMasterPage** | 卡片鍵盤式主檔 | `shell/keyboard-card-master/` | 卡片型主檔 |
+| 5 | **多欄 cascade 結構頁** | 階層下鑽、Alt+1~N 切欄（自訂）| `features/nx01/*/structure/` | 組織架構（4 欄）/ 據點架構（5 欄：據點→倉庫→區域→貨架→庫位）|
+| 6 | **MasterBatchShell** | 左主體列表 / 右成員列表雙欄、config 驅動（Alt+1/2）| `design/components/master-batch/` | 零件通用表 / 供貨對應 |
+| 7 | **PartKitMasterView** | 雙欄列表 + 編輯彈窗（Alt+1 組合件 / Alt+2 組件明細）| `features/nx01/product/part-kit/` | 組合（分解）零件 |
+| 8 | **PermissionViewMatrixPage** | 左選等級 / 右畫面權限矩陣（R/C/U/D/匯出/核准）| `features/nx01/permission/permission-level/` | 權限設定 |
+| 9 | **ZipcodePage** | 唯讀字典雙欄 + 搜尋（縣市→鄉鎮郵遞）| `features/nx01/address/zipcode/` | 郵遞區號 |
 
-範式特點：
-- tree mode：chevron 分區點擊（chevron 展開折疊 / 主體 select）、`isSelectable` 允許「可選＋有 children」並存（如據點本身可選且下有倉庫）
-- list-with-extra：上下 50/50 split、case 提供 `renderExtra(s)` 渲染副區（如員工歸屬）
-- grouped：accordion 分組、`memberGroups(s)` return `{ key, label, members, meta, actions }`
-- 多選 modal reuse `design/components/multi-select-modal/EntityPickerDialog`、case 自管 picker state（parent conditional mount）
-- 鍵盤紀律對齊 demo：↑↓ / Enter/Space / Esc / Alt+A 全域加入
+共用六層元件：`ToolbarPortal`（L3 投影、`design/layout/workbench/`）、`ErpToolbar`（銀質 bar + `ToolbarButton`）、`MasterPageHead`（list/detail 分頁 head）、`ColTab`/`BatchTab`（L4 分頁 chip）。
+
+EntityMasterPage / Zoned 統一支援：item-level 導航（⏮◀N/M▶⏭）+ 表頭拖拉欄位 + M 排序 dropdown + P 列印 + O 匯出 + T 垃圾桶 + 全 pro light token。
+
+#### `MasterBatchShell` 細節（`design/components/master-batch/`）
+
+「左主體 + 右成員」雙欄殼、config-driven。左欄 `flat`/`tree`、右欄 `list`/`list-with-extra`/`grouped`。六層化後內建 L3 工具列（新增/加入）+ L4 兩分頁（Alt+1 主體 / Alt+2 明細）。
+
+| Case | leftMode | rightMode | 路由 |
+|---|---|---|---|
+| 零件通用表 | flat | list | `/master/universal-group` |
+| 供貨對應 | flat | grouped | `/master/supplier-supply` |
+
+- 多選 reuse `design/components/multi-select-modal/EntityPickerDialog`；零件搜尋選擇用 `PartSearchSelect`（part-kit）。
+- 鍵盤：↑↓ / Enter/Space / Esc / Alt+A 加入 / Alt+1·2 切欄。
 
 ### `middleware.ts` — Next.js 中介層
 
