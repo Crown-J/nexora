@@ -32,7 +32,6 @@ import {
 } from '@/features/nx01/shell/ui/MasterTable';
 import { MasterDetailScroll, EmptyDetail } from '@/features/nx01/shell/ui/MasterDetail';
 import { FormField } from '@/features/nx01/shell/ui/FormField';
-import { PageHeader } from '@design/components/page-header/PageHeader';
 import { useDirtyGuard } from '@design/hooks/useDirtyGuard';
 import { MasterPageHead } from '@/features/nx01/shell/master-nav';
 import { useColumnsPref } from '@/features/nx01/shell/ui/columns-config/useColumnsPref';
@@ -75,7 +74,6 @@ export type PartnerMasterPageProps = {
 };
 
 export function PartnerMasterPage({
-  pageCategory,
   pageTitle,
   filterPartnerTypes,
   editableZones,
@@ -720,11 +718,9 @@ export function PartnerMasterPage({
     return columnsOrder.map((k) => map.get(k)).filter((c): c is typeof columns[number] => !!c);
   }, [columns, columnsOrder]);
 
-  const countText = `${total} 筆${entityNoun}`;
-
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden text-foreground">
-      <PageHeader category={pageCategory} title={pageTitle} count={countText} />
+      {/* 2026-06-28 執行長：清除麵包屑殘留、對齊使用者基本資料乾淨六層 */}
 
       <MasterPageHead
         tab={tab}

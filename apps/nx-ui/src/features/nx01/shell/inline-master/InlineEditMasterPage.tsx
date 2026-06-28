@@ -21,7 +21,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { cn } from '@design/utils/cn';
-import { PageHeader } from '@design/components/page-header/PageHeader';
 import { useDirtyGuard } from '@design/hooks/useDirtyGuard';
 
 import { MasterQuickNav } from '@/features/nx01/shell/master-nav/MasterQuickNav';
@@ -367,12 +366,7 @@ export function InlineEditMasterPage({ config }: { config: EntityMasterConfig })
 
   return (
     <div className="flex flex-col gap-3 px-4 pb-6 pt-4 lg:px-6">
-      <PageHeader
-        category={config.category}
-        title={config.title}
-        count={total > 0 ? `共 ${total} 筆` : undefined}
-      />
-
+      {/* 2026-06-28 執行長：清除麵包屑殘留、對齊使用者基本資料乾淨六層（標題由工作區分頁顯示）*/}
       {/* L0 inline edit 範本不要 list/detail tabs、只保留主檔快速入口 */}
       <div data-nx-frame className="flex flex-wrap items-center justify-end gap-x-3 gap-y-2">
         <MasterQuickNav currentPageId={config.pageId} />

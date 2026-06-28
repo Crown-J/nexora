@@ -17,7 +17,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { cn } from '@design/utils/cn';
-import { PageHeader } from '@design/components/page-header/PageHeader';
 import { useDirtyGuard } from '@design/hooks/useDirtyGuard';
 import { MasterPageHead } from '@/features/nx01/shell/master-nav';
 import { formatDateTimeZh } from './format';
@@ -763,14 +762,11 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
   }, [columns, columnsOrder]);
 
   // ── render ────────────────────────────────────────────
-  const countText = `${total} 筆${config.entityNoun}`;
-
+  // 2026-06-28 執行長：清除麵包屑殘留（PageHeader 不再 render、對齊使用者基本資料乾淨六層）；
+  //   標題由工作區分頁（L2）顯示、總筆數由工具列項目導航（N/M）顯示
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden text-foreground">
-      {/* Phase 2 退場 MasterTopBar、改用 PageHeader（模組選單/公告/通知/使用者已由 UnifiedTopBar 提供）*/}
-      <PageHeader category={config.category} title={config.title} count={countText} />
-
-      {/* 2026-06-18 套員工範式:MasterPageHead 含 tabs + detail 標題 + 主檔快速入口 */}
+      {/* 套員工範式:MasterPageHead 含 tabs + detail 標題 + 主檔快速入口 */}
       <MasterPageHead
         tab={tab}
         onTabChange={attemptTabChange}
