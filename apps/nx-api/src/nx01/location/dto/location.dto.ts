@@ -28,6 +28,12 @@ export class CreateLocationDto {
   @MaxLength(15)
   zoneId?: string;
 
+  /** 2026-06-28 五層架構：所屬貨架（區域→貨架→庫位） */
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  rackId?: string;
+
   @IsString()
   @MinLength(1)
   @MaxLength(30)
@@ -90,6 +96,12 @@ export class UpdateLocationDto {
   @IsString()
   @MaxLength(15)
   zoneId?: string | null;
+
+  /** 2026-06-28 五層架構：所屬貨架（區域→貨架→庫位） */
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  rackId?: string | null;
 
   @IsOptional()
   @IsString()
