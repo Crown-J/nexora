@@ -34,6 +34,8 @@ const SEL = {
   lastLoginAt: true,
   // 02 第三批 T1 2026-06-07：員工隸屬部門（解綁 PRO → LITE）
   departmentId: true,
+  // 職務↔權限拆分軌 2026-06-28：權限等級（RBAC、一人一等級）
+  permissionLevelId: true,
   // W3 [3-3] basic zone 7 欄位 + [3-2] legacyCode
   gender: true,
   birthday: true,
@@ -219,6 +221,9 @@ export class UserService {
     return {
       // 02 第三批 T1 2026-06-07
       departmentId: row.departmentId ?? null,
+      // 職務↔權限拆分軌：權限等級（一人一等級）
+      permissionLevelId:
+        (row as { permissionLevelId?: string | null }).permissionLevelId ?? null,
       gender: row.gender ?? null,
       birthday: row.birthday ? row.birthday.toISOString().slice(0, 10) : null,
       nationalId: row.nationalId ?? null,
@@ -392,6 +397,8 @@ export class UserService {
         // W3 [3-3] basic zone 7 欄位
         // 02 第三批 T1 2026-06-07：隸屬部門
         departmentId: dto.departmentId?.trim() || null,
+        // 職務↔權限拆分軌：權限等級
+        permissionLevelId: dto.permissionLevelId?.trim() || null,
         gender: dto.gender ?? null,
         birthday: dto.birthday ? new Date(dto.birthday) : null,
         nationalId: dto.nationalId?.trim() || null,
@@ -473,6 +480,8 @@ export class UserService {
       // W3 [3-3] basic zone 7 欄位
       // 02 第三批 T1 2026-06-07：隸屬部門
       ...(dto.departmentId !== undefined ? { departmentId: dto.departmentId } : {}),
+      // 職務↔權限拆分軌：權限等級（傳 null 清除）
+      ...(dto.permissionLevelId !== undefined ? { permissionLevelId: dto.permissionLevelId } : {}),
       ...(dto.gender !== undefined ? { gender: dto.gender } : {}),
       ...(dto.birthday !== undefined
         ? { birthday: dto.birthday ? new Date(dto.birthday) : null }

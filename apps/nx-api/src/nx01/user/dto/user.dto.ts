@@ -143,6 +143,9 @@ export class CreateUserDto {
   // ── 02 第三批 T1 2026-06-07：員工隸屬部門（解綁 PRO → LITE） ──
   @IsOptional() @IsString() @MaxLength(15) departmentId?: string;
 
+  // ── 職務↔權限拆分軌 2026-06-28：權限等級（RBAC、一人一等級） ──
+  @IsOptional() @IsString() @MaxLength(15) permissionLevelId?: string;
+
   // ── 02 第四批 軌 1 2026-06-07：主要據點（forward 視角、單值 ref、A 拍板） ──
   @IsOptional() @IsString() @MaxLength(15) primarySiteId?: string;
 
@@ -212,6 +215,9 @@ export class UpdateUserDto {
   @Type(() => Boolean)
   @IsBoolean()
   isActive?: boolean;
+
+  // ── 職務↔權限拆分軌 2026-06-28：權限等級（RBAC、一人一等級；傳 null 清除） ──
+  @IsOptional() @IsString() @MaxLength(15) permissionLevelId?: string | null;
 
   // 2026-06-23：admin 重設密碼時要帶 mustChangePassword=true、員工首次登入強制改
   @IsOptional()
