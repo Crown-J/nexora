@@ -633,6 +633,9 @@ model Nx01Location {
   /// 所屬倉庫分區 ID（FK nx01_warehouse_zone、執行長 2026-06-22 拍板新增四層架構）
   /// migration 階段每倉預建一個 "Z00 主區"、現有 location 全部關連到該預設 zone
   zoneId                                     String?                @map("zone_id") @db.VarChar(15)
+  /// 所屬貨架 ID（FK nx01_warehouse_rack、2026-06-28 五層架構第四層 區域→貨架→庫位）
+  /// migration 階段每區域預建一個 "R00 主架"、現有 location 全部關連到該預設 rack
+  rackId                                     String?                @map("rack_id") @db.VarChar(15)
   /// 庫位代碼（倉內唯一），例：A-01-01、B2-03；啟用最低需求版本：LITE
   code                                       String                 @db.VarChar(30)
   /// 庫位名稱（選填），例：靠門口、二樓左側；啟用最低需求版本：LITE
@@ -662,6 +665,7 @@ model Nx01Location {
   tenant                                     Nx99Tenant             @relation("R_Nx01Location_tenantId", fields: [tenantId], references: [id])
   warehouse                                  Nx01Warehouse          @relation("R_Nx01Location_warehouseId", fields: [warehouseId], references: [id])
   warehouseZone                              Nx01WarehouseZone?     @relation("R_Nx01Location_zoneId", fields: [zoneId], references: [id], onDelete: SetNull)
+  warehouseRack                              Nx01WarehouseRack?     @relation("R_Nx01Location_rackId", fields: [rackId], references: [id], onDelete: SetNull)
   rev_Nx02PrItem_locationId                  Nx02PrItem[]           @relation("R_Nx02PrItem_locationId")
   rev_Nx02RrItem_locationId                  Nx02RrItem[]           @relation("R_Nx02RrItem_locationId")
   rev_Nx02TiItem_locationId                  Nx02TiItem[]           @relation("R_Nx02TiItem_locationId")
@@ -8602,6 +8606,7 @@ model Nx01WarehouseRack {
   updatedBy   String          @map("updated_by") @db.VarChar(15)
   tenant      Nx99Tenant        @relation("R_Nx01WarehouseRack_tenantId", fields: [tenantId], references: [id])
   zone        Nx01WarehouseZone @relation("R_Nx01WarehouseRack_zoneId", fields: [zoneId], references: [id])
+  rev_Nx01Location_rackId Nx01Location[] @relation("R_Nx01Location_rackId")
 
   @@unique([tenantId, zoneId, code])
   @@index([tenantId, zoneId], map: "nx01_warehouse_rack_tenant_zone_idx")
