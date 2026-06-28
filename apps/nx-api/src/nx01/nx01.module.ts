@@ -60,6 +60,8 @@ import { PartnerController } from './partner/partner.controller';
 import { PartnerService } from './partner/partner.service';
 import { PermissionController } from './permission/permission.controller';
 import { PermissionService } from './permission/permission.service';
+import { PermissionLevelController } from './permission-level/permission-level.controller';
+import { PermissionLevelService } from './permission-level/permission-level.service';
 import { PhoneticDictionaryController } from './phonetic-dictionary/phonetic-dictionary.controller';
 import { PhoneticDictionaryService } from './phonetic-dictionary/phonetic-dictionary.service';
 import { RoleController } from './role/role.controller';
@@ -134,6 +136,7 @@ import { UserTeamService } from './user-team/user-team.service';
     ViewController,
     RoleViewController,
     PermissionController,
+    PermissionLevelController,
     UserPrefController,
     CalendarEventController,
   ],
@@ -178,6 +181,7 @@ import { UserTeamService } from './user-team/user-team.service';
     ViewService,
     RoleViewService,
     PermissionService,
+    PermissionLevelService,
     UserPrefService,
     CalendarEventService,
   ],
