@@ -1200,9 +1200,62 @@ model Nx01PermissionLevel {
   updatedBy   String     @map("updated_by") @db.VarChar(15)
   tenant      Nx99Tenant @relation("R_Nx01PermissionLevel_tenantId", fields: [tenantId], references: [id])
   rev_Nx01User_permissionLevelId Nx01User[] @relation("R_Nx01User_permissionLevelId")
+  rev_Nx01PermLevelPerm_levelId  Nx01PermissionLevelPermission[] @relation("R_Nx01PermLevelPerm_levelId")
+  rev_Nx01PermLevelView_levelId  Nx01PermissionLevelView[]       @relation("R_Nx01PermLevelView_levelId")
 
   @@unique([tenantId, code])
   @@map("nx01_permission_level")
+}
+
+/// =======================================================
+/// Nx01PermissionLevelPermission — DB table `nx01_permission_level_permission`
+/// 權限等級 × 細權限目錄（m-n）；2026-06-28 拆分軌 Step2（加性、對應 role_permission）
+/// =======================================================
+model Nx01PermissionLevelPermission {
+  /// [NX01]+[PLPM]+[7碼流水號]
+  id                String              @id @default(dbgenerated("gen_nx01_permission_level_permission_id()")) @db.VarChar(15)
+  tenantId          String              @map("tenant_id") @db.VarChar(15)
+  permissionLevelId String              @map("permission_level_id") @db.VarChar(15)
+  permissionId      String              @map("permission_id") @db.VarChar(15)
+  grantedAt         DateTime            @default(now()) @map("granted_at")
+  grantedBy         String              @map("granted_by") @db.VarChar(15)
+  tenant            Nx99Tenant          @relation("R_Nx01PermLevelPerm_tenantId", fields: [tenantId], references: [id])
+  permissionLevel   Nx01PermissionLevel @relation("R_Nx01PermLevelPerm_levelId", fields: [permissionLevelId], references: [id])
+  permission        Nx01Permission      @relation("R_Nx01PermLevelPerm_permissionId", fields: [permissionId], references: [id])
+
+  @@unique([permissionLevelId, permissionId])
+  @@index([tenantId, permissionLevelId])
+  @@map("nx01_permission_level_permission")
+}
+
+/// =======================================================
+/// Nx01PermissionLevelView — DB table `nx01_permission_level_view`
+/// 權限等級 × 畫面（m-n + 6 動作旗標）；2026-06-28 拆分軌 Step2（加性、對應 role_view）
+/// =======================================================
+model Nx01PermissionLevelView {
+  /// [NX01]+[PLVW]+[7碼流水號]
+  id                String              @id @default(dbgenerated("gen_nx01_permission_level_view_id()")) @db.VarChar(15)
+  tenantId          String              @map("tenant_id") @db.VarChar(15)
+  permissionLevelId String              @map("permission_level_id") @db.VarChar(15)
+  viewId            String              @map("view_id") @db.VarChar(15)
+  canRead           Boolean             @default(true) @map("can_read")
+  canCreate         Boolean             @default(false) @map("can_create")
+  canUpdate         Boolean             @default(false) @map("can_update")
+  canDelete         Boolean             @default(false) @map("can_delete")
+  canExport         Boolean             @default(false) @map("can_export")
+  canApprove        Boolean             @default(false) @map("can_approve")
+  isActive          Boolean             @default(true) @map("is_active")
+  grantedAt         DateTime            @default(now()) @map("granted_at")
+  grantedBy         String?             @map("granted_by") @db.VarChar(15)
+  revokedAt         DateTime?           @map("revoked_at")
+  revokedBy         String?             @map("revoked_by") @db.VarChar(15)
+  tenant            Nx99Tenant          @relation("R_Nx01PermLevelView_tenantId", fields: [tenantId], references: [id])
+  permissionLevel   Nx01PermissionLevel @relation("R_Nx01PermLevelView_levelId", fields: [permissionLevelId], references: [id])
+  view              Nx01View            @relation("R_Nx01PermLevelView_viewId", fields: [viewId], references: [id])
+
+  @@unique([permissionLevelId, viewId])
+  @@index([tenantId, permissionLevelId])
+  @@map("nx01_permission_level_view")
 }
 
 /// =======================================================
@@ -1273,6 +1326,7 @@ model Nx01Permission {
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   rev_Nx01RolePermission_permissionId Nx01RolePermission[] @relation("R_Nx01RolePermission_permissionId")
+  rev_Nx01PermLevelPerm_permissionId  Nx01PermissionLevelPermission[] @relation("R_Nx01PermLevelPerm_permissionId")
 
   @@index([moduleCode, category, action])
   @@map("nx01_permission")
@@ -1721,6 +1775,7 @@ model Nx01View {
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
   updatedBy               String         @map("updated_by") @db.VarChar(15)
   rev_Nx01RoleView_viewId Nx01RoleView[] @relation("R_Nx01RoleView_viewId")
+  rev_Nx01PermLevelView_viewId Nx01PermissionLevelView[] @relation("R_Nx01PermLevelView_viewId")
 
   @@unique([code])
   @@map("nx01_view")
@@ -6962,6 +7017,8 @@ model Nx99Tenant {
   rev_Nx01PhoneticIndex_tenantId           Nx01PhoneticIndex[]           @relation("R_Nx01PhoneticIndex_tenantId")
   rev_Nx01Role_tenantId                    Nx01Role[]                    @relation("R_Nx01Role_tenantId")
   rev_Nx01PermissionLevel_tenantId         Nx01PermissionLevel[]         @relation("R_Nx01PermissionLevel_tenantId")
+  rev_Nx01PermLevelPerm_tenantId           Nx01PermissionLevelPermission[] @relation("R_Nx01PermLevelPerm_tenantId")
+  rev_Nx01PermLevelView_tenantId           Nx01PermissionLevelView[]     @relation("R_Nx01PermLevelView_tenantId")
   rev_Nx01RolePermission_tenantId          Nx01RolePermission[]          @relation("R_Nx01RolePermission_tenantId")
   rev_Nx01RoleView_tenantId                Nx01RoleView[]                @relation("R_Nx01RoleView_tenantId")
   rev_Nx01Team_tenantId                    Nx01Team[]                    @relation("R_Nx01Team_tenantId")
