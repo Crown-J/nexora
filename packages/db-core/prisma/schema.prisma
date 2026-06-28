@@ -1173,6 +1173,39 @@ model Nx01Role {
 }
 
 /// =======================================================
+/// Nx01PermissionLevel — DB table `nx01_permission_level`
+/// 權限等級（RBAC 載體）；2026-06-28 職務↔權限拆分軌 Step1（加性、不動現有 role）
+/// role 留作純職務、權限改掛此表；一人一等級（nx01_user.permission_level_id）
+/// =======================================================
+model Nx01PermissionLevel {
+  /// [NX01]+[PMLV]+[7碼流水號]，EX : NX01PMLV0000001；啟用最低需求版本：LITE
+  id          String     @id @default(dbgenerated("gen_nx01_permission_level_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵）；啟用最低需求版本：LITE
+  tenantId    String     @map("tenant_id") @db.VarChar(15)
+  /// 權限等級代碼（唯一），例：S（全權限內建）、A、B…；啟用最低需求版本：LITE
+  code        String     @db.VarChar(30)
+  /// 權限等級名稱（顯示用）；啟用最低需求版本：LITE
+  name        String     @db.VarChar(50)
+  /// 說明（可選）；啟用最低需求版本：LITE
+  description String?    @db.VarChar(200)
+  /// 是否系統內建（S 全權限內建、鎖定不可刪改代碼）；啟用最低需求版本：LITE
+  isSystem    Boolean    @default(false) @map("is_system")
+  /// 是否啟用；啟用最低需求版本：LITE
+  isActive    Boolean    @default(true) @map("is_active")
+  /// 排序用；啟用最低需求版本：LITE
+  sortNo      Int        @default(0) @map("sort_no")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  createdBy   String     @map("created_by") @db.VarChar(15)
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  updatedBy   String     @map("updated_by") @db.VarChar(15)
+  tenant      Nx99Tenant @relation("R_Nx01PermissionLevel_tenantId", fields: [tenantId], references: [id])
+  rev_Nx01User_permissionLevelId Nx01User[] @relation("R_Nx01User_permissionLevelId")
+
+  @@unique([tenantId, code])
+  @@map("nx01_permission_level")
+}
+
+/// =======================================================
 /// Nx01RoleView — DB table `nx01_role_view`
 /// =======================================================
 model Nx01RoleView {
@@ -1386,6 +1419,8 @@ model Nx01User {
   jobTitle                                 String?                       @map("job_title") @db.VarChar(20)
   /// 人資主檔同步：主要職務角色（選填，與 nx01_user_role 並存）；啟用最低需求版本：PRO
   roleId                                   String?                       @map("role_id") @db.VarChar(15)
+  /// 權限等級 ID（FK nx01_permission_level、一人一等級；2026-06-28 職務↔權限拆分軌）；啟用最低需求版本：LITE
+  permissionLevelId                        String?                       @map("permission_level_id") @db.VarChar(15)
   /// 員工隸屬部門（選填）；02 第三批 T1 2026-06-07 從 PRO 解綁 → LITE（總經理拍板：組織欄位各版本都能用、不綁版本）；啟用最低需求版本：LITE
   departmentId                             String?                       @map("department_id") @db.VarChar(15)
   /// 主要據點 ID（FK nx01_site、選填、forward 視角一人一個；02 第四批 軌 1 2026-06-07 新增、與 nx01_user_warehouse 多倉衛星並存）；啟用最低需求版本：LITE
@@ -1424,6 +1459,7 @@ model Nx01User {
   updatedBy                                String                        @map("updated_by") @db.VarChar(15)
   tenant                                   Nx99Tenant                    @relation("R_Nx01User_tenantId", fields: [tenantId], references: [id])
   hrRole                                   Nx01Role?                     @relation("R_Nx01User_hrRoleId", fields: [roleId], references: [id])
+  permissionLevel                          Nx01PermissionLevel?          @relation("R_Nx01User_permissionLevelId", fields: [permissionLevelId], references: [id])
   hrDepartment                             Nx01Department?               @relation("R_Nx01User_hrDepartmentId", fields: [departmentId], references: [id])
   // 02 第四批 軌 1 2026-06-07：主要據點 forward ref（與 user_warehouse 多倉衛星並存）
   primarySite                              Nx01Site?                     @relation("R_Nx01User_primarySiteId", fields: [primarySiteId], references: [id], onDelete: SetNull)
@@ -6925,6 +6961,7 @@ model Nx99Tenant {
   rev_Nx01Partner_tenantId                 Nx01Partner[]                 @relation("R_Nx01Partner_tenantId")
   rev_Nx01PhoneticIndex_tenantId           Nx01PhoneticIndex[]           @relation("R_Nx01PhoneticIndex_tenantId")
   rev_Nx01Role_tenantId                    Nx01Role[]                    @relation("R_Nx01Role_tenantId")
+  rev_Nx01PermissionLevel_tenantId         Nx01PermissionLevel[]         @relation("R_Nx01PermissionLevel_tenantId")
   rev_Nx01RolePermission_tenantId          Nx01RolePermission[]          @relation("R_Nx01RolePermission_tenantId")
   rev_Nx01RoleView_tenantId                Nx01RoleView[]                @relation("R_Nx01RoleView_tenantId")
   rev_Nx01Team_tenantId                    Nx01Team[]                    @relation("R_Nx01Team_tenantId")
