@@ -81,9 +81,9 @@ export const MENU_BAR: MenuNode[] = [
         key: 'm-partner',
         label: '往來對象',
         children: [
-          { key: 'cust', label: '客戶基本資料', href: '/dashboard/master/partners' },
-          { key: 'supp', label: '供應商基本資料', href: '/dashboard/master/partners' },
-          { key: 'other-partner', label: '其他往來對象', href: '/dashboard/master/partners' },
+          { key: 'cust', label: '客戶基本資料', href: '/dashboard/master/partners/customer' },
+          { key: 'supp', label: '供應商基本資料', href: '/dashboard/master/partners/supplier' },
+          { key: 'other-partner', label: '其他往來對象', href: '/dashboard/master/partners/other' },
         ],
       },
       {
