@@ -93,7 +93,7 @@ export const MENU_BAR: MenuNode[] = [
           { key: 'parts', label: '零件基本資料', href: '/dashboard/master/parts' },
           { key: 'brand', label: '廠牌基本資料', href: '/dashboard/master/brand' },
           { key: 'model', label: '車型基本資料', href: '/dashboard/master/model' },
-          { key: 'part-group', label: '零件群組（分類一~三）', href: '/dashboard/master/part-group' },
+          { key: 'part-group', label: '自訂群組', href: '/dashboard/master/part-group' },
           {
             key: 'part-relation-grp',
             label: '零件關聯表',

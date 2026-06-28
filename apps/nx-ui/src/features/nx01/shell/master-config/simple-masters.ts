@@ -45,14 +45,14 @@ export const COUNTRY_MASTER: EntityMasterConfig = {
 export const PART_GROUP_MASTER: EntityMasterConfig = {
   basePath: 'nx01/part-groups',
   category: '產品料號',
-  title: '零件群組基本資料',
-  entityNoun: '零件群組',
+  title: '自訂群組基本資料',
+  entityNoun: '自訂群組',
   pageId: 'part-group',
   errorCodePrefix: 'nxui_base_part_group',
   deleteMode: 'soft-delete-rest',
   fields: [
-    { key: 'code', label: '族群代碼', required: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]' },
-    { key: 'name', label: '族群名稱', required: true, minWidthClass: 'min-w-[140px]' },
+    { key: 'code', label: '群組代碼', required: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]' },
+    { key: 'name', label: '群組名稱', required: true, minWidthClass: 'min-w-[140px]' },
     // 02 第四批 軌 6 2026-06-07：族群層預設保存期限（新增零件選此族群時自動帶入個別零件、可覆寫）
     { key: 'defaultShelfLifeMonths', label: '預設建議保存期限(月)', type: 'number', placeholder: '12', minWidthClass: 'min-w-[140px]' },
     { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },

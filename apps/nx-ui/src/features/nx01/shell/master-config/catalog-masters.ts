@@ -471,15 +471,15 @@ export const PART_MASTER: EntityMasterConfig = {
     // 2026-06-26：廠牌料號必填
     { key: 'secCode', label: '廠牌料號', required: true, mono: true, minWidthClass: 'min-w-[140px]' },
     { key: 'partBrandId', label: '零件廠牌', type: 'ref', refBasePath: 'nx01/brands', refExtraFilters: { isPart: 'true' }, minWidthClass: 'min-w-[120px]' },
-    { key: 'partGroupId', label: '零件族群（分類三）', type: 'ref', refBasePath: 'nx01/part-groups', inList: false },
-    // 2026-06-26 分類一・採購角度（寫死）
+    { key: 'partGroupId', label: '自訂群組', type: 'ref', refBasePath: 'nx01/part-groups', inList: false },
+    // 用途別・採購角度（寫死、不可改）
     {
-      key: 'purchaseCategory', label: '採購分類', type: 'select', numeric: true, inList: false,
+      key: 'purchaseCategory', label: '用途別', type: 'select', numeric: true, inList: false,
       options: [{ value: 1, label: '保養件' }, { value: 2, label: '維修件' }, { value: 3, label: '事故件' }, { value: 4, label: '改裝件' }, { value: 5, label: '油品耗材' }],
     },
-    // 2026-06-26 分類二・技術角度（寫死）
+    // 系統別・技術角度（寫死、不可改）
     {
-      key: 'techCategory', label: '技術分類', type: 'select', numeric: true, inList: false,
+      key: 'techCategory', label: '系統別', type: 'select', numeric: true, inList: false,
       options: [
         { value: 1, label: '引擎／動力系統' }, { value: 2, label: '傳動系統' }, { value: 3, label: '制動系統' },
         { value: 4, label: '轉向系統' }, { value: 5, label: '懸吊與底盤系統' }, { value: 6, label: '電氣與電子系統' },

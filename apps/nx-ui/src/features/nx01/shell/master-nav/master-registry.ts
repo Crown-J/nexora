@@ -96,7 +96,7 @@ export const MASTER_REGISTRY: MasterRegistryEntry[] = [
   // ───── product 產品與廠牌 ─────
   { id: 'parts', label: '零件基本資料', href: '/dashboard/master/parts', category: 'product', icon: Package, iconKey: 'box', surfaces: ['dock', 'hub', 'side', 'home'], statLabel: '零件筆數', description: '料號、規格與狀態' },
   { id: 'brand', label: '品牌基本資料', href: '/dashboard/master/brand', category: 'product', icon: Tags, iconKey: 'tag', surfaces: ['dock', 'hub', 'side', 'home'], statLabel: '品牌', description: '汽車品牌 + 零件廠牌雙開關（isCar/isPart 合表）' },
-  { id: 'part-group', label: '零件群組基本資料', href: '/dashboard/master/part-group', category: 'product', icon: Layers, iconKey: 'layers', surfaces: ['dock', 'hub', 'side', 'home'], statLabel: '族群', description: '客戶自定義零件族群（分類三）' },
+  { id: 'part-group', label: '自訂群組基本資料', href: '/dashboard/master/part-group', category: 'product', icon: Layers, iconKey: 'layers', surfaces: ['dock', 'hub', 'side', 'home'], statLabel: '群組', description: '客戶自定義零件群組（單選；用途別/系統別走零件欄位）' },
   { id: 'universal-group', label: '通用件群組', href: '/dashboard/master/universal-group', category: 'product', icon: Combine, iconKey: 'combine', surfaces: ['dock', 'hub', 'home'], statLabel: '群組', description: '全互換群（群組成員互相通用、用料號搜尋找群組）' },
   { id: 'part-relation', label: '零件關聯基本資料', href: '/dashboard/master/part-relation', category: 'product', icon: Link2, iconKey: 'link', surfaces: ['dock', 'hub', 'side'], minPlan: 'PLUS', statLabel: '關聯', description: '單向替代（副廠一件替代多個不互通正廠）' },
   { id: 'part-kit', label: '組合／拆解組件關係', href: '/dashboard/master/part-kit', category: 'product', icon: Boxes, iconKey: 'boxes', surfaces: ['dock', 'hub', 'side'], minPlan: 'PLUS', statLabel: '組件', description: '整體件 ＝ 一組組件（含數量）：正廠總成↔副廠多件' },

@@ -29,10 +29,10 @@ export const PART_FIELDS: FieldDef<PartZone>[] = [
   { key: 'isOem', label: '正廠件', zone: 'basic' },
   { key: 'secCode', label: '廠牌料號', zone: 'basic', required: true, notes: '必填、記該廠牌對此料件的料號' },
   { key: 'partBrandId', label: '零件品牌', zone: 'basic' },
-  { key: 'partGroupId', label: '零件族群（分類三）', zone: 'basic' },
-  // 2026-06-26 分類一/二（寫死選項）
-  { key: 'purchaseCategory', label: '採購分類（分類一）', zone: 'basic' },
-  { key: 'techCategory', label: '技術分類（分類二）', zone: 'basic' },
+  // 三維獨立分類（2026-06-28 命名定案）：用途別/系統別寫死選項、自訂群組為客戶主檔
+  { key: 'purchaseCategory', label: '用途別', zone: 'basic' },
+  { key: 'techCategory', label: '系統別', zone: 'basic' },
+  { key: 'partGroupId', label: '自訂群組', zone: 'basic' },
   { key: 'type', label: '零件類型', zone: 'basic', notes: '1 專用 / 2 通用 / 3 組合 / 4 拆解' },
   { key: 'countryId', label: '產地', zone: 'basic' },
   { key: 'spec', label: '規格 / 備註', zone: 'basic' },
