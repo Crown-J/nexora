@@ -153,19 +153,19 @@ export function MasterColumnsPanel({
   const visibleCount = columns.length - hidden.size;
 
   return (
-    <div className="border-b border-[#2A2A30] bg-[#0E0E12] px-3 py-2.5" ref={panelRef}>
+    <div className="border-b border-[var(--border)] bg-[var(--card)] px-3 py-2.5" ref={panelRef}>
       <div className="mb-2 flex items-center gap-2">
-        <Columns3 className="size-3.5 text-[#E8A020]" />
-        <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#B8B8C0]">
+        <Columns3 className="size-3.5 text-[var(--primary)]" />
+        <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--muted-foreground)]">
           欄位設定
         </span>
-        <span className="text-[10px] text-[#5A5A60]">↑↓ 移動 · 空白 勾選 · Esc 關閉</span>
+        <span className="text-[10px] text-[var(--muted-foreground)]">↑↓ 移動 · 空白 勾選 · Esc 關閉</span>
         <div className="flex-1" />
-        <span className="font-mono text-[10px] text-[#888892]">顯示 {visibleCount}/{columns.length}</span>
+        <span className="font-mono text-[10px] text-[var(--muted-foreground)]">顯示 {visibleCount}/{columns.length}</span>
         <button
           type="button"
           onClick={() => onChange(new Set())}
-          className="inline-flex h-6 items-center gap-1 rounded-md border border-[#2A2A30] bg-[#1A1A1F] px-2 text-[10px] text-[#B8B8C0] transition-colors hover:border-[#E8A020]/40 hover:text-[#E8A020]"
+          className="inline-flex h-6 items-center gap-1 rounded-md border border-[var(--border)] bg-[var(--secondary)] px-2 text-[10px] text-[var(--muted-foreground)] transition-colors hover:border-[var(--primary)]/40 hover:text-[var(--primary)]"
         >
           <Eye className="size-3" /> 全部顯示
         </button>
@@ -184,15 +184,15 @@ export function MasterColumnsPanel({
               className={cn(
                 'inline-flex h-7 items-center gap-1.5 rounded-md border px-2.5 text-[11px] font-medium transition-colors',
                 shown
-                  ? 'border-[#E8A020]/45 bg-[#E8A020]/12 text-[#E8A020]'
-                  : 'border-[#3A3A42] bg-[#1A1A1F] text-[#5A5A60]',
-                focused && 'ring-2 ring-inset ring-[#E8A020]/70',
+                  ? 'border-[var(--primary)]/45 bg-[var(--primary)]/12 text-[var(--primary)]'
+                  : 'border-[var(--border)] bg-[var(--secondary)] text-[var(--muted-foreground)]',
+                focused && 'ring-2 ring-inset ring-[var(--primary)]/70',
               )}
             >
               <span
                 className={cn(
                   'flex size-3.5 shrink-0 items-center justify-center rounded border',
-                  shown ? 'border-[#E8A020]/60 bg-[#E8A020]/20 text-[#E8A020]' : 'border-[#3A3A42] bg-[#131316]',
+                  shown ? 'border-[var(--primary)]/60 bg-[var(--primary)]/20 text-[var(--primary)]' : 'border-[var(--border)] bg-[var(--card)]',
                 )}
               >
                 {shown ? <Check className="size-2.5" /> : null}
@@ -276,14 +276,14 @@ export function MasterFilterPanel({
   if (!open) return null;
 
   const inputCls =
-    'rounded-md border border-[#E8A020]/30 bg-[#0A0A0C] px-2 py-1 text-xs text-[#E8E8EB] outline-none transition-colors focus:border-[#E8A020]/60 focus:ring-1 focus:ring-[#E8A020]/40';
+    'rounded-md border border-[var(--primary)]/30 bg-[var(--card)] px-2 py-1 text-xs text-[var(--foreground)] outline-none transition-colors focus:border-[var(--primary)]/60 focus:ring-1 focus:ring-[var(--primary)]/40';
 
   return (
-    <div className="border-b border-[#2A2A30] bg-[#0E0E12] px-3 py-2.5">
+    <div className="border-b border-[var(--border)] bg-[var(--card)] px-3 py-2.5">
       <div className="mb-2 flex items-center gap-2">
-        <Filter className="size-3.5 text-[#E8A020]" />
-        <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#B8B8C0]">篩選</span>
-        <span className="text-[10px] text-[#5A5A60]">Enter 套用 · Esc 關閉 · 就目前頁面資料篩選</span>
+        <Filter className="size-3.5 text-[var(--primary)]" />
+        <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--muted-foreground)]">篩選</span>
+        <span className="text-[10px] text-[var(--muted-foreground)]">Enter 套用 · Esc 關閉 · 就目前頁面資料篩選</span>
       </div>
 
       <div className="flex flex-col gap-1.5">
@@ -296,7 +296,7 @@ export function MasterFilterPanel({
               aria-label="篩選欄位"
             >
               {fields.map((f) => (
-                <option key={f.key} value={f.key} className="bg-[#131316]">
+                <option key={f.key} value={f.key} className="bg-[var(--card)]">
                   {f.label}
                 </option>
               ))}
@@ -308,7 +308,7 @@ export function MasterFilterPanel({
               aria-label="篩選條件"
             >
               {FILTER_OPS.map((o) => (
-                <option key={o.value} value={o.value} className="bg-[#131316]">
+                <option key={o.value} value={o.value} className="bg-[var(--card)]">
                   {o.label}
                 </option>
               ))}
@@ -318,14 +318,14 @@ export function MasterFilterPanel({
               value={c.value}
               onChange={(e) => update(c.id, { value: e.target.value })}
               placeholder="值..."
-              className={cn(inputCls, 'min-w-[8rem] flex-1 placeholder:text-[#5A5A60]')}
+              className={cn(inputCls, 'min-w-[8rem] flex-1 placeholder:text-[var(--muted-foreground)]')}
               aria-label="篩選值"
             />
             <button
               type="button"
               onClick={() => remove(c.id)}
               title="移除此條件"
-              className="inline-flex size-7 items-center justify-center rounded-md border border-[#5A2A2A] bg-[#1F1212] text-[#C84A4A] transition-colors hover:bg-[#2A1818] hover:text-[#E26060]"
+              className="inline-flex size-7 items-center justify-center rounded-md border border-[var(--border)] bg-[var(--secondary)] text-[var(--color-danger)] transition-colors hover:bg-[var(--muted)] hover:text-[var(--color-danger)]"
             >
               <X className="size-3.5" />
             </button>
@@ -337,7 +337,7 @@ export function MasterFilterPanel({
         <button
           type="button"
           onClick={add}
-          className="inline-flex h-7 items-center gap-1 rounded-md border border-[#2A2A30] bg-[#1A1A1F] px-2.5 text-[11px] font-medium text-[#B8B8C0] transition-colors hover:border-[#E8A020]/40 hover:text-[#E8A020]"
+          className="inline-flex h-7 items-center gap-1 rounded-md border border-[var(--border)] bg-[var(--secondary)] px-2.5 text-[11px] font-medium text-[var(--muted-foreground)] transition-colors hover:border-[var(--primary)]/40 hover:text-[var(--primary)]"
         >
           <Plus className="size-3" /> 新增條件
         </button>
@@ -345,14 +345,14 @@ export function MasterFilterPanel({
         <button
           type="button"
           onClick={clearAll}
-          className="inline-flex h-7 items-center rounded-md border border-[#2A2A30] bg-[#1A1A1F] px-2.5 text-[11px] font-medium text-[#B8B8C0] transition-colors hover:border-[#3A3A42] hover:text-[#E8E8EB]"
+          className="inline-flex h-7 items-center rounded-md border border-[var(--border)] bg-[var(--secondary)] px-2.5 text-[11px] font-medium text-[var(--muted-foreground)] transition-colors hover:border-[var(--border)] hover:text-[var(--foreground)]"
         >
           清除
         </button>
         <button
           type="button"
           onClick={apply}
-          className="inline-flex h-7 items-center gap-1.5 rounded-md border border-[#E8A020]/40 bg-[#E8A020]/15 px-3 text-[11px] font-semibold text-[#E8A020] transition-colors hover:bg-[#E8A020]/25"
+          className="inline-flex h-7 items-center gap-1.5 rounded-md border border-[var(--primary)]/40 bg-[var(--primary)]/15 px-3 text-[11px] font-semibold text-[var(--primary)] transition-colors hover:bg-[var(--primary)]/25"
         >
           套用{draftActive > 0 ? ` (${draftActive})` : ''}（Enter）
         </button>

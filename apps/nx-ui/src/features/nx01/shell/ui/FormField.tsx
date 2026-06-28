@@ -3,7 +3,7 @@
  * NEXORA Master Shell — FormField / FormInput / FormSelect
  *
  * 2026-06-18 執行長範式:hex 改 css var token、light theme 黑色變深橘
- *   - --nx-surface-input        底色（dark=#0A0A0C / light=#c8550f 深橘）
+ *   - --nx-surface-input        底色（dark=var(--card) / light=#c8550f 深橘）
  *   - --nx-surface-input-border 邊框
  *   - --nx-surface-input-fg     主文字
  *   - --nx-surface-input-muted  dim / placeholder
@@ -37,10 +37,10 @@ export function FormField({
           'border-[var(--nx-surface-input-border)] bg-[var(--nx-surface-input)]',
           mono && 'font-mono text-xs',
           dim && 'text-[var(--nx-surface-input-muted)]',
-          tone === 'amber' && '!border-[#E8A020]/30 !bg-[#E8A020]/8 text-[#E8A020]',
-          tone === 'green' && '!border-[#22D88F]/30 !bg-[#22D88F]/8 text-[#22D88F]',
-          tone === 'red' && '!border-[#E26060]/30 !bg-[#E26060]/8 text-[#E26060]',
-          tone === 'muted' && '!border-[#3A3A42] text-[#888892]',
+          tone === 'amber' && '!border-[var(--primary)]/30 !bg-[var(--primary)]/8 text-[var(--primary)]',
+          tone === 'green' && '!border-[var(--color-success)]/30 !bg-[var(--color-success)]/8 text-[var(--color-success)]',
+          tone === 'red' && '!border-[var(--color-danger)]/30 !bg-[var(--color-danger)]/8 text-[var(--color-danger)]',
+          tone === 'muted' && '!border-[var(--border)] text-[var(--muted-foreground)]',
           !tone && !dim && 'text-[var(--nx-surface-input-fg)]',
         )}
       >
@@ -74,7 +74,7 @@ export function FormInput({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         maxLength={maxLength}
-        className="rounded-md border border-[#E8A020]/30 bg-[var(--nx-surface-input)] px-2.5 py-1.5 text-sm text-[var(--nx-surface-input-fg)] outline-none transition-colors placeholder:text-[var(--nx-surface-input-muted)] focus:border-[#E8A020]/60 focus:ring-1 focus:ring-[#E8A020]/40"
+        className="rounded-md border border-[var(--primary)]/30 bg-[var(--nx-surface-input)] px-2.5 py-1.5 text-sm text-[var(--nx-surface-input-fg)] outline-none transition-colors placeholder:text-[var(--nx-surface-input-muted)] focus:border-[var(--primary)]/60 focus:ring-1 focus:ring-[var(--primary)]/40"
       />
     </div>
   );
@@ -99,7 +99,7 @@ export function FormSelect({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="cursor-pointer appearance-none rounded-md border border-[#E8A020]/30 bg-[var(--nx-surface-input)] px-2.5 py-1.5 text-sm text-[var(--nx-surface-input-fg)] outline-none transition-colors focus:border-[#E8A020]/60 focus:ring-1 focus:ring-[#E8A020]/40"
+        className="cursor-pointer appearance-none rounded-md border border-[var(--primary)]/30 bg-[var(--nx-surface-input)] px-2.5 py-1.5 text-sm text-[var(--nx-surface-input-fg)] outline-none transition-colors focus:border-[var(--primary)]/60 focus:ring-1 focus:ring-[var(--primary)]/40"
       >
         {options.map((opt) => (
           <option

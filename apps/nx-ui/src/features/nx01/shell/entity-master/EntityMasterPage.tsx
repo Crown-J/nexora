@@ -743,10 +743,10 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
           <span
             className={cn(
               'size-2 rounded-full',
-              row.isActive ? 'bg-[#22D88F] shadow-[0_0_8px_#22D88F]' : 'bg-[#E26060] shadow-[0_0_8px_#E26060]',
+              row.isActive ? 'bg-[var(--color-success)] shadow-[0_0_8px_var(--color-success)]' : 'bg-[var(--color-danger)] shadow-[0_0_8px_var(--color-danger)]',
             )}
           />
-          <span className={row.isActive ? 'text-[#22D88F]' : 'text-[#E26060]'}>
+          <span className={row.isActive ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}>
             {row.isActive ? '啟用' : '停用'}
           </span>
         </span>
@@ -1032,7 +1032,7 @@ function DetailPane({
                     rows={f.type === 'json' ? 8 : 4}
                     placeholder={f.placeholder}
                     className={cn(
-                      'rounded-md border border-[#E8A020]/30 bg-[var(--nx-surface-input)] px-2.5 py-1.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-[#E8A020]/60 focus:ring-1 focus:ring-[#E8A020]/40',
+                      'rounded-md border border-[var(--primary)]/30 bg-[var(--nx-surface-input)] px-2.5 py-1.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-[var(--primary)]/60 focus:ring-1 focus:ring-[var(--primary)]/40',
                       f.type === 'json' && 'font-mono text-xs',
                     )}
                   />
@@ -1050,7 +1050,7 @@ function DetailPane({
                     type="date"
                     value={String(draft[f.key] ?? '')}
                     onChange={(e) => setDraft({ ...draft, [f.key]: e.target.value })}
-                    className="rounded-md border border-[#E8A020]/30 bg-[var(--nx-surface-input)] px-2.5 py-1.5 text-sm text-foreground outline-none transition-colors focus:border-[#E8A020]/60 focus:ring-1 focus:ring-[#E8A020]/40"
+                    className="rounded-md border border-[var(--primary)]/30 bg-[var(--nx-surface-input)] px-2.5 py-1.5 text-sm text-foreground outline-none transition-colors focus:border-[var(--primary)]/60 focus:ring-1 focus:ring-[var(--primary)]/40"
                   />
                 </div>
               );
@@ -1080,8 +1080,8 @@ function DetailPane({
                     className={cn(
                       'inline-flex h-9 items-center justify-center rounded-md border px-3 text-sm font-medium transition-colors',
                       on
-                        ? 'border-[#22D88F]/40 bg-[#22D88F]/10 text-[#22D88F]'
-                        : 'border-[#E26060]/40 bg-[#E26060]/10 text-[#E26060]',
+                        ? 'border-[var(--color-success)]/40 bg-[var(--color-success)]/10 text-[var(--color-success)]'
+                        : 'border-[var(--color-danger)]/40 bg-[var(--color-danger)]/10 text-[var(--color-danger)]',
                     )}
                   >
                     {on ? '啟用' : '停用'}

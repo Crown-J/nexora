@@ -59,7 +59,7 @@ export function SectionHeader({
 }) {
   return (
     <div className="flex items-center gap-3">
-      <span className="size-2 rounded-full bg-[#E8A020] shadow-[0_0_10px_#E8A020]" />
+      <span className="size-2 rounded-full bg-[var(--primary)] shadow-[0_0_10px_var(--primary)]" />
       <h2 className="text-base font-bold tracking-wide text-foreground">{title}</h2>
       {count != null ? (
         <span className="rounded-md border border-border/40 bg-background/60 px-2 py-0.5 text-[11px] font-mono tabular-nums text-foreground/80">
@@ -91,7 +91,7 @@ export function SectionAddButton({
       type="button"
       onClick={onClick}
       data-formchain={formChain}
-      className="inline-flex h-7 min-w-[8rem] items-center justify-center gap-1.5 rounded-md border border-border/40 bg-background/40 px-3 text-[11px] font-medium text-muted-foreground transition-colors hover:border-[#E8A020]/40 hover:bg-[#E8A020]/10 hover:text-[#E8A020]"
+      className="inline-flex h-7 min-w-[8rem] items-center justify-center gap-1.5 rounded-md border border-border/40 bg-background/40 px-3 text-[11px] font-medium text-muted-foreground transition-colors hover:border-[var(--primary)]/40 hover:bg-[var(--primary)]/10 hover:text-[var(--primary)]"
     >
       <Plus className="size-3" />
       {label}

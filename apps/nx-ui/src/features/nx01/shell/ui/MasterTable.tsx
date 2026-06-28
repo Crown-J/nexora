@@ -71,7 +71,7 @@ function DraggableTh<T>({
       className={cn(
         'whitespace-nowrap select-none px-3 py-[9px]',
         col.minWidthClass,
-        isDragging && 'bg-[#E8A020]/10',
+        isDragging && 'bg-[var(--primary)]/10',
       )}
       title="拖動以重新排列欄位順序"
     >
@@ -82,7 +82,7 @@ function DraggableTh<T>({
           className="inline-flex items-center gap-1 transition-colors hover:text-foreground"
         >
           {col.label}
-          <ChevronDown className={cn('size-3', sortKey === col.key && 'text-[#E8A020]')} />
+          <ChevronDown className={cn('size-3', sortKey === col.key && 'text-[var(--primary)]')} />
         </button>
       ) : (
         col.label
@@ -263,7 +263,7 @@ export function MasterTable<T>({
                   type="checkbox"
                   checked={checked.size === rows.length && rows.length > 0}
                   onChange={toggleAll}
-                  className="size-3.5 rounded border-border/60 bg-card accent-[#E8A020]"
+                  className="size-3.5 rounded border-border/60 bg-card accent-[var(--primary)]"
                   aria-label="全選"
                 />
               ) : (
@@ -292,7 +292,7 @@ export function MasterTable<T>({
                       >
                         {col.label}
                         <ChevronDown
-                          className={cn('size-3', sortKey === col.key && 'text-[#E8A020]')}
+                          className={cn('size-3', sortKey === col.key && 'text-[var(--primary)]')}
                         />
                       </button>
                     ) : (
@@ -317,11 +317,11 @@ export function MasterTable<T>({
                 onDoubleClick={() => onOpenDetail(id)}
                 className={cn(
                   'cursor-pointer border-b border-border/20 outline-none transition-colors',
-                  'focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-[#E8A020]/60',
+                  'focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-[var(--primary)]/60',
                   isSelected
-                    ? 'bg-[#E8A020]/12 shadow-[inset_3px_0_0_#E8A020] hover:bg-[#E8A020]/16'
+                    ? 'bg-[var(--primary)]/12 shadow-[inset_3px_0_0_var(--primary)] hover:bg-[var(--primary)]/16'
                     : selectionMode && isChecked
-                      ? 'bg-[#E8A020]/8'
+                      ? 'bg-[var(--primary)]/8'
                       : cn(isEvenRow && 'bg-foreground/[0.05]', 'hover:bg-accent/10'),
                 )}
               >
@@ -331,7 +331,7 @@ export function MasterTable<T>({
                       type="checkbox"
                       checked={isChecked}
                       onChange={() => toggleRow(id)}
-                      className="size-3.5 rounded border-border/60 bg-card accent-[#E8A020]"
+                      className="size-3.5 rounded border-border/60 bg-card accent-[var(--primary)]"
                       aria-label={`選取 ${id}`}
                     />
                   ) : (
@@ -425,7 +425,7 @@ function PageSizeSelector({
           title="調整每頁筆數"
           className={cn(
             'inline-flex h-[30px] items-center gap-1 rounded-md border border-border/40 bg-background/60 px-2 text-[12px] font-medium text-foreground transition-all hover:border-border/60 hover:bg-background',
-            'data-[state=open]:border-[#E8A020]/40 data-[state=open]:bg-[#E8A020]/10 data-[state=open]:text-[#E8A020]',
+            'data-[state=open]:border-[var(--primary)]/40 data-[state=open]:bg-[var(--primary)]/10 data-[state=open]:text-[var(--primary)]',
           )}
         >
           每頁 <span className="font-mono tabular-nums">{value}</span> 筆
@@ -442,13 +442,13 @@ function PageSizeSelector({
             key={n}
             onClick={() => onChange(n)}
             className={cn(
-              'cursor-pointer rounded-md px-2 py-1.5 text-sm focus:bg-[#E8A020]/12 focus:text-[#E8A020] data-[highlighted]:bg-[#E8A020]/12 data-[highlighted]:text-[#E8A020]',
-              n === value ? 'text-[#E8A020]' : 'text-foreground',
+              'cursor-pointer rounded-md px-2 py-1.5 text-sm focus:bg-[var(--primary)]/12 focus:text-[var(--primary)] data-[highlighted]:bg-[var(--primary)]/12 data-[highlighted]:text-[var(--primary)]',
+              n === value ? 'text-[var(--primary)]' : 'text-foreground',
             )}
           >
             <span className="font-mono tabular-nums">{n.toString().padStart(3, ' ')}</span>
             <span className="ml-2">每頁</span>
-            {n === value ? <span className="ml-auto text-[#E8A020]">✓</span> : null}
+            {n === value ? <span className="ml-auto text-[var(--primary)]">✓</span> : null}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

@@ -439,7 +439,7 @@ export function InlineEditMasterPage({ config }: { config: EntityMasterConfig })
                   )}
                 >
                   {f.label}
-                  {f.required ? <span className="ml-0.5 text-[#E26060]">*</span> : null}
+                  {f.required ? <span className="ml-0.5 text-[var(--color-danger)]">*</span> : null}
                 </th>
               ))}
               <th className="w-20 px-3 py-2 text-right text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
@@ -551,11 +551,11 @@ function BrowseRow({
       className={cn(
         'cursor-pointer outline-none transition-colors border-b border-border/30',
         selected
-          ? 'bg-[#E8A020]/10 border-l-2 border-l-[#E8A020]'
+          ? 'bg-[var(--primary)]/10 border-l-2 border-l-[var(--primary)]'
           : even
             ? 'bg-foreground/[0.015]'
             : '',
-        'hover:bg-[#E8A020]/8 focus-visible:bg-[#E8A020]/12',
+        'hover:bg-[var(--primary)]/8 focus-visible:bg-[var(--primary)]/12',
         !row.isActive && 'opacity-50',
       )}
     >
@@ -572,7 +572,7 @@ function BrowseRow({
       ))}
       <td className="px-3 py-2 text-right">
         {row.isActive ? (
-          <span className="rounded-full bg-[#22D88F]/14 px-2 py-0.5 text-[10px] font-semibold text-[#22D88F]">
+          <span className="rounded-full bg-[var(--color-success)]/14 px-2 py-0.5 text-[10px] font-semibold text-[var(--color-success)]">
             啟用
           </span>
         ) : (
@@ -582,7 +582,7 @@ function BrowseRow({
               e.stopPropagation();
               onToggleActive();
             }}
-            className="rounded-full bg-[#888892]/14 px-2 py-0.5 text-[10px] font-semibold text-[#888892] hover:bg-[#22D88F]/14 hover:text-[#22D88F]"
+            className="rounded-full bg-[var(--muted-foreground)]/14 px-2 py-0.5 text-[10px] font-semibold text-[var(--muted-foreground)] hover:bg-[var(--color-success)]/14 hover:text-[var(--color-success)]"
             title="按一下啟用"
           >
             停用
@@ -617,7 +617,7 @@ function InlineEditRow({
     <tr
       data-row-id={rowId}
       data-draft-row={draftRow ? 'true' : undefined}
-      className="border-b border-[#E8A020]/30 bg-[#E8A020]/8"
+      className="border-b border-[var(--primary)]/30 bg-[var(--primary)]/8"
     >
       {listFs.map((f) => {
         const v = draft[f.key];
@@ -631,7 +631,7 @@ function InlineEditRow({
                 onChange={(e) => onChange({ ...draft, [f.key]: e.target.value })}
                 onKeyDown={onRowKey}
                 className={cn(
-                  'w-full rounded border border-[var(--nx-surface-input-border)] bg-[var(--nx-surface-input)] px-2 py-1 text-sm text-[var(--nx-surface-input-fg)] outline-none focus:border-[#E8A020]',
+                  'w-full rounded border border-[var(--nx-surface-input-border)] bg-[var(--nx-surface-input)] px-2 py-1 text-sm text-[var(--nx-surface-input-fg)] outline-none focus:border-[var(--primary)]',
                   f.mono && 'font-mono text-xs',
                   disabled && 'opacity-50 cursor-not-allowed',
                 )}
@@ -650,7 +650,7 @@ function InlineEditRow({
                 disabled={disabled}
                 onChange={(e) => onChange({ ...draft, [f.key]: e.target.checked })}
                 onKeyDown={onRowKey}
-                className="h-4 w-4 accent-[#E8A020]"
+                className="h-4 w-4 accent-[var(--primary)]"
               />
             ) : (
               <input
@@ -662,7 +662,7 @@ function InlineEditRow({
                 onChange={(e) => onChange({ ...draft, [f.key]: e.target.value })}
                 onKeyDown={onRowKey}
                 className={cn(
-                  'w-full rounded border border-[var(--nx-surface-input-border)] bg-[var(--nx-surface-input)] px-2 py-1 text-sm text-[var(--nx-surface-input-fg)] outline-none focus:border-[#E8A020]',
+                  'w-full rounded border border-[var(--nx-surface-input-border)] bg-[var(--nx-surface-input)] px-2 py-1 text-sm text-[var(--nx-surface-input-fg)] outline-none focus:border-[var(--primary)]',
                   f.mono && 'font-mono text-xs',
                   disabled && 'opacity-50 cursor-not-allowed',
                 )}
@@ -672,7 +672,7 @@ function InlineEditRow({
         );
       })}
       <td className="px-3 py-1.5 text-right">
-        <span className="rounded-full bg-[#E8A020]/14 px-2 py-0.5 text-[10px] font-semibold text-[#E8A020]">
+        <span className="rounded-full bg-[var(--primary)]/14 px-2 py-0.5 text-[10px] font-semibold text-[var(--primary)]">
           {draftRow ? '新增中' : '編輯中'}
         </span>
       </td>

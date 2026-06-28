@@ -196,11 +196,11 @@ export function ErpToolbar({
     const hasChecked = selectedCount > 0;
     return (
       <ToolbarPortal>
-      <div className="flex items-center gap-1 border-b border-[#E8A020]/30 bg-gradient-to-r from-[#E8A020]/6 to-[#E8A020]/3 px-3 py-1.5">
+      <div className="flex items-center gap-1 border-b border-[var(--primary)]/30 bg-gradient-to-r from-[var(--primary)]/6 to-[var(--primary)]/3 px-3 py-1.5">
         <ToolbarButton icon={Check} label="完成選取" enabled onClick={onToggleSelection} accent />
         <ToolbarSeparator />
         <span className="px-1 text-[11px] text-muted-foreground">
-          已選 <span className="font-mono text-[#E8A020]">{selectedCount}</span> 筆
+          已選 <span className="font-mono text-[var(--primary)]">{selectedCount}</span> 筆
         </span>
         <div className="flex-1" />
         <ToolbarButton
@@ -224,8 +224,8 @@ export function ErpToolbar({
   if (mode === 'edit') {
     return (
       <ToolbarPortal>
-      <div className="flex items-center gap-1 border-b border-[#E8A020]/30 bg-gradient-to-r from-[#E8A020]/6 to-[#E8A020]/3 px-3 py-1.5">
-        <span className="inline-flex items-center gap-1 rounded-md border border-[#E8A020]/40 bg-[#E8A020]/12 px-2 py-0.5 text-[11px] font-medium text-[#E8A020]">
+      <div className="flex items-center gap-1 border-b border-[var(--primary)]/30 bg-gradient-to-r from-[var(--primary)]/6 to-[var(--primary)]/3 px-3 py-1.5">
+        <span className="inline-flex items-center gap-1 rounded-md border border-[var(--primary)]/40 bg-[var(--primary)]/12 px-2 py-0.5 text-[11px] font-medium text-[var(--primary)]">
           <Pencil className="size-3" />
           編輯中
         </span>
@@ -275,7 +275,7 @@ export function ErpToolbar({
       data-nx-frame
       className="flex items-center gap-1 border-b border-border/40 px-3 py-2"
       style={{
-        // 2026-06-18 token 化:dark 用 #16161B→#101014、light 用深橘 #c8550f→#a8430a
+        // 2026-06-18 token 化:dark 用 var(--secondary)→var(--secondary)、light 用深橘 #c8550f→#a8430a
         backgroundImage:
           'linear-gradient(180deg, var(--nx-surface-toolbar-from) 0%, var(--nx-surface-toolbar-to) 100%)',
         boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.04), 0 1px 0 0 rgba(0,0,0,0.5)',

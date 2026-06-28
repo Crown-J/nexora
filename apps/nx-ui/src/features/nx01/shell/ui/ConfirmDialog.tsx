@@ -73,7 +73,7 @@ export function ConfirmDialog({
       role="alertdialog"
       ariaLabel={state.title}
       backdropClassName="bg-black/70 backdrop-blur-sm"
-      dialogClassName="w-full max-w-sm rounded-2xl border border-[#2A2A30] bg-[#131316] p-5 shadow-2xl"
+      dialogClassName="w-full max-w-sm rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-2xl"
     >
       <div onKeyDown={handleKeyDown}>
         <div className="flex items-start gap-3">
@@ -81,25 +81,25 @@ export function ConfirmDialog({
             className={cn(
               'flex size-9 shrink-0 items-center justify-center rounded-xl border',
               isDanger
-                ? 'border-[#5A2A2A] bg-[#1F1212] text-[#C84A4A]'
-                : 'border-[#E8A020]/40 bg-[#E8A020]/10 text-[#E8A020]',
+                ? 'border-[var(--border)] bg-[var(--secondary)] text-[var(--color-danger)]'
+                : 'border-[var(--primary)]/40 bg-[var(--primary)]/10 text-[var(--primary)]',
             )}
           >
             <AlertTriangle className="size-5" />
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="text-sm font-semibold text-[#E8E8EB]">{state.title}</h3>
-            <p className="mt-1 text-xs leading-relaxed text-[#888892]">{state.message}</p>
+            <h3 className="text-sm font-semibold text-[var(--foreground)]">{state.title}</h3>
+            <p className="mt-1 text-xs leading-relaxed text-[var(--muted-foreground)]">{state.message}</p>
           </div>
         </div>
         <div className="mt-5 flex justify-end gap-2">
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex h-8 items-center gap-1 rounded-md border border-[#2A2A30] bg-[#1A1A1F] px-3 text-xs font-medium text-[#B8B8C0] outline-none transition-colors hover:border-[#3A3A42] hover:bg-[#22222A] hover:text-[#E8E8EB]"
+            className="inline-flex h-8 items-center gap-1 rounded-md border border-[var(--border)] bg-[var(--secondary)] px-3 text-xs font-medium text-[var(--muted-foreground)] outline-none transition-colors hover:border-[var(--border)] hover:bg-[#22222A] hover:text-[var(--foreground)]"
           >
             取消
-            <kbd className="ml-0.5 hidden rounded border border-[#3A3A42] px-1 text-[9px] text-[#5A5A60] sm:inline">Esc</kbd>
+            <kbd className="ml-0.5 hidden rounded border border-[var(--border)] px-1 text-[9px] text-[var(--muted-foreground)] sm:inline">Esc</kbd>
           </button>
           {state.secondaryAction ? (
             <button
@@ -111,8 +111,8 @@ export function ConfirmDialog({
               className={cn(
                 'inline-flex h-8 items-center gap-1 rounded-md border px-3 text-xs font-medium outline-none transition-colors',
                 state.secondaryAction.variant === 'danger'
-                  ? 'border-[#5A2A2A] bg-[#1F1212] text-[#C84A4A] hover:border-[#7A3A3A] hover:bg-[#2A1818] hover:text-[#E26060]'
-                  : 'border-[#3A3A42] bg-[#22222A] text-[#B8B8C0] hover:bg-[#2A2A30] hover:text-[#E8E8EB]',
+                  ? 'border-[var(--border)] bg-[var(--secondary)] text-[var(--color-danger)] hover:border-[#7A3A3A] hover:bg-[var(--muted)] hover:text-[var(--color-danger)]'
+                  : 'border-[var(--border)] bg-[#22222A] text-[var(--muted-foreground)] hover:bg-[var(--border)] hover:text-[var(--foreground)]',
               )}
             >
               {state.secondaryAction.label}
@@ -127,10 +127,10 @@ export function ConfirmDialog({
               onClose();
             }}
             className={cn(
-              'inline-flex h-8 items-center gap-1 rounded-md border px-3 text-xs font-medium outline-none ring-2 ring-offset-2 ring-offset-[#131316] transition-colors',
+              'inline-flex h-8 items-center gap-1 rounded-md border px-3 text-xs font-medium outline-none ring-2 ring-offset-2 ring-offset-[var(--card)] transition-colors',
               isDanger
-                ? 'border-[#5A2A2A] bg-[#1F1212] text-[#C84A4A] ring-[#C84A4A]/50 hover:border-[#7A3A3A] hover:bg-[#2A1818] hover:text-[#E26060]'
-                : 'border-[#E8A020]/40 bg-[#E8A020]/15 text-[#E8A020] ring-[#E8A020]/60 hover:bg-[#E8A020]/25',
+                ? 'border-[var(--border)] bg-[var(--secondary)] text-[var(--color-danger)] ring-[var(--color-danger)]/50 hover:border-[#7A3A3A] hover:bg-[var(--muted)] hover:text-[var(--color-danger)]'
+                : 'border-[var(--primary)]/40 bg-[var(--primary)]/15 text-[var(--primary)] ring-[var(--primary)]/60 hover:bg-[var(--primary)]/25',
             )}
           >
             {state.confirmLabel ?? '確認'}

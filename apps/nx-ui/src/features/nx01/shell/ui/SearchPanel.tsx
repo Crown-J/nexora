@@ -50,13 +50,13 @@ export function SearchPanel({
 
   return (
     <div
-      className="flex items-center gap-2 border-b border-[#2A2A30] px-4 py-2"
+      className="flex items-center gap-2 border-b border-[var(--border)] px-4 py-2"
       style={{
-        backgroundImage: 'linear-gradient(180deg, #0E0E12 0%, #0A0A0C 100%)',
+        backgroundImage: 'linear-gradient(180deg, var(--card) 0%, var(--card) 100%)',
         boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.03)',
       }}
     >
-      <Search className="size-4 text-[#E8A020]" />
+      <Search className="size-4 text-[var(--primary)]" />
       <input
         ref={inputRef}
         type="text"
@@ -69,22 +69,22 @@ export function SearchPanel({
           }
         }}
         placeholder={placeholder ?? '搜尋...'}
-        className="flex-1 bg-transparent text-sm text-[#E8E8EB] outline-none placeholder:text-[#5A5A60]"
+        className="flex-1 bg-transparent text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted-foreground)]"
       />
       {value ? (
         <button
           type="button"
           onClick={() => onChange('')}
-          className="rounded px-1.5 text-[11px] text-[#888892] transition-colors hover:bg-[#1A1A1F] hover:text-[#E8E8EB]"
+          className="rounded px-1.5 text-[11px] text-[var(--muted-foreground)] transition-colors hover:bg-[var(--secondary)] hover:text-[var(--foreground)]"
         >
           清除
         </button>
       ) : null}
-      <span className="hidden text-[10px] tracking-wider text-[#5A5A60] sm:inline">ESC 關閉</span>
+      <span className="hidden text-[10px] tracking-wider text-[var(--muted-foreground)] sm:inline">ESC 關閉</span>
       <button
         type="button"
         onClick={onClose}
-        className="rounded p-1 text-[#888892] transition-colors hover:bg-[#1A1A1F] hover:text-[#E8E8EB]"
+        className="rounded p-1 text-[var(--muted-foreground)] transition-colors hover:bg-[var(--secondary)] hover:text-[var(--foreground)]"
         aria-label="關閉搜尋"
       >
         <X className="size-3.5" />

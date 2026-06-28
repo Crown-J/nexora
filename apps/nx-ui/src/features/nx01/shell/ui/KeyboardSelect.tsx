@@ -141,24 +141,24 @@ export function KeyboardSelect({
         onKeyDown={onKeyDown}
         onBlur={() => setTimeout(() => setOpen(false), 0)}
         className={cn(
-          'flex h-9 w-full items-center justify-between gap-2 rounded-md border border-[#E8A020]/30 bg-[#0A0A0C] px-2.5 text-left text-sm outline-none transition-colors focus:border-[#E8A020]/60 focus:ring-1 focus:ring-[#E8A020]/40',
+          'flex h-9 w-full items-center justify-between gap-2 rounded-md border border-[var(--primary)]/30 bg-[var(--card)] px-2.5 text-left text-sm outline-none transition-colors focus:border-[var(--primary)]/60 focus:ring-1 focus:ring-[var(--primary)]/40',
           disabled && 'cursor-not-allowed opacity-50',
         )}
       >
-        <span className={cn('truncate', selectedLabel ? 'text-[#E8E8EB]' : 'text-[#5A5A60]')}>
+        <span className={cn('truncate', selectedLabel ? 'text-[var(--foreground)]' : 'text-[var(--muted-foreground)]')}>
           {selectedLabel || placeholder}
         </span>
-        <ChevronDown className={cn('size-4 shrink-0 text-[#888892] transition-transform', open && 'rotate-180 text-[#E8A020]')} />
+        <ChevronDown className={cn('size-4 shrink-0 text-[var(--muted-foreground)] transition-transform', open && 'rotate-180 text-[var(--primary)]')} />
       </button>
 
       {open ? (
         <div
           ref={listRef}
           role="listbox"
-          className="absolute left-0 top-[calc(100%+4px)] z-50 max-h-60 w-full overflow-auto rounded-md border border-[#2A2A30] bg-[#131316] py-1 shadow-2xl nx-master-scroll"
+          className="absolute left-0 top-[calc(100%+4px)] z-50 max-h-60 w-full overflow-auto rounded-md border border-[var(--border)] bg-[var(--card)] py-1 shadow-2xl nx-master-scroll"
         >
           {options.length === 0 ? (
-            <div className="px-3 py-2 text-xs text-[#5A5A60]">無選項</div>
+            <div className="px-3 py-2 text-xs text-[var(--muted-foreground)]">無選項</div>
           ) : (
             options.map((o, i) => {
               const on = o.value === value;
@@ -179,11 +179,11 @@ export function KeyboardSelect({
                   onMouseEnter={() => setHighlight(i)}
                   className={cn(
                     'flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm transition-colors',
-                    focused ? 'bg-[#E8A020]/15 text-[#E8A020]' : 'text-[#E8E8EB] hover:bg-[#1A1A22]',
+                    focused ? 'bg-[var(--primary)]/15 text-[var(--primary)]' : 'text-[var(--foreground)] hover:bg-[var(--secondary)]',
                   )}
                 >
                   <span className="flex size-4 shrink-0 items-center justify-center">
-                    {on ? <Check className="size-3.5 text-[#E8A020]" /> : null}
+                    {on ? <Check className="size-3.5 text-[var(--primary)]" /> : null}
                   </span>
                   <span className="truncate">{o.label}</span>
                 </button>
