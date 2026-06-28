@@ -32,8 +32,8 @@ export function setRolePermissions(
   });
 }
 
-/// 列角色
-export function listRoles(): Promise<{ page: number; pageSize: number; total: number; items: Role[] }> {
+/// 列角色（後端回傳欄位為 rows、非 items）
+export function listRoles(): Promise<{ page: number; pageSize: number; total: number; rows: Role[] }> {
   return apiJson('/nx01/roles');
 }
 

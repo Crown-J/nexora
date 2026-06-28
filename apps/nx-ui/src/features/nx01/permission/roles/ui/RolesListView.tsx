@@ -24,7 +24,7 @@ export function RolesListView() {
     setError(null);
     try {
       const resp = await listRoles();
-      setRows(resp.items);
+      setRows(resp.rows ?? []);
     } catch (e) {
       setError(e instanceof Error ? e.message : '載入失敗');
     } finally {
