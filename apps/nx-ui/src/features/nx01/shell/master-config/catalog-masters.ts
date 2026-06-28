@@ -263,6 +263,41 @@ export const WAREHOUSE_TYPE_MASTER: EntityMasterConfig = {
   ],
 };
 
+// 五層倉儲 據點→倉庫→[區域]→[貨架]→庫位（2026-06-28 補兩個新主檔頁；後端區域既有、貨架本軌新建）
+// 區域＝倉內分區 A/B/C（非地理地區）；warehouseId 建立時指定、編輯鎖定（後端 UpdateDto 不收 warehouseId）
+export const WAREHOUSE_ZONE_MASTER: EntityMasterConfig = {
+  basePath: 'nx01/warehouse-zones',
+  category: '組織架構',
+  title: '區域基本資料',
+  entityNoun: '區域',
+  pageId: 'warehouse-zone',
+  errorCodePrefix: 'nxui_base_warehouse_zone',
+  deleteMode: SOFT,
+  fields: [
+    { key: 'warehouseId', label: '所屬倉庫', type: 'ref', refBasePath: 'nx01/warehouses', required: true, lockedOnEdit: true, minWidthClass: 'min-w-[140px]' },
+    { key: 'code', label: '區域代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]' },
+    { key: 'name', label: '區域名稱', required: true, minWidthClass: 'min-w-[140px]' },
+    { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
+  ],
+};
+
+// 貨架＝區域底下的實體貨架（zoneId 父；建立時指定、編輯鎖定）
+export const WAREHOUSE_RACK_MASTER: EntityMasterConfig = {
+  basePath: 'nx01/warehouse-racks',
+  category: '組織架構',
+  title: '貨架基本資料',
+  entityNoun: '貨架',
+  pageId: 'warehouse-rack',
+  errorCodePrefix: 'nxui_base_warehouse_rack',
+  deleteMode: SOFT,
+  fields: [
+    { key: 'zoneId', label: '所屬區域', type: 'ref', refBasePath: 'nx01/warehouse-zones', required: true, lockedOnEdit: true, minWidthClass: 'min-w-[140px]' },
+    { key: 'code', label: '貨架代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]' },
+    { key: 'name', label: '貨架名稱', required: true, minWidthClass: 'min-w-[140px]' },
+    { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
+  ],
+};
+
 // ── 交易對象 ────────────────────────────────────────────
 export const CUSTOMER_GRADE_MASTER: EntityMasterConfig = {
   basePath: 'nx01/customer-grades',

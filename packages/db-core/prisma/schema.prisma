@@ -7028,6 +7028,7 @@ model Nx99Tenant {
   rev_Nx01UserWarehouse_tenantId           Nx01UserWarehouse[]           @relation("R_Nx01UserWarehouse_tenantId")
   rev_Nx01Warehouse_tenantId               Nx01Warehouse[]               @relation("R_Nx01Warehouse_tenantId")
   rev_Nx01WarehouseZone_tenantId           Nx01WarehouseZone[]           @relation("R_Nx01WarehouseZone_tenantId")
+  rev_Nx01WarehouseRack_tenantId           Nx01WarehouseRack[]           @relation("R_Nx01WarehouseRack_tenantId")
   rev_Nx02Demand_tenantId                  Nx02Demand[]                  @relation("R_Nx02Demand_tenantId")
   rev_Nx02Po_tenantId                      Nx02Po[]                      @relation("R_Nx02Po_tenantId")
   rev_Nx02Pr_tenantId                      Nx02Pr[]                      @relation("R_Nx02Pr_tenantId")
@@ -8568,8 +8569,41 @@ model Nx01WarehouseZone {
   tenant      Nx99Tenant      @relation("R_Nx01WarehouseZone_tenantId", fields: [tenantId], references: [id])
   warehouse   Nx01Warehouse   @relation("R_Nx01WarehouseZone_warehouseId", fields: [warehouseId], references: [id])
   rev_Nx01Location_zoneId Nx01Location[] @relation("R_Nx01Location_zoneId")
+  rev_Nx01WarehouseRack_zoneId Nx01WarehouseRack[] @relation("R_Nx01WarehouseRack_zoneId")
 
   @@unique([tenantId, warehouseId, code])
   @@index([tenantId, warehouseId], map: "nx01_warehouse_zone_tenant_warehouse_idx")
   @@map("nx01_warehouse_zone")
+}
+
+// 五層倉儲第四層：貨架（區域底下的實體貨架；2026-06-28 本軌新建）
+model Nx01WarehouseRack {
+  /// [NX01]+[WHRK]+[7碼流水號]，EX : NX01WHRK0000001；啟用最低需求版本：LITE
+  id          String          @id @default(dbgenerated("gen_nx01_warehouse_rack_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵）
+  tenantId    String          @map("tenant_id") @db.VarChar(15)
+  /// 所屬區域 ID（FK to nx01_warehouse_zone、ON DELETE Restrict）
+  zoneId      String          @map("zone_id") @db.VarChar(15)
+  /// 貨架代碼（區域內唯一）
+  code        String          @db.VarChar(20)
+  /// 貨架名稱
+  name        String          @db.VarChar(50)
+  /// 排序用
+  sortNo      Int             @default(0) @map("sort_no")
+  /// 是否啟用（停用不刪資料）
+  isActive    Boolean         @default(true) @map("is_active")
+  /// 建立時間
+  createdAt   DateTime        @default(now()) @map("created_at")
+  /// 建立人
+  createdBy   String          @map("created_by") @db.VarChar(15)
+  /// 更新時間
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+  /// 更新人
+  updatedBy   String          @map("updated_by") @db.VarChar(15)
+  tenant      Nx99Tenant        @relation("R_Nx01WarehouseRack_tenantId", fields: [tenantId], references: [id])
+  zone        Nx01WarehouseZone @relation("R_Nx01WarehouseRack_zoneId", fields: [zoneId], references: [id])
+
+  @@unique([tenantId, zoneId, code])
+  @@index([tenantId, zoneId], map: "nx01_warehouse_rack_tenant_zone_idx")
+  @@map("nx01_warehouse_rack")
 }

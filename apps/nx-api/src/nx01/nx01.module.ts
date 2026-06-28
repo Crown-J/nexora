@@ -79,6 +79,8 @@ import { WarehouseController } from './warehouse/warehouse.controller';
 import { WarehouseService } from './warehouse/warehouse.service';
 import { WarehouseZoneController } from './warehouse-zone/warehouse-zone.controller';
 import { WarehouseZoneService } from './warehouse-zone/warehouse-zone.service';
+import { WarehouseRackController } from './warehouse-rack/warehouse-rack.controller';
+import { WarehouseRackService } from './warehouse-rack/warehouse-rack.service';
 import { WarehouseTypeController } from './warehouse-type/warehouse-type.controller';
 import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
 // 02 第三批 T1 後續 2026-06-07：部門主檔 controller / service（schema 既有）
@@ -103,6 +105,7 @@ import { UserTeamService } from './user-team/user-team.service';
     CurrencyController,
     WarehouseController,
     WarehouseZoneController,
+    WarehouseRackController,
     WarehouseTypeController,
     PartController,
     PartSearchController,
@@ -147,6 +150,7 @@ import { UserTeamService } from './user-team/user-team.service';
     CurrencyService,
     WarehouseService,
     WarehouseZoneService,
+    WarehouseRackService,
     WarehouseTypeService,
     PartService,
     PartSearchService,

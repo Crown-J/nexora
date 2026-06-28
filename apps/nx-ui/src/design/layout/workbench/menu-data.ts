@@ -71,8 +71,8 @@ export const MENU_BAR: MenuNode[] = [
           { key: 'site', label: '據點基本資料', href: '/dashboard/master/site' },
           { key: 'warehouses', label: '倉庫基本資料', href: '/dashboard/master/warehouses' },
           // 五層倉儲：據點→倉庫→區域→貨架→庫位（區域=倉庫分區 A/B/C，非地理地區）
-          { key: 'wh-zone', label: '區域基本資料', pending: true },
-          { key: 'wh-rack', label: '貨架基本資料', pending: true },
+          { key: 'wh-zone', label: '區域基本資料', href: '/dashboard/master/warehouse-zone' },
+          { key: 'wh-rack', label: '貨架基本資料', href: '/dashboard/master/warehouse-rack' },
           { key: 'location', label: '庫位基本資料', href: '/dashboard/master/location' },
           { key: 'location-structure', label: '據點架構圖', href: '/dashboard/master/location-structure' },
         ],
