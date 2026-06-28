@@ -28,6 +28,8 @@ import {
   HelpCircle,
   Keyboard,
   Network,
+  Plus,
+  RefreshCw,
   Trash2,
   UserPlus,
   Users2,
@@ -35,12 +37,11 @@ import {
 } from 'lucide-react';
 
 import { cn } from '@design/utils/cn';
-import { PageHeader } from '@design/components/page-header/PageHeader';
+import { ToolbarPortal } from '@design/layout/workbench/WorkbenchToolbarSlot';
 import { ToastStack, useToast } from '@design/components/toast/ToastStack';
 import { EntityPickerDialog } from '@design/components/multi-select-modal/EntityPickerDialog';
 import { useReducedMotion } from '@/design/motion/gsap';
 
-import { MasterQuickNav } from '@/features/nx01/shell/master-nav/MasterQuickNav';
 import { MasterSwitcher } from '@/features/nx01/shell/keyboard-card-master/MasterSwitcher';
 import {
   MASTER_PAGES,
@@ -246,6 +247,12 @@ export function OrgStructurePage() {
         setHelpOpen(true);
         return;
       }
+      // Alt+1~4：直接切到四欄（部門 / 組別 / 職務 / 成員）
+      if (e.altKey && (e.key === '1' || e.key === '2' || e.key === '3' || e.key === '4')) {
+        e.preventDefault();
+        setZone((['dept', 'team', 'role', 'member'] as const)[Number(e.key) - 1]);
+        return;
+      }
       // A / Alt+A：依當前 focused 欄分流
       //   dept 欄 → 新增部門
       //   team 欄 → 新增組別（需先選部門）
@@ -404,38 +411,59 @@ export function OrgStructurePage() {
   const selectedTeam = teamId ? teams.find((t) => t.id === teamId) : null;
   const selectedRole = roleId ? roles.find((r) => r.id === roleId) : null;
 
-  const totalCount = `${departments.length} 部門 / ${teams.length} 組別 / ${roles.length} 職務`;
-
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-3">
-      {/* 頂部：標題列 + MasterQuickNav 主檔切換按鈕 */}
-      <div className="flex flex-wrap items-start justify-between gap-3 px-4 pt-3">
-        <PageHeader
-          crumbs={[{ label: '主檔' }, { label: '組織架構圖' }]}
-          category="組織架構"
-          title="組織架構圖"
-          desc="部門 → 組別 → 職務 → 成員 四層 cascade、↑↓ 移卡 ← → 切欄 Enter 選定 A 指派 ? 熱鍵"
-          count={totalCount}
-        />
-        <div data-nx-frame className="flex items-center gap-2">
+    <div className="flex min-h-0 flex-1 flex-col">
+      {/* ── L3 情境工具列（投影到外殼第 3 層、依聚焦欄分流）── */}
+      <ToolbarPortal>
+        <div className="flex items-center gap-1 px-3 py-1.5">
+          <button
+            type="button"
+            onClick={() => {
+              if (zone === 'dept') setCreateOpen('dept');
+              else if (zone === 'team' && deptId) setCreateOpen('team');
+              else if (zone === 'role' && teamId) setCreateOpen('role');
+              else if (zone === 'member' && roleId) setPickerOpen(true);
+            }}
+            className="inline-flex h-7 items-center gap-1 rounded-md border border-border/50 bg-card px-2 text-[11px] font-medium text-foreground/80 hover:border-border hover:bg-accent/15"
+            title="新增（A）：依目前聚焦欄分流"
+          >
+            {zone === 'member' ? <UserPlus className="size-3.5" /> : <Plus className="size-3.5" />}
+            <span className="font-mono text-primary">A</span>
+            {zone === 'dept' ? '新增部門' : zone === 'team' ? '新增組別' : zone === 'role' ? '新增職務' : '指派員工'}
+          </button>
+          <button
+            type="button"
+            onClick={() => setReloadTick((t) => t + 1)}
+            className="inline-flex h-7 items-center gap-1 rounded-md border border-border/50 bg-card px-2 text-[11px] font-medium text-foreground/80 hover:border-border hover:bg-accent/15"
+            title="重新整理（R）"
+          >
+            <RefreshCw className="size-3.5" />重新整理
+          </button>
           <button
             type="button"
             onClick={() => setHelpOpen(true)}
             className="inline-flex h-7 items-center gap-1 rounded-md border border-border/50 bg-card px-2 text-[11px] font-medium text-foreground/80 hover:border-border hover:bg-accent/15"
             title="熱鍵指南（?）"
           >
-            <Keyboard className="size-3" />
-            <span className="hidden sm:inline">
-              <span className="mr-0.5 font-mono text-primary">?</span>
-              熱鍵
-            </span>
+            <Keyboard className="size-3.5" /><span className="font-mono text-primary">?</span>熱鍵
           </button>
-          <MasterQuickNav currentPageId={CURRENT_PAGE_ID} />
+          <div className="flex-1" />
+          <span className="hidden text-[11px] text-muted-foreground lg:inline">
+            Alt+1~4 切欄 · ↑↓ 移卡 · ←→ 切欄 · Enter 選定 · A 新增
+          </span>
         </div>
+      </ToolbarPortal>
+
+      {/* ── L4 頁內分頁：四欄同時顯示、tab 標示焦點欄（Alt+1~4 切換）── */}
+      <div className="flex shrink-0 flex-wrap items-center gap-1 border-b border-border bg-background px-3 py-1">
+        <OrgTab label="部門" count={departments.length} hint="1" active={zone === 'dept'} onClick={() => setZone('dept')} />
+        <OrgTab label="組別" count={teamsForDept.length} hint="2" active={zone === 'team'} onClick={() => setZone('team')} />
+        <OrgTab label="職務" count={rolesForTeam.length} hint="3" active={zone === 'role'} onClick={() => setZone('role')} />
+        <OrgTab label="成員" count={membersForRole.length} hint="4" active={zone === 'member'} onClick={() => setZone('member')} />
       </div>
 
-      {/* 四欄並列 */}
-      <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 px-4 pb-4 md:grid-cols-4">
+      {/* 四欄並列（主內容 L5）*/}
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 px-4 py-3 md:grid-cols-4">
         <ColumnPanel
           title="部門"
           subtitle={`${departments.length} 項`}
@@ -864,6 +892,45 @@ function EmptyHint({ text }: { text: string }) {
       <Network className="mb-2 size-6 opacity-40" />
       {text}
     </div>
+  );
+}
+
+/** L4 頁內分頁的一個欄位 tab（四欄同時顯示、active 標示目前聚焦欄、附 Alt 提示）*/
+function OrgTab({
+  label,
+  count,
+  hint,
+  active,
+  onClick,
+}: {
+  label: string;
+  count: number;
+  hint: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'inline-flex h-7 items-center gap-1.5 rounded-md border px-2.5 text-[12px] font-medium transition-colors',
+        active
+          ? 'border-primary/50 bg-primary/10 text-primary'
+          : 'border-transparent text-muted-foreground hover:bg-accent/15 hover:text-foreground',
+      )}
+    >
+      <span className="font-mono text-[10px] opacity-60">Alt+{hint}</span>
+      {label}
+      <span
+        className={cn(
+          'inline-flex min-w-4 items-center justify-center rounded px-1 text-[10px]',
+          active ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground',
+        )}
+      >
+        {count}
+      </span>
+    </button>
   );
 }
 
