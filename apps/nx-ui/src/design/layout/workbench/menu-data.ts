@@ -120,8 +120,7 @@ export const MENU_BAR: MenuNode[] = [
         label: '字典主檔',
         children: [
           { key: 'country', label: '國家基本資料', href: '/dashboard/master/country' },
-          // 資料已有（address-catalog 縣市/區）、缺前端頁面
-          { key: 'zipcode', label: '郵遞區號基本資料', pending: true },
+          { key: 'zipcode', label: '郵遞區號基本資料', href: '/dashboard/master/zipcode' },
           { key: 'currency', label: '幣別基本資料', href: '/dashboard/master/currency' },
           { key: 'phonetic', label: '注音輔助基本資料', href: '/dashboard/master/phonetic-dictionary' },
         ],
