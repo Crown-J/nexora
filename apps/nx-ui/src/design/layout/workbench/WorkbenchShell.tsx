@@ -23,25 +23,25 @@ import {
   WorkbenchToolbarSlotProvider,
   useWorkbenchToolbarSlot,
 } from './WorkbenchToolbarSlot';
-import { BUSINESS_MENUS, SYSTEM_MENU, type MenuNode } from './menu-data';
+import { MENU_BAR, type MenuNode } from './menu-data';
 
 type Props = { children: React.ReactNode };
 
 /** 內層：可用 useWorkbenchTabs（須在 Provider 內） */
 function WorkbenchChrome({ children }: Props) {
-  const { open, closeAll } = useWorkbenchTabs();
+  const { open } = useWorkbenchTabs();
   const { displayName, employeeNo, tenantName, onLogout } = useShellSession();
   const toolbarSlot = useWorkbenchToolbarSlot();
 
-  const menus: MenuNode[] = [SYSTEM_MENU, ...BUSINESS_MENUS];
+  const menus: MenuNode[] = MENU_BAR;
 
   const onSelect = useCallback(
     (node: MenuNode) => {
       if (node.action === 'logout') return onLogout();
-      if (node.action === 'close-all') return closeAll();
+      if (node.pending) return; // 建置中、不導頁
       if (node.href) open(node.href, `menu: ${node.label}`);
     },
-    [onLogout, closeAll, open],
+    [onLogout, open],
   );
 
   const onSearch = useCallback(() => {

@@ -43,6 +43,15 @@ function SubMenu({ items, onPick }: { items: MenuNode[]; onPick: (n: MenuNode) =
               </div>
             )}
           </div>
+        ) : it.pending ? (
+          <div
+            key={it.key}
+            title="功能建置中"
+            className="flex w-full cursor-not-allowed items-center justify-between gap-4 px-3 py-1.5 text-left text-[12.5px] text-popover-foreground/40"
+          >
+            <span>{it.label}</span>
+            <span className="rounded bg-muted px-1 py-px text-[9px] text-muted-foreground">建置中</span>
+          </div>
         ) : (
           <button
             key={it.key}
@@ -80,8 +89,24 @@ export function TopMenuBar({ menus, onSelect, onHome, onSearch }: Props) {
     };
   }, [open, close]);
 
+  // Alt+字母 快捷：直接開對應頂層選單（字母為 Z/Y/X/W/V/U/Q/N、不撞工具列）
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!e.altKey || e.ctrlKey || e.metaKey) return;
+      const k = e.key.toUpperCase();
+      const m = menus.find((mm) => mm.accel === k && mm.children?.length);
+      if (m) {
+        e.preventDefault();
+        setOpen((cur) => (cur === m.key ? null : m.key));
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [menus]);
+
   const pick = useCallback(
     (node: MenuNode) => {
+      if (node.pending) return;
       close();
       onSelect(node);
     },
@@ -123,6 +148,7 @@ export function TopMenuBar({ menus, onSelect, onHome, onSearch }: Props) {
               }`}
             >
               {m.label}
+              {m.accel ? <span className="ml-0.5 opacity-50">({m.accel})</span> : null}
             </button>
             {isOpen && hasChildren && (
               <div className="absolute left-0 top-full z-30 mt-px rounded-sm border border-border bg-popover shadow-xl">

@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { tryNavigate } from '@design/hooks/useDirtyGuard';
 import {
   BarChart3,
+  ClipboardCheck,
   Database,
   DollarSign,
   Package,
@@ -16,25 +17,30 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
-import { BUSINESS_MENUS, type MenuNode } from './menu-data';
+import { MENU_BAR, type MenuNode } from './menu-data';
 
 const GROUP_ICON: Record<string, LucideIcon> = {
   master: Database,
   purchase: ShoppingCart,
   sales: TrendingUp,
+  approval: ClipboardCheck,
   inventory: Package,
   finance: DollarSign,
-  reports: BarChart3,
+  report: BarChart3,
 };
 
 const GROUP_DESC: Record<string, string> = {
   master: '基本資料維護',
-  purchase: '採購進貨作業',
+  purchase: '採購與進貨',
   sales: '報價銷貨作業',
-  inventory: '撿包送與庫存',
+  approval: '跨模組簽核',
+  inventory: '入庫出貨庫存',
   finance: '應收應付關帳',
-  reports: '營運報表分析',
+  report: '營運報表分析',
 };
+
+// 首頁快捷：取選單列業務組（排除系統設定）
+const HOME_GROUPS: MenuNode[] = MENU_BAR.filter((g) => g.key !== 'system');
 
 /** 取某選單群組第一個可導向的葉節點 href */
 function firstHref(node: MenuNode): string | undefined {
@@ -62,7 +68,7 @@ export function WorkbenchHome() {
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {BUSINESS_MENUS.map((g) => {
+        {HOME_GROUPS.map((g) => {
           const Icon = GROUP_ICON[g.key] ?? Database;
           const href = firstHref(g);
           return (
