@@ -143,6 +143,14 @@ export function UserFormZoned({
     void fetchRefOptions('nx01/departments').then(setDepartmentOptions).catch(() => setDepartmentOptions([]));
   }, []);
 
+  // 職務↔權限拆分軌 2026-06-28：權限等級下拉選項
+  const [permissionLevelOptions, setPermissionLevelOptions] = useState<SelectOption[]>([]);
+  useEffect(() => {
+    void fetchRefOptions('nx01/permission-levels')
+      .then(setPermissionLevelOptions)
+      .catch(() => setPermissionLevelOptions([]));
+  }, []);
+
   // 2026-06-23 國籍下拉選項（basic zone countryId 獨立 dropdown 用、不再合併進 UserAddressSection）
   const [countriesForSelect, setCountriesForSelect] = useState<CountryRow[]>([]);
   useEffect(() => {
@@ -354,6 +362,31 @@ export function UserFormZoned({
         );
       }
       const matched = siteOptions.find((o) => String(o.value) === value);
+      return wrap(<FormField label={f.label} value={matched?.label ?? (value || '—')} />);
+    }
+
+    // 職務↔權限拆分軌：權限等級 ref dropdown
+    if (f.key === 'permissionLevelId') {
+      const value = String(draft[f.key] ?? '');
+      if (fieldEditable) {
+        return wrap(
+          <FieldShell label={f.label}>
+            <select
+              className="h-9 w-full rounded-md border border-border bg-[var(--nx-surface-input)] px-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary/40"
+              value={value}
+              onChange={(e) => setDraft({ ...draft, [f.key]: e.target.value })}
+            >
+              <option value="">（未指定）</option>
+              {permissionLevelOptions.map((opt) => (
+                <option key={String(opt.value)} value={String(opt.value)} className="bg-popover">
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </FieldShell>,
+        );
+      }
+      const matched = permissionLevelOptions.find((o) => String(o.value) === value);
       return wrap(<FormField label={f.label} value={matched?.label ?? (value || '—')} />);
     }
 

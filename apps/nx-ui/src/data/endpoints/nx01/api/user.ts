@@ -46,6 +46,8 @@ export type UserDto = {
   healthCheckResult?: string | null;
   // 02 第三批 T1 2026-06-07：員工隸屬部門（解綁 PRO → LITE）
   departmentId?: string | null;
+  // 職務↔權限拆分軌 2026-06-28：權限等級（RBAC、一人一等級）
+  permissionLevelId?: string | null;
   // 02 第四批 軌 1 2026-06-07：主要據點 / 離職日期 / 大頭貼旗標
   primarySiteId?: string | null;
   leftAt?: string | null;
@@ -145,6 +147,8 @@ export type UserBasicWritable = {
   healthCheckResult?: string | null;
   // 02 第三批 T1 2026-06-07：員工隸屬部門（解綁 PRO → LITE）
   departmentId?: string | null;
+  // 職務↔權限拆分軌 2026-06-28：權限等級
+  permissionLevelId?: string | null;
   // 02 第四批 軌 1 2026-06-07
   primarySiteId?: string | null;
   leftAt?: string | null;
@@ -180,6 +184,8 @@ function writeBasicToApi(apiBody: Record<string, unknown>, body: Partial<UserBas
   if (body.healthCheckResult !== undefined) apiBody.healthCheckResult = body.healthCheckResult;
   // 02 第三批 T1 2026-06-07：隸屬部門
   if (body.departmentId !== undefined) apiBody.departmentId = body.departmentId;
+  // 職務↔權限拆分軌 2026-06-28：權限等級
+  if (body.permissionLevelId !== undefined) apiBody.permissionLevelId = body.permissionLevelId;
   // 02 第四批 軌 1 2026-06-07：主要據點 / 離職日期
   if (body.primarySiteId !== undefined) apiBody.primarySiteId = body.primarySiteId;
   if (body.leftAt !== undefined) apiBody.leftAt = body.leftAt;

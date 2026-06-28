@@ -87,6 +87,7 @@ export const FIELD_WRITABLE = new Set([
   'healthCheckResult',
   // orgPosition 職務部門
   'departmentId',
+  'permissionLevelId',
   'primarySiteId',
   // account 帳號狀況
   'hireDate',

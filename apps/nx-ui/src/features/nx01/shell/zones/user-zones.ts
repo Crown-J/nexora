@@ -67,6 +67,8 @@ export const USER_FIELDS: FieldDef<UserZone>[] = [
   // ─── orgPosition 職務部門區 ───
   // 部門：有主組則 readonly 自動帶（主組決定部門）、無主組則 fallback editable
   { key: 'departmentId', label: '部門', zone: 'orgPosition', notes: '由主組往上推導、無主組時可 fallback 手動設' },
+  // 職務↔權限拆分軌 2026-06-28：權限等級（RBAC、一人一等級、與職務分離）
+  { key: 'permissionLevelId', label: '權限等級', zone: 'orgPosition', notes: '權限走權限等級、與職務/組織分離；S=全權限' },
   // 隸屬組（衛星 m-n、主組決定員工部門、isLeader 標組長）
   {
     key: 'teams',
