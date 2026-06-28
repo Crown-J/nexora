@@ -2,8 +2,20 @@
 # 專軌規格：職務 ↔ 權限等級 拆分（RBAC 核心重構）
 
 > 位置：docs/_team/rbac-job-permission-split-track.md
-> 版本：v2 輕量版（2026-06-28 設計定案）
-> 狀態：✅ 設計定案（§3 輕量版）；⏸ 實作待排程
+> 版本：v2 輕量版（2026-06-28 設計定案 + 同日實作 Step1~6）
+> 狀態：✅ **已實作 Step1~6**（commit 標 `[NX-RBAC-SPLIT]`）；破壞性收舊保守留（見 §6）
+>
+> **實作摘要（2026-06-28）**：
+> - Step1 `nx01_permission_level` 表 + `nx01_user.permission_level_id`（加性 migration）
+> - Step2 `nx01_permission_level_permission` / `nx01_permission_level_view` 連結表
+> - Step3 後端 `nx01/permission-levels` 模組（CRUD + 權限設定 + 畫面權限矩陣 get/set；內建 S 鎖定）
+> - Step4 資料遷移：每租戶建內建 **S**（全權限）、負責人配 S
+> - Step5 前端：權限等級主檔走 EntityMasterPage（與使用者基本資料同款表格）；
+>   「權限設定」= 矩陣頁（/settings/permission-settings：左選等級、右勾各畫面 6 旗標、模組批勾、Alt+1/2、S 唯讀）
+> - Step6 守衛過渡雙認：jwt.strategy 帶 `permissionLevelCode`、RolesGuard + permissions/mine 認 `S`=全通行；
+>   使用者主檔加「權限等級」1:1 下拉
+> - ⚠️ 本機 DB 已 migrate；後端改動需 **重啟 nx-api** 生效
+> - ⏸ 未做（保守）：破壞性收舊（移除舊 role_permission/role_view）、229細權限 vs 畫面矩陣 gating 整合（見 §6）
 > 說明：role 留作「職務主檔」、只把權限那半抽成「權限等級（permission_level）」。
 > 比初版（草案 v1 重案：新建 job_position + 5~7 表大遷移）輕很多——role 表不動、權限等級 1:1 落 user 欄位。
 > schema 變更（新 1 表 + 1 欄 + 2 表 rename/改 FK）+ 資料遷移 + guard 過渡雙認。實作前每步 verify、遷移先拍板。
