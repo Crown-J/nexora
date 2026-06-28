@@ -33,6 +33,23 @@ export const ROLE_MASTER: EntityMasterConfig = {
   ],
 };
 
+// 職務↔權限拆分軌 Step5：權限等級主檔（RBAC 載體、與職務分離；內建 S 全權限由後端鎖定）
+export const PERMISSION_LEVEL_MASTER: EntityMasterConfig = {
+  basePath: 'nx01/permission-levels',
+  category: '帳號權限',
+  title: '權限等級',
+  entityNoun: '權限等級',
+  pageId: 'permission-level',
+  errorCodePrefix: 'nxui_base_permission_level',
+  deleteMode: SOFT,
+  fields: [
+    { key: 'code', label: '權限代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[120px]' },
+    { key: 'name', label: '名稱', required: true, minWidthClass: 'min-w-[140px]' },
+    { key: 'description', label: '說明', inList: false },
+    { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
+  ],
+};
+
 // 05 批 T1 2026-06-07：部門主檔揭露（後端 controller/service 第三批 T1 已補；UI 從 nx07 placeholder 升級成通用範式）
 export const DEPARTMENT_MASTER: EntityMasterConfig = {
   basePath: 'nx01/departments',
