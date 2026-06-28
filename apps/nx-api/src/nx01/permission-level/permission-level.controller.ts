@@ -24,6 +24,7 @@ import {
   CreatePermissionLevelDto,
   ListPermissionLevelQueryDto,
   SetLevelPermissionsDto,
+  SetLevelViewsDto,
   UpdatePermissionLevelDto,
 } from './dto/permission-level.dto';
 import { PermissionLevelService } from './permission-level.service';
@@ -77,5 +78,21 @@ export class PermissionLevelController {
     @Body() dto: SetLevelPermissionsDto,
   ) {
     return this.svc.setPermissions(user, id, dto.permissionCodes);
+  }
+
+  /// 列指定等級的畫面權限矩陣（全畫面 + 已授權旗標）
+  @Get(':id/views')
+  listViews(@CurrentUser() user: RequestUser, @Param('id') id: string) {
+    return this.svc.listViews(user, id);
+  }
+
+  /// 替換指定等級的畫面權限矩陣（PUT）
+  @Put(':id/views')
+  setViews(
+    @CurrentUser() user: RequestUser,
+    @Param('id') id: string,
+    @Body() dto: SetLevelViewsDto,
+  ) {
+    return this.svc.setViews(user, id, dto.views);
   }
 }

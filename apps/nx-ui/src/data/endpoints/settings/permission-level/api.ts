@@ -64,3 +64,37 @@ export function setLevelPermissions(
     body: JSON.stringify({ permissionCodes }),
   });
 }
+
+// ── 畫面權限矩陣（等級 × 畫面 × 6 旗標）──
+export interface LevelViewGrant {
+  viewId: string;
+  canRead: boolean;
+  canCreate: boolean;
+  canUpdate: boolean;
+  canDelete: boolean;
+  canExport: boolean;
+  canApprove: boolean;
+}
+
+export interface LevelViewMatrix {
+  levelId: string;
+  code: string;
+  name: string;
+  isSystem: boolean;
+  views: { id: string; code: string; name: string; moduleCode: string; sortNo: number }[];
+  grants: LevelViewGrant[];
+}
+
+export function getLevelViews(id: string): Promise<LevelViewMatrix> {
+  return apiJson(`/nx01/permission-levels/${encodeURIComponent(id)}/views`);
+}
+
+export function setLevelViews(
+  id: string,
+  views: LevelViewGrant[],
+): Promise<{ levelId: string; total: number }> {
+  return apiJson(`/nx01/permission-levels/${encodeURIComponent(id)}/views`, {
+    method: 'PUT',
+    body: JSON.stringify({ views }),
+  });
+}

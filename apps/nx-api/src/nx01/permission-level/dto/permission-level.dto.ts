@@ -11,6 +11,7 @@ import {
   IsString,
   MaxLength,
   MinLength,
+  ValidateNested,
 } from 'class-validator';
 
 import { Nx01ListQueryDto } from '../../../shared/nx01/pagination.dto';
@@ -34,4 +35,22 @@ export class UpdatePermissionLevelDto {
 
 export class SetLevelPermissionsDto {
   @IsArray() @ArrayMinSize(0) @IsString({ each: true }) permissionCodes!: string[];
+}
+
+// 畫面權限矩陣（等級 × 畫面 × 6 旗標）
+export class LevelViewItemDto {
+  @IsString() viewId!: string;
+  @IsOptional() @IsBoolean() canRead?: boolean;
+  @IsOptional() @IsBoolean() canCreate?: boolean;
+  @IsOptional() @IsBoolean() canUpdate?: boolean;
+  @IsOptional() @IsBoolean() canDelete?: boolean;
+  @IsOptional() @IsBoolean() canExport?: boolean;
+  @IsOptional() @IsBoolean() canApprove?: boolean;
+}
+
+export class SetLevelViewsDto {
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => LevelViewItemDto)
+  views!: LevelViewItemDto[];
 }

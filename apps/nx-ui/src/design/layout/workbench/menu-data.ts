@@ -51,7 +51,7 @@ export const MENU_BAR: MenuNode[] = [
           { key: 'users', label: '使用者基本資料', href: '/dashboard/master/users' },
           // 權限綁「權限等級」非職務（拆分軌新頁 permission-level）
           { key: 'account-type', label: '權限等級', href: '/dashboard/settings/permission-levels' },
-          { key: 'role-view', label: '帳號權限設定', href: '/dashboard/master/role-view' },
+          { key: 'role-view', label: '權限設定', href: '/dashboard/settings/permission-settings' },
         ],
       },
       {

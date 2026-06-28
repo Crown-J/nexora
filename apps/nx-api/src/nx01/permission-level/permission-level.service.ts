@@ -17,6 +17,7 @@ import { requireTenantId } from '../../shared/nx01/require-tenant';
 
 import type {
   CreatePermissionLevelDto,
+  LevelViewItemDto,
   ListPermissionLevelQueryDto,
   UpdatePermissionLevelDto,
 } from './dto/permission-level.dto';
@@ -218,5 +219,71 @@ export class PermissionLevelService {
     });
 
     return { levelId, added: toAdd.length, removed: toRemoveRowIds.length, total: desiredIds.size };
+  }
+
+  /** 列指定等級的「畫面權限」矩陣（全畫面 + 該等級已授權的旗標） */
+  async listViews(user: RequestUser, levelId: string) {
+    const tenantId = requireTenantId(user);
+    const level = await this.prisma.nx01PermissionLevel.findFirst({
+      where: { id: levelId, tenantId },
+      select: { id: true, code: true, name: true, isSystem: true },
+    });
+    if (!level) throw new NotFoundException('權限等級不存在');
+    const views = await this.prisma.nx01View.findMany({
+      where: { isActive: true },
+      orderBy: [{ moduleCode: 'asc' }, { sortNo: 'asc' }],
+      select: { id: true, code: true, name: true, moduleCode: true, sortNo: true },
+    });
+    const grants = await this.prisma.nx01PermissionLevelView.findMany({
+      where: { permissionLevelId: levelId, tenantId, isActive: true },
+      select: {
+        viewId: true,
+        canRead: true,
+        canCreate: true,
+        canUpdate: true,
+        canDelete: true,
+        canExport: true,
+        canApprove: true,
+      },
+    });
+    return { levelId: level.id, code: level.code, name: level.name, isSystem: level.isSystem, views, grants };
+  }
+
+  /** 替換指定等級的畫面權限矩陣（PUT 全量；只存有任一旗標的列；內建 S 不可改） */
+  async setViews(user: RequestUser, levelId: string, items: LevelViewItemDto[]) {
+    const tenantId = requireTenantId(user);
+    const level = await this.prisma.nx01PermissionLevel.findFirst({
+      where: { id: levelId, tenantId },
+      select: { id: true, isSystem: true },
+    });
+    if (!level) throw new NotFoundException('權限等級不存在');
+    if (level.isSystem) {
+      throw new ForbiddenException('內建權限等級（S）為全權限、不可修改');
+    }
+    const keep = items.filter(
+      (i) => i.canRead || i.canCreate || i.canUpdate || i.canDelete || i.canExport || i.canApprove,
+    );
+    await this.prisma.$transaction(async (tx) => {
+      await tx.nx01PermissionLevelView.deleteMany({
+        where: { permissionLevelId: levelId, tenantId },
+      });
+      for (const i of keep) {
+        await tx.nx01PermissionLevelView.create({
+          data: {
+            tenantId,
+            permissionLevelId: levelId,
+            viewId: i.viewId,
+            canRead: !!i.canRead,
+            canCreate: !!i.canCreate,
+            canUpdate: !!i.canUpdate,
+            canDelete: !!i.canDelete,
+            canExport: !!i.canExport,
+            canApprove: !!i.canApprove,
+            grantedBy: user.sub,
+          },
+        });
+      }
+    });
+    return { levelId, total: keep.length };
   }
 }
