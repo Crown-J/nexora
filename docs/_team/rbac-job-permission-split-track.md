@@ -2,10 +2,11 @@
 # 專軌規格：職務 ↔ 權限等級 拆分（RBAC 核心重構）
 
 > 位置：docs/_team/rbac-job-permission-split-track.md
-> 版本：草案 v1（2026-06-28 盤點）
-> 狀態：⏸ **排程中、較後面做**（執行長 2026-06-28 拍板「完整拆表」、但非現在）
-> 說明：把「職務（job title，組織架構用）」與「權限等級（permission level，RBAC 用）」
-> 從目前共用的 `nx01_role` 一表兩用，拆成兩個獨立概念。schema breaking + 資料遷移 + 動 RBAC 核心。
+> 版本：v2 輕量版（2026-06-28 設計定案）
+> 狀態：✅ 設計定案（§3 輕量版）；⏸ 實作待排程
+> 說明：role 留作「職務主檔」、只把權限那半抽成「權限等級（permission_level）」。
+> 比初版（草案 v1 重案：新建 job_position + 5~7 表大遷移）輕很多——role 表不動、權限等級 1:1 落 user 欄位。
+> schema 變更（新 1 表 + 1 欄 + 2 表 rename/改 FK）+ 資料遷移 + guard 過渡雙認。實作前每步 verify、遷移先拍板。
 
 ---
 
@@ -49,37 +50,41 @@
 
 ---
 
-## 3. 目標設計（草案、實作前需執行長再 review）
+## 3. 目標設計（執行長 2026-06-28 定案 · 輕量版）
 
-| 概念 | 新表 | 端點 | 中文 |
+**核心：role 原地不動＝職務；只把「權限那半」抽出成權限等級。**
+
+| 概念 | 表 | 動作 | 說明 |
 |---|---|---|---|
-| 職務（組織） | `nx01_job_position`（code/name/level/teamId/departmentId） | /nx01/job-positions | 職務 |
-| 權限等級（RBAC） | `nx01_permission_level`（code/name/isSystem） | /nx01/permission-levels | 權限等級 |
-| 細權限目錄 | `nx01_permission`（不變、229 項） | /nx01/permissions | 權限項目 |
-| 使用者職務指派 | `nx01_user_job_position` | /nx01/user-job-positions | — |
-| 使用者權限指派 | `nx01_user_permission_level` | /nx01/user-permission-levels | — |
-| 等級×細權限 | role_permission 改指 permission_level | … | — |
-| 職務×畫面 | role_view 改指 job_position（或保留給等級） | … | — |
+| 職務（組織） | `nx01_role`（保留） | **不動**（語意收斂為純職務） | code/name/level/teamId/departmentId；org 四欄第三層續用 |
+| 權限等級（RBAC） | `nx01_permission_level`（**新**） | 建表 | code/name/isSystem/isActive/sortNo；內建 **S=全權限** |
+| 細權限目錄 | `nx01_permission`（保留 229 項） | **不動** | 名稱保留 permission（不撞名） |
+| 等級×細權限 | `nx01_permission_level_permission`（role_permission 改名 + FK roleId→levelId） | 改 FK | 「權限設定」詳細權限掛這 |
+| 等級×畫面 | `nx01_permission_level_view`（role_view 改名 + FK roleId→levelId） | 改 FK | 畫面矩陣 R/C/U/D/Export/Approve |
+| 使用者→權限等級 | `nx01_user.permissionLevelId`（**新欄、1:1**） | 加欄 | **一人一等級**；職務仍走 `nx01_user_role` |
 
-**內建 S（執行長拍板）**：內建全權限等級 **code = `S`**、isSystem、鎖定不可改。
-⚠️ guard 的 `SUPER_ROLES`/`SYSADMIN_ROLE_CODE` 常數**併入 S 時要極小心**——
-建議：guard 同時認 `S` 與舊 `SYSADMIN/OWNER`（過渡期並存），確認無誤再收舊碼，避免 production 守衛失效。
+**內建 S（執行長拍板）**：全權限等級 **code = `S`**、isSystem、鎖定。
+⚠️ guard（roles.guard / is-sysadmin）**過渡期同時認 `S` 與舊 `SYSADMIN/OWNER`**，確認無誤再收舊碼（A034 教訓：guard 常數亂改會讓 production 守衛失效）。
+
+**不再需要**（相對前一版重案）：job_position 新表、user_job_position、user_permission_level 指派表——
+因 role 留作職務、且權限等級 1:1 落在 user 欄位。
 
 ---
 
-## 4. 遷移計畫（草案）
+## 4. 遷移計畫（輕量版）
 
-1. **Schema 準備**：建 job_position / permission_level / 兩張指派表（不刪舊表）。
-2. **資料複製**：
-   - role.isSystem(SYSADMIN/OWNER) → permission_level（建 S）；
-   - role(teamId 非空) → job_position；
-   - user_role 依 role 性質分流到兩張新指派表；
-   - role_permission/role_view 重指 FK。
-3. **後端切換**：service/guard/seed 指向新表（guard 過渡期雙認）。
-4. **前端切換**：拆 /master/roles(職務) 與 /settings/permission-levels(權限等級)；org 四欄第三層改職務新表；user 指派拆兩個 satellite。
-5. **驗證 + 廢舊**：舊 role/user_role 改 _legacy 保留追溯。
+1. **Schema**：建 `nx01_permission_level`；`nx01_user` 加 `permissionLevelId`；
+   `role_view`→`permission_level_view`、`role_permission`→`permission_level_permission`（rename + FK 改指 level）。
+2. **資料遷移**（關鍵：現 role 兼權限 → 拆出等級）：
+   - 建內建 **S** 等級（= 現 SYSADMIN/OWNER 全權限那級）；
+   - 既有「有掛權限」的 role → 各生成對應 permission_level，搬 role_permission/role_view；
+   - 每個 user 依其 user_role「主要角色」帶出 `permissionLevelId`（1:1）。
+3. **後端**：permission_level 模組（CRUD + 權限設定端點）；guard/seed 切換（過渡雙認 S）；role 模組移除權限職責、保留職務。
+4. **前端**：`/settings/roles`→權限等級頁(permission_level、表格化、code 可設、S 鎖定列)；
+   `/master/roles` 職務頁拿掉權限編輯；user 主檔加「權限等級」1:1 下拉。
+5. **驗證 + 收舊**：確認 guard 改吃 S 無誤後，移除舊 SYSADMIN/OWNER 雙認與 role 殘留權限欄。
 
-⚠️ 危險命令（migration/遷移）必先執行長拍板；先備份；漸進式 step + 每步 verify（PRZ 規則）。
+⚠️ migration/資料遷移屬危險命令、**必先執行長拍板**；先備份；漸進 step + 每步 verify（PRZ 規則）。
 
 ---
 
