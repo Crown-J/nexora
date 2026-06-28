@@ -319,14 +319,14 @@ function MemberRow({
   const disabled = conflictTitle !== null;
   return (
     <div className="flex items-center gap-3">
-      <span className="grid size-9 flex-none place-items-center rounded-md bg-[#E8A020]/14 text-[#E8A020]">
+      <span className="grid size-9 flex-none place-items-center rounded-md bg-primary/14 text-primary">
         <Box className="size-4" />
       </span>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <span className="truncate text-sm text-foreground">{member.part?.name ?? member.partId}</span>
           {isMain ? (
-            <span className="inline-flex items-center gap-1 rounded-full border border-[#E8A020]/45 bg-[#E8A020]/15 px-1.5 py-0.5 text-[10px] font-semibold text-[#E8A020]">
+            <span className="inline-flex items-center gap-1 rounded-full border border-primary/45 bg-primary/15 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
               <Star className="size-3" />
               主件
             </span>
@@ -351,7 +351,7 @@ function MemberRow({
             'inline-flex h-7 flex-none items-center gap-1 rounded-md border px-2 text-xs font-medium transition-colors',
             disabled
               ? 'cursor-not-allowed border-border bg-background/30 text-muted-foreground/50'
-              : 'border-border bg-background/60 text-muted-foreground hover:border-[#E8A020]/45 hover:bg-[#E8A020]/12 hover:text-[#E8A020]',
+              : 'border-border bg-background/60 text-muted-foreground hover:border-primary/45 hover:bg-primary/12 hover:text-primary',
           )}
         >
           <Star className="size-3.5" />

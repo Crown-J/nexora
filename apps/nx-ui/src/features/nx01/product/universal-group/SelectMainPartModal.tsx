@@ -120,42 +120,42 @@ export function SelectMainPartModal({
       onClick={onClose}
     >
       <div
-        className="flex w-full max-w-xl flex-col rounded-2xl border border-[#2A2A30] bg-[#131316] shadow-2xl"
+        className="flex w-full max-w-xl flex-col rounded-2xl border border-border/40 bg-popover shadow-2xl"
         onClick={(e) => e.stopPropagation()}
         style={{ maxHeight: '80vh' }}
       >
         {/* Header */}
-        <div className="flex items-center gap-2.5 border-b border-[#2A2A30] px-5 py-3">
-          <span className="size-2 rounded-full bg-[#E8A020] shadow-[0_0_10px_#E8A020]" />
-          <Box className="size-4 text-[#E8A020]" />
-          <h2 className="text-sm font-bold tracking-wide text-[#F0F0F3]">新增通用件群組</h2>
-          <span className="ml-auto text-[10px] font-semibold uppercase tracking-[0.28em] text-[#5A5A60]">
+        <div className="flex items-center gap-2.5 border-b border-border/40 px-5 py-3">
+          <span className="size-2 rounded-full bg-primary shadow-[0_0_10px_var(--primary)]" />
+          <Box className="size-4 text-primary" />
+          <h2 className="text-sm font-bold tracking-wide text-foreground">新增通用件群組</h2>
+          <span className="ml-auto text-[10px] font-semibold uppercase tracking-[0.28em] text-muted-foreground">
             Select Main Part
           </span>
         </div>
 
         {/* Subtitle hint */}
-        <div className="border-b border-[#2A2A30] px-5 py-2 text-xs text-[#888892]">
+        <div className="border-b border-border/40 px-5 py-2 text-xs text-muted-foreground">
           先選主件、群組將以主件命名（料號＋品名）。已是其他群組主件的零件不會出現。
         </div>
 
         {/* Search */}
         {searchOpen ? (
-          <div className="flex items-center gap-2 border-b border-[#2A2A30] px-4 py-2">
-            <Search className="size-4 text-[#E8A020]" />
+          <div className="flex items-center gap-2 border-b border-border/40 px-4 py-2">
+            <Search className="size-4 text-primary" />
             <input
               ref={searchInputRef}
               type="text"
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
               placeholder="搜尋料號或品名…"
-              className="flex-1 bg-transparent text-sm text-[#E8E8EB] outline-none placeholder:text-[#5A5A60]"
+              className="flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
             />
-            {loading ? <Loader2 className="size-3.5 animate-spin text-[#888892]" /> : null}
-            <span className="hidden text-[10px] tracking-wider text-[#5A5A60] sm:inline">ESC 關閉</span>
+            {loading ? <Loader2 className="size-3.5 animate-spin text-muted-foreground" /> : null}
+            <span className="hidden text-[10px] tracking-wider text-muted-foreground sm:inline">ESC 關閉</span>
           </div>
         ) : (
-          <div className="flex items-center gap-2 border-b border-[#2A2A30] px-4 py-1.5 text-[11px] text-[#5A5A60]">
+          <div className="flex items-center gap-2 border-b border-border/40 px-4 py-1.5 text-[11px] text-muted-foreground">
             <Search className="size-3.5" />
             ↑↓ 選 · 空白 標記 · Alt+F 搜尋 · Enter 建立
             {loading ? <Loader2 className="ml-auto size-3 animate-spin" /> : null}
@@ -165,7 +165,7 @@ export function SelectMainPartModal({
         {/* List */}
         <div className="min-h-0 flex-1 overflow-auto">
           {items.length === 0 ? (
-            <div className="px-5 py-8 text-center text-xs text-[#5A5A60]">
+            <div className="px-5 py-8 text-center text-xs text-muted-foreground">
               {loading
                 ? '載入中…'
                 : keyword
@@ -173,7 +173,7 @@ export function SelectMainPartModal({
                 : '輸入料號或品名搜尋（Alt+F）'}
             </div>
           ) : (
-            <ul className="divide-y divide-[#1A1A1F]">
+            <ul className="divide-y divide-border/40">
               {items.map((p, index) => {
                 const isSelected = selectedId === p.id;
                 const isFocused = index === focusedIdx;
@@ -185,16 +185,16 @@ export function SelectMainPartModal({
                       onMouseEnter={() => setFocusedIdx(index)}
                       className={cn(
                         'flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors',
-                        isFocused && 'ring-1 ring-inset ring-[#E8A020]/60',
-                        isSelected ? 'bg-[#E8A020]/12 hover:bg-[#E8A020]/16' : 'hover:bg-[#1A1A22]',
+                        isFocused && 'ring-1 ring-inset ring-primary/60',
+                        isSelected ? 'bg-primary/12 hover:bg-primary/16' : 'hover:bg-accent/15',
                       )}
                     >
                       <span
                         className={cn(
                           'flex size-4 shrink-0 items-center justify-center rounded-full border transition-colors',
                           isSelected
-                            ? 'border-[#E8A020]/60 bg-[#E8A020]/20 text-[#E8A020]'
-                            : 'border-[#3A3A42] bg-[#1A1A1F]',
+                            ? 'border-primary/60 bg-primary/20 text-primary'
+                            : 'border-border bg-muted',
                         )}
                       >
                         {isSelected ? <Check className="size-3" /> : null}
@@ -203,12 +203,12 @@ export function SelectMainPartModal({
                         <span
                           className={cn(
                             'truncate text-sm',
-                            isSelected ? 'font-semibold text-[#E8A020]' : 'text-[#E8E8EB]',
+                            isSelected ? 'font-semibold text-primary' : 'text-foreground',
                           )}
                         >
                           {p.code} · {p.name}
                         </span>
-                        <span className="truncate text-[11px] text-[#5A5A60]">
+                        <span className="truncate text-[11px] text-muted-foreground">
                           {p.partBrandCode ?? '—'} · {p.countryCode ?? '—'}
                         </span>
                       </span>
@@ -221,15 +221,15 @@ export function SelectMainPartModal({
         </div>
 
         {/* Actions */}
-        <div className="flex items-center justify-between border-t border-[#2A2A30] bg-[#0A0A0C]/40 px-5 py-3">
-          <span className="text-[10px] text-[#5A5A60]">
-            ESC 取消 · 已選 <span className="font-mono text-[#E8A020]">{selectedId ? 1 : 0}</span> 顆
+        <div className="flex items-center justify-between border-t border-border/40 bg-muted/30 px-5 py-3">
+          <span className="text-[10px] text-muted-foreground">
+            ESC 取消 · 已選 <span className="font-mono text-primary">{selectedId ? 1 : 0}</span> 顆
           </span>
           <div className="flex gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="inline-flex h-8 items-center rounded-md border border-[#2A2A30] bg-[#1A1A1F] px-3 text-xs font-medium text-[#B8B8C0] transition-colors hover:border-[#3A3A42] hover:bg-[#22222A] hover:text-[#E8E8EB]"
+              className="inline-flex h-8 items-center rounded-md border border-border/40 bg-muted px-3 text-xs font-medium text-foreground/80 transition-colors hover:border-border hover:bg-accent/20 hover:text-foreground"
             >
               取消
             </button>
@@ -238,8 +238,8 @@ export function SelectMainPartModal({
               onClick={handleSubmit}
               disabled={!selectedId}
               className={cn(
-                'inline-flex h-8 items-center gap-1.5 rounded-md border border-[#E8A020]/40 bg-[#E8A020]/15 px-3 text-xs font-medium text-[#E8A020] transition-colors',
-                !selectedId ? 'cursor-not-allowed opacity-50' : 'hover:bg-[#E8A020]/25',
+                'inline-flex h-8 items-center gap-1.5 rounded-md border border-primary/40 bg-primary/15 px-3 text-xs font-medium text-primary transition-colors',
+                !selectedId ? 'cursor-not-allowed opacity-50' : 'hover:bg-primary/25',
               )}
             >
               建立群組
