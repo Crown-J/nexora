@@ -19,6 +19,7 @@ import {
 import { usePathname, useRouter } from 'next/navigation';
 import { tryNavigate } from '@design/hooks/useDirtyGuard';
 import { DOCK_NAV, type DockItem } from '@data/home/home-data';
+import { MENU_BAR, type MenuNode } from './menu-data';
 
 export type WorkbenchTab = { href: string; label: string };
 
@@ -35,6 +36,14 @@ function buildLabelMap(): Record<string, string> {
     }
   };
   walk(DOCK_NAV);
+  // 新選單登錄表（權威來源）後跑、覆蓋 DOCK_NAV，補上新路由標籤（如 權限設定/權限等級）
+  const walkMenu = (items: MenuNode[]) => {
+    for (const it of items) {
+      if (it.href) map[it.href] = it.label;
+      if (it.children) walkMenu(it.children);
+    }
+  };
+  walkMenu(MENU_BAR);
   return map;
 }
 const LABEL_MAP = buildLabelMap();
