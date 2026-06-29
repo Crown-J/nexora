@@ -219,13 +219,14 @@ nx01/
 |---|---|---|---|---|
 | 1 | **EntityMasterPage** | config 驅動的表格主檔（最常用）| `shell/entity-master/` + config `shell/master-config/`（catalog-masters / simple-masters）| 國家/幣別/部門/職務/權限等級/區域/貨架/自訂群組/廠牌/車型…（25+ 個）|
 | 2 | **Zoned 主檔** | 分區編輯（衛星表 + zone 分頁）、複雜主檔 | `shell/zones/` + 各頁 | 使用者 / 零件 / 倉庫 / 往來對象 |
-| 3 | **InlineEditMasterPage** | L0 字典・列雙擊 inline 編輯 | `shell/inline-master/` | 國家 / 注音 / 部門（字典級）|
-| 4 | **KeyboardCardMasterPage** | 卡片鍵盤式主檔 | `shell/keyboard-card-master/` | 卡片型主檔 |
-| 5 | **多欄 cascade 結構頁** | 階層下鑽、Alt+1~N 切欄（自訂）| `features/nx01/*/structure/` | 組織架構（4 欄）/ 據點架構（5 欄：據點→倉庫→區域→貨架→庫位）|
-| 6 | **MasterBatchShell** | 左主體列表 / 右成員列表雙欄、config 驅動（Alt+1/2）| `design/components/master-batch/` | 零件通用表 / 供貨對應 |
-| 7 | **PartKitMasterView** | 雙欄列表 + 編輯彈窗（Alt+1 組合件 / Alt+2 組件明細）| `features/nx01/product/part-kit/` | 組合（分解）零件 |
-| 8 | **PermissionViewMatrixPage** | 左選等級 / 右畫面權限矩陣（R/C/U/D/匯出/核准）| `features/nx01/permission/permission-level/` | 權限設定 |
-| 9 | **ZipcodePage** | 唯讀字典雙欄 + 搜尋（縣市→鄉鎮郵遞）| `features/nx01/address/zipcode/` | 郵遞區號 |
+| 3 | **多欄 cascade 結構頁** | 階層下鑽、Alt+1~N 切欄（自訂）| `features/nx01/*/structure/` | 組織架構（4 欄）/ 據點架構（5 欄：據點→倉庫→區域→貨架→庫位）|
+| 4 | **MasterBatchShell** | 左主體列表 / 右成員列表雙欄、config 驅動（Alt+1/2）| `design/components/master-batch/` | 零件通用表 / 供貨對應 |
+| 5 | **PartKitMasterView** | 雙欄列表 + 編輯彈窗（Alt+1 組合件 / Alt+2 組件明細）| `features/nx01/product/part-kit/` | 組合（分解）零件 |
+| 6 | **PermissionViewMatrixPage** | 左選等級 / 右畫面權限矩陣（R/C/U/D/匯出/核准）| `features/nx01/permission/permission-level/` | 權限設定 |
+| 7 | **ZipcodePage** | 唯讀字典雙欄 + 搜尋（縣市→鄉鎮郵遞）| `features/nx01/address/zipcode/` | 郵遞區號 |
+
+> 2026-06-29：`InlineEditMasterPage` / `KeyboardCardMasterPage` 兩個 L0 字典模板無路由引用、已刪除封存（字典主檔統一走 EntityMasterPage）。
+> 所有上述主檔頁型皆已**手機響應式**（卡片 master-detail + FAB + 多欄逐層下鑽；桌面六層不變）。背板沿用淺色六角 `NxAppBackdrop`／`HexBulgeField`（WorkbenchShell root/main 透明透出）。
 
 共用六層元件：`ToolbarPortal`（L3 投影、`design/layout/workbench/`）、`ErpToolbar`（銀質 bar + `ToolbarButton`）、`MasterPageHead`（list/detail 分頁 head）、`ColTab`/`BatchTab`（L4 分頁 chip）。
 

@@ -49,8 +49,9 @@ function WorkbenchChrome({ children }: Props) {
   }, []);
 
   return (
-    // relative z-10：壓在全域 NxAppBackdrop（z-0 星空/六角背景）之上；bg-background 不透明蓋滿
-    <div className="relative z-10 flex h-dvh flex-col bg-background text-foreground">
+    // relative z-10：疊在全域 NxAppBackdrop（z-0 淺色六角 HexBulgeField）之上；
+    // 2026-06-29 執行長：沿用鋼鐵星球淺色六角背板 → root/main 透明、讓背板透出（選單列/工具列/狀態列自帶不透明底）
+    <div className="relative z-10 flex h-dvh flex-col text-foreground">
       <TopMenuBar
         menus={menus}
         onSelect={onSelect}
@@ -63,7 +64,7 @@ function WorkbenchChrome({ children }: Props) {
       {/* 第 3 層：情境工具列插槽（頁面 ErpToolbar 投影至此；無工具列頁面自動收合） */}
       <div ref={toolbarSlot?.setSlotEl} className={toolbarSlot?.count ? '' : 'hidden'} />
       {/* 第 5 層：主內容（無邊距、表格完整全展開；需留白的頁面自帶內距，如 WorkbenchHome） */}
-      <main className="flex min-h-0 flex-1 flex-col overflow-auto bg-background">
+      <main className="flex min-h-0 flex-1 flex-col overflow-auto">
         {children}
         <AutoPageGuide />
       </main>
