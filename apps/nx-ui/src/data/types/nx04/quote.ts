@@ -64,6 +64,14 @@ export interface Quote {
   updatedAt: string;
   updatedBy: string;
   items?: QuoteItem[];
+  // 後端關聯帶回的顯示名稱（避免畫面露內碼）
+  customerCode?: string | null;
+  customerName?: string | null;
+  customerGradeName?: string | null;
+  warehouseCode?: string | null;
+  warehouseName?: string | null;
+  salesPersonName?: string | null;
+  currencyCode?: string | null;
 }
 
 export interface QuoteListResponse {

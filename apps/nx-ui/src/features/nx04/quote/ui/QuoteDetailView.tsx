@@ -315,23 +315,26 @@ function HeaderZones({
       {/* ② 客戶與倉庫（picker 化待 Step4） */}
       <SectionCard title="客戶與倉庫">
         <div className="grid grid-cols-2 gap-3">
-          <ReadField label="客戶" mono>{q.customerId}</ReadField>
+          <ReadField label="客戶">
+            {q.customerName ?? q.customerId}
+            {q.customerCode ? <span className="ml-1 text-xs text-muted-foreground">{q.customerCode}</span> : null}
+          </ReadField>
           <ReadField label="客戶等級">
-            {q.customerGradeId ? (
-              <span className="font-mono">{q.customerGradeId}</span>
+            {q.customerGradeName ? (
+              q.customerGradeName
             ) : (
               <span className="rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-900">未設、無毛利警告</span>
             )}
           </ReadField>
-          <ReadField label="報價倉庫" mono>{q.warehouseId}</ReadField>
-          <ReadField label="業務員" mono>{q.salesPersonId}</ReadField>
+          <ReadField label="報價倉庫">{q.warehouseName ?? q.warehouseId}</ReadField>
+          <ReadField label="業務員">{q.salesPersonName ?? '—'}</ReadField>
         </div>
       </SectionCard>
 
       {/* ③ 金額條件＋備註 */}
       <SectionCard title="金額條件 / 備註">
         <div className="grid grid-cols-2 gap-3">
-          <ReadField label="幣別" mono>{q.currencyId}</ReadField>
+          <ReadField label="幣別">{q.currencyCode ?? q.currencyId}</ReadField>
           <ReadField label="稅率">{q.taxRate}%</ReadField>
           <label className="col-span-2 text-sm">
             <span className="mb-0.5 block text-xs text-muted-foreground">參考文號（客戶採購單號等）</span>

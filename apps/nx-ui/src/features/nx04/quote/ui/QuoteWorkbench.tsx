@@ -1,21 +1,21 @@
 // apps/nx-ui/src/features/nx04/quote/ui/QuoteWorkbench.tsx
-// NX04-QT-SHELL Step5：報價單工作區 — 六層完整體
-//   L4「資料瀏覽 / 詳細資料」同頁分頁（偉盟模型）：Alt+1/2 切換、列表點列→詳細、↑↓ 換筆
-//   list tab / detail tab 各自投影 L3 工具列（同時只有一個 tab 活著、不會疊）
-//   日期區間 / 業務員 / 只看我的 篩選、客戶名稱顯示 → 待後端補 query 後接（後續）
+// NX04-QT-SHELL：報價單工作區（六層完整、比照主檔 EntityMasterPage 範式）
+//   L4 資料瀏覽/詳細 同頁分頁；資料瀏覽用 MasterTable（邊到邊/預設選第一筆/↑↓Enter 全鍵盤）
+//   L3 完整 ErpToolbar（瀏覽：上下筆 nav + 新增/編輯/作廢 + 查詢/排序/重整 + 列印/匯出）
+//   狀態/搜尋收進工具列「查詢」面板，主內容層只剩表格；欄位顯名稱不露內碼
 
 'use client';
 
-import { Plus, RefreshCcw, Search, X } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { MasterTabs, type MasterTab } from '@/features/nx01/shell/entity-master/MasterTabs';
-import { ToolbarButton, ToolbarSeparator } from '@/features/nx01/shell/ui/ErpToolbar';
+import { MasterPageHead } from '@/features/nx01/shell/master-nav';
+import { ErpToolbar, type ExportFormat } from '@/features/nx01/shell/ui/ErpToolbar';
+import { MasterTable, type MasterTableColumn } from '@/features/nx01/shell/ui/MasterTable';
+import type { MasterTab } from '@/features/nx01/shell/entity-master/MasterTabs';
+import type { SortableOption } from '@/features/nx01/shell/ui/sort-config/SortMenuButton';
 import { TieredFormProvider } from '@/features/shared/tiered-form/TieredFormProvider';
 
-import { ToolbarPortal } from '@design/layout/workbench/WorkbenchToolbarSlot';
-
-import { createQuote, listQuote } from '@data/endpoints/nx04/quote/api/quote';
+import { createQuote, listQuote, voidQuote } from '@data/endpoints/nx04/quote/api/quote';
 import type { CreateQuotePayload, Quote, QuoteStatus } from '@data/types/nx04/quote';
 import { QUOTE_STATUSES, QUOTE_STATUS_LABEL } from '@data/types/nx04/quote';
 
@@ -35,6 +35,14 @@ const STATUS_OPTIONS: { value: QuoteStatus | ''; label: string }[] = [
   ...QUOTE_STATUSES.map((s) => ({ value: s, label: QUOTE_STATUS_LABEL[s] })),
 ];
 
+const SORT_OPTIONS: SortableOption[] = [
+  { key: 'docNo', label: '單號' },
+  { key: 'quoteDate', label: '報價日' },
+  { key: 'validUntil', label: '有效期限' },
+  { key: 'totalAmount', label: '含稅總額' },
+  { key: 'status', label: '狀態' },
+];
+
 function isExpired(validUntil: string | null): boolean {
   if (!validUntil) return false;
   return new Date(validUntil) < new Date(new Date().toDateString());
@@ -51,16 +59,17 @@ export function QuoteWorkbench({
   const [selectedId, setSelectedId] = useState<string | null>(initialId ?? null);
   const [rows, setRows] = useState<Quote[]>([]);
   const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<QuoteStatus | ''>('');
   const [search, setSearch] = useState('');
   const [showNew, setShowNew] = useState(false);
-  const searchRef = useRef<HTMLInputElement>(null);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [sortKey, setSortKey] = useState<string | null>('quoteDate');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [sortMenuOpen, setSortMenuOpen] = useState(false);
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
 
   const reload = useCallback(async () => {
-    setLoading(true);
-    setError(null);
     try {
       const resp = await listQuote({
         status: status || undefined,
@@ -69,134 +78,214 @@ export function QuoteWorkbench({
       });
       setRows(resp.items);
       setTotal(resp.total);
+      setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : '列表載入失敗');
-    } finally {
-      setLoading(false);
     }
   }, [status, search]);
 
   useEffect(() => {
+    // 資料載入：fetch→setState 於 await 後，屬同步外部系統的合法 effect
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void reload();
   }, [reload]);
+
+  // 客戶端排序
+  const displayRows = useMemo(() => {
+    if (!sortKey) return rows;
+    const dir = sortOrder === 'asc' ? 1 : -1;
+    return [...rows].sort((a, b) => {
+      const av = (a as unknown as Record<string, unknown>)[sortKey];
+      const bv = (b as unknown as Record<string, unknown>)[sortKey];
+      const an = Number(av);
+      const bn = Number(bv);
+      if (!Number.isNaN(an) && !Number.isNaN(bn)) return (an - bn) * dir;
+      return String(av ?? '').localeCompare(String(bv ?? '')) * dir;
+    });
+  }, [rows, sortKey, sortOrder]);
+
+  // 預設永遠選一筆（第一筆）→ 支援全鍵盤
+  useEffect(() => {
+    if (tab !== 'list') return;
+    let next: string | null | undefined;
+    if (!displayRows.length) next = selectedId ? null : undefined;
+    else if (!displayRows.some((r) => r.id === selectedId)) next = displayRows[0].id;
+    if (next !== undefined) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSelectedId(next);
+    }
+  }, [displayRows, tab, selectedId]);
+
+  const idx = selectedId ? displayRows.findIndex((r) => r.id === selectedId) : -1;
+  const itemIndex = idx >= 0 ? idx + 1 : 0;
+  const selectAt = (i: number) => {
+    const r = displayRows[i];
+    if (r) setSelectedId(r.id);
+  };
+  const selected = idx >= 0 ? displayRows[idx] : null;
 
   const openDetail = (id: string) => {
     setSelectedId(id);
     setTab('detail');
   };
 
-  // 上下筆 nav（在目前列表 rows 內移動）
-  const idx = selectedId ? rows.findIndex((r) => r.id === selectedId) : -1;
-  const itemIndex = idx >= 0 ? idx + 1 : undefined;
-  const prevId = idx > 0 ? rows[idx - 1].id : null;
-  const nextId = idx >= 0 && idx < rows.length - 1 ? rows[idx + 1].id : null;
-  const gotoPrev = useCallback(() => {
-    if (prevId) setSelectedId(prevId);
-  }, [prevId]);
-  const gotoNext = useCallback(() => {
-    if (nextId) setSelectedId(nextId);
-  }, [nextId]);
-
-  // 鍵盤：Alt+1 列表 / Alt+2 詳細 / 詳細時 ↑↓ 換筆（焦點在輸入框時不接管）
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      const t = e.target as HTMLElement | null;
-      const inField = !!t && ['INPUT', 'SELECT', 'TEXTAREA'].includes(t.tagName);
-      if (e.altKey && e.key === '1') {
-        e.preventDefault();
-        setTab('list');
-        return;
-      }
-      if (e.altKey && e.key === '2') {
-        e.preventDefault();
-        if (selectedId) setTab('detail');
-        return;
-      }
-      if (tab === 'detail' && !inField && !e.altKey && !e.ctrlKey && !e.metaKey) {
-        if (e.key === 'ArrowUp' && gotoPrev) {
-          e.preventDefault();
-          gotoPrev();
-        } else if (e.key === 'ArrowDown' && gotoNext) {
-          e.preventDefault();
-          gotoNext();
-        }
-      }
+  const handleVoid = () => {
+    if (!selected) return;
+    if (selected.status !== 'DRAFT' && selected.status !== 'SENT') {
+      alert('此狀態不可作廢（僅草稿 / 已寄出可作廢）');
+      return;
     }
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [tab, selectedId, gotoPrev, gotoNext]);
+    const reason = window.prompt(`作廢報價單 ${selected.docNo}？請輸入原因（必填）`);
+    if (!reason?.trim()) return;
+    void (async () => {
+      try {
+        await voidQuote(selected.id, reason.trim());
+        await reload();
+      } catch (e) {
+        alert(e instanceof Error ? e.message : '作廢失敗');
+      }
+    })();
+  };
+
+  const handleExport = (format: ExportFormat) => {
+    if (format !== 'csv') {
+      alert('PDF / 列印開發中');
+      return;
+    }
+    const header = ['單號', '狀態', '報價日', '有效期限', '客戶', '業務員', '未稅', '含稅', '備註'];
+    const lines = displayRows.map((r) =>
+      [
+        r.docNo,
+        QUOTE_STATUS_LABEL[r.status] ?? r.status,
+        r.quoteDate.slice(0, 10),
+        r.validUntil?.slice(0, 10) ?? '',
+        r.customerName ?? r.customerId,
+        r.salesPersonName ?? '',
+        r.subtotal,
+        r.totalAmount,
+        (r.remark ?? '').replace(/[\r\n,]/g, ' '),
+      ].join(','),
+    );
+    const csv = '﻿' + [header.join(','), ...lines].join('\n');
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `報價單列表.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const columns: MasterTableColumn<Quote>[] = useMemo(
+    () => [
+      { key: 'docNo', label: '單號', minWidthClass: 'min-w-[150px]', render: (r) => <span className="font-mono">{r.docNo}</span> },
+      {
+        key: 'status',
+        label: '狀態',
+        render: (r) => (
+          <span className={`rounded px-2 py-0.5 text-[11px] ${STATUS_BADGE_CLASS[r.status] ?? 'bg-muted'}`}>
+            {QUOTE_STATUS_LABEL[r.status] ?? r.status}
+          </span>
+        ),
+      },
+      { key: 'quoteDate', label: '報價日', render: (r) => r.quoteDate.slice(0, 10) },
+      {
+        key: 'validUntil',
+        label: '有效期限',
+        render: (r) => {
+          const exp = isExpired(r.validUntil);
+          return (
+            <span className={exp ? 'font-semibold text-rose-600' : ''}>
+              {r.validUntil ? r.validUntil.slice(0, 10) : '—'}
+              {exp ? '（過期）' : ''}
+            </span>
+          );
+        },
+      },
+      { key: 'customerName', label: '客戶', minWidthClass: 'min-w-[160px]', render: (r) => r.customerName ?? r.customerId },
+      { key: 'salesPersonName', label: '業務員', render: (r) => r.salesPersonName ?? '—' },
+      { key: 'subtotal', label: '未稅', render: (r) => <span className="tabular-nums">{r.subtotal}</span> },
+      { key: 'totalAmount', label: '含稅', render: (r) => <span className="tabular-nums font-medium">{r.totalAmount}</span> },
+      { key: 'remark', label: '備註', minWidthClass: 'min-w-[120px]', render: (r) => <span className="text-muted-foreground">{r.remark ?? ''}</span> },
+    ],
+    [],
+  );
+
+  const noop = () => {};
 
   return (
     <TieredFormProvider defaultMode="lite">
-      <div className="w-full min-w-0">
-        {/* L4 頁內分頁 */}
-        <div className="px-5 pt-4">
-          <MasterTabs
-            tab={tab}
-            onChange={(t) => {
-              if (t === 'detail' && !selectedId) return;
-              setTab(t);
-            }}
-          />
-        </div>
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden text-foreground">
+        <MasterPageHead
+          tab={tab}
+          onTabChange={(t) => {
+            if (t === 'detail' && !selectedId) return;
+            setTab(t);
+          }}
+          detailTitle={selected?.docNo}
+          detailSubtitle={tab === 'detail' ? '詳細資料' : '瀏覽'}
+          onCreate={() => setShowNew(true)}
+        />
 
         {tab === 'list' ? (
           <>
-            {/* L3：列表動作 */}
-            <ToolbarPortal>
-              <div
-                data-nx-frame
-                className="flex items-center gap-1 border-b border-border/40 px-3 py-2"
-                style={{
-                  backgroundImage:
-                    'linear-gradient(180deg, var(--nx-surface-toolbar-from) 0%, var(--nx-surface-toolbar-to) 100%)',
-                  boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.04), 0 1px 0 0 rgba(0,0,0,0.5)',
+            <ErpToolbar
+              mode="browse"
+              hasActiveRow={!!selectedId}
+              selectionMode={false}
+              onToggleSelection={noop}
+              selectedCount={0}
+              itemIndex={itemIndex}
+              itemTotal={displayRows.length}
+              onJumpFirstItem={() => selectAt(0)}
+              onPrevItem={() => idx > 0 && selectAt(idx - 1)}
+              onNextItem={() => idx >= 0 && idx < displayRows.length - 1 && selectAt(idx + 1)}
+              onJumpLastItem={() => selectAt(displayRows.length - 1)}
+              onCreate={() => setShowNew(true)}
+              onEdit={() => selectedId && setTab('detail')}
+              onSearch={() => setFilterOpen((o) => !o)}
+              onDelete={handleVoid}
+              onExport={handleExport}
+              exportMenuOpen={exportMenuOpen}
+              onExportMenuOpenChange={setExportMenuOpen}
+              onPrint={() => alert('列印開發中')}
+              onRefresh={() => void reload()}
+              sortOptions={SORT_OPTIONS}
+              sortKey={sortKey}
+              sortOrder={sortOrder}
+              onSortChange={(k, o) => {
+                setSortKey(k);
+                setSortOrder(o);
+              }}
+              onSortReset={() => {
+                setSortKey('quoteDate');
+                setSortOrder('desc');
+              }}
+              sortMenuOpen={sortMenuOpen}
+              onSortMenuOpenChange={setSortMenuOpen}
+              onSave={noop}
+              onCancel={noop}
+              onOpenFilter={() => setFilterOpen((o) => !o)}
+              filterCount={(status ? 1 : 0) + (search.trim() ? 1 : 0)}
+            />
+
+            {filterOpen ? (
+              <QuoteFilterPanel
+                status={status}
+                search={search}
+                onApply={(st, kw) => {
+                  setStatus(st);
+                  setSearch(kw);
                 }}
-              >
-                <ToolbarButton icon={Plus} letter="A" label="新增" enabled onClick={() => setShowNew(true)} />
-                <ToolbarSeparator />
-                <ToolbarButton
-                  icon={Search}
-                  letter="F"
-                  label="查詢"
-                  enabled
-                  onClick={() => searchRef.current?.focus()}
-                />
-                <ToolbarButton icon={RefreshCcw} letter="R" label="重整" enabled onClick={() => void reload()} />
-                <div className="flex-1" />
-              </div>
-            </ToolbarPortal>
+                onClose={() => setFilterOpen(false)}
+              />
+            ) : null}
 
-            <div className="space-y-4 p-5">
-              {/* 篩選列 */}
-              <div className="flex flex-wrap items-center gap-3">
-                <select
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value as QuoteStatus | '')}
-                  className="rounded border bg-background px-2 py-1 text-sm"
-                >
-                  {STATUS_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {o.label}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  ref={searchRef}
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && void reload()}
-                  placeholder="搜尋：單號 / 客戶 / 料件"
-                  className="min-w-[16rem] flex-1 rounded border bg-background px-2 py-1 text-sm"
-                />
-                <span className="text-xs text-muted-foreground">共 {total} 筆</span>
-              </div>
+            {error ? (
+              <div className="mx-3 mt-2 rounded border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm">{error}</div>
+            ) : null}
 
-              {error ? (
-                <div className="rounded border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm">{error}</div>
-              ) : null}
-
-              {showNew ? (
+            {showNew ? (
+              <div className="border-b border-border/40 p-3">
                 <QuickCreateForm
                   onCreated={(id) => {
                     setShowNew(false);
@@ -205,68 +294,32 @@ export function QuoteWorkbench({
                   }}
                   onCancel={() => setShowNew(false)}
                 />
-              ) : null}
+              </div>
+            ) : null}
 
-              {loading && !rows.length ? (
-                <div className="text-sm text-muted-foreground">載入中…</div>
-              ) : null}
-
-              {!loading && !rows.length && !error ? (
-                <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
-                  尚無報價單。按工具列「新增」建立一筆。
-                </div>
-              ) : null}
-
-              {rows.length > 0 ? (
-                <div className="overflow-x-auto rounded-lg border">
-                  <table className="w-full text-sm">
-                    <thead className="bg-muted text-xs uppercase text-muted-foreground">
-                      <tr>
-                        <th className="px-3 py-2 text-left">單號</th>
-                        <th className="px-3 py-2 text-left">狀態</th>
-                        <th className="px-3 py-2 text-left">報價日</th>
-                        <th className="px-3 py-2 text-left">有效期限</th>
-                        <th className="px-3 py-2 text-left">客戶</th>
-                        <th className="px-3 py-2 text-left">業務員</th>
-                        <th className="px-3 py-2 text-right">未稅</th>
-                        <th className="px-3 py-2 text-right">含稅</th>
-                        <th className="px-3 py-2 text-left">備註</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {rows.map((r) => {
-                        const expired = isExpired(r.validUntil);
-                        return (
-                          <tr
-                            key={r.id}
-                            onClick={() => openDetail(r.id)}
-                            className={`cursor-pointer border-t hover:bg-accent/10 ${
-                              r.id === selectedId ? 'bg-primary/10' : ''
-                            }`}
-                          >
-                            <td className="px-3 py-2 font-mono">{r.docNo}</td>
-                            <td className="px-3 py-2">
-                              <span className={`rounded px-2 py-0.5 text-xs ${STATUS_BADGE_CLASS[r.status] ?? 'bg-muted'}`}>
-                                {QUOTE_STATUS_LABEL[r.status] ?? r.status}
-                              </span>
-                            </td>
-                            <td className="px-3 py-2">{r.quoteDate.slice(0, 10)}</td>
-                            <td className={`px-3 py-2 ${expired ? 'font-semibold text-rose-600' : ''}`}>
-                              {r.validUntil ? r.validUntil.slice(0, 10) : '—'}
-                              {expired ? '（過期）' : ''}
-                            </td>
-                            <td className="px-3 py-2 font-mono text-xs">{r.customerId}</td>
-                            <td className="px-3 py-2 font-mono text-xs">{r.salesPersonId ?? '—'}</td>
-                            <td className="px-3 py-2 text-right tabular-nums">{r.subtotal}</td>
-                            <td className="px-3 py-2 text-right tabular-nums">{r.totalAmount}</td>
-                            <td className="px-3 py-2 text-xs text-muted-foreground">{r.remark ?? ''}</td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              ) : null}
+            <div className="flex min-h-0 flex-1 flex-col">
+              <MasterTable<Quote>
+                columns={columns}
+                rows={displayRows}
+                getRowId={(r) => r.id}
+                selectedId={selectedId}
+                onSelect={setSelectedId}
+                onOpenDetail={openDetail}
+                selectionMode={false}
+                checked={new Set()}
+                setChecked={noop}
+                pageSize={100}
+                hidePageSizeArea
+                sortKey={sortKey ?? undefined}
+                onSortKeyChange={(k) => {
+                  if (sortKey === k) setSortOrder((o) => (o === 'asc' ? 'desc' : 'asc'));
+                  else {
+                    setSortKey(k);
+                    setSortOrder('asc');
+                  }
+                }}
+                totalCount={total}
+              />
             </div>
           </>
         ) : selectedId ? (
@@ -275,15 +328,72 @@ export function QuoteWorkbench({
             onBack={() => setTab('list')}
             onChanged={reload}
             itemIndex={itemIndex}
-            itemTotal={rows.length}
-            onPrevItem={gotoPrev}
-            onNextItem={gotoNext}
+            itemTotal={displayRows.length}
+            onPrevItem={idx > 0 ? () => selectAt(idx - 1) : undefined}
+            onNextItem={idx >= 0 && idx < displayRows.length - 1 ? () => selectAt(idx + 1) : undefined}
           />
         ) : (
           <div className="p-6 text-sm text-muted-foreground">請先回資料瀏覽選一張報價單。</div>
         )}
       </div>
     </TieredFormProvider>
+  );
+}
+
+/** 查詢 / 篩選面板（工具列「查詢」展開；主內容層維持純表格）*/
+function QuoteFilterPanel({
+  status,
+  search,
+  onApply,
+  onClose,
+}: {
+  status: QuoteStatus | '';
+  search: string;
+  onApply: (status: QuoteStatus | '', search: string) => void;
+  onClose: () => void;
+}) {
+  const [st, setSt] = useState<QuoteStatus | ''>(status);
+  const [kw, setKw] = useState(search);
+  return (
+    <div className="flex flex-wrap items-end gap-3 border-b border-border/40 bg-muted/20 px-4 py-3">
+      <label className="text-sm">
+        <span className="mb-1 block text-xs text-muted-foreground">狀態</span>
+        <select value={st} onChange={(e) => setSt(e.target.value as QuoteStatus | '')} className="rounded border bg-background px-2 py-1 text-sm">
+          {STATUS_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="min-w-[16rem] flex-1 text-sm">
+        <span className="mb-1 block text-xs text-muted-foreground">關鍵字（單號 / 客戶 / 料件）</span>
+        <input
+          value={kw}
+          onChange={(e) => setKw(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && onApply(st, kw)}
+          placeholder="輸入後按套用 / Enter"
+          className="w-full rounded border bg-background px-2 py-1 text-sm"
+          autoFocus
+        />
+      </label>
+      <button onClick={() => onApply(st, kw)} className="rounded bg-primary px-3 py-1.5 text-sm text-primary-foreground">
+        套用
+      </button>
+      <button
+        onClick={() => {
+          setSt('');
+          setKw('');
+          onApply('', '');
+        }}
+        className="rounded border px-3 py-1.5 text-sm"
+      >
+        清除
+      </button>
+      <button onClick={onClose} className="rounded border px-3 py-1.5 text-sm">
+        收合
+      </button>
+    </div>
   );
 }
 
@@ -335,23 +445,18 @@ function QuickCreateForm({
 
   return (
     <form onSubmit={submit} className="space-y-3 rounded-lg border bg-muted/30 p-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold">新增報價單（建立後進入詳情頁加料件）</h2>
-        <button type="button" onClick={onCancel} className="rounded p-1 hover:bg-accent/20" aria-label="取消">
-          <X className="h-4 w-4" />
-        </button>
-      </div>
+      <h2 className="text-sm font-semibold">新增報價單（建立後進入詳情頁加料件；客戶/倉庫 picker 待 Step4）</h2>
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
         <label className="text-sm">
-          <span className="mb-1 block text-xs text-muted-foreground">倉庫 ID *（picker 待 Step4）</span>
-          <input value={warehouseId} onChange={(e) => setWarehouseId(e.target.value)} placeholder="NX01WHSE..." className={cls} required />
+          <span className="mb-1 block text-xs text-muted-foreground">倉庫 ID *</span>
+          <input value={warehouseId} onChange={(e) => setWarehouseId(e.target.value)} placeholder="NX01WARE..." className={cls} required />
         </label>
         <label className="text-sm">
-          <span className="mb-1 block text-xs text-muted-foreground">客戶 ID *（picker 待 Step4）</span>
+          <span className="mb-1 block text-xs text-muted-foreground">客戶 ID *</span>
           <input value={customerId} onChange={(e) => setCustomerId(e.target.value)} placeholder="NX01PTNR..." className={cls} required />
         </label>
         <label className="text-sm">
-          <span className="mb-1 block text-xs text-muted-foreground">客戶等級 ID（自動帶待 Step4）</span>
+          <span className="mb-1 block text-xs text-muted-foreground">客戶等級 ID</span>
           <input value={customerGradeId} onChange={(e) => setCustomerGradeId(e.target.value)} placeholder="NX01CUGR..." className={cls} />
         </label>
         <label className="text-sm">
@@ -368,7 +473,7 @@ function QuickCreateForm({
         </label>
         <label className="text-sm md:col-span-2">
           <span className="mb-1 block text-xs text-muted-foreground">備註</span>
-          <input value={remark} onChange={(e) => setRemark(e.target.value)} placeholder="客戶口頭備註等" className={cls} />
+          <input value={remark} onChange={(e) => setRemark(e.target.value)} className={cls} />
         </label>
       </div>
       {err ? <div className="text-xs text-destructive">{err}</div> : null}

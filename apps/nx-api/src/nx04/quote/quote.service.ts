@@ -68,6 +68,42 @@ const Q_ITEM_SEL = {
   updatedBy: true,
 } as const;
 
+// 表頭關聯 select：客戶 / 客戶等級 / 倉庫 / 業務員 名稱（避免畫面露內碼）
+const Q_REL_SEL = {
+  customer: { select: { code: true, name: true } },
+  customerGrade: { select: { code: true, name: true } },
+  warehouse: { select: { code: true, name: true } },
+  salesPerson: { select: { userName: true } },
+  currency: { select: { code: true } },
+} as const;
+
+// 把關聯物件攤平成 xxxName / xxxCode 欄位，移除巢狀關聯物件
+function flattenQuoteRels(row: Record<string, unknown>) {
+  const customer = row.customer as { code?: string; name?: string } | null | undefined;
+  const customerGrade = row.customerGrade as { code?: string; name?: string } | null | undefined;
+  const warehouse = row.warehouse as { code?: string; name?: string } | null | undefined;
+  const salesPerson = row.salesPerson as { userName?: string } | null | undefined;
+  const currency = row.currency as { code?: string } | null | undefined;
+  const {
+    customer: _c,
+    customerGrade: _g,
+    warehouse: _w,
+    salesPerson: _s,
+    currency: _cur,
+    ...rest
+  } = row;
+  return {
+    ...rest,
+    customerCode: customer?.code ?? null,
+    customerName: customer?.name ?? null,
+    customerGradeName: customerGrade?.name ?? null,
+    warehouseCode: warehouse?.code ?? null,
+    warehouseName: warehouse?.name ?? null,
+    salesPersonName: salesPerson?.userName ?? null,
+    currencyCode: currency?.code ?? null,
+  };
+}
+
 function mapQuoteItemApi<T extends { unitPrice: PrismaNs.Decimal | unknown }>(row: T) {
   const u = row.unitPrice as PrismaNs.Decimal;
   return { ...row, unitPriceSnapshot: u };
@@ -198,7 +234,7 @@ export class QuoteService {
   private mapDetail(row: { rev_Nx04QuoteItem_quoteId: unknown[] } & Record<string, unknown>) {
     const { rev_Nx04QuoteItem_quoteId: items, ...rest } = row;
     return {
-      ...rest,
+      ...flattenQuoteRels(rest),
       items: (items as object[]).map((it) => mapQuoteItemApi(it as never)),
     };
   }
@@ -215,10 +251,15 @@ export class QuoteService {
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * pageSize,
         take: pageSize,
-        select: Q_SEL,
+        select: { ...Q_SEL, ...Q_REL_SEL },
       }),
     ]);
-    return { page, pageSize, total, items: rows };
+    return {
+      page,
+      pageSize,
+      total,
+      items: rows.map((r) => flattenQuoteRels(r as Record<string, unknown>)),
+    };
   }
 
   async getById(user: RequestUser, id: string) {
@@ -227,6 +268,7 @@ export class QuoteService {
       where: { id, tenantId },
       select: {
         ...Q_SEL,
+        ...Q_REL_SEL,
         rev_Nx04QuoteItem_quoteId: { orderBy: { lineNo: 'asc' }, select: Q_ITEM_SEL },
       },
     });
@@ -371,6 +413,7 @@ export class QuoteService {
         where: { id: quote.id },
         select: {
           ...Q_SEL,
+          ...Q_REL_SEL,
           rev_Nx04QuoteItem_quoteId: { orderBy: { lineNo: 'asc' }, select: Q_ITEM_SEL },
         },
       });
@@ -430,6 +473,7 @@ export class QuoteService {
         where: { id },
         select: {
           ...Q_SEL,
+          ...Q_REL_SEL,
           rev_Nx04QuoteItem_quoteId: { orderBy: { lineNo: 'asc' }, select: Q_ITEM_SEL },
         },
       });
@@ -469,6 +513,7 @@ export class QuoteService {
       where: { id },
       select: {
         ...Q_SEL,
+        ...Q_REL_SEL,
         rev_Nx04QuoteItem_quoteId: { orderBy: { lineNo: 'asc' }, select: Q_ITEM_SEL },
       },
     });
