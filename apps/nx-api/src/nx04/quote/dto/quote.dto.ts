@@ -58,6 +58,18 @@ export class CreateQuoteDto {
   @MaxLength(15)
   customerGradeId?: string;
 
+  /// 業務員（FK nx01_user）；省略時後端帶當前使用者
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  salesPersonId?: string;
+
+  /// 參考文號（客戶採購單號等，選填）
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  customerRefNo?: string;
+
   @IsOptional()
   @IsDateString()
   validUntil?: string;
@@ -102,6 +114,18 @@ export class UpdateQuoteDto {
   @IsString()
   @MaxLength(30)
   status?: string;
+
+  /// 業務員（FK nx01_user）
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  salesPersonId?: string;
+
+  /// 參考文號（客戶採購單號等，選填）
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  customerRefNo?: string;
 }
 
 export class PatchQuoteItemDto {

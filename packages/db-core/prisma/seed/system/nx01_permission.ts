@@ -84,6 +84,14 @@ const ALL_PERMS: PermissionRow[] = [
   // 「售價只放銷售頁、業務不必拿主檔中心 key 也能維護售價」。Alex 2026-05-30 拍板補。
   ...crudPerms('sale', 'product', '產品（銷貨角度）', 2080),
   {
+    code: 'sale.quote.extend-validity',
+    moduleCode: 'sale',
+    category: 'quote',
+    action: 'extend-validity',
+    name: '報價單.延長有效期（逾預設天數）',
+    sortNo: 2015,
+  },
+  {
     code: 'sale.so.post',
     moduleCode: 'sale',
     category: 'so',

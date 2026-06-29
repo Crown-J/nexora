@@ -25,6 +25,8 @@ const Q_SEL = {
   quoteDate: true,
   customerId: true,
   customerGradeId: true,
+  salesPersonId: true,
+  customerRefNo: true,
   validUntil: true,
   currencyId: true,
   subtotal: true,
@@ -232,6 +234,60 @@ export class QuoteService {
     return this.mapDetail(row as never);
   }
 
+  /**
+   * 是否有「延長報價有效期」權限（鏡像 PermissionService.listMine 最小邏輯，避免 module 循環依賴）。
+   * 權限等級 S / 職務 SYSADMIN・OWNER 全通；否則查職務是否被授予 sale.quote.extend-validity。
+   */
+  private async userCanExtendValidity(user: RequestUser): Promise<boolean> {
+    if (String(user.permissionLevelCode ?? '').trim().toUpperCase() === 'S') return true;
+    const userRoles = await this.prisma.nx01UserRole.findMany({
+      where: { userId: user.sub, isActive: true },
+      include: { role: { select: { id: true, code: true, isActive: true } } },
+    });
+    const activeRoles = userRoles.filter((r) => r.role.isActive);
+    const SUPER = new Set(['SYSADMIN', 'OWNER']);
+    if (activeRoles.some((r) => SUPER.has(String(r.role.code).trim().toUpperCase()))) return true;
+    const roleIds = activeRoles.map((r) => r.role.id);
+    if (!roleIds.length) return false;
+    const grant = await this.prisma.nx01RolePermission.findFirst({
+      where: {
+        roleId: { in: roleIds },
+        permission: { code: 'sale.quote.extend-validity', isActive: true },
+      },
+      select: { id: true },
+    });
+    return !!grant;
+  }
+
+  /**
+   * 計算 + 驗證報價有效期（甲案卡控、執行長 2026-06-29 拍板）。
+   * 建單未填 → 自動帶 quoteDate + 租戶預設天數（quoteDefaultValidityDays、預設 30）。
+   * 業務員只能縮短不能延長：填的日期若超過「預設上限」、需 sale.quote.extend-validity 權限。
+   */
+  private async resolveCreateValidUntil(
+    tx: Prisma.TransactionClient,
+    tenantId: string,
+    quoteDate: Date,
+    provided: string | undefined,
+    canExtend: boolean,
+  ): Promise<Date> {
+    const tenant = await tx.nx99Tenant.findFirst({
+      where: { id: tenantId },
+      select: { quoteDefaultValidityDays: true },
+    });
+    const days = tenant?.quoteDefaultValidityDays ?? 30;
+    const cap = new Date(quoteDate);
+    cap.setDate(cap.getDate() + days);
+    if (!provided) return cap;
+    const wanted = new Date(provided);
+    if (wanted.getTime() > cap.getTime() && !canExtend) {
+      throw new BadRequestException(
+        `報價有效期最長至 ${cap.toISOString().slice(0, 10)}（預設 ${days} 天）；延長需銷售組長以上權限`,
+      );
+    }
+    return wanted;
+  }
+
   async create(user: RequestUser, dto: CreateQuoteDto) {
     const tenantId = requireTenantId(user);
     return this.prisma.$transaction(async (tx) => {
@@ -244,15 +300,25 @@ export class QuoteService {
       const currencyId = await resolveCurrencyId(tx, dto.currencyId);
       const taxRate = new PrismaNs.Decimal(dto.taxRate);
       const docNo = await allocNx04DocNo(tx, tenantId, 'QT', wh.code);
+      const quoteDate = new Date(dto.quoteDate);
+      const validUntil = await this.resolveCreateValidUntil(
+        tx,
+        tenantId,
+        quoteDate,
+        dto.validUntil,
+        await this.userCanExtendValidity(user),
+      );
       const quote = await tx.nx04Quote.create({
         data: {
           tenantId,
           docNo,
           warehouseId: wh.id,
-          quoteDate: new Date(dto.quoteDate),
+          quoteDate,
           customerId: dto.customerId.trim(),
           customerGradeId: dto.customerGradeId?.trim() || null,
-          validUntil: dto.validUntil ? new Date(dto.validUntil) : null,
+          salesPersonId: dto.salesPersonId?.trim() || user.sub,
+          customerRefNo: dto.customerRefNo?.trim() || null,
+          validUntil,
           currencyId,
           taxRate,
           subtotal: 0,
@@ -333,6 +399,16 @@ export class QuoteService {
       assertQuoteStatusTransition(existing.status, dto.status);
     }
 
+    // 有效期甲案卡控：只能縮短不能延長（延長＝比原本更晚或改為無限期），延長需銷售組長以上權限
+    if (dto.validUntil !== undefined) {
+      const oldVu = existing.validUntil ? new Date(existing.validUntil) : null;
+      const newVu = dto.validUntil ? new Date(dto.validUntil) : null;
+      const isExtending = oldVu !== null && (newVu === null || newVu.getTime() > oldVu.getTime());
+      if (isExtending && !(await this.userCanExtendValidity(user))) {
+        throw new BadRequestException('延長報價有效期需銷售組長以上權限');
+      }
+    }
+
     return this.prisma.$transaction(async (tx) => {
       const taxRate = new PrismaNs.Decimal(existing.taxRate);
       await tx.nx04Quote.update({
@@ -340,6 +416,8 @@ export class QuoteService {
         data: {
           ...(dto.quoteDate !== undefined ? { quoteDate: new Date(dto.quoteDate) } : {}),
           ...(dto.validUntil !== undefined ? { validUntil: dto.validUntil ? new Date(dto.validUntil) : null } : {}),
+          ...(dto.salesPersonId !== undefined ? { salesPersonId: dto.salesPersonId?.trim() || null } : {}),
+          ...(dto.customerRefNo !== undefined ? { customerRefNo: dto.customerRefNo?.trim() || null } : {}),
           ...(dto.remark !== undefined ? { remark: dto.remark } : {}),
           ...(dto.status !== undefined ? { status: dto.status } : {}),
           updatedBy: user.sub,
