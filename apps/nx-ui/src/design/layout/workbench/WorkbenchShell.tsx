@@ -56,6 +56,7 @@ function WorkbenchChrome({ children }: Props) {
         onSelect={onSelect}
         onHome={() => open('/dashboard', 'menu: 首頁')}
         onSearch={onSearch}
+        status={{ tenantName, displayName, employeeNo }}
       />
       {/* 第 2 層：內容分頁（已開功能） */}
       <WorkbenchTabStrip />

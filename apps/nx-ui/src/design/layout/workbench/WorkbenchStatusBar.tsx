@@ -26,7 +26,7 @@ export function WorkbenchStatusBar({ tenantName, displayName, employeeNo }: Prop
     : '—';
 
   return (
-    <div className="flex items-center gap-4 border-t border-border bg-secondary px-3 py-1 text-[11px] text-muted-foreground">
+    <div className="hidden items-center gap-4 border-t border-border bg-secondary px-3 py-1 text-[11px] text-muted-foreground md:flex">
       <span className="flex items-center gap-1.5">
         <Building2 className="h-3 w-3" />
         {tenantName}

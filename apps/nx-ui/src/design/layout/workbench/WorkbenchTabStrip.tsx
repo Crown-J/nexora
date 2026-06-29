@@ -12,7 +12,7 @@ export function WorkbenchTabStrip() {
   const homeActive = activeHref === HOME_HREF;
 
   return (
-    <div className="flex items-stretch gap-0.5 overflow-x-auto border-b border-border bg-background px-1.5 pt-1">
+    <div className="hidden items-stretch gap-0.5 overflow-x-auto border-b border-border bg-background px-1.5 pt-1 md:flex">
       {/* 首頁（固定、不可關） */}
       <button
         type="button"

@@ -7,8 +7,12 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ChevronRight, Home, Search } from 'lucide-react';
+import { ChevronRight, Home, Layers, Menu, Search } from 'lucide-react';
 import type { MenuNode } from './menu-data';
+import { BrandLogo } from '@design/brand/BrandLogo';
+import { useWorkbenchTabs } from './WorkbenchTabsContext';
+import { MobileNavDrawer } from './MobileNavDrawer';
+import { MobileTabSwitcher } from './MobileTabSwitcher';
 
 type Props = {
   menus: MenuNode[];
@@ -16,6 +20,8 @@ type Props = {
   onHome: () => void;
   /** 全域料號搜尋（F2） */
   onSearch: () => void;
+  /** 手機抽屜底部狀態資訊（公司/使用者）*/
+  status?: { tenantName: string; displayName: string; employeeNo: string };
 };
 
 function SubMenu({ items, onPick }: { items: MenuNode[]; onPick: (n: MenuNode) => void }) {
@@ -67,8 +73,11 @@ function SubMenu({ items, onPick }: { items: MenuNode[]; onPick: (n: MenuNode) =
   );
 }
 
-export function TopMenuBar({ menus, onSelect, onHome, onSearch }: Props) {
+export function TopMenuBar({ menus, onSelect, onHome, onSearch, status }: Props) {
   const [open, setOpen] = useState<string | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [switcherOpen, setSwitcherOpen] = useState(false);
+  const { tabs } = useWorkbenchTabs();
   const ref = useRef<HTMLDivElement>(null);
 
   const close = useCallback(() => setOpen(null), []);
@@ -114,9 +123,10 @@ export function TopMenuBar({ menus, onSelect, onHome, onSearch }: Props) {
   );
 
   return (
+    <>
     <div
       ref={ref}
-      className="flex items-center gap-0.5 border-b border-black/20 bg-[var(--nx-menubar-bg)] px-1.5 text-[var(--nx-menubar-fg)]"
+      className="hidden items-center gap-0.5 border-b border-black/20 bg-[var(--nx-menubar-bg)] px-1.5 text-[var(--nx-menubar-fg)] md:flex"
     >
       <button
         type="button"
@@ -174,5 +184,50 @@ export function TopMenuBar({ menus, onSelect, onHome, onSearch }: Props) {
         <Search className="h-[15px] w-[15px]" />
       </button>
     </div>
+
+    {/* ── 手機版 L1：漢堡 + 品牌 + 分頁切換器 + 搜尋 ── */}
+    <div className="flex items-center gap-1.5 border-b border-black/20 bg-[var(--nx-menubar-bg)] px-2 py-1.5 text-[var(--nx-menubar-fg)] md:hidden">
+      <button
+        type="button"
+        onClick={() => setDrawerOpen(true)}
+        aria-label="選單"
+        className="grid h-8 w-8 place-items-center rounded-md hover:bg-white/10 hover:text-white"
+      >
+        <Menu className="h-5 w-5" />
+      </button>
+      <BrandLogo size={24} className="rounded-md ring-1 ring-white/15" />
+      <span className="text-[14px] font-bold tracking-wide text-white">NEXORA</span>
+      <div className="flex-1" />
+      <button
+        type="button"
+        onClick={() => setSwitcherOpen(true)}
+        aria-label="已開啟分頁"
+        className="relative grid h-8 w-8 place-items-center rounded-md hover:bg-white/10 hover:text-white"
+      >
+        <Layers className="h-5 w-5" />
+        <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-[#7fa7d6] px-1 text-[9px] font-bold text-[#16223b]">
+          {tabs.length + 1}
+        </span>
+      </button>
+      <button
+        type="button"
+        onClick={onSearch}
+        aria-label="料號查詢"
+        className="grid h-8 w-8 place-items-center rounded-md hover:bg-white/10 hover:text-white"
+      >
+        <Search className="h-5 w-5" />
+      </button>
+    </div>
+
+    <MobileNavDrawer
+      open={drawerOpen}
+      menus={menus}
+      onClose={() => setDrawerOpen(false)}
+      onSelect={onSelect}
+      onHome={onHome}
+      status={status}
+    />
+    <MobileTabSwitcher open={switcherOpen} onClose={() => setSwitcherOpen(false)} />
+    </>
   );
 }
