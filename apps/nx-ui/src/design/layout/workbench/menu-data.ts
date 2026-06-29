@@ -145,12 +145,11 @@ export const MENU_BAR: MenuNode[] = [
     ],
   },
 
-  // ───────── 銷售作業 (W)：暫緩 ─────────
+  // ───────── 銷售作業 (W)：建置中（報價單已進新外殼、其餘為 LITE 頁待逐張改版）─────────
   {
     key: 'sales',
     label: '銷售作業',
     accel: 'W',
-    comingSoon: true,
     children: [
       { key: 'qt', label: '報價單', href: '/dashboard/sale/qt' },
       { key: 'so', label: '銷貨單', href: '/dashboard/sale/so' },
