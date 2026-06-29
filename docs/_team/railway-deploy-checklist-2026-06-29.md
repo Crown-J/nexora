@@ -6,6 +6,10 @@
 
 # Railway 上線執行清單（2026-06-29）
 
+> ✅ **已執行（2026-06-29）**：實際走「DROP SCHEMA public CASCADE + 還原本機 dump」路線（非 prisma migrate reset）。
+> 線上備份 `dev-backups/railway-pre-2026-06-29.dump`（13MB、含當時 95,839 零件）；還原後 186 表 / 3 租戶 / 164 用戶 / 4003 往來 / 權限等級 3 / 貨架 5 / 零件 **0**；`git push origin main` 完成、Vercel 新前端上線。
+> ⏳ 待辦：**95,839 零件待從匯入來源重灌**；建議 rotate Railway DB 密碼（曾出現在對話）。
+
 > **背景**：本機 `main` 領先 `origin/main` **57 commit / 9 migration**。內容：
 > - 零件主檔重構（destructive：砍 `nx01_brand_code_rule` 表、seg1~5 / old_code 欄、車型分類四表/欄）
 > - 職務↔權限等級拆分（additive：新 `nx01_permission_level` ×3 表 + `nx01_user.permission_level_id`）
