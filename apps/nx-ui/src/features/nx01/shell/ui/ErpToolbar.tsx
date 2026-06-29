@@ -36,6 +36,7 @@ import {
   FileSpreadsheet,
   FileText,
   Filter,
+  MoreHorizontal,
   Pencil,
   Plus,
   Power,
@@ -46,6 +47,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
+import { useState } from 'react';
 
 import {
   SortMenuButton,
@@ -192,6 +194,8 @@ export function ErpToolbar({
   const disableButtonLabel = rowIsActive ? '刪除' : '啟用';
   const DisableButtonIcon = rowIsActive ? Trash2 : Power;
   const disableButtonVariant: 'default' | 'danger' = rowIsActive ? 'danger' : 'default';
+  // 手機「更多」sheet 開關（瀏覽模式 L3 精簡工具列用）
+  const [moreOpen, setMoreOpen] = useState(false);
   if (selectionMode) {
     const hasChecked = selectedCount > 0;
     return (
@@ -273,7 +277,7 @@ export function ErpToolbar({
     <ToolbarPortal>
     <div
       data-nx-frame
-      className="flex items-center gap-1 border-b border-border/40 px-3 py-2"
+      className="hidden items-center gap-1 border-b border-border/40 px-3 py-2 md:flex"
       style={{
         // 2026-06-18 token 化:dark 用 var(--secondary)→var(--secondary)、light 用深橘 #c8550f→#a8430a
         backgroundImage:
@@ -362,7 +366,99 @@ export function ErpToolbar({
       ) : null}
       <div className="flex-1" />
     </div>
+
+    {/* ── 手機：精簡工具列（查詢/重整/編輯/刪除 + 更多）── */}
+    <div
+      data-nx-frame
+      className="flex items-center gap-1 border-b border-border/40 px-3 py-2 md:hidden"
+      style={{
+        backgroundImage: 'linear-gradient(180deg, var(--nx-surface-toolbar-from) 0%, var(--nx-surface-toolbar-to) 100%)',
+        boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.04), 0 1px 0 0 rgba(0,0,0,0.5)',
+      }}
+    >
+      <ToolbarButton icon={Search} letter="F" label="查詢" enabled onClick={onSearch} />
+      <ToolbarButton icon={RefreshCcw} letter="R" label="重整" enabled onClick={onRefresh} />
+      <ToolbarButton icon={Pencil} letter="E" label="編輯" enabled={hasActiveRow} onClick={onEdit} />
+      <ToolbarButton
+        icon={DisableButtonIcon}
+        letter="D"
+        label={selectedRowBuiltin ? '鎖' : disableButtonLabel}
+        enabled={hasActiveRow && !selectedRowBuiltin}
+        variant={selectedRowBuiltin ? 'default' : disableButtonVariant}
+        onClick={onDelete}
+      />
+      <div className="flex-1" />
+      <ToolbarButton icon={MoreHorizontal} label="更多" enabled onClick={() => setMoreOpen(true)} />
+    </div>
+
+    {moreOpen ? (
+      <div className="fixed inset-0 z-[60] md:hidden" onClick={() => setMoreOpen(false)}>
+        <div className="absolute inset-0 bg-black/50" />
+        <div
+          className="absolute inset-x-0 bottom-0 max-h-[75vh] overflow-y-auto rounded-t-2xl bg-card p-2 shadow-2xl"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="px-3 py-2 text-sm font-bold text-foreground">更多操作</div>
+          {onOpenFilter ? (
+            <MoreRow icon={Filter} label={filterCount > 0 ? `篩選 · ${filterCount}` : '篩選'} onClick={() => { onOpenFilter(); setMoreOpen(false); }} />
+          ) : null}
+          {sortOptions && onSortChange ? (
+            <>
+              <div className="border-t border-border/40 px-3 pt-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">排序</div>
+              {sortOptions.map((o) => {
+                const active = sortKey === o.key;
+                return (
+                  <button
+                    key={o.key}
+                    type="button"
+                    onClick={() => { onSortChange(o.key, active && sortOrder === 'asc' ? 'desc' : 'asc'); setMoreOpen(false); }}
+                    className="flex w-full items-center justify-between px-3 py-2.5 text-left text-[14px] text-foreground hover:bg-accent/10"
+                  >
+                    <span>依 {o.label}</span>
+                    {active ? <span className="text-[12px] text-primary">{sortOrder === 'asc' ? '↑ 升冪' : '↓ 降冪'}</span> : null}
+                  </button>
+                );
+              })}
+            </>
+          ) : null}
+          <div className="my-1 border-t border-border/40" />
+          <MoreRow icon={Download} label="匯出 CSV" onClick={() => { onExport('csv'); setMoreOpen(false); }} />
+          <MoreRow icon={FileText} label="匯出 PDF" onClick={() => { onExport('pdf'); setMoreOpen(false); }} />
+          <MoreRow icon={Printer} label="列印" onClick={() => { if (onPrint) onPrint(); else onExport('print'); setMoreOpen(false); }} />
+          {onOpenColumns ? (
+            <MoreRow icon={Columns3} label={columnsHiddenCount > 0 ? `欄位 · 隱${columnsHiddenCount}` : '欄位'} onClick={() => { onOpenColumns(); setMoreOpen(false); }} />
+          ) : null}
+          {onShowInactiveChange ? (
+            <MoreRow icon={Trash2} label={showInactive ? '隱藏停用' : '顯示停用（垃圾桶）'} onClick={() => { onShowInactiveChange(!showInactive); setMoreOpen(false); }} />
+          ) : null}
+          <button type="button" onClick={() => setMoreOpen(false)} className="mt-1 w-full rounded-lg border border-border/50 px-3 py-3 text-[14px] text-muted-foreground">
+            關閉
+          </button>
+        </div>
+      </div>
+    ) : null}
     </ToolbarPortal>
+  );
+}
+
+function MoreRow({
+  icon: Icon,
+  label,
+  onClick,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex w-full items-center gap-3 px-3 py-3 text-left text-[14px] text-foreground hover:bg-accent/10"
+    >
+      <Icon className="h-4 w-4 text-muted-foreground" />
+      {label}
+    </button>
   );
 }
 
