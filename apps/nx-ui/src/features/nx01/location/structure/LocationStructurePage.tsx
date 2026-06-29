@@ -431,9 +431,9 @@ export function LocationStructurePage() {
                 selected={siteId === s.id}
                 reducedMotion={reducedMotion}
                 onClick={() => {
-                  setZone('site');
                   setSiteIdx(i);
                   selectSite(s.id);
+                  setZone('warehouse');
                 }}
               />
             ))
@@ -465,9 +465,9 @@ export function LocationStructurePage() {
                 selected={warehouseId === w.id}
                 reducedMotion={reducedMotion}
                 onClick={() => {
-                  setZone('warehouse');
                   setWarehouseIdx(i);
                   selectWarehouse(w.id);
+                  setZone('zone');
                 }}
               />
             ))
@@ -499,9 +499,9 @@ export function LocationStructurePage() {
                 selected={zoneId === z.id}
                 reducedMotion={reducedMotion}
                 onClick={() => {
-                  setZone('zone');
                   setZoneIdx(i);
                   selectZone(z.id);
+                  setZone('rack');
                 }}
               />
             ))
@@ -533,9 +533,9 @@ export function LocationStructurePage() {
                 selected={rackId === r.id}
                 reducedMotion={reducedMotion}
                 onClick={() => {
-                  setZone('rack');
                   setRackIdx(i);
                   selectRack(r.id);
+                  setZone('location');
                 }}
               />
             ))
@@ -754,7 +754,9 @@ function ColumnPanel({
     <section
       onClick={onClick}
       className={cn(
-        'flex min-h-0 flex-col overflow-hidden rounded-lg border bg-card transition-all',
+        // 手機逐層下鑽：只顯示當前聚焦欄；桌面五欄並列（md:flex）
+        active ? 'flex' : 'hidden',
+        'md:flex min-h-0 flex-col overflow-hidden rounded-lg border bg-card transition-all',
         active
           ? 'border-primary/60 shadow-[0_0_0_2px_var(--color-primary)/0.18]'
           : disabled

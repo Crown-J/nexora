@@ -260,9 +260,9 @@ export function PartKitMasterView() {
                 key={r.id}
                 type="button"
                 onClick={() => {
-                  setFocusZone('left');
                   setKitIdx(i);
                   setSelectedId(r.id);
+                  setFocusZone('right');
                 }}
                 className={cn(
                   'flex items-center gap-2 rounded-md border px-2.5 py-2 text-left transition-all',
@@ -514,7 +514,9 @@ function ColPanel({
     <section
       onClick={onClick}
       className={cn(
-        'flex min-h-0 flex-col overflow-hidden rounded-lg border bg-card transition-all',
+        // 手機逐層下鑽：只顯聚焦 pane；桌面雙欄（md:flex）
+        active ? 'flex' : 'hidden',
+        'md:flex min-h-0 flex-col overflow-hidden rounded-lg border bg-card transition-all',
         active ? 'border-primary/60' : 'border-border/50 hover:border-border',
       )}
     >

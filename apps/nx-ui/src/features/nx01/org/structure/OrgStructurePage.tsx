@@ -504,9 +504,9 @@ export function OrgStructurePage() {
                 selected={deptId === d.id}
                 reducedMotion={reducedMotion}
                 onClick={() => {
-                  setZone('dept');
                   setDeptIdx(i);
                   selectDept(d.id);
+                  setZone('team');
                 }}
               />
             ))
@@ -538,9 +538,9 @@ export function OrgStructurePage() {
                 selected={teamId === t.id}
                 reducedMotion={reducedMotion}
                 onClick={() => {
-                  setZone('team');
                   setTeamIdx(i);
                   selectTeam(t.id);
+                  setZone('role');
                 }}
               />
             ))
@@ -572,9 +572,9 @@ export function OrgStructurePage() {
                 selected={roleId === r.id}
                 reducedMotion={reducedMotion}
                 onClick={() => {
-                  setZone('role');
                   setRoleIdx(i);
                   selectRole(r.id);
+                  setZone('member');
                 }}
               />
             ))
@@ -732,7 +732,9 @@ function ColumnPanel({
     <section
       onClick={onClick}
       className={cn(
-        'flex min-h-0 flex-col overflow-hidden rounded-lg border bg-card transition-all',
+        // 手機逐層下鑽：只顯示當前聚焦欄；桌面四欄並列（md:flex）
+        active ? 'flex' : 'hidden',
+        'md:flex min-h-0 flex-col overflow-hidden rounded-lg border bg-card transition-all',
         active
           ? 'border-primary/60 shadow-[0_0_0_2px_var(--color-primary)/0.18]'
           : disabled

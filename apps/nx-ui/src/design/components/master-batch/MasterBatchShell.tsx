@@ -418,6 +418,8 @@ export function MasterBatchShell<S, M>({ config, className }: MasterBatchShellPr
       </div>
 
       <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 px-4 pb-4 pt-3 md:grid-cols-[360px_1fr]">
+        {/* 手機逐層下鑽：只顯聚焦 pane；桌面 md:contents → 仍為 grid item（版面不變）*/}
+        <div className={cn(focusZone === 'left' ? 'flex' : 'hidden', 'min-h-0 flex-col md:contents')}>
         <SubjectPanel
           mode={config.leftMode}
           subjectIcon={config.subjectIcon}
@@ -446,7 +448,9 @@ export function MasterBatchShell<S, M>({ config, className }: MasterBatchShellPr
           createLabel={config.createLabel}
           onCreate={undefined}
         />
+        </div>
 
+        <div className={cn(focusZone === 'right' ? 'flex' : 'hidden', 'min-h-0 flex-col md:contents')}>
         <MemberPanel
           mode={config.rightMode}
           subjectIcon={config.subjectIcon}
@@ -485,6 +489,7 @@ export function MasterBatchShell<S, M>({ config, className }: MasterBatchShellPr
           }
           waitingSubjectText={`請先從左欄選一個${config.subjectNoun}`}
         />
+        </div>
       </div>
 
       <ToastStack toasts={toasts} />
