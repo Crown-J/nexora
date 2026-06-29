@@ -224,10 +224,10 @@ export function ZipcodePage() {
               key={c.id}
               type="button"
               onClick={() => {
-                setFocus('city');
                 setCityIdx(i);
                 setCityId(c.id);
                 setDistrictIdx(0);
+                setFocus('district');
               }}
               className={cn(
                 'flex items-center gap-2 rounded-md border px-2.5 py-2 text-left transition-all',
@@ -362,7 +362,9 @@ function ColumnPanel({
     <section
       onClick={onClick}
       className={cn(
-        'flex min-h-0 flex-col overflow-hidden rounded-lg border bg-card transition-all',
+        // 手機逐層下鑽：只顯聚焦欄；桌面雙欄（md:flex）
+        active ? 'flex' : 'hidden',
+        'md:flex min-h-0 flex-col overflow-hidden rounded-lg border bg-card transition-all',
         active ? 'border-primary/60' : 'border-border/50 hover:border-border',
       )}
     >

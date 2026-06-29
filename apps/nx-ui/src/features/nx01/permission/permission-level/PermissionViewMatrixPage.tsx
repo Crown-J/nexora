@@ -267,7 +267,7 @@ export function PermissionViewMatrixPage() {
       {/* L5 內容：左等級清單 + 右矩陣 */}
       <div className="flex min-h-0 flex-1 gap-3 p-3">
         <aside
-          className={`w-56 shrink-0 overflow-y-auto rounded-lg border bg-card outline-none transition ${
+          className={`${pane === 'left' ? 'block' : 'hidden'} w-full shrink-0 overflow-y-auto rounded-lg border bg-card outline-none transition md:block md:w-56 ${
             pane === 'left' ? 'border-primary/60 ring-1 ring-primary/30' : 'border-border'
           }`}
         >
@@ -279,7 +279,10 @@ export function PermissionViewMatrixPage() {
               <li key={l.id}>
                 <button
                   type="button"
-                  onClick={() => setSelectedId(l.id)}
+                  onClick={() => {
+                    setSelectedId(l.id);
+                    setPane('right');
+                  }}
                   className={`flex w-full items-center justify-between gap-2 rounded-md px-2.5 py-2 text-left text-[13px] transition ${
                     selectedId === l.id
                       ? 'bg-primary/12 font-medium text-primary'
@@ -303,7 +306,7 @@ export function PermissionViewMatrixPage() {
           ref={rightRef}
           tabIndex={-1}
           onFocus={() => setPane('right')}
-          className={`flex min-w-0 flex-1 flex-col overflow-hidden rounded-lg border bg-card outline-none transition ${
+          className={`${pane === 'right' ? 'flex' : 'hidden'} min-w-0 flex-1 flex-col overflow-hidden rounded-lg border bg-card outline-none transition md:flex ${
             pane === 'right' ? 'border-primary/60 ring-1 ring-primary/30' : 'border-border'
           }`}
         >
