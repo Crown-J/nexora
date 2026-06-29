@@ -16,6 +16,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ArrowLeft, ChevronRight, Plus } from 'lucide-react';
 import { cn } from '@design/utils/cn';
 import { useDirtyGuard } from '@design/hooks/useDirtyGuard';
 import { MasterPageHead } from '@/features/nx01/shell/master-nav';
@@ -766,18 +767,20 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
   //   標題由工作區分頁（L2）顯示、總筆數由工具列項目導航（N/M）顯示
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden text-foreground">
-      {/* 套員工範式:MasterPageHead 含 tabs + detail 標題 + 主檔快速入口 */}
-      <MasterPageHead
-        tab={tab}
-        onTabChange={attemptTabChange}
-        currentPageId={config.pageId ?? null}
-        detailTitle={
-          creating
-            ? `新增${config.entityNoun}`
-            : (selected?.[config.fields[0].key] as string | undefined) ?? undefined
-        }
-        detailSubtitle={mode === 'edit' ? (creating ? '新增中' : '編輯中') : '瀏覽'}
-      />
+      {/* 套員工範式:MasterPageHead 含 tabs + detail 標題 + 主檔快速入口（手機隱、改卡片+返回列）*/}
+      <div className="hidden md:block">
+        <MasterPageHead
+          tab={tab}
+          onTabChange={attemptTabChange}
+          currentPageId={config.pageId ?? null}
+          detailTitle={
+            creating
+              ? `新增${config.entityNoun}`
+              : (selected?.[config.fields[0].key] as string | undefined) ?? undefined
+          }
+          detailSubtitle={mode === 'edit' ? (creating ? '新增中' : '編輯中') : '瀏覽'}
+        />
+      </div>
 
       {/* 2026-06-18 套員工範式 toolbar:item-level nav + sort menu + 受控 dropdown */}
       <div className="overflow-x-auto">
@@ -874,47 +877,120 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
       />
 
       {/* Content */}
-      <div className="flex min-h-0 flex-1 flex-col">
+      <div className="relative flex min-h-0 flex-1 flex-col">
         {tab === 'list' ? (
-          <MasterTable<EntityRow>
-            onColumnOrderChange={setColumnsOrder}
-            columns={visibleColumns}
-            rows={displayRows}
-            getRowId={(r) => r.id}
-            selectedId={selectedId}
-            onSelect={setSelectedId}
-            onOpenDetail={(id) => {
-              setSelectedId(id);
-              attemptTabChange('detail');
-            }}
-            selectionMode={selectionMode}
-            checked={checked}
-            setChecked={setChecked}
-            pageSize={pageSize}
-            hidePageSizeArea
-            footerHint={
-              loading
-                ? '載入中...'
-                : total > pageSize
-                  ? `資料較多、僅顯前 ${pageSize} 筆、請用搜尋過濾`
-                  : filters.length > 0
-                    ? `篩選 ${filters.length} 條件 · 符合 ${displayRows.length} 筆`
-                    : undefined
-            }
-            totalCount={total}
-          />
+          <>
+            {/* 桌面：表格 */}
+            <div className="hidden min-h-0 flex-1 flex-col md:flex">
+              <MasterTable<EntityRow>
+                onColumnOrderChange={setColumnsOrder}
+                columns={visibleColumns}
+                rows={displayRows}
+                getRowId={(r) => r.id}
+                selectedId={selectedId}
+                onSelect={setSelectedId}
+                onOpenDetail={(id) => {
+                  setSelectedId(id);
+                  attemptTabChange('detail');
+                }}
+                selectionMode={selectionMode}
+                checked={checked}
+                setChecked={setChecked}
+                pageSize={pageSize}
+                hidePageSizeArea
+                footerHint={
+                  loading
+                    ? '載入中...'
+                    : total > pageSize
+                      ? `資料較多、僅顯前 ${pageSize} 筆、請用搜尋過濾`
+                      : filters.length > 0
+                        ? `篩選 ${filters.length} 條件 · 符合 ${displayRows.length} 筆`
+                        : undefined
+                }
+                totalCount={total}
+              />
+            </div>
+            {/* 手機：卡片列表（點擊進詳細）*/}
+            <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-3 pb-24 md:hidden">
+              {displayRows.length === 0 ? (
+                <div className="py-10 text-center text-sm text-muted-foreground">{loading ? '載入中…' : '尚無資料'}</div>
+              ) : (
+                displayRows.map((r) => {
+                  const primary = visibleColumns[0] ? getCellText(r, visibleColumns[0].key) : r.id;
+                  const inactive = r.isActive === false;
+                  return (
+                    <button
+                      key={r.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedId(r.id);
+                        attemptTabChange('detail');
+                      }}
+                      className="flex items-center gap-3 rounded-lg border border-border/60 bg-card px-3 py-3 text-left active:bg-accent/15"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="truncate text-[15px] font-medium text-foreground">{primary || '—'}</span>
+                          {inactive ? (
+                            <span className="shrink-0 rounded bg-muted px-1.5 py-px text-[10px] text-muted-foreground">停用</span>
+                          ) : null}
+                        </div>
+                        {visibleColumns.slice(1, 3).map((c) => (
+                          <div key={c.key} className="mt-0.5 truncate text-[12px] text-muted-foreground">
+                            <span className="text-muted-foreground/70">{c.label}：</span>
+                            {getCellText(r, c.key) || '—'}
+                          </div>
+                        ))}
+                      </div>
+                      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </>
         ) : (
-          <DetailPane
-            config={config}
-            mode={mode}
-            creating={creating}
-            selected={selected}
-            draft={draft}
-            setDraft={setDraft}
-            refOptions={refOptions}
-            onRequestSave={handleSave}
-          />
+          <>
+            {/* 手機：詳細頁返回列 */}
+            <div className="flex items-center gap-2 border-b border-border bg-background px-3 py-2 md:hidden">
+              <button
+                type="button"
+                onClick={() => attemptTabChange('list')}
+                className="flex items-center gap-1 rounded-md px-2 py-1 text-[13px] text-foreground hover:bg-accent/15"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                返回
+              </button>
+              <span className="min-w-0 flex-1 truncate text-[14px] font-medium text-foreground">
+                {creating
+                  ? `新增${config.entityNoun}`
+                  : ((selected?.[config.fields[0].key] as string | undefined) ?? config.entityNoun)}
+              </span>
+            </div>
+            <DetailPane
+              config={config}
+              mode={mode}
+              creating={creating}
+              selected={selected}
+              draft={draft}
+              setDraft={setDraft}
+              refOptions={refOptions}
+              onRequestSave={handleSave}
+            />
+          </>
         )}
+
+        {/* 手機：新增 FAB（list 模式、可新增時）*/}
+        {tab === 'list' && !config.readOnly && config.canCreate !== false ? (
+          <button
+            type="button"
+            onClick={handleCreate}
+            aria-label={`新增${config.entityNoun}`}
+            className="fixed bottom-5 right-5 z-30 grid h-14 w-14 place-items-center rounded-full bg-primary text-primary-foreground shadow-lg active:scale-95 md:hidden"
+          >
+            <Plus className="h-6 w-6" />
+          </button>
+        ) : null}
       </div>
 
       <ToastStack toasts={toasts} />
