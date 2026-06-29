@@ -740,6 +740,8 @@ model Nx01Part {
   code                            String                 @db.VarChar(50)
   /// 零件名稱/品名（例：機油濾芯）；啟用最低需求版本：LITE
   name                            String                 @db.VarChar(200)
+  /// 英文品名（恆迎舊系統 col5 英文品名；2026-06-29 新增、選填）；啟用最低需求版本：LITE
+  nameEn                          String?                @map("name_en") @db.VarChar(50)
   /// 是否為正廠件；啟用最低需求版本：LITE
   isOem                           Boolean                @default(true) @map("is_oem")
   /// 廠牌料號（記「該廠牌對這料件的料號」、可能原廠可能副廠；2026-06-26 改必填 NOT NULL：基準料號+廠牌料號皆必填）。；啟用最低需求版本：LITE
@@ -761,6 +763,9 @@ model Nx01Part {
   techCategory                    Int?                   @map("tech_category") @db.SmallInt
   /// 規格/備註（例：MANN / 含墊片 / 06L…適用）；啟用最低需求版本：LITE
   spec                            String?                @db.VarChar(200)
+  /// 匯入原始備註（恆迎舊系統 col39 備註1 原文整段保留；藏改版鏈「>」/通用「/」/雜項說明、
+  /// 供之後解析表5零件通用·表6零件改版的來源；2026-06-29 新增、選填）；啟用最低需求版本：LITE
+  importRemark                    String?                @map("import_remark") @db.Text
   /// 單位（LITE 固定單位即可；未來再做多單位換算）；啟用最低需求版本：LITE
   uom                             String                 @default("pcs") @db.VarChar(10)
   /// 是否啟用（下架不刪資料）；啟用最低需求版本：LITE
@@ -1544,6 +1549,7 @@ model Nx01User {
   rev_Nx02WarrantyClaimAttachment_uploader Nx02WarrantyClaimAttachment[] @relation("R_Nx02WarrantyClaimAttachment_uploaderUserId")
   rev_Nx06Dn_driverUserId                  Nx06Dn[]                      @relation("R_Nx06Dn_driverUserId")
   rev_Nx04So_salesPersonId                 Nx04So[]                      @relation("R_Nx04So_salesPersonId")
+  rev_Nx04Quote_salesPersonId              Nx04Quote[]                   @relation("R_Nx04Quote_salesPersonId")
   rev_Nx06DnHandover_fromDriverId          Nx06DnHandover[]              @relation("R_Nx06DnHandover_fromDriverId")
   rev_Nx06DnHandover_toDriverId            Nx06DnHandover[]              @relation("R_Nx06DnHandover_toDriverId")
   rev_Nx06PushSubscription_userId          Nx06PushSubscription[]        @relation("R_Nx06PushSubscription_userId")
@@ -4148,15 +4154,21 @@ model Nx04Quote {
   updatedBy                 String             @map("updated_by") @db.VarChar(15)
   /// 來源詢價單ID（可空，無庫存走同行調貨詢價流程時填入，FK nx02_rfq）。；啟用最低需求版本：LITE-CORE
   rfqId                     String?            @map("rfq_id") @db.VarChar(15)
+  /// 業務員（FK nx01_user；建單預設帶當前使用者、可改；沿用 SO salesPersonId 範式）。；啟用最低需求版本：LITE-CORE
+  salesPersonId             String?            @map("sales_person_id") @db.VarChar(15)
+  /// 參考文號（客戶採購單號等對帳用，選填）。；啟用最低需求版本：LITE-CORE
+  customerRefNo             String?            @map("customer_ref_no") @db.VarChar(50)
   tenant                    Nx99Tenant         @relation("R_Nx04Quote_tenantId", fields: [tenantId], references: [id])
   warehouse                 Nx01Warehouse      @relation("R_Nx04Quote_warehouseId", fields: [warehouseId], references: [id])
   customer                  Nx01Partner        @relation("R_Nx04Quote_customerId", fields: [customerId], references: [id])
   customerGrade             Nx01CustomerGrade? @relation("R_Nx04Quote_customerGradeId", fields: [customerGradeId], references: [id])
   currency                  Nx01Currency       @relation("R_Nx04Quote_currencyId", fields: [currencyId], references: [id])
   rfq                       Nx02Rfq?           @relation("R_Nx04Quote_rfqId", fields: [rfqId], references: [id])
+  salesPerson               Nx01User?          @relation("R_Nx04Quote_salesPersonId", fields: [salesPersonId], references: [id])
   rev_Nx04QuoteItem_quoteId Nx04QuoteItem[]    @relation("R_Nx04QuoteItem_quoteId")
   rev_Nx04So_quoteId        Nx04So[]           @relation("R_Nx04So_quoteId")
 
+  @@index([salesPersonId])
   @@unique([docNo])
   @@map("nx04_quote")
 }
