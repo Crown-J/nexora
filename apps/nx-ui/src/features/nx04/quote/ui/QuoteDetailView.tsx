@@ -1,17 +1,16 @@
 // apps/nx-ui/src/features/nx04/quote/ui/QuoteDetailView.tsx
-// NX04-QT-SHELL Step3：報價單詳情 — 表頭三區 + 接外殼六層（L3 工具列 portal、清麵包屑）
+// NX04-QT-SHELL Step3/5：報價單詳情面板 — 表頭三區 + 接外殼六層（L3 工具列 portal、清麵包屑）
 //   ① 單據資訊 ② 客戶與倉庫 ③ 金額條件＋備註 → 明細 → 底部總計
+//   作為 QuoteWorkbench 的「詳細資料」分頁內容（L4）；上下筆 nav 由 workbench 傳入
 //   明細區（ItemsSection / AddItemForm）沿用 LITE 範式、待 Step4 接 picker + inline 行動作
 
 'use client';
 
-import { AlertTriangle, ArrowLeft, Ban, RefreshCcw, Send, XCircle } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { AlertTriangle, ArrowLeft, Ban, ChevronLeft, ChevronRight, RefreshCcw, Send, XCircle } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
 import { IssueReportTrigger } from '@/features/shared/issue-report-trigger';
-import { TieredFormProvider } from '@/features/shared/tiered-form/TieredFormProvider';
-import { ToolbarButton, ToolbarSeparator } from '@/features/nx01/shell/ui/ErpToolbar';
+import { NavButton, ToolbarButton, ToolbarSeparator } from '@/features/nx01/shell/ui/ErpToolbar';
 
 import { ToolbarPortal } from '@design/layout/workbench/WorkbenchToolbarSlot';
 
@@ -40,16 +39,24 @@ const STATUS_BADGE_CLASS: Record<string, string> = {
   CANCELLED: 'bg-zinc-100 text-zinc-500 line-through',
 };
 
-export function QuoteDetailView({ id }: { id: string }) {
-  return (
-    <TieredFormProvider defaultMode="lite">
-      <QuoteDetailInner id={id} />
-    </TieredFormProvider>
-  );
-}
-
-function QuoteDetailInner({ id }: { id: string }) {
-  const router = useRouter();
+export function QuoteDetailPanel({
+  id,
+  onBack,
+  onChanged,
+  itemIndex,
+  itemTotal,
+  onPrevItem,
+  onNextItem,
+}: {
+  id: string;
+  onBack: () => void;
+  /** 詳情有變動（狀態流轉 / 存檔 / 明細增刪）時通知 workbench 重抓列表 */
+  onChanged?: () => void;
+  itemIndex?: number;
+  itemTotal?: number;
+  onPrevItem?: () => void;
+  onNextItem?: () => void;
+}) {
   const [q, setQ] = useState<Quote | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -68,6 +75,11 @@ function QuoteDetailInner({ id }: { id: string }) {
     }
   }, [id]);
 
+  const reloadAll = useCallback(async () => {
+    await reload();
+    onChanged?.();
+  }, [reload, onChanged]);
+
   useEffect(() => {
     void reload();
   }, [reload]);
@@ -77,7 +89,7 @@ function QuoteDetailInner({ id }: { id: string }) {
     setError(null);
     try {
       await fn();
-      await reload();
+      await reloadAll();
     } catch (e) {
       setError(`${prefix}: ${e instanceof Error ? e.message : '未知錯誤'}`);
     } finally {
@@ -111,7 +123,23 @@ function QuoteDetailInner({ id }: { id: string }) {
             boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.04), 0 1px 0 0 rgba(0,0,0,0.5)',
           }}
         >
-          <ToolbarButton icon={ArrowLeft} label="返回列表" enabled onClick={() => router.push('/dashboard/sale/qt')} />
+          <NavButton
+            icon={ChevronLeft}
+            disabled={!onPrevItem || (itemIndex ?? 1) <= 1}
+            onClick={onPrevItem}
+            title="上一筆"
+          />
+          <span className="min-w-[3rem] px-1 text-center font-mono text-[11px] tabular-nums text-muted-foreground">
+            {itemIndex ?? '-'} / {itemTotal ?? '-'}
+          </span>
+          <NavButton
+            icon={ChevronRight}
+            disabled={!onNextItem || (itemTotal !== undefined && (itemIndex ?? 0) >= itemTotal)}
+            onClick={onNextItem}
+            title="下一筆"
+          />
+          <ToolbarSeparator />
+          <ToolbarButton icon={ArrowLeft} label="返回" enabled onClick={onBack} />
           <ToolbarButton icon={RefreshCcw} letter="R" label="重整" enabled onClick={() => void reload()} />
           <ToolbarSeparator />
           {canSend ? (
@@ -163,9 +191,9 @@ function QuoteDetailInner({ id }: { id: string }) {
         <div className="rounded border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm">{error}</div>
       ) : null}
 
-      <HeaderZones q={q} editable={editable} onSaved={reload} />
+      <HeaderZones q={q} editable={editable} onSaved={reloadAll} />
 
-      <ItemsSection q={q} items={q.items ?? []} editable={itemsEditable} onChanged={reload} />
+      <ItemsSection q={q} items={q.items ?? []} editable={itemsEditable} onChanged={reloadAll} />
 
       <footer className="flex flex-wrap gap-6 rounded-lg border bg-muted/30 p-4 text-sm">
         <div>

@@ -1,8 +1,8 @@
 // apps/nx-ui/src/app/dashboard/sale/qt/page.tsx
-// NX04-M3 C1：QT 報價單工作台入口
+// NX04-QT-SHELL：報價單工作區（六層：L4 資料瀏覽/詳細 同頁分頁）
 
-import { QuoteListView } from '@/features/nx04/quote/ui/QuoteListView';
+import { QuoteWorkbench } from '@/features/nx04/quote/ui/QuoteWorkbench';
 
 export default function Nx04QuoteRoute() {
-  return <QuoteListView />;
+  return <QuoteWorkbench />;
 }
