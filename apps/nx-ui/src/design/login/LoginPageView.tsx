@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 
 import type { NexoraClientError } from '@data/errors/nexora-error';
+import { BrandLogo } from '@design/brand/BrandLogo';
 
 export type LoginFields = {
   companyAccount: string;
@@ -118,12 +119,7 @@ export function LoginPageView({
         {/* 上：logo + 品牌 */}
         <div className="relative">
           <div className="flex items-center gap-3">
-            <span
-              className="grid h-11 w-11 place-items-center rounded-xl ring-1 ring-white/10"
-              style={{ background: '#2f5d8a' }}
-            >
-              <Boxes className="h-6 w-6 text-white" />
-            </span>
+            <BrandLogo size={44} className="rounded-xl ring-1 ring-white/10" />
             <div>
               <div className="text-xl font-bold leading-none tracking-wide">
                 NEXORA <span style={{ color: '#7fb0db' }}>GRID</span>

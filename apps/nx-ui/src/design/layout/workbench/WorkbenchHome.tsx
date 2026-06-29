@@ -17,6 +17,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
+import { BrandLogo } from '@design/brand/BrandLogo';
 import { MENU_BAR, type MenuNode } from './menu-data';
 
 const GROUP_ICON: Record<string, LucideIcon> = {
@@ -60,9 +61,14 @@ export function WorkbenchHome() {
   return (
     <div className="mx-auto max-w-5xl p-6">
       <div className="rounded-lg border border-border bg-card px-6 py-5">
-        <div className="text-[13px] tracking-[0.3em] text-muted-foreground">NEXORA GRID</div>
-        <h1 className="mt-1 text-xl font-semibold text-foreground">{name}，您好</h1>
-        <p className="mt-1 text-[13px] text-muted-foreground">
+        <div className="flex items-center gap-3">
+          <BrandLogo size={40} className="shrink-0 rounded-lg" />
+          <div>
+            <div className="text-[13px] tracking-[0.3em] text-muted-foreground">NEXORA GRID</div>
+            <h1 className="text-xl font-semibold text-foreground">{name}，您好</h1>
+          </div>
+        </div>
+        <p className="mt-2 text-[13px] text-muted-foreground">
           請由上方功能選單或下方快捷進入作業。
         </p>
       </div>
