@@ -1118,6 +1118,7 @@ export function UserZonedPage({
           creating ? `新增${entityNoun}` : selected?.displayName ?? undefined
         }
         detailSubtitle={mode === 'edit' ? (creating ? '新增中' : '編輯中') : '瀏覽'}
+        onCreate={handleCreate}
       />
         <ErpToolbar
           mode={mode}

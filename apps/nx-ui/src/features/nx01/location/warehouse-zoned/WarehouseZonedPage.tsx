@@ -675,6 +675,7 @@ export function WarehouseZonedPage({
         currentPageId="warehouse"
         detailTitle={creating ? `新增${entityNoun}` : selected?.name ?? undefined}
         detailSubtitle={mode === 'edit' ? (creating ? '新增中' : '編輯中') : '瀏覽'}
+        onCreate={handleCreate}
       />
       <div className="overflow-x-auto">
         <ErpToolbar

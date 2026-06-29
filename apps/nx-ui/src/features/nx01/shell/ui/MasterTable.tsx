@@ -39,6 +39,7 @@ import {
 } from '@design/primitives/dropdown-menu';
 import { FocusZone } from '@design/primitives/focus-zone';
 import { cn } from '@design/utils/cn';
+import { MobileMasterCards } from './MobileMasterCards';
 
 export const MASTER_TABLE_PAGE_SIZES = [10, 20, 50, 100] as const;
 
@@ -384,29 +385,43 @@ export function MasterTable<T>({
   );
 
   return (
-    <div
-      data-nx-frame
-      className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border/40 bg-card/70"
-    >
-      {tableWithDnd}
+    <>
+      {/* 桌面：表格 */}
+      <div
+        data-nx-frame
+        className="hidden min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border/40 bg-card/70 md:flex"
+      >
+        {tableWithDnd}
 
-      {/* footer 對齊 demo .nx-tfoot */}
-      <div className="flex items-center gap-[14px] border-t border-border/40 bg-card/80 px-[14px] py-[10px] text-[12.5px] text-muted-foreground">
-        <span className="font-variant-numeric tabular-nums">
-          共 <span className="text-foreground">{total}</span> 筆 · 顯示 {rows.length} 筆
-          {footerHint ? ` · ${footerHint}` : ''}
-        </span>
-        {hidePageSizeArea ? null : (
-          <div className="ml-auto">
-            {onPageSizeChange ? (
-              <PageSizeSelector value={pageSize} onChange={onPageSizeChange} />
-            ) : (
-              <span className="text-muted-foreground/70">每頁 {pageSize} 筆</span>
-            )}
-          </div>
-        )}
+        {/* footer 對齊 demo .nx-tfoot */}
+        <div className="flex items-center gap-[14px] border-t border-border/40 bg-card/80 px-[14px] py-[10px] text-[12.5px] text-muted-foreground">
+          <span className="font-variant-numeric tabular-nums">
+            共 <span className="text-foreground">{total}</span> 筆 · 顯示 {rows.length} 筆
+            {footerHint ? ` · ${footerHint}` : ''}
+          </span>
+          {hidePageSizeArea ? null : (
+            <div className="ml-auto">
+              {onPageSizeChange ? (
+                <PageSizeSelector value={pageSize} onChange={onPageSizeChange} />
+              ) : (
+                <span className="text-muted-foreground/70">每頁 {pageSize} 筆</span>
+              )}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+
+      {/* 手機：卡片列表（點卡片 = onOpenDetail）*/}
+      <div className="flex min-h-0 flex-1 flex-col md:hidden">
+        <MobileMasterCards
+          rows={rows}
+          columns={columns}
+          getRowId={getRowId}
+          selectedId={selectedId}
+          onOpenDetail={onOpenDetail}
+        />
+      </div>
+    </>
   );
 }
 

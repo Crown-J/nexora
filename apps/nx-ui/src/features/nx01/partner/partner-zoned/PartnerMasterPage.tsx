@@ -728,6 +728,7 @@ export function PartnerMasterPage({
         currentPageId="partner"
         detailTitle={creating ? `新增${entityNoun}` : selected?.name ?? undefined}
         detailSubtitle={mode === 'edit' ? (creating ? '新增中' : '編輯中') : '瀏覽'}
+        onCreate={handleCreate}
       />
 
       {/* partnerType 子篩選列（多 partner type 模組頁用） */}
