@@ -45,6 +45,8 @@ export interface Quote {
   quoteDate: string;
   customerId: string;
   customerGradeId: string | null;
+  salesPersonId: string | null;
+  customerRefNo: string | null;
   validUntil: string | null;
   currencyId: string;
   subtotal: string;
@@ -85,6 +87,8 @@ export interface CreateQuotePayload {
   quoteDate: string;
   customerId: string;
   customerGradeId?: string;
+  salesPersonId?: string;
+  customerRefNo?: string;
   validUntil?: string;
   currencyId?: string;
   taxRate: number;
@@ -95,6 +99,8 @@ export interface CreateQuotePayload {
 export interface UpdateQuotePayload {
   quoteDate?: string;
   validUntil?: string;
+  salesPersonId?: string;
+  customerRefNo?: string;
   remark?: string;
   status?: QuoteStatus;
 }

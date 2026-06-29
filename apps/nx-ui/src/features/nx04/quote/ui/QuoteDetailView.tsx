@@ -1,13 +1,19 @@
-// apps/nx-ui/src/features/sale/quote/ui/QuoteDetailView.tsx
-// NX04-M3 C1：QT 報價單 - 詳情 + 狀態流轉 + 加料件（含歷史價提示 + 毛利警告）
+// apps/nx-ui/src/features/nx04/quote/ui/QuoteDetailView.tsx
+// NX04-QT-SHELL Step3：報價單詳情 — 表頭三區 + 接外殼六層（L3 工具列 portal、清麵包屑）
+//   ① 單據資訊 ② 客戶與倉庫 ③ 金額條件＋備註 → 明細 → 底部總計
+//   明細區（ItemsSection / AddItemForm）沿用 LITE 範式、待 Step4 接 picker + inline 行動作
 
 'use client';
 
-import Link from 'next/link';
+import { AlertTriangle, ArrowLeft, Ban, RefreshCcw, Send, XCircle } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
 import { IssueReportTrigger } from '@/features/shared/issue-report-trigger';
 import { TieredFormProvider } from '@/features/shared/tiered-form/TieredFormProvider';
+import { ToolbarButton, ToolbarSeparator } from '@/features/nx01/shell/ui/ErpToolbar';
+
+import { ToolbarPortal } from '@design/layout/workbench/WorkbenchToolbarSlot';
 
 import {
   addQuoteItem,
@@ -22,9 +28,17 @@ import type {
   Quote,
   QuoteHistoricalPrice,
   QuoteItem,
-  QuoteStatus,
 } from '@data/types/nx04/quote';
 import { QUOTE_STATUS_LABEL } from '@data/types/nx04/quote';
+
+const STATUS_BADGE_CLASS: Record<string, string> = {
+  DRAFT: 'bg-muted text-foreground',
+  SENT: 'bg-amber-100 text-amber-900',
+  ACCEPTED: 'bg-emerald-100 text-emerald-900',
+  REJECTED: 'bg-rose-100 text-rose-900',
+  EXPIRED: 'bg-zinc-200 text-zinc-700',
+  CANCELLED: 'bg-zinc-100 text-zinc-500 line-through',
+};
 
 export function QuoteDetailView({ id }: { id: string }) {
   return (
@@ -35,6 +49,7 @@ export function QuoteDetailView({ id }: { id: string }) {
 }
 
 function QuoteDetailInner({ id }: { id: string }) {
+  const router = useRouter();
   const [q, setQ] = useState<Quote | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -84,97 +99,75 @@ function QuoteDetailInner({ id }: { id: string }) {
   const canVoid = q.status === 'DRAFT' || q.status === 'SENT';
 
   return (
-    <div className="w-full min-w-0 space-y-6 p-6">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <p className="text-xs tracking-[0.35em] text-muted-foreground">SALE · QUOTE</p>
-          <h1 className="text-2xl font-mono font-semibold">{q.docNo}</h1>
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
-            <span className="rounded bg-muted px-2 py-0.5 text-xs">
-              狀態：{QUOTE_STATUS_LABEL[q.status] ?? q.status}
-            </span>
-            <span className="rounded bg-muted px-2 py-0.5 text-xs">客戶 {q.customerId}</span>
-            <span className="rounded bg-muted px-2 py-0.5 text-xs">倉庫 {q.warehouseId}</span>
-            {q.customerGradeId ? (
-              <span className="rounded bg-emerald-100 px-2 py-0.5 text-xs text-emerald-900">
-                等級 {q.customerGradeId}
-              </span>
-            ) : (
-              <span className="rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-900">
-                ⚠️ 未設客戶等級、無毛利警告
-              </span>
-            )}
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Link href="/dashboard/sale/qt" className="rounded border px-3 py-1 text-sm hover:bg-muted">
-            ← 返回列表
-          </Link>
-          <button
-            disabled={busy}
-            onClick={() => void reload()}
-            className="rounded border px-3 py-1 text-sm hover:bg-muted disabled:opacity-50"
-          >
-            重整 (R)
-          </button>
-          <IssueReportTrigger sourceDocType="QT" sourceDocId={q.id} warehouseId={q.warehouseId} />
+    <div className="w-full min-w-0 space-y-5 p-5">
+      {/* L3 情境工具列：投影到外殼第 3 層 */}
+      <ToolbarPortal>
+        <div
+          data-nx-frame
+          className="flex items-center gap-1 border-b border-border/40 px-3 py-2"
+          style={{
+            backgroundImage:
+              'linear-gradient(180deg, var(--nx-surface-toolbar-from) 0%, var(--nx-surface-toolbar-to) 100%)',
+            boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.04), 0 1px 0 0 rgba(0,0,0,0.5)',
+          }}
+        >
+          <ToolbarButton icon={ArrowLeft} label="返回列表" enabled onClick={() => router.push('/dashboard/sale/qt')} />
+          <ToolbarButton icon={RefreshCcw} letter="R" label="重整" enabled onClick={() => void reload()} />
+          <ToolbarSeparator />
           {canSend ? (
-            <button
-              disabled={busy}
+            <ToolbarButton
+              icon={Send}
+              label="寄出"
+              enabled={!busy}
+              accent
               onClick={() => void handle(() => updateQuote(id, { status: 'SENT' }), '寄出')}
-              className="rounded bg-amber-500 px-3 py-1 text-sm text-white disabled:opacity-50"
-            >
-              寄出 → SENT
-            </button>
+            />
           ) : null}
           {canReject ? (
-            <button
-              disabled={busy}
+            <ToolbarButton
+              icon={XCircle}
+              label="客戶拒絕"
+              enabled={!busy}
+              variant="danger"
               onClick={() => void handle(() => updateQuote(id, { status: 'REJECTED' }), '拒絕')}
-              className="rounded border border-rose-300 px-3 py-1 text-sm text-rose-700 disabled:opacity-50"
-            >
-              客戶拒絕 → REJECTED
-            </button>
+            />
           ) : null}
           {canExpire ? (
-            <button
-              disabled={busy}
+            <ToolbarButton
+              icon={AlertTriangle}
+              label="標記過期"
+              enabled={!busy}
               onClick={() => void handle(() => updateQuote(id, { status: 'EXPIRED' }), '過期')}
-              className="rounded border px-3 py-1 text-sm disabled:opacity-50"
-            >
-              標記過期 → EXPIRED
-            </button>
+            />
           ) : null}
           {canVoid ? (
-            <button
-              disabled={busy}
+            <ToolbarButton
+              icon={Ban}
+              label="作廢"
+              enabled={!busy}
+              variant="danger"
               onClick={() => {
                 const reason = window.prompt('作廢原因（必填）');
                 if (!reason?.trim()) return;
                 void handle(() => voidQuote(id, reason.trim()), '作廢');
               }}
-              className="rounded border border-zinc-300 px-3 py-1 text-sm text-zinc-700 disabled:opacity-50"
-            >
-              作廢 → CANCELLED
-            </button>
+            />
           ) : null}
+          <ToolbarSeparator />
+          <IssueReportTrigger sourceDocType="QT" sourceDocId={q.id} warehouseId={q.warehouseId} />
+          <div className="flex-1" />
         </div>
-      </header>
+      </ToolbarPortal>
 
       {error ? (
         <div className="rounded border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm">{error}</div>
       ) : null}
 
-      <HeaderEditor q={q} editable={editable} onSaved={reload} />
+      <HeaderZones q={q} editable={editable} onSaved={reload} />
 
-      <ItemsSection
-        q={q}
-        items={q.items ?? []}
-        editable={itemsEditable}
-        onChanged={reload}
-      />
+      <ItemsSection q={q} items={q.items ?? []} editable={itemsEditable} onChanged={reload} />
 
-      <footer className="flex flex-wrap gap-6 rounded border bg-muted/30 p-4 text-sm">
+      <footer className="flex flex-wrap gap-6 rounded-lg border bg-muted/30 p-4 text-sm">
         <div>
           <div className="text-xs text-muted-foreground">未稅小計</div>
           <div className="font-mono tabular-nums">{q.subtotal}</div>
@@ -199,7 +192,30 @@ function QuoteDetailInner({ id }: { id: string }) {
   );
 }
 
-function HeaderEditor({
+/** 唯讀顯示欄 */
+function ReadField({ label, children, mono }: { label: string; children: React.ReactNode; mono?: boolean }) {
+  return (
+    <div>
+      <div className="mb-0.5 text-xs text-muted-foreground">{label}</div>
+      <div className={`text-sm ${mono ? 'font-mono' : ''}`}>{children ?? <span className="text-muted-foreground">—</span>}</div>
+    </div>
+  );
+}
+
+function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="rounded-lg border bg-card p-4">
+      <h2 className="mb-3 text-sm font-semibold text-foreground">{title}</h2>
+      {children}
+    </section>
+  );
+}
+
+/**
+ * 表頭三區。可編欄位（報價日 / 有效期 / 參考文號 / 備註）本地暫存 + 統一儲存。
+ * 客戶 / 倉庫 / 客戶等級 / 業務員 為唯讀顯示（建單時決定；picker 化待 Step4）。
+ */
+function HeaderZones({
   q,
   editable,
   onSaved,
@@ -210,10 +226,13 @@ function HeaderEditor({
 }) {
   const [quoteDate, setQuoteDate] = useState(q.quoteDate.slice(0, 10));
   const [validUntil, setValidUntil] = useState(q.validUntil?.slice(0, 10) ?? '');
+  const [customerRefNo, setCustomerRefNo] = useState(q.customerRefNo ?? '');
   const [remark, setRemark] = useState(q.remark ?? '');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<string | null>(null);
+
+  const expired = q.validUntil ? new Date(q.validUntil) < new Date(new Date().toDateString()) : false;
 
   async function save() {
     setBusy(true);
@@ -222,6 +241,7 @@ function HeaderEditor({
       await updateQuote(q.id, {
         quoteDate,
         validUntil: validUntil || undefined,
+        customerRefNo: customerRefNo.trim() || undefined,
         remark,
       });
       setSavedAt(new Date().toLocaleTimeString());
@@ -233,54 +253,83 @@ function HeaderEditor({
     }
   }
 
+  const inputCls = 'w-full rounded border bg-background px-2 py-1 text-sm disabled:opacity-60';
+
   return (
-    <section className="rounded border p-4">
-      <h2 className="mb-3 text-sm font-semibold">基本資料 {editable ? '' : <span className="text-muted-foreground">（唯讀）</span>}</h2>
-      <div className="grid gap-3 md:grid-cols-3">
-        <label className="text-sm">
-          <span className="block mb-1">報價日</span>
-          <input
-            type="date"
-            value={quoteDate}
-            onChange={(e) => setQuoteDate(e.target.value)}
-            disabled={!editable}
-            className="w-full rounded border bg-background px-2 py-1 disabled:opacity-60"
-          />
-        </label>
-        <label className="text-sm">
-          <span className="block mb-1">有效至</span>
-          <input
-            type="date"
-            value={validUntil}
-            onChange={(e) => setValidUntil(e.target.value)}
-            disabled={!editable}
-            className="w-full rounded border bg-background px-2 py-1 disabled:opacity-60"
-          />
-        </label>
-        <label className="text-sm md:col-span-3">
-          <span className="block mb-1">備註</span>
-          <input
-            value={remark}
-            onChange={(e) => setRemark(e.target.value)}
-            disabled={!editable}
-            className="w-full rounded border bg-background px-2 py-1 disabled:opacity-60"
-          />
-        </label>
-      </div>
+    <div className="grid gap-4 lg:grid-cols-3">
+      {/* ① 單據資訊 */}
+      <SectionCard title="單據資訊">
+        <div className="grid grid-cols-2 gap-3">
+          <ReadField label="單號" mono>{q.docNo}</ReadField>
+          <ReadField label="狀態">
+            <span className={`inline-block rounded px-2 py-0.5 text-xs ${STATUS_BADGE_CLASS[q.status] ?? 'bg-muted'}`}>
+              {QUOTE_STATUS_LABEL[q.status] ?? q.status}
+            </span>
+          </ReadField>
+          <label className="text-sm">
+            <span className="mb-0.5 block text-xs text-muted-foreground">報價日</span>
+            <input type="date" value={quoteDate} onChange={(e) => setQuoteDate(e.target.value)} disabled={!editable} className={inputCls} />
+          </label>
+          <label className="text-sm">
+            <span className="mb-0.5 block text-xs text-muted-foreground">
+              有效期限 {expired ? <span className="text-rose-600">· 已過期</span> : null}
+            </span>
+            <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} disabled={!editable} className={inputCls} />
+          </label>
+          <ReadField label="建檔">
+            <span className="text-xs text-muted-foreground">
+              {q.createdAt.slice(0, 10)} · {q.createdBy}
+            </span>
+          </ReadField>
+        </div>
+      </SectionCard>
+
+      {/* ② 客戶與倉庫（picker 化待 Step4） */}
+      <SectionCard title="客戶與倉庫">
+        <div className="grid grid-cols-2 gap-3">
+          <ReadField label="客戶" mono>{q.customerId}</ReadField>
+          <ReadField label="客戶等級">
+            {q.customerGradeId ? (
+              <span className="font-mono">{q.customerGradeId}</span>
+            ) : (
+              <span className="rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-900">未設、無毛利警告</span>
+            )}
+          </ReadField>
+          <ReadField label="報價倉庫" mono>{q.warehouseId}</ReadField>
+          <ReadField label="業務員" mono>{q.salesPersonId}</ReadField>
+        </div>
+      </SectionCard>
+
+      {/* ③ 金額條件＋備註 */}
+      <SectionCard title="金額條件 / 備註">
+        <div className="grid grid-cols-2 gap-3">
+          <ReadField label="幣別" mono>{q.currencyId}</ReadField>
+          <ReadField label="稅率">{q.taxRate}%</ReadField>
+          <label className="col-span-2 text-sm">
+            <span className="mb-0.5 block text-xs text-muted-foreground">參考文號（客戶採購單號等）</span>
+            <input value={customerRefNo} onChange={(e) => setCustomerRefNo(e.target.value)} disabled={!editable} placeholder="選填" className={inputCls} />
+          </label>
+          <label className="col-span-2 text-sm">
+            <span className="mb-0.5 block text-xs text-muted-foreground">備註</span>
+            <input value={remark} onChange={(e) => setRemark(e.target.value)} disabled={!editable} className={inputCls} />
+          </label>
+        </div>
+      </SectionCard>
+
       {editable ? (
-        <div className="mt-3 flex items-center gap-3">
+        <div className="lg:col-span-3 flex items-center gap-3">
           <button
             disabled={busy}
             onClick={() => void save()}
-            className="rounded bg-primary px-3 py-1 text-sm text-primary-foreground disabled:opacity-50"
+            className="rounded bg-primary px-4 py-1.5 text-sm text-primary-foreground disabled:opacity-50"
           >
-            {busy ? '儲存中…' : '儲存基本資料'}
+            {busy ? '儲存中…' : '儲存表頭'}
           </button>
           {savedAt ? <span className="text-xs text-emerald-700">已儲存 {savedAt}</span> : null}
           {err ? <span className="text-xs text-destructive">{err}</span> : null}
         </div>
       ) : null}
-    </section>
+    </div>
   );
 }
 
