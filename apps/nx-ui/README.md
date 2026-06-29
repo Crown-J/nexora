@@ -35,6 +35,10 @@ NEXORA 前端歷經一次門面大改版，存在**兩套外殼風格**：
 
 現行 v2 為**統一單一主題**（墨藍×銀×白、不分深淺）。改任何外殼/配色前先讀對應架構書。
 
+- **六層介面鐵則**：任何頁面一律六層——1 選單列 / 2 內容分頁 / 3 情境工具列 / 4 頁內分頁 / 5 主內容 / 6 狀態列。層 1/2/6 由 `WorkbenchShell` 全頁自動給；層 3 由各頁 `ToolbarPortal` 投影；層 4/5 各頁提供。
+- **手機響應式**：同一份程式碼 `md:` 斷點——桌面六層不變、<md 切手機版（漢堡選單 + 分頁切換器 + 卡片 master-detail + FAB + 多欄逐層下鑽）。
+- **品牌標**：`design/brand/BrandLogo.tsx`（立體 N、墨藍×銀）；favicon / PWA 圖示在 `public/`（同造型 SVG）。
+
 ---
 
 ## 目錄結構（重點）
@@ -70,10 +74,11 @@ src/
 
 - **主題變數**：`design/styles/tokens.css`，現行 palette = `data-nx-palette='pro'`（墨藍銀白統一）。
 - **導覽單一來源（SSOT）**：
-  - 業務模組選單 = `data/home/home-data.ts` 的 `DOCK_NAV`（選單列、首頁快捷共用）。
-  - 主檔 = `features/nx01/shell/master-nav/master-registry.ts`。
-  - 新增功能只改這兩處，所有導覽介面自動同步。
-- **情境工具列**：`design/layout/workbench/WorkbenchToolbarSlot.tsx`——頁面 `ErpToolbar` 用 portal 投影到外殼第 2 層，隨頁面內容變。
+  - 頂部八大組選單 = `design/layout/workbench/menu-data.ts` 的 `MENU_BAR`（權威 IA：系統設定/基本資料/採購進貨/銷售/簽核/庫存/會計財務/報表）。
+  - 業務模組快捷 = `data/home/home-data.ts` 的 `DOCK_NAV`（首頁卡片）；主檔登錄 = `features/nx01/shell/master-nav/master-registry.ts`。
+  - 新增功能改對應登錄表、各導覽介面自動同步。
+- **情境工具列（L3）**：`design/layout/workbench/WorkbenchToolbarSlot.tsx`——頁面 `ErpToolbar` 用 `ToolbarPortal` 投影到外殼第 3 層、隨頁面/聚焦變；手機自動收成「5 顆 + 更多」。
+- **主檔頁模板（7 種）**：表格 `EntityMasterPage` / `Zoned` / 多欄 cascade / `MasterBatchShell` / `PartKitMasterView` / 權限矩陣 / 郵遞字典——皆已手機化，細節見 `src/README.md`。
 - **F2 全域料號查詢**：`design/components/quick-search/GlobalPartQuickSearch.tsx`。
 - **多租戶**：客戶端 URL 用業務中文名、不露 NX 代碼。
 

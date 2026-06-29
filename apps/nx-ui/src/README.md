@@ -226,7 +226,7 @@ nx01/
 | 7 | **ZipcodePage** | 唯讀字典雙欄 + 搜尋（縣市→鄉鎮郵遞）| `features/nx01/address/zipcode/` | 郵遞區號 |
 
 > 2026-06-29：`InlineEditMasterPage` / `KeyboardCardMasterPage` 兩個 L0 字典模板無路由引用、已刪除封存（字典主檔統一走 EntityMasterPage）。
-> 所有上述主檔頁型皆已**手機響應式**（卡片 master-detail + FAB + 多欄逐層下鑽；桌面六層不變）。背板沿用淺色六角 `NxAppBackdrop`／`HexBulgeField`（WorkbenchShell root/main 透明透出）。
+> 所有上述主檔頁型皆已**手機響應式**（卡片 master-detail + FAB + 多欄逐層下鑽；桌面六層不變）。
 
 共用六層元件：`ToolbarPortal`（L3 投影、`design/layout/workbench/`）、`ErpToolbar`（銀質 bar + `ToolbarButton`）、`MasterPageHead`（list/detail 分頁 head）、`ColTab`/`BatchTab`（L4 分頁 chip）。
 
