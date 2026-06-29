@@ -160,6 +160,20 @@ export class BrandService {
       },
       select: SEL,
     });
+    // 2026-06-29 正廠連動：is_car / is_part 變動時、自動把該廠牌底下所有零件的 isOem 重算
+    // （isOem = is_car AND is_part）。零件層 isOem 在多處被讀（搜尋/比價/補貨）、不改即時推算、
+    // 改用此「改廠牌→連動零件」機制；只動本廠牌零件、避免逐筆手改。
+    const carChanged = dto.isCar !== undefined && dto.isCar !== existing.isCar;
+    const partChanged = dto.isPart !== undefined && dto.isPart !== existing.isPart;
+    let syncedParts = 0;
+    if (carChanged || partChanged) {
+      const nextOem = row.isCar && row.isPart;
+      const res = await this.prisma.nx01Part.updateMany({
+        where: { tenantId, brandId: id },
+        data: { isOem: nextOem, updatedBy: user.sub },
+      });
+      syncedParts = res.count;
+    }
     await this.audit.write({
       tenantId,
       actorUserId: user.sub,
@@ -168,7 +182,7 @@ export class BrandService {
       entityTable: 'nx01_brand',
       entityId: id,
       entityCode: row.code,
-      summary: '修改品牌',
+      summary: syncedParts > 0 ? `修改品牌（連動重算 ${syncedParts} 筆零件正廠）` : '修改品牌',
       beforeData: existing as object,
       afterData: row as object,
     });
