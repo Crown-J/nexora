@@ -131,9 +131,22 @@ export class BrandService {
     const tenantId = requireTenantId(user);
     const existing = await this.prisma.nx01Brand.findFirst({ where: { id, tenantId }, select: SEL });
     if (!existing) throw new NotFoundException('Brand not found');
+    // 2026-06-29 code 改可編輯：若有送 code 且與原值不同、檢查 tenant 內唯一（排除自己）。
+    let nextCode: string | undefined;
+    if (dto.code !== undefined) {
+      nextCode = dto.code.trim().toUpperCase();
+      if (nextCode !== existing.code) {
+        const dup = await this.prisma.nx01Brand.findFirst({
+          where: { tenantId, code: { equals: nextCode, mode: 'insensitive' }, id: { not: id } },
+          select: { id: true },
+        });
+        if (dup) throw new ConflictException('品牌代碼已存在、請改用其他代碼');
+      }
+    }
     const row = await this.prisma.nx01Brand.update({
       where: { id },
       data: {
+        ...(nextCode !== undefined ? { code: nextCode } : {}),
         ...(dto.name !== undefined ? { name: dto.name.trim() } : {}),
         ...(dto.nameEn !== undefined ? { nameEn: dto.nameEn?.trim() || null } : {}),
         ...(dto.countryId !== undefined ? { countryId: dto.countryId?.trim() || null } : {}),

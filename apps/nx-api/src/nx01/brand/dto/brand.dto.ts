@@ -29,16 +29,15 @@ export class ListBrandQueryDto extends Nx01ListQueryDto {
 }
 
 export class CreateBrandDto {
-  // 02 第四批 軌 4 2026-06-07：品牌代碼固定 3 碼大寫英文（業界縮寫範式、總經理拍板）。
-  // @Transform 在 validator 前先 trim + uppercase、@Matches 強制 ^[A-Z]{3}$。
-  // 老資料不動（service 不回填、UpdateBrandDto 不收 code、lockedOnEdit）。
+  // 2026-06-29 放寬（總經理改拍板）：拿掉固定 3 碼限制、改 1-30 碼大寫英數+連字號。
+  // @Transform 先 trim + uppercase、@Matches 強制 ^[A-Z0-9-]+$（長度 1-30）。
   @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' ? value.trim().toUpperCase() : value,
   )
   @IsString()
-  @MinLength(3, { message: '品牌代碼必須 3 碼' })
-  @MaxLength(3, { message: '品牌代碼必須 3 碼' })
-  @Matches(/^[A-Z]{3}$/, { message: '品牌代碼必須是 3 碼大寫英文（A-Z）' })
+  @MinLength(1)
+  @MaxLength(30)
+  @Matches(/^[A-Z0-9-]+$/, { message: '品牌代碼只能是大寫英文、數字、連字號（-）' })
   code!: string;
 
   @IsString()
@@ -90,6 +89,18 @@ export class CreateBrandDto {
 }
 
 export class UpdateBrandDto {
+  // 2026-06-29 改可編輯（總經理改拍板）：解除 lockedOnEdit、code 可改。
+  // service.update 會在 code 異動時補 tenant 內唯一性檢查（排除自己）。
+  @IsOptional()
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' ? value.trim().toUpperCase() : value,
+  )
+  @IsString()
+  @MinLength(1)
+  @MaxLength(30)
+  @Matches(/^[A-Z0-9-]+$/, { message: '品牌代碼只能是大寫英文、數字、連字號（-）' })
+  code?: string;
+
   @IsOptional()
   @IsString()
   @MinLength(1)
