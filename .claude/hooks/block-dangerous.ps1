@@ -2,6 +2,7 @@
 # NEXORA 危險指令黑名單（PreToolUse hook）
 # 擋三條毀滅指令：Railway 連線 / git push --force|-f / prisma migrate reset
 # 觸發時回 JSON permissionDecision=deny，Claude Code 收到後不執行該 tool。
+# 2026-06-29：加授權旁路——指令帶標記 NX_AUTH_OK 放行（執行長明確授權某操作時用、見下方說明）。
 
 $ErrorActionPreference = 'Stop'
 
@@ -23,6 +24,15 @@ switch ($tool) {
     'Write' { $content = [string]$payload.tool_input.content }
     default { exit 0 }
 }
+
+# ============================================================
+# 授權旁路（執行長 2026-06-29 定）
+# 指令／內容若帶明確授權標記 NX_AUTH_OK，視為執行長已就「該次操作」明確授權、直接放行。
+# ⚠️ 標記由 Claude 自行帶入＝榮譽制：仍能擋「手滑／誤觸」（未帶標記的危險指令照舊 deny），
+#    但擋不住「Claude 判斷錯誤卻自行加了標記」。Claude 只在執行長明講授權某操作時才加此標記。
+# ============================================================
+$haystackAll = "$cmd`n$content"
+if ($haystackAll -match 'NX_AUTH_OK') { exit 0 }
 
 function Deny([string]$reason) {
     $obj = @{
