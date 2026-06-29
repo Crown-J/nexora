@@ -7586,8 +7586,8 @@ model Nx01Model {
   /// 車型品牌 FK（FK nx01_brand isCar=true、必填、規格 §3.2 Crown Q3=A）；啟用最低需求版本：LITE
   /// W6 [3-8] Phase 5 2026-06-06 品牌合併：取代舊 carBrandId
   brandId                             String                    @map("brand_id") @db.VarChar(15)
-  /// 起始年份（必填、業務檢核 ≥ 1900 + ≤ 當前年+5、規格 §3.3）；啟用最低需求版本：LITE
-  modelYearFrom                       Int                       @map("model_year_from")
+  /// 起始年份（選填、2026-06-29 改可空：恆迎匯入有車型無明確起始年、留 NULL；有填則業務檢核 ≥ 1900 + ≤ 當前年+5、規格 §3.3）；啟用最低需求版本：LITE
+  modelYearFrom                       Int?                      @map("model_year_from")
   /// 結束年份（可空、現役留空、若填必 ≥ modelYearFrom、規格 §3.3）；啟用最低需求版本：LITE
   modelYearTo                         Int?                      @map("model_year_to")
   /// 引擎代碼（自由輸入、取消引擎外鍵後改用此欄、例：EA888 / 2GR-FE；2026-06-26 車型分類簡化）；啟用最低需求版本：LITE

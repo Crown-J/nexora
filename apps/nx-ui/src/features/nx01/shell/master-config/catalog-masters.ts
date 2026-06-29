@@ -114,7 +114,7 @@ export const MODEL_MASTER: EntityMasterConfig = {
     { key: 'code', label: '車型代碼', required: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]' },
     { key: 'name', label: '車型名稱', required: true, minWidthClass: 'min-w-[140px]' },
     { key: 'carBrandId', label: '車廠品牌', type: 'ref', refBasePath: 'nx01/brands', refExtraFilters: { isCar: 'true' }, required: true, minWidthClass: 'min-w-[120px]' },
-    { key: 'modelYearFrom', label: '年式(起)', type: 'number', required: true },
+    { key: 'modelYearFrom', label: '年式(起)', type: 'number' },
     { key: 'modelYearTo', label: '年式(迄)', type: 'number', inList: false },
     // 2026-06-26：引擎等外鍵取消、改自由輸入
     { key: 'engineCode', label: '引擎代碼', inList: false },

@@ -59,10 +59,11 @@ export class ModelService {
   }
 
   /** 規格 §3.2 / §5.7：年份業務檢核 */
-  private validateYears(from: number, to: number | null | undefined) {
+  private validateYears(from: number | null | undefined, to: number | null | undefined) {
     const currentYear = new Date().getFullYear();
     const maxYear = currentYear + 5;
-    if (from < 1900 || from > maxYear) {
+    // 2026-06-29 起始年份可空：null/undefined 時跳過起始檢核（結束年份仍檢核，但無起始時不比大小）
+    if (from !== null && from !== undefined && (from < 1900 || from > maxYear)) {
       throw new BadRequestException(
         `modelYearFrom must be between 1900 and ${maxYear}, got ${from}`,
       );
@@ -73,7 +74,7 @@ export class ModelService {
           `modelYearTo must be between 1900 and ${currentYear + 10}, got ${to}`,
         );
       }
-      if (to < from) {
+      if (from !== null && from !== undefined && to < from) {
         throw new BadRequestException(
           `結束年份不可早於起始年份（${to} < ${from}、規格 §5.7）`,
         );
@@ -145,7 +146,7 @@ export class ModelService {
         code,
         name: dto.name.trim(),
         brandId: refs.brandId,
-        modelYearFrom: dto.modelYearFrom,
+        modelYearFrom: dto.modelYearFrom ?? null,
         modelYearTo: dto.modelYearTo ?? null,
         engineCode: dto.engineCode?.trim() || null,
         displacementCc: dto.displacementCc ?? null,

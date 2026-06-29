@@ -47,11 +47,13 @@ export class CreateModelDto {
   @MaxLength(15)
   carBrandId!: string;
 
+  // 2026-06-29 改選填：起始年份可空（恆迎匯入有車型無明確起始年）
+  @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(YEAR_MIN)
   @Max(YEAR_MAX_FUTURE)
-  modelYearFrom!: number;
+  modelYearFrom?: number;
 
   @IsOptional()
   @Type(() => Number)

@@ -52,7 +52,7 @@ function fromRow(r: ModelDto): Draft {
     code: r.code,
     name: r.name,
     carBrandId: r.carBrandId,
-    modelYearFrom: r.modelYearFrom.toString(),
+    modelYearFrom: r.modelYearFrom?.toString() ?? '',
     modelYearTo: r.modelYearTo?.toString() ?? '',
     engineCode: r.engineCode ?? '',
     displacementCc: r.displacementCc?.toString() ?? '',
@@ -122,7 +122,8 @@ export function ModelMasterView() {
   };
 
   const buildBody = () => {
-    const yfFrom = Number.parseInt(draft.modelYearFrom.trim(), 10);
+    const yfFromRaw = draft.modelYearFrom.trim();
+    const yfFrom = yfFromRaw === '' ? null : Number.parseInt(yfFromRaw, 10);
     const yfToRaw = draft.modelYearTo.trim();
     const yfTo = yfToRaw === '' ? null : Number.parseInt(yfToRaw, 10);
     const sort = Number.parseInt(draft.sortNo, 10);
@@ -353,7 +354,7 @@ export function ModelMasterView() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="md-yfrom">起始年份 *（如 2017）</Label>
+              <Label htmlFor="md-yfrom">起始年份（選填、如 2017）</Label>
               <Input
                 id="md-yfrom"
                 value={draft.modelYearFrom}
