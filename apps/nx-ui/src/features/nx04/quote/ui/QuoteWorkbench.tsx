@@ -420,6 +420,7 @@ export function QuoteWorkbench({
                 selectionMode={false}
                 checked={new Set()}
                 setChecked={noop}
+                hideSerial
                 pageSize={Math.max(displayRows.length, 1)}
                 hidePageSizeArea
                 sortKey={sortKey ?? undefined}

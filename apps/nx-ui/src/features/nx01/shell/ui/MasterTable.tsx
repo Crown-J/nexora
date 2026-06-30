@@ -162,6 +162,7 @@ export function MasterTable<T>({
   onColumnOrderChange,
   columnWidths,
   onColumnWidthChange,
+  hideSerial = false,
   footerHint,
   totalCount,
 }: {
@@ -187,9 +188,12 @@ export function MasterTable<T>({
   /** 欄寬（key→px）；提供時啟用 Excel 式拉寬 + table-fixed 版面 */
   columnWidths?: Record<string, number>;
   onColumnWidthChange?: (key: string, width: number) => void;
+  /** 隱藏第一欄「序號」（單據型頁面用：已有單號當首欄、序號多餘）；選取模式仍保留勾選欄 */
+  hideSerial?: boolean;
   footerHint?: string;
   totalCount?: number;
 }) {
+  const showFirstCol = selectionMode || !hideSerial;
   const total = totalCount ?? rows.length;
 
   const toggleRow = (id: string) => {
@@ -303,7 +307,7 @@ export function MasterTable<T>({
       <table className={cn('w-full border-collapse text-[13px]', columnWidths && 'table-fixed')}>
         {columnWidths ? (
           <colgroup>
-            <col style={{ width: 48 }} />
+            {showFirstCol ? <col style={{ width: 48 }} /> : null}
             {columns.map((c) => (
               <col key={c.key} style={{ width: columnWidths[c.key] ?? 140 }} />
             ))}
@@ -311,19 +315,21 @@ export function MasterTable<T>({
         ) : null}
         <thead className="sticky top-0 z-10 border-b border-border/40 bg-card/95 backdrop-blur-md">
           <tr className="text-left text-[11.5px] font-semibold uppercase tracking-[0.02em] text-muted-foreground">
-            <th className="w-12 px-3 py-[9px]">
-              {selectionMode ? (
-                <input
-                  type="checkbox"
-                  checked={checked.size === rows.length && rows.length > 0}
-                  onChange={toggleAll}
-                  className="size-3.5 rounded border-border/60 bg-card accent-[var(--primary)]"
-                  aria-label="全選"
-                />
-              ) : (
-                <span className="font-medium">序號</span>
-              )}
-            </th>
+            {showFirstCol ? (
+              <th className="w-12 px-3 py-[9px]">
+                {selectionMode ? (
+                  <input
+                    type="checkbox"
+                    checked={checked.size === rows.length && rows.length > 0}
+                    onChange={toggleAll}
+                    className="size-3.5 rounded border-border/60 bg-card accent-[var(--primary)]"
+                    aria-label="全選"
+                  />
+                ) : (
+                  <span className="font-medium">序號</span>
+                )}
+              </th>
+            ) : null}
             {onColumnOrderChange
               ? columns.map((col) => (
                   <DraggableTh
@@ -383,21 +389,23 @@ export function MasterTable<T>({
                       : cn(isEvenRow && 'bg-foreground/[0.05]', 'hover:bg-accent/10'),
                 )}
               >
-                <td className="px-3 py-[10px]" onClick={(e) => selectionMode && e.stopPropagation()}>
-                  {selectionMode ? (
-                    <input
-                      type="checkbox"
-                      checked={isChecked}
-                      onChange={() => toggleRow(id)}
-                      className="size-3.5 rounded border-border/60 bg-card accent-[var(--primary)]"
-                      aria-label={`選取 ${id}`}
-                    />
-                  ) : (
-                    <span className="font-mono text-[11px] tabular-nums text-muted-foreground/70">
-                      {String(i + 1).padStart(4, '0')}
-                    </span>
-                  )}
-                </td>
+                {showFirstCol ? (
+                  <td className="px-3 py-[10px]" onClick={(e) => selectionMode && e.stopPropagation()}>
+                    {selectionMode ? (
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => toggleRow(id)}
+                        className="size-3.5 rounded border-border/60 bg-card accent-[var(--primary)]"
+                        aria-label={`選取 ${id}`}
+                      />
+                    ) : (
+                      <span className="font-mono text-[11px] tabular-nums text-muted-foreground/70">
+                        {String(i + 1).padStart(4, '0')}
+                      </span>
+                    )}
+                  </td>
+                ) : null}
                 {columns.map((col) => (
                   <td key={col.key} className="px-3 py-[10px] text-foreground">
                     {col.render(row, i)}
@@ -418,7 +426,7 @@ export function MasterTable<T>({
                   isEvenRow && 'bg-foreground/[0.05]',
                 )}
               >
-                <td className="px-3 py-[10px]">&nbsp;</td>
+                {showFirstCol ? <td className="px-3 py-[10px]">&nbsp;</td> : null}
                 {columns.map((col) => (
                   <td key={col.key} className="px-3 py-[10px]">&nbsp;</td>
                 ))}
