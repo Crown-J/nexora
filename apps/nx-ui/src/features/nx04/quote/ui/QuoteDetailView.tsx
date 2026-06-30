@@ -1,28 +1,31 @@
 // apps/nx-ui/src/features/nx04/quote/ui/QuoteDetailView.tsx
 // NX04-QT-SHELL：報價單詳情面板（QuoteWorkbench「詳細資料」分頁 L4 內容）
-//   內容層只分上下兩層：上＝單頭（三區欄位）／下＝明細（表格＋總計）
-//   所有動作收進 L3 工具列：瀏覽=編輯/狀態鈕/問題回報；編輯=存檔/取消/新增明細
-//   瀏覽唯讀、編輯可改；新增明細走對話框（不再常駐大表單）
+//   左右兩塊：左＝表頭 Form（標籤:輸入框一欄一列）／右＝明細 Table（含 tfoot 金額結算）
+//   L3 工具列三狀態：
+//     · 瀏覽：⏮◀ N/M ▶⏭ ｜ A新增 E編輯 D刪除(作廢) ｜ F查詢 R重整 P列印 O匯出
+//     · 編輯表頭：S存檔 C取消（左可編、右鎖）
+//     · 編輯明細：S存檔 A新增項目 E編輯項目 D移除項目 C取消（右可編、左鎖）
+//   ⚠️ 新增 inline（最後欄 Enter 存檔產號）+ 取消視作廢 + 編輯項目 → 待 Step4 picker 一起做
 
 'use client';
 
 import {
-  AlertTriangle,
-  ArrowLeft,
-  Ban,
   ChevronLeft,
   ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  Download,
   Pencil,
   Plus,
+  Printer,
   RefreshCcw,
   Save,
-  Send,
+  Search,
+  Trash2,
   X,
-  XCircle,
 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { IssueReportTrigger } from '@/features/shared/issue-report-trigger';
 import { NavButton, ToolbarButton, ToolbarSeparator } from '@/features/nx01/shell/ui/ErpToolbar';
 
 import { ToolbarPortal } from '@design/layout/workbench/WorkbenchToolbarSlot';
@@ -44,26 +47,32 @@ import type {
 
 export function QuoteDetailPanel({
   id,
-  onBack,
   onChanged,
   itemIndex,
   itemTotal,
   onPrevItem,
   onNextItem,
+  onJumpFirst,
+  onJumpLast,
+  onCreate,
+  onSearch,
 }: {
   id: string;
-  onBack: () => void;
   onChanged?: () => void;
   itemIndex?: number;
   itemTotal?: number;
   onPrevItem?: () => void;
   onNextItem?: () => void;
+  onJumpFirst?: () => void;
+  onJumpLast?: () => void;
+  onCreate?: () => void;
+  onSearch?: () => void;
 }) {
   const [q, setQ] = useState<Quote | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [editing, setEditing] = useState(false);
+  const [mode, setMode] = useState<'browse' | 'editHeader' | 'editItems'>('browse');
   const [addOpen, setAddOpen] = useState(false);
   const [selItem, setSelItem] = useState<string | null>(null); // 明細選中列（↑↓ 用）
 
@@ -103,9 +112,9 @@ export function QuoteDetailPanel({
     setRemark(q.remark ?? '');
   }, [q?.id, q?.updatedAt]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 換筆時自動退出編輯
+  // 換筆時自動回瀏覽
   useEffect(() => {
-    setEditing(false);
+    setMode('browse');
   }, [id]);
 
   // 明細：預設選第一列；換單/明細變動時若選中列失效則回第一列
@@ -166,12 +175,10 @@ export function QuoteDetailPanel({
   if (!q) return null;
 
   const statusEditable = q.status === 'DRAFT' || q.status === 'SENT';
-  const itemsEditable = editing && statusEditable && !q.voidedAt;
+  const headerEditing = mode === 'editHeader' && statusEditable && !q.voidedAt;
+  const itemsEditable = mode === 'editItems' && statusEditable && !q.voidedAt;
   const expired = q.validUntil ? new Date(q.validUntil) < new Date(new Date().toDateString()) : false;
 
-  const canSend = q.status === 'DRAFT';
-  const canReject = q.status === 'SENT';
-  const canExpire = q.status === 'SENT';
   const canVoid = q.status === 'DRAFT' || q.status === 'SENT';
 
   async function saveHeader() {
@@ -184,7 +191,7 @@ export function QuoteDetailPanel({
         customerRefNo: customerRefNo.trim() || undefined,
         remark,
       });
-      setEditing(false);
+      setMode('editItems'); // 表頭存檔後進入編輯明細（對齊 表頭→明細 流程）
       await reloadAll();
     } catch (e) {
       setError(`存檔: ${e instanceof Error ? e.message : '未知錯誤'}`);
@@ -200,7 +207,22 @@ export function QuoteDetailPanel({
       setCustomerRefNo(q.customerRefNo ?? '');
       setRemark(q.remark ?? '');
     }
-    setEditing(false);
+    setMode('browse');
+  }
+
+  // 移除選中的明細項目（編輯明細 D）
+  async function removeSelectedItem() {
+    if (!selItem) {
+      alert('請先選一筆明細');
+      return;
+    }
+    if (!window.confirm('移除選中的明細項目？')) return;
+    try {
+      await removeQuoteItem(id, selItem);
+      await reloadAll();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : '移除失敗');
+    }
   }
 
   const inputCls = 'w-full rounded border bg-background px-2 py-1 text-sm disabled:opacity-60';
@@ -219,54 +241,58 @@ export function QuoteDetailPanel({
             boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.04), 0 1px 0 0 rgba(0,0,0,0.5)',
           }}
         >
-          <NavButton icon={ChevronLeft} disabled={!onPrevItem || (itemIndex ?? 1) <= 1} onClick={onPrevItem} title="上一筆" />
-          <span className="min-w-[3rem] px-1 text-center font-mono text-[11px] tabular-nums text-muted-foreground">
-            {itemIndex ?? '-'} / {itemTotal ?? '-'}
-          </span>
-          <NavButton
-            icon={ChevronRight}
-            disabled={!onNextItem || (itemTotal !== undefined && (itemIndex ?? 0) >= itemTotal)}
-            onClick={onNextItem}
-            title="下一筆"
-          />
-          <ToolbarSeparator />
-          <ToolbarButton icon={ArrowLeft} label="返回" enabled onClick={onBack} />
-          <ToolbarButton icon={RefreshCcw} letter="R" label="重整" enabled onClick={() => void reload()} />
-          <ToolbarSeparator />
-
-          {editing ? (
+          {mode === 'browse' ? (
+            <>
+              <NavButton icon={ChevronsLeft} disabled={!onJumpFirst || (itemIndex ?? 1) <= 1} onClick={onJumpFirst} title="第一筆" />
+              <NavButton icon={ChevronLeft} disabled={!onPrevItem || (itemIndex ?? 1) <= 1} onClick={onPrevItem} title="上一筆" />
+              <span className="min-w-[3rem] px-1 text-center font-mono text-[11px] tabular-nums text-muted-foreground">
+                {itemIndex ?? '-'} / {itemTotal ?? '-'}
+              </span>
+              <NavButton
+                icon={ChevronRight}
+                disabled={!onNextItem || (itemTotal !== undefined && (itemIndex ?? 0) >= itemTotal)}
+                onClick={onNextItem}
+                title="下一筆"
+              />
+              <NavButton
+                icon={ChevronsRight}
+                disabled={!onJumpLast || (itemTotal !== undefined && (itemIndex ?? 0) >= itemTotal)}
+                onClick={onJumpLast}
+                title="最後一筆"
+              />
+              <ToolbarSeparator />
+              <ToolbarButton icon={Plus} letter="A" label="新增" enabled={!!onCreate} onClick={onCreate} />
+              <ToolbarButton icon={Pencil} letter="E" label="編輯" enabled={statusEditable && !busy} onClick={() => setMode('editHeader')} />
+              <ToolbarButton
+                icon={Trash2}
+                letter="D"
+                label="刪除"
+                enabled={canVoid && !busy}
+                variant="danger"
+                onClick={() => {
+                  const reason = window.prompt('作廢原因（必填）');
+                  if (!reason?.trim()) return;
+                  void handle(() => voidQuote(id, reason.trim()), '作廢');
+                }}
+              />
+              <ToolbarSeparator />
+              <ToolbarButton icon={Search} letter="F" label="查詢" enabled={!!onSearch} onClick={onSearch} />
+              <ToolbarButton icon={RefreshCcw} letter="R" label="重新整理" enabled onClick={() => void reload()} />
+              <ToolbarButton icon={Printer} letter="P" label="列印" enabled onClick={() => alert('列印開發中')} />
+              <ToolbarButton icon={Download} letter="O" label="匯出" enabled onClick={() => alert('匯出開發中')} />
+            </>
+          ) : mode === 'editHeader' ? (
             <>
               <ToolbarButton icon={Save} letter="S" label="存檔" enabled={!busy} accent onClick={() => void saveHeader()} />
               <ToolbarButton icon={X} letter="C" label="取消" enabled={!busy} onClick={cancelEdit} />
-              <ToolbarButton icon={Plus} label="新增明細" enabled={itemsEditable} onClick={() => setAddOpen(true)} />
             </>
           ) : (
             <>
-              <ToolbarButton icon={Pencil} letter="E" label="編輯" enabled={statusEditable && !busy} onClick={() => setEditing(true)} />
-              {canSend ? (
-                <ToolbarButton icon={Send} label="寄出" enabled={!busy} accent onClick={() => void handle(() => updateQuote(id, { status: 'SENT' }), '寄出')} />
-              ) : null}
-              {canReject ? (
-                <ToolbarButton icon={XCircle} label="客戶拒絕" enabled={!busy} variant="danger" onClick={() => void handle(() => updateQuote(id, { status: 'REJECTED' }), '拒絕')} />
-              ) : null}
-              {canExpire ? (
-                <ToolbarButton icon={AlertTriangle} label="標記過期" enabled={!busy} onClick={() => void handle(() => updateQuote(id, { status: 'EXPIRED' }), '過期')} />
-              ) : null}
-              {canVoid ? (
-                <ToolbarButton
-                  icon={Ban}
-                  label="作廢"
-                  enabled={!busy}
-                  variant="danger"
-                  onClick={() => {
-                    const reason = window.prompt('作廢原因（必填）');
-                    if (!reason?.trim()) return;
-                    void handle(() => voidQuote(id, reason.trim()), '作廢');
-                  }}
-                />
-              ) : null}
-              <ToolbarSeparator />
-              <IssueReportTrigger sourceDocType="QT" sourceDocId={q.id} warehouseId={q.warehouseId} />
+              <ToolbarButton icon={Save} letter="S" label="存檔" enabled={!busy} accent onClick={() => setMode('browse')} />
+              <ToolbarButton icon={Plus} letter="A" label="新增項目" enabled={itemsEditable} onClick={() => setAddOpen(true)} />
+              <ToolbarButton icon={Pencil} letter="E" label="編輯項目" enabled={itemsEditable && !!selItem} onClick={() => alert('編輯項目（開發中）')} />
+              <ToolbarButton icon={Trash2} letter="D" label="移除項目" enabled={itemsEditable && !!selItem} variant="danger" onClick={() => void removeSelectedItem()} />
+              <ToolbarButton icon={X} letter="C" label="取消" enabled={!busy} onClick={() => setMode('browse')} />
             </>
           )}
           <div className="flex-1" />
@@ -288,7 +314,7 @@ export function QuoteDetailPanel({
             <input readOnly value={q.voidedAt ? '作廢' : expired ? '失效' : '有效'} className={roCls} />
           </FieldRow>
           <FieldRow label="報價日期">
-            <input type="date" value={quoteDate} onChange={(e) => setQuoteDate(e.target.value)} disabled={!editing} className={inputCls} />
+            <input type="date" value={quoteDate} onChange={(e) => setQuoteDate(e.target.value)} disabled={!headerEditing} className={inputCls} />
           </FieldRow>
           <FieldRow label="客戶編號">
             <input readOnly value={q.customerCode ?? q.customerId} className={`${roCls} font-mono`} />
@@ -306,14 +332,14 @@ export function QuoteDetailPanel({
             <input readOnly value={q.createdAt.slice(0, 10)} className={roCls} />
           </FieldRow>
           <FieldRow label="有效日期" labelDanger={expired}>
-            <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} disabled={!editing} className={inputCls} />
+            <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} disabled={!headerEditing} className={inputCls} />
           </FieldRow>
           <div>
             <div className="mb-1 text-xs text-muted-foreground">備註：</div>
             <textarea
               value={remark}
               onChange={(e) => setRemark(e.target.value)}
-              disabled={!editing}
+              disabled={!headerEditing}
               rows={3}
               className="w-full resize-y rounded border bg-background px-2 py-1 text-sm disabled:opacity-60"
             />

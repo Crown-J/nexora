@@ -441,12 +441,15 @@ export function QuoteWorkbench({
         ) : selectedId ? (
           <QuoteDetailPanel
             id={selectedId}
-            onBack={() => setTab('list')}
             onChanged={reload}
             itemIndex={itemIndex}
             itemTotal={displayRows.length}
             onPrevItem={idx > 0 ? () => selectAt(idx - 1) : undefined}
             onNextItem={idx >= 0 && idx < displayRows.length - 1 ? () => selectAt(idx + 1) : undefined}
+            onJumpFirst={() => selectAt(0)}
+            onJumpLast={() => selectAt(displayRows.length - 1)}
+            onCreate={() => setShowNew(true)}
+            onSearch={() => setSearchOpen(true)}
           />
         ) : (
           <div className="p-6 text-sm text-muted-foreground">請先回資料瀏覽選一張報價單。</div>
