@@ -6,13 +6,13 @@
 
 'use client';
 
+import { X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { MasterPageHead } from '@/features/nx01/shell/master-nav';
 import { ErpToolbar, type ExportFormat } from '@/features/nx01/shell/ui/ErpToolbar';
 import { MasterTable, type MasterTableColumn } from '@/features/nx01/shell/ui/MasterTable';
 import type { MasterTab } from '@/features/nx01/shell/entity-master/MasterTabs';
-import type { SortableOption } from '@/features/nx01/shell/ui/sort-config/SortMenuButton';
 import { TieredFormProvider } from '@/features/shared/tiered-form/TieredFormProvider';
 
 import { createQuote, listQuote, voidQuote } from '@data/endpoints/nx04/quote/api/quote';
@@ -55,13 +55,6 @@ const DEFAULT_WIDTHS: Record<string, number> = {
   validUntil: 120,
 };
 
-const SORT_OPTIONS: SortableOption[] = [
-  { key: 'docNo', label: '單號' },
-  { key: 'createdAt', label: '建單日期' },
-  { key: 'quoteDate', label: '報價日期' },
-  { key: 'totalAmount', label: '總金額' },
-];
-
 // 列表狀態：純看有效期（作廢 / 失效(逾期) / 有效）；不碰接受·拒絕（成交與否走銷貨單拉報價）
 type ListStatus = 'valid' | 'expired' | 'void';
 function listStatus(q: Quote): ListStatus {
@@ -70,6 +63,23 @@ function listStatus(q: Quote): ListStatus {
   return 'valid';
 }
 const LIST_STATUS_LABEL: Record<ListStatus, string> = { valid: '有效', expired: '失效', void: '作廢' };
+
+type QuoteCriteria = {
+  docNoFrom?: string;
+  docNoTo?: string;
+  createdFrom?: string;
+  createdTo?: string;
+  quoteFrom?: string;
+  quoteTo?: string;
+  validity?: 'valid' | 'expired' | 'void';
+  customerCode?: string;
+  customerName?: string;
+  creator?: string;
+  partNo?: string;
+};
+function countCriteria(c: QuoteCriteria): number {
+  return Object.values(c).filter((v) => v != null && String(v).trim() !== '').length;
+}
 
 export function QuoteWorkbench({
   initialId,
@@ -83,13 +93,11 @@ export function QuoteWorkbench({
   const [rows, setRows] = useState<Quote[]>([]);
   const [total, setTotal] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [search, setSearch] = useState('');
-  const [validFilter, setValidFilter] = useState<'all' | ListStatus>('all');
   const [showNew, setShowNew] = useState(false);
-  const [filterOpen, setFilterOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [criteria, setCriteria] = useState<QuoteCriteria>({});
   const [sortKey, setSortKey] = useState<string | null>('docNo');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-  const [sortMenuOpen, setSortMenuOpen] = useState(false);
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const [colOrder, setColOrder] = useState<string[] | null>(() => loadJSON<string[]>(COL_ORDER_KEY));
   const [colWidths, setColWidths] = useState<Record<string, number>>(
@@ -98,26 +106,37 @@ export function QuoteWorkbench({
 
   const reload = useCallback(async () => {
     try {
-      const resp = await listQuote({ search: search.trim() || undefined, pageSize: 100 });
+      const resp = await listQuote({
+        pageSize: 100,
+        docNoFrom: criteria.docNoFrom?.trim() || undefined,
+        docNoTo: criteria.docNoTo?.trim() || undefined,
+        createdFrom: criteria.createdFrom || undefined,
+        createdTo: criteria.createdTo || undefined,
+        quoteFrom: criteria.quoteFrom || undefined,
+        quoteTo: criteria.quoteTo || undefined,
+        validity: criteria.validity || undefined,
+        customerCode: criteria.customerCode?.trim() || undefined,
+        customerName: criteria.customerName?.trim() || undefined,
+        creator: criteria.creator?.trim() || undefined,
+        partNo: criteria.partNo?.trim() || undefined,
+      });
       setRows(resp.items);
       setTotal(resp.total);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : '列表載入失敗');
     }
-  }, [search]);
+  }, [criteria]);
 
   useEffect(() => {
     void reload();
   }, [reload]);
 
-  // 篩選（有效/失效）+ 排序
+  // 排序（篩選改伺服器端：查詢彈窗）
   const displayRows = useMemo(() => {
-    let r = rows;
-    if (validFilter !== 'all') r = r.filter((q) => listStatus(q) === validFilter);
-    if (!sortKey) return r;
+    if (!sortKey) return rows;
     const dir = sortOrder === 'asc' ? 1 : -1;
-    return [...r].sort((a, b) => {
+    return [...rows].sort((a, b) => {
       const av = (a as unknown as Record<string, unknown>)[sortKey];
       const bv = (b as unknown as Record<string, unknown>)[sortKey];
       const an = Number(av);
@@ -125,7 +144,8 @@ export function QuoteWorkbench({
       if (!Number.isNaN(an) && !Number.isNaN(bn)) return (an - bn) * dir;
       return String(av ?? '').localeCompare(String(bv ?? '')) * dir;
     });
-  }, [rows, validFilter, sortKey, sortOrder]);
+  }, [rows, sortKey, sortOrder]);
+  const activeCount = countCriteria(criteria);
 
   // 預設永遠選一筆（第一筆）
   useEffect(() => {
@@ -340,42 +360,27 @@ export function QuoteWorkbench({
               onJumpLastItem={() => selectAt(displayRows.length - 1)}
               onCreate={() => setShowNew(true)}
               onEdit={() => selectedId && setTab('detail')}
-              onSearch={() => setFilterOpen((o) => !o)}
+              onSearch={() => setSearchOpen(true)}
               onDelete={handleVoid}
               onExport={handleExport}
               exportMenuOpen={exportMenuOpen}
               onExportMenuOpenChange={setExportMenuOpen}
               onPrint={() => alert('列印開發中')}
               onRefresh={() => void reload()}
-              sortOptions={SORT_OPTIONS}
-              sortKey={sortKey}
-              sortOrder={sortOrder}
-              onSortChange={(k, o) => {
-                setSortKey(k);
-                setSortOrder(o);
-              }}
-              onSortReset={() => {
-                setSortKey('docNo');
-                setSortOrder('desc');
-              }}
-              sortMenuOpen={sortMenuOpen}
-              onSortMenuOpenChange={setSortMenuOpen}
               onSave={noop}
               onCancel={noop}
-              onOpenFilter={() => setFilterOpen((o) => !o)}
-              filterCount={(validFilter !== 'all' ? 1 : 0) + (search.trim() ? 1 : 0)}
             />
 
-            {filterOpen ? (
-              <QuoteFilterPanel
-                validFilter={validFilter}
-                search={search}
-                onApply={(vf, kw) => {
-                  setValidFilter(vf);
-                  setSearch(kw);
-                }}
-                onClose={() => setFilterOpen(false)}
-              />
+            {activeCount > 0 ? (
+              <div className="flex items-center gap-3 border-b border-border/40 bg-primary/5 px-4 py-2 text-xs">
+                <span className="text-muted-foreground">查詢條件 {activeCount} 項 · 共 {total} 筆</span>
+                <button onClick={() => setSearchOpen(true)} className="text-primary hover:underline">
+                  修改
+                </button>
+                <button onClick={() => setCriteria({})} className="text-muted-foreground hover:underline">
+                  清除
+                </button>
+              </div>
             ) : null}
 
             {error ? (
@@ -443,63 +448,133 @@ export function QuoteWorkbench({
             onCancel={() => setShowNew(false)}
           />
         ) : null}
+
+        {searchOpen ? (
+          <QuoteSearchDialog
+            initial={criteria}
+            onApply={(c) => {
+              setCriteria(c);
+              setSearchOpen(false);
+            }}
+            onClose={() => setSearchOpen(false)}
+          />
+        ) : null}
       </div>
     </TieredFormProvider>
   );
 }
 
 /** 查詢 / 篩選面板（工具列「查詢」展開；主內容層維持純表格）*/
-function QuoteFilterPanel({
-  validFilter,
-  search,
+function SearchRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="grid grid-cols-[5rem_1fr] items-center gap-3">
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <div className="flex items-center gap-2">{children}</div>
+    </div>
+  );
+}
+
+/** 查詢報價單（彈跳視窗、全鍵盤友善、Enter 查詢）。區間只填「起」= 該值單一比對 */
+function QuoteSearchDialog({
+  initial,
   onApply,
   onClose,
 }: {
-  validFilter: 'all' | ListStatus;
-  search: string;
-  onApply: (validFilter: 'all' | ListStatus, search: string) => void;
+  initial: QuoteCriteria;
+  onApply: (c: QuoteCriteria) => void;
   onClose: () => void;
 }) {
-  const [vf, setVf] = useState(validFilter);
-  const [kw, setKw] = useState(search);
+  const [c, setC] = useState<Record<string, string>>(() => {
+    const o: Record<string, string> = {};
+    Object.entries(initial).forEach(([k, v]) => {
+      if (v != null) o[k] = String(v);
+    });
+    return o;
+  });
+  const set = (k: string, v: string) => setC((p) => ({ ...p, [k]: v }));
+  const cls = 'w-full rounded border bg-background px-2 py-1 text-sm';
+
+  function apply() {
+    onApply({
+      docNoFrom: c.docNoFrom,
+      docNoTo: c.docNoTo,
+      createdFrom: c.createdFrom,
+      createdTo: c.createdTo,
+      quoteFrom: c.quoteFrom,
+      quoteTo: c.quoteTo,
+      validity: (c.validity as QuoteCriteria['validity']) || undefined,
+      customerCode: c.customerCode,
+      customerName: c.customerName,
+      creator: c.creator,
+      partNo: c.partNo,
+    });
+  }
+
   return (
-    <div className="flex flex-wrap items-end gap-3 border-b border-border/40 bg-muted/20 px-4 py-3">
-      <label className="text-sm">
-        <span className="mb-1 block text-xs text-muted-foreground">狀態</span>
-        <select value={vf} onChange={(e) => setVf(e.target.value as 'all' | ListStatus)} className="rounded border bg-background px-2 py-1 text-sm">
-          <option value="all">全部</option>
-          <option value="valid">有效</option>
-          <option value="expired">失效</option>
-          <option value="void">作廢</option>
-        </select>
-      </label>
-      <label className="min-w-[16rem] flex-1 text-sm">
-        <span className="mb-1 block text-xs text-muted-foreground">關鍵字（單號 / 客戶 / 料件）</span>
-        <input
-          value={kw}
-          onChange={(e) => setKw(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && onApply(vf, kw)}
-          placeholder="輸入後按套用 / Enter"
-          className="w-full rounded border bg-background px-2 py-1 text-sm"
-          autoFocus
-        />
-      </label>
-      <button onClick={() => onApply(vf, kw)} className="rounded bg-primary px-3 py-1.5 text-sm text-primary-foreground">
-        套用
-      </button>
-      <button
-        onClick={() => {
-          setVf('all');
-          setKw('');
-          onApply('all', '');
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/40" />
+      <div
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') apply();
         }}
-        className="rounded border px-3 py-1.5 text-sm"
+        className="relative w-full max-w-2xl space-y-3 rounded-xl border border-border bg-card p-5 shadow-2xl"
       >
-        清除
-      </button>
-      <button onClick={onClose} className="rounded border px-3 py-1.5 text-sm">
-        收合
-      </button>
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold">查詢報價單</h2>
+          <button onClick={onClose} className="rounded p-1 hover:bg-accent/20" aria-label="關閉">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <SearchRow label="單號區間">
+          <input value={c.docNoFrom ?? ''} onChange={(e) => set('docNoFrom', e.target.value)} placeholder="單號起（只填起＝該單號）" className={cls} autoFocus />
+          <span className="text-muted-foreground">~</span>
+          <input value={c.docNoTo ?? ''} onChange={(e) => set('docNoTo', e.target.value)} placeholder="單號迄" className={cls} />
+        </SearchRow>
+        <SearchRow label="建單區間">
+          <input type="date" value={c.createdFrom ?? ''} onChange={(e) => set('createdFrom', e.target.value)} className={cls} />
+          <span className="text-muted-foreground">~</span>
+          <input type="date" value={c.createdTo ?? ''} onChange={(e) => set('createdTo', e.target.value)} className={cls} />
+        </SearchRow>
+        <SearchRow label="報價區間">
+          <input type="date" value={c.quoteFrom ?? ''} onChange={(e) => set('quoteFrom', e.target.value)} className={cls} />
+          <span className="text-muted-foreground">~</span>
+          <input type="date" value={c.quoteTo ?? ''} onChange={(e) => set('quoteTo', e.target.value)} className={cls} />
+        </SearchRow>
+        <SearchRow label="單據狀態">
+          <select value={c.validity ?? ''} onChange={(e) => set('validity', e.target.value)} className={cls}>
+            <option value="">全部</option>
+            <option value="valid">有效</option>
+            <option value="expired">失效</option>
+            <option value="void">作廢</option>
+          </select>
+        </SearchRow>
+        <SearchRow label="客戶">
+          <input value={c.customerCode ?? ''} onChange={(e) => set('customerCode', e.target.value)} placeholder="客戶編號" className={cls} />
+          <input value={c.customerName ?? ''} onChange={(e) => set('customerName', e.target.value)} placeholder="客戶名稱（F4 注音 待 Step4）" className={cls} />
+        </SearchRow>
+        <SearchRow label="建單人員">
+          <input value={c.creator ?? ''} onChange={(e) => set('creator', e.target.value)} placeholder="員編 或 姓名（F4 注音 待 Step4）" className={cls} />
+        </SearchRow>
+        <SearchRow label="零件料號">
+          <input value={c.partNo ?? ''} onChange={(e) => set('partNo', e.target.value)} placeholder="料號" className={cls} />
+        </SearchRow>
+
+        <div className="flex justify-between pt-2">
+          <button onClick={() => setC({})} className="rounded border px-4 py-1.5 text-sm">
+            清除全部
+          </button>
+          <div className="flex gap-2">
+            <button onClick={onClose} className="rounded border px-4 py-1.5 text-sm">
+              取消
+            </button>
+            <button onClick={apply} className="rounded bg-primary px-4 py-1.5 text-sm text-primary-foreground">
+              查詢
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

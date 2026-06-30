@@ -4,6 +4,7 @@ import {
   IsArray,
   IsBoolean,
   IsDateString,
+  IsIn,
   IsNumber,
   IsOptional,
   IsString,
@@ -11,6 +12,23 @@ import {
   Min,
   ValidateNested,
 } from 'class-validator';
+
+import { Nx04ListQueryDto } from '../../../shared/nx04/nx04-list-query.dto';
+
+/** 報價單列表查詢（彈窗查詢：區間 + 狀態 + 客戶/人員/料號）。區間只填「起」= 該值單一比對 */
+export class QuoteListQueryDto extends Nx04ListQueryDto {
+  @IsOptional() @IsString() @MaxLength(30) docNoFrom?: string;
+  @IsOptional() @IsString() @MaxLength(30) docNoTo?: string;
+  @IsOptional() @IsDateString() createdFrom?: string;
+  @IsOptional() @IsDateString() createdTo?: string;
+  @IsOptional() @IsDateString() quoteFrom?: string;
+  @IsOptional() @IsDateString() quoteTo?: string;
+  @IsOptional() @IsIn(['valid', 'expired', 'void']) validity?: string;
+  @IsOptional() @IsString() @MaxLength(30) customerCode?: string;
+  @IsOptional() @IsString() @MaxLength(100) customerName?: string;
+  @IsOptional() @IsString() @MaxLength(50) creator?: string;
+  @IsOptional() @IsString() @MaxLength(50) partNo?: string;
+}
 
 export class CreateQuoteItemDto {
   @IsString()

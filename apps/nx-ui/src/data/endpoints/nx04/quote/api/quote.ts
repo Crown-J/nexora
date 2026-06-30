@@ -20,6 +20,18 @@ export interface ListQuoteParams {
   pageSize?: number;
   status?: string;
   search?: string;
+  // 彈窗查詢欄位
+  docNoFrom?: string;
+  docNoTo?: string;
+  createdFrom?: string;
+  createdTo?: string;
+  quoteFrom?: string;
+  quoteTo?: string;
+  validity?: 'valid' | 'expired' | 'void';
+  customerCode?: string;
+  customerName?: string;
+  creator?: string;
+  partNo?: string;
 }
 
 export function listQuote(params: ListQuoteParams = {}): Promise<QuoteListResponse> {
@@ -28,6 +40,17 @@ export function listQuote(params: ListQuoteParams = {}): Promise<QuoteListRespon
     pageSize: params.pageSize ? String(params.pageSize) : undefined,
     status: params.status,
     search: params.search,
+    docNoFrom: params.docNoFrom,
+    docNoTo: params.docNoTo,
+    createdFrom: params.createdFrom,
+    createdTo: params.createdTo,
+    quoteFrom: params.quoteFrom,
+    quoteTo: params.quoteTo,
+    validity: params.validity,
+    customerCode: params.customerCode,
+    customerName: params.customerName,
+    creator: params.creator,
+    partNo: params.partNo,
   });
   return apiJson(`/nx04/quote${qs}`);
 }

@@ -11,11 +11,16 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
 import { resolveCurrencyId } from '../../shared/nx02/nx02-currency';
 import { allocNx04DocNo } from '../../shared/nx04/nx04-doc-no';
-import { Nx04ListQueryDto } from '../../shared/nx04/nx04-list-query.dto';
 import { assertQuoteStatusTransition, QuoteStatus } from '../../shared/nx04/nx04-state-machine';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 
-import type { CreateQuoteDto, CreateQuoteItemDto, PatchQuoteItemDto, UpdateQuoteDto } from './dto/quote.dto';
+import type {
+  CreateQuoteDto,
+  CreateQuoteItemDto,
+  PatchQuoteItemDto,
+  QuoteListQueryDto,
+  UpdateQuoteDto,
+} from './dto/quote.dto';
 
 const Q_SEL = {
   id: true,
@@ -123,21 +128,84 @@ export class QuoteService {
    *   - 純記錄 / 不簽核（既有 status DRAFT→SENT→ACCEPTED 業務員自行標、無系統強制簽核）
    *   - search 擴：docNo / remark / customer.code/name / 任一 item.partNo/partName
    */
-  private whereList(tenantId: string, q: Nx04ListQueryDto): Prisma.Nx04QuoteWhereInput {
-    const where: Prisma.Nx04QuoteWhereInput = { tenantId, voidedAt: null };
-    if (q.status?.trim()) where.status = q.status.trim();
+  private whereList(tenantId: string, q: QuoteListQueryDto): Prisma.Nx04QuoteWhereInput {
+    // 注意：不再寫死 voidedAt:null（作廢單要能查/顯示，由 validity 篩選）
+    const and: Prisma.Nx04QuoteWhereInput[] = [];
+    const todayStart = new Date(new Date().toDateString());
+
+    // 狀態（純有效期：有效 / 失效(逾期) / 作廢）
+    if (q.validity === 'void') and.push({ voidedAt: { not: null } });
+    else if (q.validity === 'expired') and.push({ voidedAt: null, validUntil: { lt: todayStart } });
+    else if (q.validity === 'valid')
+      and.push({ voidedAt: null, OR: [{ validUntil: null }, { validUntil: { gte: todayStart } }] });
+
+    // 單號區間（只填起 = 該單號單一比對）
+    const dnFrom = q.docNoFrom?.trim();
+    const dnTo = q.docNoTo?.trim();
+    if (dnFrom && dnTo) and.push({ docNo: { gte: dnFrom, lte: dnTo } });
+    else if (dnFrom) and.push({ docNo: dnFrom });
+    else if (dnTo) and.push({ docNo: { lte: dnTo } });
+
+    // 日期區間（只填起 = 該日當天）
+    const dateRange = (from?: string, to?: string) => {
+      const f = from?.trim();
+      const t = to?.trim();
+      if (!f && !t) return undefined;
+      const cond: { gte?: Date; lte?: Date } = {};
+      if (f) cond.gte = new Date(`${f}T00:00:00`);
+      cond.lte = new Date(`${(t || f)!}T23:59:59.999`);
+      return cond;
+    };
+    const cr = dateRange(q.createdFrom, q.createdTo);
+    if (cr) and.push({ createdAt: cr });
+    const qr = dateRange(q.quoteFrom, q.quoteTo);
+    if (qr) and.push({ quoteDate: qr });
+
+    // 客戶編號 / 名稱 / 料號
+    if (q.customerCode?.trim())
+      and.push({ customer: { code: { contains: q.customerCode.trim(), mode: 'insensitive' } } });
+    if (q.customerName?.trim())
+      and.push({ customer: { name: { contains: q.customerName.trim(), mode: 'insensitive' } } });
+    if (q.partNo?.trim())
+      and.push({
+        rev_Nx04QuoteItem_quoteId: { some: { partNo: { contains: q.partNo.trim(), mode: 'insensitive' } } },
+      });
+
+    // 舊泛用 search（單號/備註/客戶/料件、向後相容）
     if (q.search?.trim()) {
       const s = q.search.trim();
-      where.OR = [
-        { docNo: { contains: s, mode: 'insensitive' } },
-        { remark: { contains: s, mode: 'insensitive' } },
-        { customer: { code: { contains: s, mode: 'insensitive' } } },
-        { customer: { name: { contains: s, mode: 'insensitive' } } },
-        { rev_Nx04QuoteItem_quoteId: { some: { partNo: { contains: s, mode: 'insensitive' } } } },
-        { rev_Nx04QuoteItem_quoteId: { some: { partName: { contains: s, mode: 'insensitive' } } } },
-      ];
+      and.push({
+        OR: [
+          { docNo: { contains: s, mode: 'insensitive' } },
+          { remark: { contains: s, mode: 'insensitive' } },
+          { customer: { code: { contains: s, mode: 'insensitive' } } },
+          { customer: { name: { contains: s, mode: 'insensitive' } } },
+          { rev_Nx04QuoteItem_quoteId: { some: { partNo: { contains: s, mode: 'insensitive' } } } },
+          { rev_Nx04QuoteItem_quoteId: { some: { partName: { contains: s, mode: 'insensitive' } } } },
+        ],
+      });
     }
+
+    const where: Prisma.Nx04QuoteWhereInput = { tenantId };
+    if (and.length) where.AND = and;
     return where;
+  }
+
+  /** 建單人員查詢 → 解析成 user id 清單（員編 userAccount 或 姓名 userName 模糊比對）*/
+  private async resolveCreatorIds(tenantId: string, creator?: string): Promise<string[] | null> {
+    const c = creator?.trim();
+    if (!c) return null;
+    const us = await this.prisma.nx01User.findMany({
+      where: {
+        tenantId,
+        OR: [
+          { userName: { contains: c, mode: 'insensitive' } },
+          { userAccount: { contains: c, mode: 'insensitive' } },
+        ],
+      },
+      select: { id: true },
+    });
+    return us.map((u) => u.id);
   }
 
   private async assertCustomerC(tx: Prisma.TransactionClient, tenantId: string, partnerId: string) {
@@ -239,11 +307,18 @@ export class QuoteService {
     };
   }
 
-  async list(user: RequestUser, q: Nx04ListQueryDto) {
+  async list(user: RequestUser, q: QuoteListQueryDto) {
     const tenantId = requireTenantId(user);
     const page = q.page ?? 1;
     const pageSize = q.pageSize ?? 20;
     const where = this.whereList(tenantId, q);
+    // 建單人員查詢：解析 user id 後加進條件（無相符 → 強制空結果）
+    const creatorFilterIds = await this.resolveCreatorIds(tenantId, q.creator);
+    if (creatorFilterIds !== null) {
+      const andArr = (where.AND as Prisma.Nx04QuoteWhereInput[] | undefined) ?? [];
+      andArr.push({ createdBy: { in: creatorFilterIds.length ? creatorFilterIds : ['__no_match__'] } });
+      where.AND = andArr;
+    }
     const [total, rows] = await Promise.all([
       this.prisma.nx04Quote.count({ where }),
       this.prisma.nx04Quote.findMany({
