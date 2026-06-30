@@ -94,6 +94,7 @@ export function QuoteWorkbench({
   const [total, setTotal] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [enterEditItems, setEnterEditItems] = useState(false); // 建單後一次性：詳情開在「編輯明細」
   const [searchOpen, setSearchOpen] = useState(false);
   const [criteria, setCriteria] = useState<QuoteCriteria>({});
   const [sortKey, setSortKey] = useState<string | null>('docNo');
@@ -132,6 +133,11 @@ export function QuoteWorkbench({
     void reload();
   }, [reload]);
 
+  // 一次性旗標：回到資料瀏覽即清掉，避免之後重開同筆又被帶進「編輯明細」
+  useEffect(() => {
+    if (tab === 'list' && enterEditItems) setEnterEditItems(false);
+  }, [tab, enterEditItems]);
+
   // 排序（篩選改伺服器端：查詢彈窗）
   const displayRows = useMemo(() => {
     if (!sortKey) return rows;
@@ -165,8 +171,9 @@ export function QuoteWorkbench({
     const r = displayRows[i];
     if (r) setSelectedId(r.id);
   };
-  const openDetail = (id: string) => {
+  const openDetail = (id: string, opts?: { editItems?: boolean }) => {
     setCreating(false);
+    setEnterEditItems(!!opts?.editItems);
     setSelectedId(id);
     setTab('detail');
   };
@@ -447,7 +454,7 @@ export function QuoteWorkbench({
           <QuoteCreatePanel
             onCreated={(id) => {
               void reload();
-              openDetail(id);
+              openDetail(id, { editItems: true }); // 建單後直接進編輯明細
             }}
             onCancel={() => {
               setCreating(false);
@@ -457,6 +464,7 @@ export function QuoteWorkbench({
         ) : selectedId ? (
           <QuoteDetailPanel
             id={selectedId}
+            initialMode={enterEditItems ? 'editItems' : 'browse'}
             onChanged={reload}
             itemIndex={itemIndex}
             itemTotal={displayRows.length}

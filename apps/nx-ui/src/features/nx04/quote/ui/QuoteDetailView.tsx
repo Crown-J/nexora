@@ -59,6 +59,7 @@ export function QuoteDetailPanel({
   onJumpLast,
   onCreate,
   onSearch,
+  initialMode = 'browse',
 }: {
   id: string;
   onChanged?: () => void;
@@ -70,12 +71,13 @@ export function QuoteDetailPanel({
   onJumpLast?: () => void;
   onCreate?: () => void;
   onSearch?: () => void;
+  initialMode?: 'browse' | 'editItems'; // 建單後直接進「編輯明細」
 }) {
   const [q, setQ] = useState<Quote | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [mode, setMode] = useState<'browse' | 'editHeader' | 'editItems'>('browse');
+  const [mode, setMode] = useState<'browse' | 'editHeader' | 'editItems'>(initialMode);
   const [addOpen, setAddOpen] = useState(false);
   const [selItem, setSelItem] = useState<string | null>(null); // 明細選中列（↑↓ 用）
 
@@ -115,9 +117,13 @@ export function QuoteDetailPanel({
     setRemark(q.remark ?? '');
   }, [q?.id, q?.updatedAt]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 換筆時自動回瀏覽
+  // 換筆時自動回瀏覽（僅 id 真的變動才重置；初次掛載保留 initialMode，否則建單後的「編輯明細」會被洗掉）
+  const prevIdRef = useRef(id);
   useEffect(() => {
-    setMode('browse');
+    if (prevIdRef.current !== id) {
+      prevIdRef.current = id;
+      setMode('browse');
+    }
   }, [id]);
 
   // 明細：預設選第一列；換單/明細變動時若選中列失效則回第一列
