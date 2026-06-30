@@ -163,6 +163,7 @@ export function QuoteDetailPanel({
   }
 
   const inputCls = 'w-full rounded border bg-background px-2 py-1 text-sm disabled:opacity-60';
+  const roCls = 'w-full rounded border border-border/40 bg-muted/30 px-2 py-1 text-sm text-foreground';
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -237,43 +238,42 @@ export function QuoteDetailPanel({
 
       {/* 左右兩塊：左＝表頭 Form、右＝明細 Table ＋ 金額結算 */}
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto p-4 lg:flex-row">
-        {/* 左：表頭 Form */}
-        <section className="w-full shrink-0 space-y-3 self-start rounded-lg border border-border/40 bg-card p-4 lg:w-[340px]">
-          <div className="grid grid-cols-2 gap-3">
-            <ReadField label="單號">
-              <span className="font-mono">{q.docNo}</span>
-            </ReadField>
-            <ReadField label="單據狀態">
-              <span
-                className={`rounded px-2 py-0.5 text-[11px] ${
-                  q.voidedAt
-                    ? 'bg-rose-100 text-rose-700'
-                    : expired
-                      ? 'bg-zinc-200 text-zinc-600'
-                      : 'bg-emerald-100 text-emerald-800'
-                }`}
-              >
-                {q.voidedAt ? '作廢' : expired ? '失效' : '有效'}
-              </span>
-            </ReadField>
-          </div>
-          <Field label="報價日期">
+        {/* 左：表頭 Form（標籤：輸入框、每欄獨立一列、滿版）*/}
+        <section className="w-full shrink-0 space-y-2 self-start rounded-lg border border-border/40 bg-card p-4 lg:w-[420px]">
+          <FieldRow label="單號">
+            <input readOnly value={q.docNo} className={`${roCls} font-mono`} />
+          </FieldRow>
+          <FieldRow label="單據狀態">
+            <input readOnly value={q.voidedAt ? '作廢' : expired ? '失效' : '有效'} className={roCls} />
+          </FieldRow>
+          <FieldRow label="報價日期">
             <input type="date" value={quoteDate} onChange={(e) => setQuoteDate(e.target.value)} disabled={!editing} className={inputCls} />
-          </Field>
-          <div className="grid grid-cols-2 gap-3">
-            <ReadField label="客戶編號">
-              <span className="font-mono">{q.customerCode ?? q.customerId}</span>
-            </ReadField>
-            <ReadField label="客戶名稱">{q.customerName ?? '—'}</ReadField>
-          </div>
-          <ReadField label="建單人員">{q.createdByName ?? '—'}</ReadField>
-          <ReadField label="建單日期">{q.createdAt.slice(0, 10)}</ReadField>
-          <Field label={`有效日期${expired ? '（已過期）' : ''}`} labelClass={expired ? 'text-rose-600' : ''}>
+          </FieldRow>
+          <FieldRow label="客戶編號">
+            <input readOnly value={q.customerCode ?? q.customerId} className={`${roCls} font-mono`} />
+          </FieldRow>
+          <FieldRow label="客戶名稱">
+            <input readOnly value={q.customerName ?? ''} className={roCls} />
+          </FieldRow>
+          <FieldRow label="建單人員">
+            <input readOnly value={q.createdByName ?? ''} className={roCls} />
+          </FieldRow>
+          <FieldRow label="建單日期">
+            <input readOnly value={q.createdAt.slice(0, 10)} className={roCls} />
+          </FieldRow>
+          <FieldRow label="有效日期" labelDanger={expired}>
             <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} disabled={!editing} className={inputCls} />
-          </Field>
-          <Field label="備註">
-            <input value={remark} onChange={(e) => setRemark(e.target.value)} disabled={!editing} className={inputCls} />
-          </Field>
+          </FieldRow>
+          <div>
+            <div className="mb-1 text-xs text-muted-foreground">備註：</div>
+            <textarea
+              value={remark}
+              onChange={(e) => setRemark(e.target.value)}
+              disabled={!editing}
+              rows={3}
+              className="w-full resize-y rounded border bg-background px-2 py-1 text-sm disabled:opacity-60"
+            />
+          </div>
         </section>
 
         {/* 右：明細 ＋ 金額結算 */}
@@ -311,30 +311,22 @@ export function QuoteDetailPanel({
   );
 }
 
-function ReadField({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <div className="mb-0.5 text-xs text-muted-foreground">{label}</div>
-      <div className="text-sm">{children ?? <span className="text-muted-foreground">—</span>}</div>
-    </div>
-  );
-}
-
-function Field({
+/** 表頭欄列：左標籤（含冒號）＋ 右輸入框，滿版一列一欄 */
+function FieldRow({
   label,
   children,
-  full,
-  labelClass,
+  labelDanger,
 }: {
   label: string;
   children: React.ReactNode;
-  full?: boolean;
-  labelClass?: string;
+  labelDanger?: boolean;
 }) {
   return (
-    <label className={`text-sm ${full ? 'md:col-span-3' : ''}`}>
-      <span className={`mb-0.5 block text-xs text-muted-foreground ${labelClass ?? ''}`}>{label}</span>
-      {children}
+    <label className="flex items-center gap-2">
+      <span className={`w-20 shrink-0 text-right text-xs ${labelDanger ? 'text-rose-600' : 'text-muted-foreground'}`}>
+        {label}：
+      </span>
+      <span className="min-w-0 flex-1">{children}</span>
     </label>
   );
 }
