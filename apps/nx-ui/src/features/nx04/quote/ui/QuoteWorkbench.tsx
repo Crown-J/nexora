@@ -176,23 +176,45 @@ export function QuoteWorkbench({
     document.querySelector(`[data-row-id="${selectedId}"]`)?.scrollIntoView({ block: 'nearest' });
   }, [selectedId, tab]);
 
-  // 全鍵盤：永遠控制主內容層（不靠焦點）；彈窗 / 輸入框 / 列焦點時讓位
+  // 全鍵盤：工具列 Alt 快捷（preventDefault 攔住瀏覽器、如 Alt+F 不再開 Chrome 選單）+ ↑↓ 控列
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       const t = e.target as HTMLElement | null;
       const inField = !!t && ['INPUT', 'SELECT', 'TEXTAREA'].includes(t.tagName);
-      if (e.altKey && e.key === '1') {
-        e.preventDefault();
-        setTab('list');
+      const modalOpen = showNew || searchOpen;
+
+      // Alt 系：選單切換 + 工具列字母快捷
+      if (e.altKey && !e.ctrlKey && !e.metaKey) {
+        const k = e.key.toLowerCase();
+        const map: Record<string, () => void> = {
+          '1': () => setTab('list'),
+          '2': () => {
+            if (selectedId) setTab('detail');
+          },
+        };
+        if (!modalOpen && tab === 'list') {
+          Object.assign(map, {
+            a: () => setShowNew(true),
+            f: () => setSearchOpen(true),
+            r: () => void reload(),
+            e: () => {
+              if (selectedId) setTab('detail');
+            },
+            d: () => handleVoid(),
+            p: () => alert('列印開發中'),
+            o: () => setExportMenuOpen(true),
+          });
+        }
+        const fn = map[k];
+        if (fn) {
+          e.preventDefault();
+          fn();
+        }
         return;
       }
-      if (e.altKey && e.key === '2') {
-        e.preventDefault();
-        if (selectedId) setTab('detail');
-        return;
-      }
-      if (showNew) return; // 彈窗優先
-      if (e.altKey || e.ctrlKey || e.metaKey) return;
+
+      if (modalOpen) return; // 彈窗優先
+      if (e.ctrlKey || e.metaKey) return;
       if (tab === 'list') {
         if (inField) return;
         const active = document.activeElement as HTMLElement | null;
@@ -228,9 +250,9 @@ export function QuoteWorkbench({
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-    // selectAt/openDetail 為依 displayRows 的閉包、已在 deps；不重複列
+    // selectAt/openDetail/handleVoid/reload 為依當前 render 的閉包；以 disable 略過 deps 檢查
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, showNew, displayRows, idx, selectedId]);
+  }, [tab, showNew, searchOpen, displayRows, idx, selectedId]);
 
   const handleVoid = () => {
     if (!selected) return;
