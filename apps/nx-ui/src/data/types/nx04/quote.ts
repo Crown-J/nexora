@@ -72,6 +72,8 @@ export interface Quote {
   warehouseName?: string | null;
   salesPersonName?: string | null;
   currencyCode?: string | null;
+  createdByName?: string | null;
+  itemCount?: number;
 }
 
 export interface QuoteListResponse {

@@ -248,18 +248,38 @@ export class QuoteService {
       this.prisma.nx04Quote.count({ where }),
       this.prisma.nx04Quote.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { docNo: 'desc' }, // 預設單號大到小（最新在最上）
         skip: (page - 1) * pageSize,
         take: pageSize,
-        select: { ...Q_SEL, ...Q_REL_SEL },
+        select: {
+          ...Q_SEL,
+          ...Q_REL_SEL,
+          _count: { select: { rev_Nx04QuoteItem_quoteId: true } },
+        },
       }),
     ]);
-    return {
-      page,
-      pageSize,
-      total,
-      items: rows.map((r) => flattenQuoteRels(r as Record<string, unknown>)),
-    };
+    // 建單人員姓名批次解析（createdBy 為 user id、Nx04Quote 無 FK 關聯）
+    const creatorIds = [...new Set(rows.map((r) => r.createdBy).filter(Boolean))];
+    const creators = creatorIds.length
+      ? await this.prisma.nx01User.findMany({
+          where: { id: { in: creatorIds } },
+          select: { id: true, userName: true },
+        })
+      : [];
+    const creatorMap = new Map(creators.map((u) => [u.id, u.userName]));
+    const items = rows.map((r) => {
+      const flat = flattenQuoteRels(r as Record<string, unknown>) as Record<string, unknown>;
+      const count =
+        (r as { _count?: { rev_Nx04QuoteItem_quoteId?: number } })._count
+          ?.rev_Nx04QuoteItem_quoteId ?? 0;
+      delete flat._count;
+      return {
+        ...flat,
+        itemCount: count,
+        createdByName: creatorMap.get(r.createdBy) ?? null,
+      };
+    });
+    return { page, pageSize, total, items };
   }
 
   async getById(user: RequestUser, id: string) {

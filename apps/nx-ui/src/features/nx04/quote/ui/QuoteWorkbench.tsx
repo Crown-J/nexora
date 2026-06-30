@@ -1,8 +1,8 @@
 // apps/nx-ui/src/features/nx04/quote/ui/QuoteWorkbench.tsx
 // NX04-QT-SHELL：報價單工作區（六層完整、比照主檔 EntityMasterPage 範式）
-//   L4 資料瀏覽/詳細 同頁分頁；資料瀏覽用 MasterTable（邊到邊/預設選第一筆/↑↓Enter 全鍵盤）
-//   L3 完整 ErpToolbar（瀏覽：上下筆 nav + 新增/編輯/作廢 + 查詢/排序/重整 + 列印/匯出）
-//   狀態/搜尋收進工具列「查詢」面板，主內容層只剩表格；欄位顯名稱不露內碼
+//   L4 資料瀏覽/詳細 同頁分頁；資料瀏覽用 MasterTable（邊到邊 + Excel 式拉寬 + 拖拉排序記憶）
+//   全鍵盤：↑↓/Home/End/Enter 永遠控制主內容層（不靠 DOM 焦點、彈窗開啟時讓位）；Alt+1/2 切分頁
+//   狀態收斂為 有效/失效；單號預設大到小
 
 'use client';
 
@@ -16,36 +16,57 @@ import type { SortableOption } from '@/features/nx01/shell/ui/sort-config/SortMe
 import { TieredFormProvider } from '@/features/shared/tiered-form/TieredFormProvider';
 
 import { createQuote, listQuote, voidQuote } from '@data/endpoints/nx04/quote/api/quote';
-import type { CreateQuotePayload, Quote, QuoteStatus } from '@data/types/nx04/quote';
-import { QUOTE_STATUSES, QUOTE_STATUS_LABEL } from '@data/types/nx04/quote';
+import type { CreateQuotePayload, Quote } from '@data/types/nx04/quote';
 
 import { QuoteDetailPanel } from './QuoteDetailView';
 
-const STATUS_BADGE_CLASS: Record<string, string> = {
-  DRAFT: 'bg-muted text-foreground',
-  SENT: 'bg-amber-100 text-amber-900',
-  ACCEPTED: 'bg-emerald-100 text-emerald-900',
-  REJECTED: 'bg-rose-100 text-rose-900',
-  EXPIRED: 'bg-zinc-200 text-zinc-700',
-  CANCELLED: 'bg-zinc-100 text-zinc-500 line-through',
-};
+// ── 欄位順序 / 寬度 記憶（localStorage）──
+const COL_ORDER_KEY = 'nx04.quote.list.colOrder';
+const COL_WIDTH_KEY = 'nx04.quote.list.colWidths';
+function loadJSON<T>(key: string): T | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const v = localStorage.getItem(key);
+    return v ? (JSON.parse(v) as T) : null;
+  } catch {
+    return null;
+  }
+}
+function saveJSON(key: string, val: unknown) {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(key, JSON.stringify(val));
+  } catch {
+    /* ignore */
+  }
+}
 
-const STATUS_OPTIONS: { value: QuoteStatus | ''; label: string }[] = [
-  { value: '', label: '全部狀態' },
-  ...QUOTE_STATUSES.map((s) => ({ value: s, label: QUOTE_STATUS_LABEL[s] })),
-];
+const DEFAULT_WIDTHS: Record<string, number> = {
+  docNo: 160,
+  valid: 80,
+  createdAt: 110,
+  quoteDate: 110,
+  customerCode: 110,
+  customerName: 190,
+  createdByName: 100,
+  itemCount: 80,
+  subtotal: 110,
+  totalAmount: 120,
+  validUntil: 120,
+};
 
 const SORT_OPTIONS: SortableOption[] = [
   { key: 'docNo', label: '單號' },
-  { key: 'quoteDate', label: '報價日' },
-  { key: 'validUntil', label: '有效期限' },
-  { key: 'totalAmount', label: '含稅總額' },
-  { key: 'status', label: '狀態' },
+  { key: 'createdAt', label: '建單日期' },
+  { key: 'quoteDate', label: '報價日期' },
+  { key: 'totalAmount', label: '總金額' },
 ];
 
-function isExpired(validUntil: string | null): boolean {
-  if (!validUntil) return false;
-  return new Date(validUntil) < new Date(new Date().toDateString());
+function isInvalid(q: Quote): boolean {
+  if (q.voidedAt) return true;
+  if (q.status === 'REJECTED' || q.status === 'EXPIRED' || q.status === 'CANCELLED') return true;
+  if (q.validUntil && new Date(q.validUntil) < new Date(new Date().toDateString())) return true;
+  return false;
 }
 
 export function QuoteWorkbench({
@@ -60,41 +81,42 @@ export function QuoteWorkbench({
   const [rows, setRows] = useState<Quote[]>([]);
   const [total, setTotal] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [status, setStatus] = useState<QuoteStatus | ''>('');
   const [search, setSearch] = useState('');
+  const [validFilter, setValidFilter] = useState<'all' | 'valid' | 'invalid'>('all');
   const [showNew, setShowNew] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
-  const [sortKey, setSortKey] = useState<string | null>('quoteDate');
+  const [sortKey, setSortKey] = useState<string | null>('docNo');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [sortMenuOpen, setSortMenuOpen] = useState(false);
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
+  const [colOrder, setColOrder] = useState<string[] | null>(() => loadJSON<string[]>(COL_ORDER_KEY));
+  const [colWidths, setColWidths] = useState<Record<string, number>>(
+    () => loadJSON<Record<string, number>>(COL_WIDTH_KEY) ?? DEFAULT_WIDTHS,
+  );
 
   const reload = useCallback(async () => {
     try {
-      const resp = await listQuote({
-        status: status || undefined,
-        search: search.trim() || undefined,
-        pageSize: 100,
-      });
+      const resp = await listQuote({ search: search.trim() || undefined, pageSize: 200 });
       setRows(resp.items);
       setTotal(resp.total);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : '列表載入失敗');
     }
-  }, [status, search]);
+  }, [search]);
 
   useEffect(() => {
-    // 資料載入：fetch→setState 於 await 後，屬同步外部系統的合法 effect
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     void reload();
   }, [reload]);
 
-  // 客戶端排序
+  // 篩選（有效/失效）+ 排序
   const displayRows = useMemo(() => {
-    if (!sortKey) return rows;
+    let r = rows;
+    if (validFilter === 'valid') r = r.filter((q) => !isInvalid(q));
+    else if (validFilter === 'invalid') r = r.filter((q) => isInvalid(q));
+    if (!sortKey) return r;
     const dir = sortOrder === 'asc' ? 1 : -1;
-    return [...rows].sort((a, b) => {
+    return [...r].sort((a, b) => {
       const av = (a as unknown as Record<string, unknown>)[sortKey];
       const bv = (b as unknown as Record<string, unknown>)[sortKey];
       const an = Number(av);
@@ -102,32 +124,92 @@ export function QuoteWorkbench({
       if (!Number.isNaN(an) && !Number.isNaN(bn)) return (an - bn) * dir;
       return String(av ?? '').localeCompare(String(bv ?? '')) * dir;
     });
-  }, [rows, sortKey, sortOrder]);
+  }, [rows, validFilter, sortKey, sortOrder]);
 
-  // 預設永遠選一筆（第一筆）→ 支援全鍵盤
+  // 預設永遠選一筆（第一筆）
   useEffect(() => {
     if (tab !== 'list') return;
     let next: string | null | undefined;
     if (!displayRows.length) next = selectedId ? null : undefined;
     else if (!displayRows.some((r) => r.id === selectedId)) next = displayRows[0].id;
     if (next !== undefined) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedId(next);
     }
   }, [displayRows, tab, selectedId]);
 
   const idx = selectedId ? displayRows.findIndex((r) => r.id === selectedId) : -1;
   const itemIndex = idx >= 0 ? idx + 1 : 0;
+  const selected = idx >= 0 ? displayRows[idx] : null;
   const selectAt = (i: number) => {
     const r = displayRows[i];
     if (r) setSelectedId(r.id);
   };
-  const selected = idx >= 0 ? displayRows[idx] : null;
-
   const openDetail = (id: string) => {
     setSelectedId(id);
     setTab('detail');
   };
+
+  // 選中列捲入可視
+  useEffect(() => {
+    if (tab !== 'list' || !selectedId) return;
+    document.querySelector(`[data-row-id="${selectedId}"]`)?.scrollIntoView({ block: 'nearest' });
+  }, [selectedId, tab]);
+
+  // 全鍵盤：永遠控制主內容層（不靠焦點）；彈窗 / 輸入框 / 列焦點時讓位
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const t = e.target as HTMLElement | null;
+      const inField = !!t && ['INPUT', 'SELECT', 'TEXTAREA'].includes(t.tagName);
+      if (e.altKey && e.key === '1') {
+        e.preventDefault();
+        setTab('list');
+        return;
+      }
+      if (e.altKey && e.key === '2') {
+        e.preventDefault();
+        if (selectedId) setTab('detail');
+        return;
+      }
+      if (showNew) return; // 彈窗優先
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      if (tab === 'list') {
+        if (inField) return;
+        const active = document.activeElement as HTMLElement | null;
+        if (active?.hasAttribute?.('data-row-id')) return; // 焦點在列、交給 MasterTable
+        const n = displayRows.length;
+        if (!n) return;
+        const cur = idx < 0 ? 0 : idx;
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          selectAt(Math.min(n - 1, cur + 1));
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          selectAt(Math.max(0, cur - 1));
+        } else if (e.key === 'Home') {
+          e.preventDefault();
+          selectAt(0);
+        } else if (e.key === 'End') {
+          e.preventDefault();
+          selectAt(n - 1);
+        } else if (e.key === 'Enter' && selectedId) {
+          e.preventDefault();
+          openDetail(selectedId);
+        }
+      } else if (tab === 'detail' && !inField) {
+        if (e.key === 'ArrowUp' && idx > 0) {
+          e.preventDefault();
+          selectAt(idx - 1);
+        } else if (e.key === 'ArrowDown' && idx >= 0 && idx < displayRows.length - 1) {
+          e.preventDefault();
+          selectAt(idx + 1);
+        }
+      }
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // selectAt/openDetail 為依 displayRows 的閉包、已在 deps；不重複列
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, showNew, displayRows, idx, selectedId]);
 
   const handleVoid = () => {
     if (!selected) return;
@@ -152,63 +234,74 @@ export function QuoteWorkbench({
       alert('PDF / 列印開發中');
       return;
     }
-    const header = ['單號', '狀態', '報價日', '有效期限', '客戶', '業務員', '未稅', '含稅', '備註'];
+    const header = ['單號', '狀態', '建單日期', '報價日期', '客戶編號', '客戶名稱', '建單人員', '項目數', '未稅', '總金額', '有效日期'];
     const lines = displayRows.map((r) =>
       [
         r.docNo,
-        QUOTE_STATUS_LABEL[r.status] ?? r.status,
+        isInvalid(r) ? '失效' : '有效',
+        r.createdAt.slice(0, 10),
         r.quoteDate.slice(0, 10),
-        r.validUntil?.slice(0, 10) ?? '',
+        r.customerCode ?? '',
         r.customerName ?? r.customerId,
-        r.salesPersonName ?? '',
+        r.createdByName ?? '',
+        r.itemCount ?? 0,
         r.subtotal,
         r.totalAmount,
-        (r.remark ?? '').replace(/[\r\n,]/g, ' '),
+        r.validUntil?.slice(0, 10) ?? '',
       ].join(','),
     );
     const csv = '﻿' + [header.join(','), ...lines].join('\n');
     const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
     const a = document.createElement('a');
     a.href = url;
-    a.download = `報價單列表.csv`;
+    a.download = '報價單列表.csv';
     a.click();
     URL.revokeObjectURL(url);
   };
 
-  const columns: MasterTableColumn<Quote>[] = useMemo(
+  const baseColumns: MasterTableColumn<Quote>[] = useMemo(
     () => [
-      { key: 'docNo', label: '單號', minWidthClass: 'min-w-[150px]', render: (r) => <span className="font-mono">{r.docNo}</span> },
+      { key: 'docNo', label: '單號', sortable: true, render: (r) => <span className="font-mono">{r.docNo}</span> },
       {
-        key: 'status',
+        key: 'valid',
         label: '狀態',
-        render: (r) => (
-          <span className={`rounded px-2 py-0.5 text-[11px] ${STATUS_BADGE_CLASS[r.status] ?? 'bg-muted'}`}>
-            {QUOTE_STATUS_LABEL[r.status] ?? r.status}
-          </span>
-        ),
+        render: (r) =>
+          isInvalid(r) ? (
+            <span className="rounded bg-zinc-200 px-2 py-0.5 text-[11px] text-zinc-600">失效</span>
+          ) : (
+            <span className="rounded bg-emerald-100 px-2 py-0.5 text-[11px] text-emerald-800">有效</span>
+          ),
       },
-      { key: 'quoteDate', label: '報價日', render: (r) => r.quoteDate.slice(0, 10) },
+      { key: 'createdAt', label: '建單日期', sortable: true, render: (r) => r.createdAt.slice(0, 10) },
+      { key: 'quoteDate', label: '報價日期', sortable: true, render: (r) => r.quoteDate.slice(0, 10) },
+      { key: 'customerCode', label: '客戶編號', render: (r) => <span className="font-mono text-xs">{r.customerCode ?? '—'}</span> },
+      { key: 'customerName', label: '客戶名稱', render: (r) => r.customerName ?? r.customerId },
+      { key: 'createdByName', label: '建單人員', render: (r) => r.createdByName ?? '—' },
+      { key: 'itemCount', label: '項目數', render: (r) => <span className="tabular-nums">{r.itemCount ?? 0}</span> },
+      { key: 'subtotal', label: '未稅金額', render: (r) => <span className="tabular-nums">{r.subtotal}</span> },
+      { key: 'totalAmount', label: '總金額', sortable: true, render: (r) => <span className="font-medium tabular-nums">{r.totalAmount}</span> },
       {
         key: 'validUntil',
-        label: '有效期限',
+        label: '有效日期',
         render: (r) => {
-          const exp = isExpired(r.validUntil);
-          return (
-            <span className={exp ? 'font-semibold text-rose-600' : ''}>
-              {r.validUntil ? r.validUntil.slice(0, 10) : '—'}
-              {exp ? '（過期）' : ''}
-            </span>
-          );
+          const exp = r.validUntil && new Date(r.validUntil) < new Date(new Date().toDateString());
+          return <span className={exp ? 'font-semibold text-rose-600' : ''}>{r.validUntil ? r.validUntil.slice(0, 10) : '—'}</span>;
         },
       },
-      { key: 'customerName', label: '客戶', minWidthClass: 'min-w-[160px]', render: (r) => r.customerName ?? r.customerId },
-      { key: 'salesPersonName', label: '業務員', render: (r) => r.salesPersonName ?? '—' },
-      { key: 'subtotal', label: '未稅', render: (r) => <span className="tabular-nums">{r.subtotal}</span> },
-      { key: 'totalAmount', label: '含稅', render: (r) => <span className="tabular-nums font-medium">{r.totalAmount}</span> },
-      { key: 'remark', label: '備註', minWidthClass: 'min-w-[120px]', render: (r) => <span className="text-muted-foreground">{r.remark ?? ''}</span> },
     ],
     [],
   );
+
+  // 套用記憶的欄位順序
+  const columns = useMemo(() => {
+    if (!colOrder) return baseColumns;
+    const map = new Map(baseColumns.map((c) => [c.key, c]));
+    const ordered = colOrder.map((k) => map.get(k)).filter(Boolean) as MasterTableColumn<Quote>[];
+    baseColumns.forEach((c) => {
+      if (!colOrder.includes(c.key)) ordered.push(c);
+    });
+    return ordered;
+  }, [colOrder, baseColumns]);
 
   const noop = () => {};
 
@@ -257,7 +350,7 @@ export function QuoteWorkbench({
                 setSortOrder(o);
               }}
               onSortReset={() => {
-                setSortKey('quoteDate');
+                setSortKey('docNo');
                 setSortOrder('desc');
               }}
               sortMenuOpen={sortMenuOpen}
@@ -265,15 +358,15 @@ export function QuoteWorkbench({
               onSave={noop}
               onCancel={noop}
               onOpenFilter={() => setFilterOpen((o) => !o)}
-              filterCount={(status ? 1 : 0) + (search.trim() ? 1 : 0)}
+              filterCount={(validFilter !== 'all' ? 1 : 0) + (search.trim() ? 1 : 0)}
             />
 
             {filterOpen ? (
               <QuoteFilterPanel
-                status={status}
+                validFilter={validFilter}
                 search={search}
-                onApply={(st, kw) => {
-                  setStatus(st);
+                onApply={(vf, kw) => {
+                  setValidFilter(vf);
                   setSearch(kw);
                 }}
                 onClose={() => setFilterOpen(false)}
@@ -282,19 +375,6 @@ export function QuoteWorkbench({
 
             {error ? (
               <div className="mx-3 mt-2 rounded border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm">{error}</div>
-            ) : null}
-
-            {showNew ? (
-              <div className="border-b border-border/40 p-3">
-                <QuickCreateForm
-                  onCreated={(id) => {
-                    setShowNew(false);
-                    void reload();
-                    openDetail(id);
-                  }}
-                  onCancel={() => setShowNew(false)}
-                />
-              </div>
             ) : null}
 
             <div className="flex min-h-0 flex-1 flex-col">
@@ -308,7 +388,7 @@ export function QuoteWorkbench({
                 selectionMode={false}
                 checked={new Set()}
                 setChecked={noop}
-                pageSize={100}
+                pageSize={Math.max(displayRows.length, 1)}
                 hidePageSizeArea
                 sortKey={sortKey ?? undefined}
                 onSortKeyChange={(k) => {
@@ -317,6 +397,18 @@ export function QuoteWorkbench({
                     setSortKey(k);
                     setSortOrder('asc');
                   }
+                }}
+                onColumnOrderChange={(next) => {
+                  setColOrder(next);
+                  saveJSON(COL_ORDER_KEY, next);
+                }}
+                columnWidths={colWidths}
+                onColumnWidthChange={(key, w) => {
+                  setColWidths((prev) => {
+                    const next = { ...prev, [key]: w };
+                    saveJSON(COL_WIDTH_KEY, next);
+                    return next;
+                  });
                 }}
                 totalCount={total}
               />
@@ -335,6 +427,17 @@ export function QuoteWorkbench({
         ) : (
           <div className="p-6 text-sm text-muted-foreground">請先回資料瀏覽選一張報價單。</div>
         )}
+
+        {showNew ? (
+          <QuickCreateDialog
+            onCreated={(id) => {
+              setShowNew(false);
+              void reload();
+              openDetail(id);
+            }}
+            onCancel={() => setShowNew(false)}
+          />
+        ) : null}
       </div>
     </TieredFormProvider>
   );
@@ -342,28 +445,26 @@ export function QuoteWorkbench({
 
 /** 查詢 / 篩選面板（工具列「查詢」展開；主內容層維持純表格）*/
 function QuoteFilterPanel({
-  status,
+  validFilter,
   search,
   onApply,
   onClose,
 }: {
-  status: QuoteStatus | '';
+  validFilter: 'all' | 'valid' | 'invalid';
   search: string;
-  onApply: (status: QuoteStatus | '', search: string) => void;
+  onApply: (validFilter: 'all' | 'valid' | 'invalid', search: string) => void;
   onClose: () => void;
 }) {
-  const [st, setSt] = useState<QuoteStatus | ''>(status);
+  const [vf, setVf] = useState(validFilter);
   const [kw, setKw] = useState(search);
   return (
     <div className="flex flex-wrap items-end gap-3 border-b border-border/40 bg-muted/20 px-4 py-3">
       <label className="text-sm">
         <span className="mb-1 block text-xs text-muted-foreground">狀態</span>
-        <select value={st} onChange={(e) => setSt(e.target.value as QuoteStatus | '')} className="rounded border bg-background px-2 py-1 text-sm">
-          {STATUS_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
+        <select value={vf} onChange={(e) => setVf(e.target.value as 'all' | 'valid' | 'invalid')} className="rounded border bg-background px-2 py-1 text-sm">
+          <option value="all">全部</option>
+          <option value="valid">有效</option>
+          <option value="invalid">失效</option>
         </select>
       </label>
       <label className="min-w-[16rem] flex-1 text-sm">
@@ -371,20 +472,20 @@ function QuoteFilterPanel({
         <input
           value={kw}
           onChange={(e) => setKw(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && onApply(st, kw)}
+          onKeyDown={(e) => e.key === 'Enter' && onApply(vf, kw)}
           placeholder="輸入後按套用 / Enter"
           className="w-full rounded border bg-background px-2 py-1 text-sm"
           autoFocus
         />
       </label>
-      <button onClick={() => onApply(st, kw)} className="rounded bg-primary px-3 py-1.5 text-sm text-primary-foreground">
+      <button onClick={() => onApply(vf, kw)} className="rounded bg-primary px-3 py-1.5 text-sm text-primary-foreground">
         套用
       </button>
       <button
         onClick={() => {
-          setSt('');
+          setVf('all');
           setKw('');
-          onApply('', '');
+          onApply('all', '');
         }}
         className="rounded border px-3 py-1.5 text-sm"
       >
@@ -397,7 +498,8 @@ function QuoteFilterPanel({
   );
 }
 
-function QuickCreateForm({
+/** 新增報價單（彈跳視窗、彈窗優先）*/
+function QuickCreateDialog({
   onCreated,
   onCancel,
 }: {
@@ -444,47 +546,50 @@ function QuickCreateForm({
   const cls = 'w-full rounded border bg-background px-2 py-1 text-sm';
 
   return (
-    <form onSubmit={submit} className="space-y-3 rounded-lg border bg-muted/30 p-4">
-      <h2 className="text-sm font-semibold">新增報價單（建立後進入詳情頁加料件；客戶/倉庫 picker 待 Step4）</h2>
-      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-        <label className="text-sm">
-          <span className="mb-1 block text-xs text-muted-foreground">倉庫 ID *</span>
-          <input value={warehouseId} onChange={(e) => setWarehouseId(e.target.value)} placeholder="NX01WARE..." className={cls} required />
-        </label>
-        <label className="text-sm">
-          <span className="mb-1 block text-xs text-muted-foreground">客戶 ID *</span>
-          <input value={customerId} onChange={(e) => setCustomerId(e.target.value)} placeholder="NX01PTNR..." className={cls} required />
-        </label>
-        <label className="text-sm">
-          <span className="mb-1 block text-xs text-muted-foreground">客戶等級 ID</span>
-          <input value={customerGradeId} onChange={(e) => setCustomerGradeId(e.target.value)} placeholder="NX01CUGR..." className={cls} />
-        </label>
-        <label className="text-sm">
-          <span className="mb-1 block text-xs text-muted-foreground">報價日 *</span>
-          <input type="date" value={quoteDate} onChange={(e) => setQuoteDate(e.target.value)} className={cls} required />
-        </label>
-        <label className="text-sm">
-          <span className="mb-1 block text-xs text-muted-foreground">有效期限（留白自動帶預設天數）</span>
-          <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} className={cls} />
-        </label>
-        <label className="text-sm">
-          <span className="mb-1 block text-xs text-muted-foreground">稅率 % *</span>
-          <input type="number" step="0.01" min="0" value={taxRate} onChange={(e) => setTaxRate(e.target.value)} className={`${cls} tabular-nums`} required />
-        </label>
-        <label className="text-sm md:col-span-2">
-          <span className="mb-1 block text-xs text-muted-foreground">備註</span>
-          <input value={remark} onChange={(e) => setRemark(e.target.value)} className={cls} />
-        </label>
-      </div>
-      {err ? <div className="text-xs text-destructive">{err}</div> : null}
-      <div className="flex gap-2">
-        <button type="submit" disabled={busy} className="rounded bg-primary px-4 py-1.5 text-sm text-primary-foreground disabled:opacity-50">
-          {busy ? '建立中…' : '建立並進入'}
-        </button>
-        <button type="button" onClick={onCancel} className="rounded border px-4 py-1.5 text-sm">
-          取消
-        </button>
-      </div>
-    </form>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onCancel}>
+      <div className="absolute inset-0 bg-black/40" />
+      <form onSubmit={submit} onClick={(e) => e.stopPropagation()} className="relative w-full max-w-2xl space-y-3 rounded-xl border border-border bg-card p-5 shadow-2xl">
+        <h2 className="text-sm font-semibold">新增報價單（建立後進入詳情頁加料件；客戶/倉庫 picker 待 Step4）</h2>
+        <div className="grid gap-3 md:grid-cols-2">
+          <label className="text-sm">
+            <span className="mb-1 block text-xs text-muted-foreground">倉庫 ID *</span>
+            <input value={warehouseId} onChange={(e) => setWarehouseId(e.target.value)} placeholder="NX01WARE..." className={cls} required autoFocus />
+          </label>
+          <label className="text-sm">
+            <span className="mb-1 block text-xs text-muted-foreground">客戶 ID *</span>
+            <input value={customerId} onChange={(e) => setCustomerId(e.target.value)} placeholder="NX01PTNR..." className={cls} required />
+          </label>
+          <label className="text-sm">
+            <span className="mb-1 block text-xs text-muted-foreground">客戶等級 ID</span>
+            <input value={customerGradeId} onChange={(e) => setCustomerGradeId(e.target.value)} placeholder="NX01CUGR..." className={cls} />
+          </label>
+          <label className="text-sm">
+            <span className="mb-1 block text-xs text-muted-foreground">報價日 *</span>
+            <input type="date" value={quoteDate} onChange={(e) => setQuoteDate(e.target.value)} className={cls} required />
+          </label>
+          <label className="text-sm">
+            <span className="mb-1 block text-xs text-muted-foreground">有效期限（留白自動帶預設天數）</span>
+            <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} className={cls} />
+          </label>
+          <label className="text-sm">
+            <span className="mb-1 block text-xs text-muted-foreground">稅率 % *</span>
+            <input type="number" step="0.01" min="0" value={taxRate} onChange={(e) => setTaxRate(e.target.value)} className={`${cls} tabular-nums`} required />
+          </label>
+          <label className="text-sm md:col-span-2">
+            <span className="mb-1 block text-xs text-muted-foreground">備註</span>
+            <input value={remark} onChange={(e) => setRemark(e.target.value)} className={cls} />
+          </label>
+        </div>
+        {err ? <div className="text-xs text-destructive">{err}</div> : null}
+        <div className="flex justify-end gap-2">
+          <button type="button" onClick={onCancel} className="rounded border px-4 py-1.5 text-sm">
+            取消
+          </button>
+          <button type="submit" disabled={busy} className="rounded bg-primary px-4 py-1.5 text-sm text-primary-foreground disabled:opacity-50">
+            {busy ? '建立中…' : '建立並進入'}
+          </button>
+        </div>
+      </form>
+    </div>
   );
 }

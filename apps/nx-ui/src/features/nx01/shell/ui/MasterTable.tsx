@@ -16,6 +16,7 @@
  */
 'use client';
 
+import { useRef } from 'react';
 import { ChevronDown } from 'lucide-react';
 import {
   DndContext,
@@ -48,10 +49,12 @@ function DraggableTh<T>({
   col,
   sortKey,
   onSortKeyChange,
+  onColumnWidthChange,
 }: {
   col: MasterTableColumn<T>;
   sortKey?: string;
   onSortKeyChange?: (key: string) => void;
+  onColumnWidthChange?: (key: string, width: number) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: col.key,
@@ -70,7 +73,7 @@ function DraggableTh<T>({
       {...attributes}
       {...listeners}
       className={cn(
-        'whitespace-nowrap select-none px-3 py-[9px]',
+        'relative whitespace-nowrap select-none px-3 py-[9px]',
         col.minWidthClass,
         isDragging && 'bg-[var(--primary)]/10',
       )}
@@ -88,7 +91,44 @@ function DraggableTh<T>({
       ) : (
         col.label
       )}
+      {onColumnWidthChange ? <ResizeHandle colKey={col.key} onResize={onColumnWidthChange} /> : null}
     </th>
+  );
+}
+
+/** 欄寬拉桿（Excel 式、滑鼠拖右緣調寬）。stopPropagation 避免觸發欄位拖拉重排 */
+function ResizeHandle({
+  colKey,
+  onResize,
+}: {
+  colKey: string;
+  onResize: (key: string, width: number) => void;
+}) {
+  const rafRef = useRef(0);
+  return (
+    <span
+      role="separator"
+      aria-orientation="vertical"
+      onPointerDown={(e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const th = (e.currentTarget as HTMLElement).closest('th');
+        const startWidth = th?.offsetWidth ?? 140;
+        const startX = e.clientX;
+        const onMove = (ev: PointerEvent) => {
+          const w = Math.max(60, startWidth + (ev.clientX - startX));
+          if (rafRef.current) cancelAnimationFrame(rafRef.current);
+          rafRef.current = requestAnimationFrame(() => onResize(colKey, w));
+        };
+        const onUp = () => {
+          window.removeEventListener('pointermove', onMove);
+          window.removeEventListener('pointerup', onUp);
+        };
+        window.addEventListener('pointermove', onMove);
+        window.addEventListener('pointerup', onUp);
+      }}
+      className="absolute right-0 top-0 z-10 h-full w-1.5 cursor-col-resize touch-none select-none hover:bg-[var(--primary)]/40"
+    />
   );
 }
 
@@ -120,6 +160,8 @@ export function MasterTable<T>({
   sortKey,
   onSortKeyChange,
   onColumnOrderChange,
+  columnWidths,
+  onColumnWidthChange,
   footerHint,
   totalCount,
 }: {
@@ -142,6 +184,9 @@ export function MasterTable<T>({
   /** 2026-06-18 表頭拖拉重排欄位順序回 callback；提供時 thead 啟用 dnd
    *  next 是新的 column key 順序、caller 應持久化（localStorage 等） */
   onColumnOrderChange?: (next: string[]) => void;
+  /** 欄寬（key→px）；提供時啟用 Excel 式拉寬 + table-fixed 版面 */
+  columnWidths?: Record<string, number>;
+  onColumnWidthChange?: (key: string, width: number) => void;
   footerHint?: string;
   totalCount?: number;
 }) {
@@ -255,7 +300,15 @@ export function MasterTable<T>({
       className="flex-1 overflow-auto nx-master-scroll [scroll-padding-top:48px]"
       onKeyDown={handleTableKey}
     >
-      <table className="w-full border-collapse text-[13px]">
+      <table className={cn('w-full border-collapse text-[13px]', columnWidths && 'table-fixed')}>
+        {columnWidths ? (
+          <colgroup>
+            <col style={{ width: 48 }} />
+            {columns.map((c) => (
+              <col key={c.key} style={{ width: columnWidths[c.key] ?? 140 }} />
+            ))}
+          </colgroup>
+        ) : null}
         <thead className="sticky top-0 z-10 border-b border-border/40 bg-card/95 backdrop-blur-md">
           <tr className="text-left text-[11.5px] font-semibold uppercase tracking-[0.02em] text-muted-foreground">
             <th className="w-12 px-3 py-[9px]">
@@ -278,12 +331,13 @@ export function MasterTable<T>({
                     col={col}
                     sortKey={sortKey}
                     onSortKeyChange={onSortKeyChange}
+                    onColumnWidthChange={onColumnWidthChange}
                   />
                 ))
               : columns.map((col) => (
                   <th
                     key={col.key}
-                    className={cn('whitespace-nowrap px-3 py-[9px]', col.minWidthClass)}
+                    className={cn('relative whitespace-nowrap px-3 py-[9px]', col.minWidthClass)}
                   >
                     {col.sortable && onSortKeyChange ? (
                       <button
@@ -299,6 +353,9 @@ export function MasterTable<T>({
                     ) : (
                       col.label
                     )}
+                    {onColumnWidthChange ? (
+                      <ResizeHandle colKey={col.key} onResize={onColumnWidthChange} />
+                    ) : null}
                   </th>
                 ))}
           </tr>
