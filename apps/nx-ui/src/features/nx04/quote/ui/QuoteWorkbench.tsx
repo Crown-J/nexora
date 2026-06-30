@@ -98,7 +98,7 @@ export function QuoteWorkbench({
 
   const reload = useCallback(async () => {
     try {
-      const resp = await listQuote({ search: search.trim() || undefined, pageSize: 200 });
+      const resp = await listQuote({ search: search.trim() || undefined, pageSize: 100 });
       setRows(resp.items);
       setTotal(resp.total);
       setError(null);
