@@ -20,7 +20,7 @@ import {
   X,
   XCircle,
 } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { IssueReportTrigger } from '@/features/shared/issue-report-trigger';
 import { NavButton, ToolbarButton, ToolbarSeparator } from '@/features/nx01/shell/ui/ErpToolbar';
@@ -386,10 +386,24 @@ function ItemsSection({
   const rate = Number(q.taxRate) || 0;
   const colCount = editable ? 11 : 10;
   const fmt = (n: string | number) => Number(n).toLocaleString('en-US', { maximumFractionDigits: 2 });
+  // 依容器高度動態補足空白列（填滿到底）；不足則捲動
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [fitRows, setFitRows] = useState(12);
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const ROW = 37; // 每列約略高度（py-2 + 字 + 邊框）
+    const calc = () => setFitRows(Math.max(0, Math.floor((el.clientHeight - 38 - 42) / ROW)));
+    calc();
+    const ro = new ResizeObserver(calc);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const pad = Math.max(0, fitRows - items.length);
   return (
     <section className="flex min-h-0 min-w-0 flex-1 flex-col">
-      <div className="flex-1 overflow-auto rounded-lg border border-border">
-        <table className="h-full w-full border-collapse text-sm [&_td]:border [&_td]:border-border/60 [&_th]:border [&_th]:border-border/60">
+      <div ref={scrollRef} className="flex-1 overflow-auto rounded-lg border border-border">
+        <table className="w-full border-collapse text-sm [&_td]:whitespace-nowrap [&_td]:border [&_td]:border-border/60 [&_th]:whitespace-nowrap [&_th]:border [&_th]:border-border/60">
           <thead className="sticky top-0 z-10 bg-muted text-xs uppercase text-muted-foreground">
             <tr>
               <th className="px-3 py-2 text-left">序號</th>
@@ -458,12 +472,16 @@ function ItemsSection({
                 </tr>
               );
             })}
-            {/* 填充列：撐滿剩餘高度，把合計推到最底 */}
-            <tr aria-hidden className="h-full">
-              {Array.from({ length: colCount }).map((__, j) => (
-                <td key={j} className="px-3 py-2" />
-              ))}
-            </tr>
+            {/* 動態空白列：補足填滿容器（圖二樣式），不足則由容器捲動 */}
+            {Array.from({ length: pad }).map((_, i) => (
+              <tr key={`ph_${i}`} aria-hidden>
+                {Array.from({ length: colCount }).map((__, j) => (
+                  <td key={j} className="px-3 py-2">
+                    &nbsp;
+                  </td>
+                ))}
+              </tr>
+            ))}
           </tbody>
           <tfoot className="sticky bottom-0 z-10 border-t border-border/60 bg-muted text-sm">
             <tr>
