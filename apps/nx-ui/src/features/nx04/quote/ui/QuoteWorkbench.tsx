@@ -477,6 +477,7 @@ export function QuoteWorkbench({
             onApply={(c) => {
               setCriteria(c);
               setSearchOpen(false);
+              setTab('list'); // 查詢結果一律停在資料瀏覽
             }}
             onClose={() => setSearchOpen(false)}
           />
@@ -535,16 +536,18 @@ function QuoteSearchDialog({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-black/40" />
-      <div
+      <form
         onClick={(e) => e.stopPropagation()}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') apply();
+        onKeyDown={(e) => e.stopPropagation()}
+        onSubmit={(e) => {
+          e.preventDefault();
+          apply();
         }}
         className="relative w-full max-w-2xl space-y-3 rounded-xl border border-border bg-card p-5 shadow-2xl"
       >
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold">查詢報價單</h2>
-          <button onClick={onClose} className="rounded p-1 hover:bg-accent/20" aria-label="關閉">
+          <button type="button" onClick={onClose} className="rounded p-1 hover:bg-accent/20" aria-label="關閉">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -584,19 +587,19 @@ function QuoteSearchDialog({
         </SearchRow>
 
         <div className="flex justify-between pt-2">
-          <button onClick={() => setC({})} className="rounded border px-4 py-1.5 text-sm">
+          <button type="button" onClick={() => setC({})} className="rounded border px-4 py-1.5 text-sm">
             清除全部
           </button>
           <div className="flex gap-2">
-            <button onClick={onClose} className="rounded border px-4 py-1.5 text-sm">
+            <button type="button" onClick={onClose} className="rounded border px-4 py-1.5 text-sm">
               取消
             </button>
-            <button onClick={apply} className="rounded bg-primary px-4 py-1.5 text-sm text-primary-foreground">
+            <button type="submit" className="rounded bg-primary px-4 py-1.5 text-sm text-primary-foreground">
               查詢
             </button>
           </div>
         </div>
-      </div>
+      </form>
     </div>
   );
 }
