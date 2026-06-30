@@ -457,7 +457,7 @@ export function QuoteCreatePanel({
       ) : null}
 
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-4 lg:flex-row">
-        <section className="w-full shrink-0 space-y-2 self-start rounded-lg border border-border/40 bg-card p-4 lg:w-[420px]">
+        <section className="w-full shrink-0 space-y-2 overflow-auto rounded-lg border border-border/40 bg-card p-4 lg:w-[420px]">
           <FieldRow label="單號">
             <input readOnly value="存檔後產生" className={roCls} />
           </FieldRow>
@@ -492,10 +492,9 @@ export function QuoteCreatePanel({
           </FieldRow>
         </section>
 
+        {/* 右：明細表（與詳情頁同版型、存檔前鎖定顯示空表）*/}
         <section className="flex min-h-0 min-w-0 flex-1 flex-col">
-          <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed border-border/50 text-sm text-muted-foreground">
-            存檔後即可編輯明細
-          </div>
+          <QuoteItemsTable items={[]} taxRate={5} subtotal={0} taxAmount={0} totalAmount={0} editable={false} selectedItemId={null} />
         </section>
       </div>
 
@@ -565,7 +564,54 @@ function ItemsSection({
   selectedItemId: string | null;
   onSelectItem: (id: string) => void;
 }) {
-  const rate = Number(q.taxRate) || 0;
+  const handleRemove = async (itemId: string) => {
+    try {
+      await removeQuoteItem(q.id, itemId);
+      await onChanged();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '刪除失敗');
+    }
+  };
+  return (
+    <section className="flex min-h-0 min-w-0 flex-1 flex-col">
+      <QuoteItemsTable
+        items={items}
+        taxRate={Number(q.taxRate) || 0}
+        subtotal={q.subtotal}
+        taxAmount={q.taxAmount}
+        totalAmount={q.totalAmount}
+        editable={editable}
+        selectedItemId={selectedItemId}
+        onSelectItem={onSelectItem}
+        onRemoveItem={handleRemove}
+      />
+    </section>
+  );
+}
+
+/** 明細表（純呈現，詳情頁與新增面板共用；新增時 items=[] + locked 顯示空表）*/
+function QuoteItemsTable({
+  items,
+  taxRate,
+  subtotal,
+  taxAmount,
+  totalAmount,
+  editable,
+  selectedItemId,
+  onSelectItem,
+  onRemoveItem,
+}: {
+  items: QuoteItem[];
+  taxRate: number;
+  subtotal: string | number;
+  taxAmount: string | number;
+  totalAmount: string | number;
+  editable: boolean;
+  selectedItemId: string | null;
+  onSelectItem?: (id: string) => void;
+  onRemoveItem?: (id: string) => void;
+}) {
+  const rate = taxRate;
   const colCount = editable ? 11 : 10;
   const fmt = (n: string | number) => Number(n).toLocaleString('en-US', { maximumFractionDigits: 2 });
   // 依容器高度動態補足空白列（填滿到底）；不足則捲動
@@ -583,8 +629,7 @@ function ItemsSection({
   }, []);
   const pad = Math.max(0, fitRows - items.length);
   return (
-    <section className="flex min-h-0 min-w-0 flex-1 flex-col">
-      <div ref={scrollRef} className="flex-1 overflow-auto rounded-lg border border-border">
+    <div ref={scrollRef} className="flex-1 overflow-auto rounded-lg border border-border">
         <table className="w-full border-collapse text-sm [&_td]:whitespace-nowrap [&_td]:border [&_td]:border-border/60 [&_th]:whitespace-nowrap [&_th]:border [&_th]:border-border/60">
           <thead className="sticky top-0 z-10 bg-muted text-xs uppercase text-muted-foreground">
             <tr>
@@ -612,7 +657,7 @@ function ItemsSection({
                 <tr
                   key={it.id}
                   data-item-id={it.id}
-                  onClick={() => onSelectItem(it.id)}
+                  onClick={() => onSelectItem?.(it.id)}
                   className={`cursor-pointer ${
                     sel
                       ? 'bg-[var(--primary)]/15 shadow-[inset_3px_0_0_var(--primary)]'
@@ -637,15 +682,10 @@ function ItemsSection({
                   {editable ? (
                     <td className="px-3 py-2 text-right">
                       <button
-                        onClick={async (e) => {
+                        onClick={(e) => {
                           e.stopPropagation();
                           if (!window.confirm(`刪除明細 ${it.lineNo}？`)) return;
-                          try {
-                            await removeQuoteItem(q.id, it.id);
-                            await onChanged();
-                          } catch (err) {
-                            alert(err instanceof Error ? err.message : '刪除失敗');
-                          }
+                          onRemoveItem?.(it.id);
                         }}
                         className="text-xs text-rose-700 hover:underline"
                       >
@@ -672,15 +712,14 @@ function ItemsSection({
               <td className="px-3 py-2 text-right text-xs text-muted-foreground" colSpan={7}>
                 合計
               </td>
-              <td className="px-3 py-2 text-right font-medium tabular-nums">{fmt(q.subtotal)}</td>
-              <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">{fmt(q.taxAmount)}</td>
-              <td className="px-3 py-2 text-right text-base font-semibold tabular-nums">{fmt(q.totalAmount)}</td>
+              <td className="px-3 py-2 text-right font-medium tabular-nums">{fmt(subtotal)}</td>
+              <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">{fmt(taxAmount)}</td>
+              <td className="px-3 py-2 text-right text-base font-semibold tabular-nums">{fmt(totalAmount)}</td>
               {editable ? <td /> : null}
             </tr>
           </tfoot>
         </table>
       </div>
-    </section>
   );
 }
 
