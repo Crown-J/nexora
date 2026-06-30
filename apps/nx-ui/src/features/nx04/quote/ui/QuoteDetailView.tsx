@@ -420,7 +420,7 @@ function ItemsSection({
             </tr>
           </thead>
           <tbody>
-            {items.map((it) => {
+            {items.map((it, i) => {
               const below = it.minPrice && Number(it.unitPrice) < Number(it.minPrice);
               const lineSub = Number(it.lineAmount);
               const lineTax = Math.round((lineSub * rate) / 100);
@@ -431,8 +431,10 @@ function ItemsSection({
                   key={it.id}
                   data-item-id={it.id}
                   onClick={() => onSelectItem(it.id)}
-                  className={`cursor-pointer border-t border-border/20 ${
-                    sel ? 'bg-[var(--primary)]/12 shadow-[inset_3px_0_0_var(--primary)]' : 'hover:bg-accent/10'
+                  className={`cursor-pointer ${
+                    sel
+                      ? 'bg-[var(--primary)]/15 shadow-[inset_3px_0_0_var(--primary)]'
+                      : `${i % 2 === 1 ? 'bg-foreground/[0.04]' : 'bg-card'} hover:bg-accent/15`
                   }`}
                 >
                   <td className="px-3 py-2 text-xs text-muted-foreground">{it.lineNo}</td>
@@ -472,9 +474,9 @@ function ItemsSection({
                 </tr>
               );
             })}
-            {/* 動態空白列：補足填滿容器（圖二樣式），不足則由容器捲動 */}
+            {/* 動態空白列：補足填滿容器（圖二樣式、延續斑馬紋），不足則由容器捲動 */}
             {Array.from({ length: pad }).map((_, i) => (
-              <tr key={`ph_${i}`} aria-hidden>
+              <tr key={`ph_${i}`} aria-hidden className={(items.length + i) % 2 === 1 ? 'bg-foreground/[0.04]' : 'bg-card'}>
                 {Array.from({ length: colCount }).map((__, j) => (
                   <td key={j} className="px-3 py-2">
                     &nbsp;
