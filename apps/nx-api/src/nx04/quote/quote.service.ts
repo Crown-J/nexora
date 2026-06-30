@@ -443,15 +443,47 @@ export class QuoteService {
     return wanted;
   }
 
+  /** 建單倉庫：指定優先 → 使用者隸屬倉(user_warehouse isPrimary) → 租戶主倉(isMain) → 任一倉 */
+  private async resolveCreateWarehouse(
+    tx: Prisma.TransactionClient,
+    tenantId: string,
+    userId: string,
+    provided?: string,
+  ): Promise<{ id: string; code: string }> {
+    if (provided?.trim()) {
+      const w = await tx.nx01Warehouse.findFirst({
+        where: { id: provided.trim(), tenantId },
+        select: { id: true, code: true },
+      });
+      if (!w) throw new BadRequestException('warehouseId invalid');
+      return w;
+    }
+    const uw = await tx.nx01UserWarehouse.findFirst({
+      where: { userId, tenantId },
+      orderBy: { isPrimary: 'desc' },
+      select: { warehouseId: true },
+    });
+    if (uw) {
+      const w = await tx.nx01Warehouse.findFirst({
+        where: { id: uw.warehouseId, tenantId, isActive: true },
+        select: { id: true, code: true },
+      });
+      if (w) return w;
+    }
+    const main = await tx.nx01Warehouse.findFirst({
+      where: { tenantId, isActive: true },
+      orderBy: [{ isMain: 'desc' }, { code: 'asc' }],
+      select: { id: true, code: true },
+    });
+    if (!main) throw new BadRequestException('找不到可用倉庫，請先建立倉庫');
+    return main;
+  }
+
   async create(user: RequestUser, dto: CreateQuoteDto) {
     const tenantId = requireTenantId(user);
     return this.prisma.$transaction(async (tx) => {
       await this.assertCustomerC(tx, tenantId, dto.customerId.trim());
-      const wh = await tx.nx01Warehouse.findFirst({
-        where: { id: dto.warehouseId.trim(), tenantId },
-        select: { id: true, code: true },
-      });
-      if (!wh) throw new BadRequestException('warehouseId invalid');
+      const wh = await this.resolveCreateWarehouse(tx, tenantId, user.sub, dto.warehouseId);
       const currencyId = await resolveCurrencyId(tx, dto.currencyId);
       const taxRate = new PrismaNs.Decimal(dto.taxRate);
       const docNo = await allocNx04DocNo(tx, tenantId, 'QT', wh.code);

@@ -25,6 +25,8 @@ export type ListPartnerParams = {
   page: number;
   pageSize: number;
   q?: string;
+  /** 注音搜尋（注音首碼，如「ㄊㄍ」→ 太古）；後端走 phonetic_index */
+  phonetic?: string;
   /** v1.2 階段 E P2：模組頁過濾 partnerType（e.g. 銷貨頁只看 C/O、採購頁只看 S） */
   partnerType?: string;
   /** v1.2 階段 E P2：顯示停用過濾（undefined=全部、true=只啟用、false=只停用） */
@@ -37,6 +39,7 @@ export async function listPartner(params: ListPartnerParams): Promise<PagedResul
     page: String(params.page),
     pageSize: String(pageSize),
     search: params.q?.trim() ? params.q.trim() : undefined,
+    phonetic: params.phonetic?.trim() ? params.phonetic.trim() : undefined,
     partnerType: params.partnerType,
     isActive: params.isActive === undefined ? undefined : String(params.isActive),
   });

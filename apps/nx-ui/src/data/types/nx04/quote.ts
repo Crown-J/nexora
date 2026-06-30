@@ -97,7 +97,7 @@ export interface CreateQuoteItemPayload {
 }
 
 export interface CreateQuotePayload {
-  warehouseId: string;
+  warehouseId?: string;
   quoteDate: string;
   customerId: string;
   customerGradeId?: string;

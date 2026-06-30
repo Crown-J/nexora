@@ -60,9 +60,11 @@ export class CreateQuoteItemDto {
 }
 
 export class CreateQuoteDto {
+  /** 省略時後端帶使用者隸屬倉（user_warehouse isPrimary）→ 退而求其次租戶主倉 */
+  @IsOptional()
   @IsString()
   @MaxLength(15)
-  warehouseId!: string;
+  warehouseId?: string;
 
   @IsDateString()
   quoteDate!: string;

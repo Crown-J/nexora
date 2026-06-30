@@ -32,12 +32,15 @@ import { ToolbarPortal } from '@design/layout/workbench/WorkbenchToolbarSlot';
 
 import {
   addQuoteItem,
+  createQuote,
   getQuote,
   getQuoteHistoricalPrices,
   removeQuoteItem,
   updateQuote,
   voidQuote,
 } from '@data/endpoints/nx04/quote/api/quote';
+
+import { CustomerPicker, type PickedCustomer } from './CustomerPicker';
 import type {
   CreateQuoteItemPayload,
   Quote,
@@ -369,6 +372,153 @@ export function QuoteDetailPanel({
             await reloadAll();
           }}
         />
+      ) : null}
+    </div>
+  );
+}
+
+const TOOLBAR_STYLE: React.CSSProperties = {
+  backgroundImage: 'linear-gradient(180deg, var(--nx-surface-toolbar-from) 0%, var(--nx-surface-toolbar-to) 100%)',
+  boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.04), 0 1px 0 0 rgba(0,0,0,0.5)',
+};
+
+/**
+ * 新增報價單面板（內嵌、無彈窗）：鎖右編左
+ * 單號/狀態/建單 自動；停客戶編號（picker + F4 注音）→ Enter 跳幣別 → Enter 存檔確認 → 確認建單。
+ * 倉庫由後端自動帶使用者隸屬倉。
+ */
+export function QuoteCreatePanel({
+  onCreated,
+  onCancel,
+}: {
+  onCreated: (id: string) => void;
+  onCancel: () => void;
+}) {
+  const [customer, setCustomer] = useState<PickedCustomer | null>(null);
+  const [quoteDate, setQuoteDate] = useState(new Date().toISOString().slice(0, 10));
+  const [currency, setCurrency] = useState('TWD');
+  const [remark, setRemark] = useState('');
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const currencyRef = useRef<HTMLInputElement>(null);
+  const confirmRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (confirmOpen) confirmRef.current?.focus();
+  }, [confirmOpen]);
+
+  async function doSave() {
+    if (!customer) {
+      setErr('請先選客戶');
+      return;
+    }
+    setBusy(true);
+    setErr(null);
+    try {
+      const q = await createQuote({
+        customerId: customer.id,
+        quoteDate,
+        currencyId: currency.trim() || undefined,
+        taxRate: 5,
+        remark: remark.trim() || undefined,
+      });
+      onCreated(q.id);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : '建立失敗');
+      setConfirmOpen(false);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const roCls = 'w-full rounded border border-border/40 bg-muted/30 px-2 py-1 text-sm text-muted-foreground';
+  const inputCls = 'w-full rounded border bg-background px-2 py-1 text-sm';
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+      <ToolbarPortal>
+        <div data-nx-frame className="flex items-center gap-1 border-b border-border/40 px-3 py-2" style={TOOLBAR_STYLE}>
+          <ToolbarButton icon={Save} letter="S" label="存檔" enabled={!!customer && !busy} accent onClick={() => setConfirmOpen(true)} />
+          <ToolbarButton icon={X} letter="C" label="取消" enabled={!busy} onClick={onCancel} />
+          <div className="flex-1" />
+          <span className="px-1 text-[11px] text-muted-foreground">新增報價單</span>
+        </div>
+      </ToolbarPortal>
+
+      {err ? (
+        <div className="mx-4 mt-3 rounded border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm">{err}</div>
+      ) : null}
+
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-4 lg:flex-row">
+        <section className="w-full shrink-0 space-y-2 self-start rounded-lg border border-border/40 bg-card p-4 lg:w-[420px]">
+          <FieldRow label="單號">
+            <input readOnly value="存檔後產生" className={roCls} />
+          </FieldRow>
+          <FieldRow label="單據狀態">
+            <input readOnly value="新建" className={roCls} />
+          </FieldRow>
+          <FieldRow label="報價日期">
+            <input type="date" value={quoteDate} onChange={(e) => setQuoteDate(e.target.value)} className={inputCls} />
+          </FieldRow>
+          <FieldRow label="客戶編號">
+            <CustomerPicker autoFocus onPick={setCustomer} onCommit={() => currencyRef.current?.focus()} />
+          </FieldRow>
+          <FieldRow label="客戶名稱">
+            <input readOnly value={customer?.name ?? ''} className={roCls} />
+          </FieldRow>
+          <FieldRow label="幣別">
+            <input
+              ref={currencyRef}
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  if (customer) setConfirmOpen(true);
+                }
+              }}
+              className={inputCls}
+            />
+          </FieldRow>
+          <FieldRow label="備註">
+            <input value={remark} onChange={(e) => setRemark(e.target.value)} className={inputCls} />
+          </FieldRow>
+        </section>
+
+        <section className="flex min-h-0 min-w-0 flex-1 flex-col">
+          <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed border-border/50 text-sm text-muted-foreground">
+            存檔後即可編輯明細
+          </div>
+        </section>
+      </div>
+
+      {confirmOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setConfirmOpen(false)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-sm space-y-4 rounded-xl border border-border bg-card p-5 shadow-2xl">
+            <h2 className="text-sm font-semibold">確認建立報價單</h2>
+            <p className="text-sm text-muted-foreground">
+              客戶：{customer?.code}　{customer?.name}
+              <br />
+              存檔後將產生單號，並可開始編輯明細。
+            </p>
+            <div className="flex justify-end gap-2">
+              <button type="button" onClick={() => setConfirmOpen(false)} className="rounded border px-4 py-1.5 text-sm">
+                取消
+              </button>
+              <button
+                ref={confirmRef}
+                type="button"
+                disabled={busy}
+                onClick={() => void doSave()}
+                className="rounded bg-primary px-4 py-1.5 text-sm text-primary-foreground disabled:opacity-50"
+              >
+                {busy ? '建立中…' : '確認 (Enter)'}
+              </button>
+            </div>
+          </div>
+        </div>
       ) : null}
     </div>
   );

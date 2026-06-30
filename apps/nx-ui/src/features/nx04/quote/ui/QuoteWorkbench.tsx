@@ -15,10 +15,10 @@ import { MasterTable, type MasterTableColumn } from '@/features/nx01/shell/ui/Ma
 import type { MasterTab } from '@/features/nx01/shell/entity-master/MasterTabs';
 import { TieredFormProvider } from '@/features/shared/tiered-form/TieredFormProvider';
 
-import { createQuote, listQuote, voidQuote } from '@data/endpoints/nx04/quote/api/quote';
-import type { CreateQuotePayload, Quote } from '@data/types/nx04/quote';
+import { listQuote, voidQuote } from '@data/endpoints/nx04/quote/api/quote';
+import type { Quote } from '@data/types/nx04/quote';
 
-import { QuoteDetailPanel } from './QuoteDetailView';
+import { QuoteCreatePanel, QuoteDetailPanel } from './QuoteDetailView';
 
 // ── 欄位順序 / 寬度 記憶（localStorage）──
 const COL_ORDER_KEY = 'nx04.quote.list.colOrder';
@@ -93,7 +93,7 @@ export function QuoteWorkbench({
   const [rows, setRows] = useState<Quote[]>([]);
   const [total, setTotal] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [showNew, setShowNew] = useState(false);
+  const [creating, setCreating] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [criteria, setCriteria] = useState<QuoteCriteria>({});
   const [sortKey, setSortKey] = useState<string | null>('docNo');
@@ -166,7 +166,12 @@ export function QuoteWorkbench({
     if (r) setSelectedId(r.id);
   };
   const openDetail = (id: string) => {
+    setCreating(false);
     setSelectedId(id);
+    setTab('detail');
+  };
+  const startCreate = () => {
+    setCreating(true);
     setTab('detail');
   };
 
@@ -181,7 +186,7 @@ export function QuoteWorkbench({
     function onKey(e: KeyboardEvent) {
       const t = e.target as HTMLElement | null;
       const inField = !!t && ['INPUT', 'SELECT', 'TEXTAREA'].includes(t.tagName);
-      const modalOpen = showNew || searchOpen;
+      const modalOpen = searchOpen || creating;
 
       // Alt 系：選單切換 + 工具列字母快捷
       if (e.altKey && !e.ctrlKey && !e.metaKey) {
@@ -194,7 +199,7 @@ export function QuoteWorkbench({
         };
         if (!modalOpen && tab === 'list') {
           Object.assign(map, {
-            a: () => setShowNew(true),
+            a: startCreate,
             f: () => setSearchOpen(true),
             r: () => void reload(),
             e: () => {
@@ -245,7 +250,7 @@ export function QuoteWorkbench({
     return () => window.removeEventListener('keydown', onKey);
     // selectAt/openDetail/handleVoid/reload 為依當前 render 的閉包；以 disable 略過 deps 檢查
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, showNew, searchOpen, displayRows, idx, selectedId]);
+  }, [tab, creating, searchOpen, displayRows, idx, selectedId]);
 
   const handleVoid = () => {
     if (!selected) return;
@@ -354,7 +359,7 @@ export function QuoteWorkbench({
             if (t === 'detail' && !selectedId) return;
             setTab(t);
           }}
-          onCreate={() => setShowNew(true)}
+          onCreate={startCreate}
         />
 
         {tab === 'list' ? (
@@ -371,7 +376,7 @@ export function QuoteWorkbench({
               onPrevItem={() => idx > 0 && selectAt(idx - 1)}
               onNextItem={() => idx >= 0 && idx < displayRows.length - 1 && selectAt(idx + 1)}
               onJumpLastItem={() => selectAt(displayRows.length - 1)}
-              onCreate={() => setShowNew(true)}
+              onCreate={startCreate}
               onEdit={() => selectedId && setTab('detail')}
               onSearch={() => setSearchOpen(true)}
               onDelete={handleVoid}
@@ -438,6 +443,17 @@ export function QuoteWorkbench({
               />
             </div>
           </>
+        ) : creating ? (
+          <QuoteCreatePanel
+            onCreated={(id) => {
+              void reload();
+              openDetail(id);
+            }}
+            onCancel={() => {
+              setCreating(false);
+              setTab('list');
+            }}
+          />
         ) : selectedId ? (
           <QuoteDetailPanel
             id={selectedId}
@@ -448,23 +464,12 @@ export function QuoteWorkbench({
             onNextItem={idx >= 0 && idx < displayRows.length - 1 ? () => selectAt(idx + 1) : undefined}
             onJumpFirst={() => selectAt(0)}
             onJumpLast={() => selectAt(displayRows.length - 1)}
-            onCreate={() => setShowNew(true)}
+            onCreate={startCreate}
             onSearch={() => setSearchOpen(true)}
           />
         ) : (
           <div className="p-6 text-sm text-muted-foreground">請先回資料瀏覽選一張報價單。</div>
         )}
-
-        {showNew ? (
-          <QuickCreateDialog
-            onCreated={(id) => {
-              setShowNew(false);
-              void reload();
-              openDetail(id);
-            }}
-            onCancel={() => setShowNew(false)}
-          />
-        ) : null}
 
         {searchOpen ? (
           <QuoteSearchDialog
@@ -593,102 +598,6 @@ function QuoteSearchDialog({
               查詢
             </button>
           </div>
-        </div>
-      </form>
-    </div>
-  );
-}
-
-/** 新增報價單（彈跳視窗、彈窗優先）*/
-function QuickCreateDialog({
-  onCreated,
-  onCancel,
-}: {
-  onCreated: (id: string) => void;
-  onCancel: () => void;
-}) {
-  const [warehouseId, setWarehouseId] = useState('');
-  const [customerId, setCustomerId] = useState('');
-  const [customerGradeId, setCustomerGradeId] = useState('');
-  const [quoteDate, setQuoteDate] = useState(new Date().toISOString().slice(0, 10));
-  const [validUntil, setValidUntil] = useState('');
-  const [taxRate, setTaxRate] = useState('5');
-  const [remark, setRemark] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!warehouseId.trim() || !customerId.trim()) {
-      setErr('倉庫 / 客戶必填');
-      return;
-    }
-    setBusy(true);
-    setErr(null);
-    try {
-      const payload: CreateQuotePayload = {
-        warehouseId: warehouseId.trim(),
-        customerId: customerId.trim(),
-        customerGradeId: customerGradeId.trim() || undefined,
-        quoteDate,
-        validUntil: validUntil || undefined,
-        taxRate: Number(taxRate) || 0,
-        remark: remark.trim() || undefined,
-      };
-      const q = await createQuote(payload);
-      onCreated(q.id);
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : '建立失敗');
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  const cls = 'w-full rounded border bg-background px-2 py-1 text-sm';
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onCancel}>
-      <div className="absolute inset-0 bg-black/40" />
-      <form onSubmit={submit} onClick={(e) => e.stopPropagation()} className="relative w-full max-w-2xl space-y-3 rounded-xl border border-border bg-card p-5 shadow-2xl">
-        <h2 className="text-sm font-semibold">新增報價單（建立後進入詳情頁加料件；客戶/倉庫 picker 待 Step4）</h2>
-        <div className="grid gap-3 md:grid-cols-2">
-          <label className="text-sm">
-            <span className="mb-1 block text-xs text-muted-foreground">倉庫 ID *</span>
-            <input value={warehouseId} onChange={(e) => setWarehouseId(e.target.value)} placeholder="NX01WARE..." className={cls} required autoFocus />
-          </label>
-          <label className="text-sm">
-            <span className="mb-1 block text-xs text-muted-foreground">客戶 ID *</span>
-            <input value={customerId} onChange={(e) => setCustomerId(e.target.value)} placeholder="NX01PTNR..." className={cls} required />
-          </label>
-          <label className="text-sm">
-            <span className="mb-1 block text-xs text-muted-foreground">客戶等級 ID</span>
-            <input value={customerGradeId} onChange={(e) => setCustomerGradeId(e.target.value)} placeholder="NX01CUGR..." className={cls} />
-          </label>
-          <label className="text-sm">
-            <span className="mb-1 block text-xs text-muted-foreground">報價日 *</span>
-            <input type="date" value={quoteDate} onChange={(e) => setQuoteDate(e.target.value)} className={cls} required />
-          </label>
-          <label className="text-sm">
-            <span className="mb-1 block text-xs text-muted-foreground">有效期限（留白自動帶預設天數）</span>
-            <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} className={cls} />
-          </label>
-          <label className="text-sm">
-            <span className="mb-1 block text-xs text-muted-foreground">稅率 % *</span>
-            <input type="number" step="0.01" min="0" value={taxRate} onChange={(e) => setTaxRate(e.target.value)} className={`${cls} tabular-nums`} required />
-          </label>
-          <label className="text-sm md:col-span-2">
-            <span className="mb-1 block text-xs text-muted-foreground">備註</span>
-            <input value={remark} onChange={(e) => setRemark(e.target.value)} className={cls} />
-          </label>
-        </div>
-        {err ? <div className="text-xs text-destructive">{err}</div> : null}
-        <div className="flex justify-end gap-2">
-          <button type="button" onClick={onCancel} className="rounded border px-4 py-1.5 text-sm">
-            取消
-          </button>
-          <button type="submit" disabled={busy} className="rounded bg-primary px-4 py-1.5 text-sm text-primary-foreground disabled:opacity-50">
-            {busy ? '建立中…' : '建立並進入'}
-          </button>
         </div>
       </form>
     </div>
