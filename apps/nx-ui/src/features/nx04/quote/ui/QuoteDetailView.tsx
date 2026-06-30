@@ -296,6 +296,9 @@ export function QuoteDetailPanel({
           <FieldRow label="客戶名稱">
             <input readOnly value={q.customerName ?? ''} className={roCls} />
           </FieldRow>
+          <FieldRow label="幣別">
+            <input readOnly value={q.currencyCode ?? q.currencyId} className={roCls} />
+          </FieldRow>
           <FieldRow label="建單人員">
             <input readOnly value={q.createdByName ?? ''} className={roCls} />
           </FieldRow>
@@ -382,11 +385,11 @@ function ItemsSection({
 }) {
   const rate = Number(q.taxRate) || 0;
   const colCount = editable ? 11 : 10;
-  const pad = Math.max(0, 14 - items.length);
+  const fmt = (n: string | number) => Number(n).toLocaleString('en-US', { maximumFractionDigits: 2 });
   return (
     <section className="flex min-h-0 min-w-0 flex-1 flex-col">
-      <div className="flex-1 overflow-auto rounded-lg border border-border/40">
-        <table className="w-full text-sm">
+      <div className="flex-1 overflow-auto rounded-lg border border-border">
+        <table className="h-full w-full border-collapse text-sm [&_td]:border [&_td]:border-border/60 [&_th]:border [&_th]:border-border/60">
           <thead className="sticky top-0 z-10 bg-muted text-xs uppercase text-muted-foreground">
             <tr>
               <th className="px-3 py-2 text-left">序號</th>
@@ -428,11 +431,11 @@ function ItemsSection({
                     className={`px-3 py-2 text-right tabular-nums ${below ? 'font-semibold text-rose-600' : ''}`}
                     title={below ? `低於最低售價：${it.belowMinReason ?? '未填理由'}` : undefined}
                   >
-                    {it.unitPrice}
+                    {fmt(it.unitPrice)}
                   </td>
-                  <td className="px-3 py-2 text-right tabular-nums">{lineSub}</td>
-                  <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">{lineTax}</td>
-                  <td className="px-3 py-2 text-right font-medium tabular-nums">{lineTotal}</td>
+                  <td className="px-3 py-2 text-right tabular-nums">{fmt(lineSub)}</td>
+                  <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">{fmt(lineTax)}</td>
+                  <td className="px-3 py-2 text-right font-medium tabular-nums">{fmt(lineTotal)}</td>
                   {editable ? (
                     <td className="px-3 py-2 text-right">
                       <button
@@ -455,24 +458,21 @@ function ItemsSection({
                 </tr>
               );
             })}
-            {Array.from({ length: pad }).map((_, i) => (
-              <tr key={`ph_${i}`} aria-hidden className="border-t border-border/20">
-                {Array.from({ length: colCount }).map((__, j) => (
-                  <td key={j} className="px-3 py-2">
-                    &nbsp;
-                  </td>
-                ))}
-              </tr>
-            ))}
+            {/* 填充列：撐滿剩餘高度，把合計推到最底 */}
+            <tr aria-hidden className="h-full">
+              {Array.from({ length: colCount }).map((__, j) => (
+                <td key={j} className="px-3 py-2" />
+              ))}
+            </tr>
           </tbody>
           <tfoot className="sticky bottom-0 z-10 border-t border-border/60 bg-muted text-sm">
             <tr>
               <td className="px-3 py-2 text-right text-xs text-muted-foreground" colSpan={7}>
                 合計
               </td>
-              <td className="px-3 py-2 text-right font-medium tabular-nums">{q.subtotal}</td>
-              <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">{q.taxAmount}</td>
-              <td className="px-3 py-2 text-right text-base font-semibold tabular-nums">{q.totalAmount}</td>
+              <td className="px-3 py-2 text-right font-medium tabular-nums">{fmt(q.subtotal)}</td>
+              <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">{fmt(q.taxAmount)}</td>
+              <td className="px-3 py-2 text-right text-base font-semibold tabular-nums">{fmt(q.totalAmount)}</td>
               {editable ? <td /> : null}
             </tr>
           </tfoot>
