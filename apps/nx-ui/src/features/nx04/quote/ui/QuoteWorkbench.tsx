@@ -361,8 +361,6 @@ export function QuoteWorkbench({
             if (t === 'detail' && !selectedId) return;
             setTab(t);
           }}
-          detailTitle={selected?.docNo}
-          detailSubtitle={tab === 'detail' ? '詳細資料' : '瀏覽'}
           onCreate={() => setShowNew(true)}
         />
 

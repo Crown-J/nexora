@@ -236,10 +236,10 @@ export function QuoteDetailPanel({
         <div className="mx-4 mt-3 rounded border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm">{error}</div>
       ) : null}
 
-      {/* 左右兩塊：左＝表頭 Form、右＝明細 Table ＋ 金額結算 */}
-      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto p-4 lg:flex-row">
+      {/* 左右兩塊：左＝表頭 Form、右＝明細 Table ＋ 金額結算（高度滿版）*/}
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-4 lg:flex-row">
         {/* 左：表頭 Form（標籤：輸入框、每欄獨立一列、滿版）*/}
-        <section className="w-full shrink-0 space-y-2 self-start rounded-lg border border-border/40 bg-card p-4 lg:w-[420px]">
+        <section className="w-full shrink-0 space-y-2 overflow-auto rounded-lg border border-border/40 bg-card p-4 lg:w-[420px]">
           <FieldRow label="單號">
             <input readOnly value={q.docNo} className={`${roCls} font-mono`} />
           </FieldRow>
@@ -277,7 +277,7 @@ export function QuoteDetailPanel({
         </section>
 
         {/* 右：明細 ＋ 金額結算 */}
-        <section className="flex min-w-0 flex-1 flex-col">
+        <section className="flex min-h-0 min-w-0 flex-1 flex-col">
           <ItemsSection q={q} items={q.items ?? []} editable={itemsEditable} onChanged={reloadAll} />
           <footer className="mt-3 flex flex-wrap items-center justify-end gap-8 rounded-lg border border-border/40 bg-muted/20 px-4 py-3 text-sm">
             <div>
@@ -343,12 +343,12 @@ function ItemsSection({
   onChanged: () => void | Promise<void>;
 }) {
   const colCount = editable ? 9 : 8;
+  const pad = Math.max(0, 14 - items.length);
   return (
-    <section className="min-w-0">
-      <h2 className="mb-2 text-sm font-semibold">明細（{items.length} 行）</h2>
-      <div className="overflow-x-auto rounded-lg border border-border/40">
+    <section className="flex min-h-0 min-w-0 flex-1 flex-col">
+      <div className="flex-1 overflow-auto rounded-lg border border-border/40">
         <table className="w-full text-sm">
-          <thead className="bg-muted text-xs uppercase text-muted-foreground">
+          <thead className="sticky top-0 z-10 bg-muted text-xs uppercase text-muted-foreground">
             <tr>
               <th className="px-3 py-2 text-left">序號</th>
               <th className="px-3 py-2 text-left">基準料號</th>
@@ -362,14 +362,7 @@ function ItemsSection({
             </tr>
           </thead>
           <tbody>
-            {items.length === 0 ? (
-              <tr>
-                <td colSpan={colCount} className="px-3 py-6 text-center text-xs text-muted-foreground">
-                  尚無明細。{editable ? '用工具列「新增明細」加入。' : ''}
-                </td>
-              </tr>
-            ) : (
-              items.map((it) => {
+            {items.map((it) => {
                 const below = it.minPrice && Number(it.unitPrice) < Number(it.minPrice);
                 return (
                   <tr key={it.id} className="border-t border-border/20 hover:bg-accent/10">
@@ -406,8 +399,16 @@ function ItemsSection({
                     ) : null}
                   </tr>
                 );
-              })
-            )}
+              })}
+            {Array.from({ length: pad }).map((_, i) => (
+              <tr key={`ph_${i}`} aria-hidden className="border-t border-border/20">
+                {Array.from({ length: colCount }).map((__, j) => (
+                  <td key={j} className="px-3 py-2">
+                    &nbsp;
+                  </td>
+                ))}
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
