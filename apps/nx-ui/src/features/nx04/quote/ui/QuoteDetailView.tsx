@@ -41,16 +41,6 @@ import type {
   QuoteHistoricalPrice,
   QuoteItem,
 } from '@data/types/nx04/quote';
-import { QUOTE_STATUS_LABEL } from '@data/types/nx04/quote';
-
-const STATUS_BADGE_CLASS: Record<string, string> = {
-  DRAFT: 'bg-muted text-foreground',
-  SENT: 'bg-amber-100 text-amber-900',
-  ACCEPTED: 'bg-emerald-100 text-emerald-900',
-  REJECTED: 'bg-rose-100 text-rose-900',
-  EXPIRED: 'bg-zinc-200 text-zinc-700',
-  CANCELLED: 'bg-zinc-100 text-zinc-500 line-through',
-};
 
 export function QuoteDetailPanel({
   id,
@@ -175,7 +165,7 @@ export function QuoteDetailPanel({
   const inputCls = 'w-full rounded border bg-background px-2 py-1 text-sm disabled:opacity-60';
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-auto">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
       {/* L3 工具列 */}
       <ToolbarPortal>
         <div
@@ -245,72 +235,66 @@ export function QuoteDetailPanel({
         <div className="mx-4 mt-3 rounded border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm">{error}</div>
       ) : null}
 
-      {/* ── 上層：單頭 ── */}
-      <section className="border-b border-border/40 p-4">
-        <div className="grid gap-x-8 gap-y-3 md:grid-cols-3">
-          {/* ① 單據資訊 */}
-          <ReadField label="單號">
-            <span className="font-mono">{q.docNo}</span>
-            <span className={`ml-2 rounded px-2 py-0.5 text-[11px] ${STATUS_BADGE_CLASS[q.status] ?? 'bg-muted'}`}>
-              {QUOTE_STATUS_LABEL[q.status] ?? q.status}
-            </span>
-          </ReadField>
-          <Field label={`有效期限${expired ? '（已過期）' : ''}`} labelClass={expired ? 'text-rose-600' : ''}>
-            <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} disabled={!editing} className={inputCls} />
-          </Field>
-          <Field label="報價日">
+      {/* 左右兩塊：左＝表頭 Form、右＝明細 Table ＋ 金額結算 */}
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto p-4 lg:flex-row">
+        {/* 左：表頭 Form */}
+        <section className="w-full shrink-0 space-y-3 self-start rounded-lg border border-border/40 bg-card p-4 lg:w-[340px]">
+          <div className="grid grid-cols-2 gap-3">
+            <ReadField label="單號">
+              <span className="font-mono">{q.docNo}</span>
+            </ReadField>
+            <ReadField label="單據狀態">
+              <span
+                className={`rounded px-2 py-0.5 text-[11px] ${
+                  q.voidedAt
+                    ? 'bg-rose-100 text-rose-700'
+                    : expired
+                      ? 'bg-zinc-200 text-zinc-600'
+                      : 'bg-emerald-100 text-emerald-800'
+                }`}
+              >
+                {q.voidedAt ? '作廢' : expired ? '失效' : '有效'}
+              </span>
+            </ReadField>
+          </div>
+          <Field label="報價日期">
             <input type="date" value={quoteDate} onChange={(e) => setQuoteDate(e.target.value)} disabled={!editing} className={inputCls} />
           </Field>
-
-          {/* ② 客戶與倉庫 */}
-          <ReadField label="客戶">
-            {q.customerName ?? q.customerId}
-            {q.customerCode ? <span className="ml-1 text-xs text-muted-foreground">{q.customerCode}</span> : null}
-          </ReadField>
-          <ReadField label="客戶等級">
-            {q.customerGradeName ? (
-              q.customerGradeName
-            ) : (
-              <span className="rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-900">未設、無毛利警告</span>
-            )}
-          </ReadField>
-          <ReadField label="報價倉庫">{q.warehouseName ?? q.warehouseId}</ReadField>
-
-          {/* ③ 金額條件 / 其他 */}
-          <ReadField label="業務員">{q.salesPersonName ?? '—'}</ReadField>
-          <ReadField label="幣別 / 稅率">
-            {(q.currencyCode ?? q.currencyId)} · {q.taxRate}%
-          </ReadField>
-          <Field label="參考文號">
-            <input value={customerRefNo} onChange={(e) => setCustomerRefNo(e.target.value)} disabled={!editing} placeholder="客戶採購單號等" className={inputCls} />
+          <div className="grid grid-cols-2 gap-3">
+            <ReadField label="客戶編號">
+              <span className="font-mono">{q.customerCode ?? q.customerId}</span>
+            </ReadField>
+            <ReadField label="客戶名稱">{q.customerName ?? '—'}</ReadField>
+          </div>
+          <ReadField label="建單人員">{q.createdByName ?? '—'}</ReadField>
+          <ReadField label="建單日期">{q.createdAt.slice(0, 10)}</ReadField>
+          <Field label={`有效日期${expired ? '（已過期）' : ''}`} labelClass={expired ? 'text-rose-600' : ''}>
+            <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} disabled={!editing} className={inputCls} />
           </Field>
-          <Field label="備註" full>
+          <Field label="備註">
             <input value={remark} onChange={(e) => setRemark(e.target.value)} disabled={!editing} className={inputCls} />
           </Field>
-        </div>
-      </section>
+        </section>
 
-      {/* ── 下層：明細 ── */}
-      <ItemsSection q={q} items={q.items ?? []} editable={itemsEditable} onChanged={reloadAll} />
-
-      {/* 底部總計 + 稽核 */}
-      <footer className="mt-auto flex flex-wrap items-center gap-6 border-t border-border/40 bg-muted/20 px-4 py-3 text-sm">
-        <div>
-          <span className="text-xs text-muted-foreground">未稅小計 </span>
-          <span className="font-mono tabular-nums">{q.subtotal}</span>
-        </div>
-        <div>
-          <span className="text-xs text-muted-foreground">稅額 </span>
-          <span className="font-mono tabular-nums">{q.taxAmount}</span>
-        </div>
-        <div>
-          <span className="text-xs text-muted-foreground">總額（含稅）</span>
-          <span className="ml-1 font-mono tabular-nums text-lg font-semibold">{q.totalAmount}</span>
-        </div>
-        <div className="ml-auto text-xs text-muted-foreground">
-          建立 {q.createdAt.slice(0, 16).replace('T', ' ')} · 更新 {q.updatedAt.slice(0, 16).replace('T', ' ')}
-        </div>
-      </footer>
+        {/* 右：明細 ＋ 金額結算 */}
+        <section className="flex min-w-0 flex-1 flex-col">
+          <ItemsSection q={q} items={q.items ?? []} editable={itemsEditable} onChanged={reloadAll} />
+          <footer className="mt-3 flex flex-wrap items-center justify-end gap-8 rounded-lg border border-border/40 bg-muted/20 px-4 py-3 text-sm">
+            <div>
+              <span className="text-xs text-muted-foreground">小計 </span>
+              <span className="font-mono tabular-nums">{q.subtotal}</span>
+            </div>
+            <div>
+              <span className="text-xs text-muted-foreground">稅額（{q.taxRate}%） </span>
+              <span className="font-mono tabular-nums">{q.taxAmount}</span>
+            </div>
+            <div>
+              <span className="text-xs text-muted-foreground">總額 </span>
+              <span className="ml-1 font-mono tabular-nums text-lg font-semibold">{q.totalAmount}</span>
+            </div>
+          </footer>
+        </section>
+      </div>
 
       {addOpen ? (
         <AddItemDialog
@@ -366,28 +350,29 @@ function ItemsSection({
   editable: boolean;
   onChanged: () => void | Promise<void>;
 }) {
+  const colCount = editable ? 9 : 8;
   return (
-    <section className="flex-1 p-4">
+    <section className="min-w-0">
       <h2 className="mb-2 text-sm font-semibold">明細（{items.length} 行）</h2>
       <div className="overflow-x-auto rounded-lg border border-border/40">
         <table className="w-full text-sm">
           <thead className="bg-muted text-xs uppercase text-muted-foreground">
             <tr>
-              <th className="px-3 py-2 text-left">#</th>
-              <th className="px-3 py-2 text-left">料號 / 品名</th>
+              <th className="px-3 py-2 text-left">序號</th>
+              <th className="px-3 py-2 text-left">基準料號</th>
+              <th className="px-3 py-2 text-left">廠牌料號</th>
+              <th className="px-3 py-2 text-left">廠牌</th>
+              <th className="px-3 py-2 text-left">品名</th>
               <th className="px-3 py-2 text-right">數量</th>
               <th className="px-3 py-2 text-right">單價</th>
-              <th className="px-3 py-2 text-right">最低售價</th>
-              <th className="px-3 py-2 text-right">已轉量</th>
-              <th className="px-3 py-2 text-right">金額</th>
-              <th className="px-3 py-2 text-left">毛利警示</th>
+              <th className="px-3 py-2 text-right">總價</th>
               {editable ? <th className="px-3 py-2"></th> : null}
             </tr>
           </thead>
           <tbody>
             {items.length === 0 ? (
               <tr>
-                <td colSpan={editable ? 9 : 8} className="px-3 py-6 text-center text-xs text-muted-foreground">
+                <td colSpan={colCount} className="px-3 py-6 text-center text-xs text-muted-foreground">
                   尚無明細。{editable ? '用工具列「新增明細」加入。' : ''}
                 </td>
               </tr>
@@ -397,20 +382,18 @@ function ItemsSection({
                 return (
                   <tr key={it.id} className="border-t border-border/20 hover:bg-accent/10">
                     <td className="px-3 py-2 text-xs text-muted-foreground">{it.lineNo}</td>
-                    <td className="px-3 py-2 text-xs">
-                      <div className="font-mono">{it.partNo}</div>
-                      <div className="text-muted-foreground">{it.partName}</div>
-                    </td>
+                    <td className="px-3 py-2 font-mono text-xs">{it.baseNo ?? it.partNo}</td>
+                    <td className="px-3 py-2 font-mono text-xs">{it.brandNo ?? '—'}</td>
+                    <td className="px-3 py-2 text-xs">{it.brandName ?? '—'}</td>
+                    <td className="px-3 py-2">{it.partName}</td>
                     <td className="px-3 py-2 text-right tabular-nums">{it.qty}</td>
-                    <td className={`px-3 py-2 text-right tabular-nums ${below ? 'font-semibold text-rose-600' : ''}`}>{it.unitPrice}</td>
-                    <td className="px-3 py-2 text-right text-xs tabular-nums text-muted-foreground">{it.minPrice ?? '-'}</td>
-                    <td className="px-3 py-2 text-right text-xs tabular-nums">{it.transferredQty}</td>
-                    <td className="px-3 py-2 text-right tabular-nums">{it.lineAmount}</td>
-                    <td className="px-3 py-2 text-xs">
-                      {below ? (
-                        <span className="rounded bg-rose-100 px-2 py-0.5 text-rose-900">⚠️ 低於最低售價：{it.belowMinReason ?? '未填理由'}</span>
-                      ) : null}
+                    <td
+                      className={`px-3 py-2 text-right tabular-nums ${below ? 'font-semibold text-rose-600' : ''}`}
+                      title={below ? `低於最低售價：${it.belowMinReason ?? '未填理由'}` : undefined}
+                    >
+                      {it.unitPrice}
                     </td>
+                    <td className="px-3 py-2 text-right tabular-nums">{it.lineAmount}</td>
                     {editable ? (
                       <td className="px-3 py-2 text-right">
                         <button

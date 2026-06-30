@@ -35,6 +35,10 @@ export interface QuoteItem {
   createdBy: string;
   updatedAt: string;
   updatedBy: string;
+  // 由零件帶（顯示用）：基準料號 / 廠牌料號 / 廠牌
+  baseNo?: string | null;
+  brandNo?: string | null;
+  brandName?: string | null;
 }
 
 export interface Quote {

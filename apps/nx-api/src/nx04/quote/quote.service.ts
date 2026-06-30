@@ -71,6 +71,8 @@ const Q_ITEM_SEL = {
   createdBy: true,
   updatedAt: true,
   updatedBy: true,
+  // 明細顯示：基準料號(code)/廠牌料號(secCode)/品名(name)/廠牌(brand.name) 由零件帶
+  part: { select: { code: true, secCode: true, name: true, brand: { select: { name: true } } } },
 } as const;
 
 // 表頭關聯 select：客戶 / 客戶等級 / 倉庫 / 業務員 名稱（避免畫面露內碼）
@@ -109,9 +111,20 @@ function flattenQuoteRels(row: Record<string, unknown>) {
   };
 }
 
-function mapQuoteItemApi<T extends { unitPrice: PrismaNs.Decimal | unknown }>(row: T) {
+function mapQuoteItemApi(row: Record<string, unknown>) {
   const u = row.unitPrice as PrismaNs.Decimal;
-  return { ...row, unitPriceSnapshot: u };
+  const part = row.part as
+    | { code?: string; secCode?: string; name?: string; brand?: { name?: string } | null }
+    | null
+    | undefined;
+  const { part: _p, ...rest } = row;
+  return {
+    ...rest,
+    unitPriceSnapshot: u,
+    baseNo: part?.code ?? null,
+    brandNo: part?.secCode ?? null,
+    brandName: part?.brand?.name ?? null,
+  };
 }
 
 @Injectable()
@@ -368,7 +381,12 @@ export class QuoteService {
       },
     });
     if (!row) throw new NotFoundException('Quote not found');
-    return this.mapDetail(row as never);
+    const mapped = this.mapDetail(row as never) as Record<string, unknown>;
+    // 建單人員姓名（createdBy 為 user id、無 FK 關聯）
+    const creator = row.createdBy
+      ? await this.prisma.nx01User.findFirst({ where: { id: row.createdBy }, select: { userName: true } })
+      : null;
+    return { ...mapped, createdByName: creator?.userName ?? null };
   }
 
   /**
