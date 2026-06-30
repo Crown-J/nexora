@@ -238,15 +238,8 @@ export function QuoteWorkbench({
           e.preventDefault();
           openDetail(selectedId);
         }
-      } else if (tab === 'detail' && !inField) {
-        if (e.key === 'ArrowUp' && idx > 0) {
-          e.preventDefault();
-          selectAt(idx - 1);
-        } else if (e.key === 'ArrowDown' && idx >= 0 && idx < displayRows.length - 1) {
-          e.preventDefault();
-          selectAt(idx + 1);
-        }
       }
+      // 詳細頁的 ↑↓ 改由 QuoteDetailPanel 接管（選明細列）；換單走工具列 ◀▶
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);

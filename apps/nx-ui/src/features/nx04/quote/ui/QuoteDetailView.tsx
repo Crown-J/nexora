@@ -65,6 +65,7 @@ export function QuoteDetailPanel({
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
+  const [selItem, setSelItem] = useState<string | null>(null); // 明細選中列（↑↓ 用）
 
   // 表頭可編欄位（編輯模式）
   const [quoteDate, setQuoteDate] = useState('');
@@ -106,6 +107,46 @@ export function QuoteDetailPanel({
   useEffect(() => {
     setEditing(false);
   }, [id]);
+
+  // 明細：預設選第一列；換單/明細變動時若選中列失效則回第一列
+  useEffect(() => {
+    const its = q?.items ?? [];
+    if (!its.length) {
+      if (selItem !== null) setSelItem(null);
+      return;
+    }
+    if (!its.some((i) => i.id === selItem)) setSelItem(its[0].id);
+  }, [q, selItem]);
+
+  // 明細：↑↓ 選列（焦點固定在明細表格、輸入框/彈窗時讓位）
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (addOpen) return;
+      const t = e.target as HTMLElement | null;
+      if (t && ['INPUT', 'SELECT', 'TEXTAREA'].includes(t.tagName)) return;
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      const its = q?.items ?? [];
+      if (!its.length) return;
+      const idx = its.findIndex((i) => i.id === selItem);
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const n = its[Math.min(its.length - 1, idx < 0 ? 0 : idx + 1)];
+        if (n) setSelItem(n.id);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        const n = its[Math.max(0, idx < 0 ? 0 : idx - 1)];
+        if (n) setSelItem(n.id);
+      }
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [q, selItem, addOpen]);
+
+  // 選中明細列捲入可視
+  useEffect(() => {
+    if (!selItem) return;
+    document.querySelector(`[data-item-id="${selItem}"]`)?.scrollIntoView({ block: 'nearest' });
+  }, [selItem]);
 
   const handle = async (fn: () => Promise<unknown>, prefix: string) => {
     setBusy(true);
@@ -276,23 +317,16 @@ export function QuoteDetailPanel({
           </div>
         </section>
 
-        {/* 右：明細 ＋ 金額結算 */}
+        {/* 右：明細（含 tfoot 金額結算對齊欄位）*/}
         <section className="flex min-h-0 min-w-0 flex-1 flex-col">
-          <ItemsSection q={q} items={q.items ?? []} editable={itemsEditable} onChanged={reloadAll} />
-          <footer className="mt-3 flex flex-wrap items-center justify-end gap-8 rounded-lg border border-border/40 bg-muted/20 px-4 py-3 text-sm">
-            <div>
-              <span className="text-xs text-muted-foreground">小計 </span>
-              <span className="font-mono tabular-nums">{q.subtotal}</span>
-            </div>
-            <div>
-              <span className="text-xs text-muted-foreground">稅額（{q.taxRate}%） </span>
-              <span className="font-mono tabular-nums">{q.taxAmount}</span>
-            </div>
-            <div>
-              <span className="text-xs text-muted-foreground">總額 </span>
-              <span className="ml-1 font-mono tabular-nums text-lg font-semibold">{q.totalAmount}</span>
-            </div>
-          </footer>
+          <ItemsSection
+            q={q}
+            items={q.items ?? []}
+            editable={itemsEditable}
+            onChanged={reloadAll}
+            selectedItemId={selItem}
+            onSelectItem={setSelItem}
+          />
         </section>
       </div>
 
@@ -336,13 +370,18 @@ function ItemsSection({
   items,
   editable,
   onChanged,
+  selectedItemId,
+  onSelectItem,
 }: {
   q: Quote;
   items: QuoteItem[];
   editable: boolean;
   onChanged: () => void | Promise<void>;
+  selectedItemId: string | null;
+  onSelectItem: (id: string) => void;
 }) {
-  const colCount = editable ? 9 : 8;
+  const rate = Number(q.taxRate) || 0;
+  const colCount = editable ? 11 : 10;
   const pad = Math.max(0, 14 - items.length);
   return (
     <section className="flex min-h-0 min-w-0 flex-1 flex-col">
@@ -357,49 +396,65 @@ function ItemsSection({
               <th className="px-3 py-2 text-left">品名</th>
               <th className="px-3 py-2 text-right">數量</th>
               <th className="px-3 py-2 text-right">單價</th>
+              <th className="px-3 py-2 text-right">小計</th>
+              <th className="px-3 py-2 text-right">稅額</th>
               <th className="px-3 py-2 text-right">總價</th>
               {editable ? <th className="px-3 py-2"></th> : null}
             </tr>
           </thead>
           <tbody>
             {items.map((it) => {
-                const below = it.minPrice && Number(it.unitPrice) < Number(it.minPrice);
-                return (
-                  <tr key={it.id} className="border-t border-border/20 hover:bg-accent/10">
-                    <td className="px-3 py-2 text-xs text-muted-foreground">{it.lineNo}</td>
-                    <td className="px-3 py-2 font-mono text-xs">{it.baseNo ?? it.partNo}</td>
-                    <td className="px-3 py-2 font-mono text-xs">{it.brandNo ?? '—'}</td>
-                    <td className="px-3 py-2 text-xs">{it.brandName ?? '—'}</td>
-                    <td className="px-3 py-2">{it.partName}</td>
-                    <td className="px-3 py-2 text-right tabular-nums">{it.qty}</td>
-                    <td
-                      className={`px-3 py-2 text-right tabular-nums ${below ? 'font-semibold text-rose-600' : ''}`}
-                      title={below ? `低於最低售價：${it.belowMinReason ?? '未填理由'}` : undefined}
-                    >
-                      {it.unitPrice}
+              const below = it.minPrice && Number(it.unitPrice) < Number(it.minPrice);
+              const lineSub = Number(it.lineAmount);
+              const lineTax = Math.round((lineSub * rate) / 100);
+              const lineTotal = lineSub + lineTax;
+              const sel = it.id === selectedItemId;
+              return (
+                <tr
+                  key={it.id}
+                  data-item-id={it.id}
+                  onClick={() => onSelectItem(it.id)}
+                  className={`cursor-pointer border-t border-border/20 ${
+                    sel ? 'bg-[var(--primary)]/12 shadow-[inset_3px_0_0_var(--primary)]' : 'hover:bg-accent/10'
+                  }`}
+                >
+                  <td className="px-3 py-2 text-xs text-muted-foreground">{it.lineNo}</td>
+                  <td className="px-3 py-2 font-mono text-xs">{it.baseNo ?? it.partNo}</td>
+                  <td className="px-3 py-2 font-mono text-xs">{it.brandNo ?? '—'}</td>
+                  <td className="px-3 py-2 text-xs">{it.brandName ?? '—'}</td>
+                  <td className="px-3 py-2">{it.partName}</td>
+                  <td className="px-3 py-2 text-right tabular-nums">{it.qty}</td>
+                  <td
+                    className={`px-3 py-2 text-right tabular-nums ${below ? 'font-semibold text-rose-600' : ''}`}
+                    title={below ? `低於最低售價：${it.belowMinReason ?? '未填理由'}` : undefined}
+                  >
+                    {it.unitPrice}
+                  </td>
+                  <td className="px-3 py-2 text-right tabular-nums">{lineSub}</td>
+                  <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">{lineTax}</td>
+                  <td className="px-3 py-2 text-right font-medium tabular-nums">{lineTotal}</td>
+                  {editable ? (
+                    <td className="px-3 py-2 text-right">
+                      <button
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          if (!window.confirm(`刪除明細 ${it.lineNo}？`)) return;
+                          try {
+                            await removeQuoteItem(q.id, it.id);
+                            await onChanged();
+                          } catch (err) {
+                            alert(err instanceof Error ? err.message : '刪除失敗');
+                          }
+                        }}
+                        className="text-xs text-rose-700 hover:underline"
+                      >
+                        刪除
+                      </button>
                     </td>
-                    <td className="px-3 py-2 text-right tabular-nums">{it.lineAmount}</td>
-                    {editable ? (
-                      <td className="px-3 py-2 text-right">
-                        <button
-                          onClick={async () => {
-                            if (!window.confirm(`刪除明細 ${it.lineNo}？`)) return;
-                            try {
-                              await removeQuoteItem(q.id, it.id);
-                              await onChanged();
-                            } catch (e) {
-                              alert(e instanceof Error ? e.message : '刪除失敗');
-                            }
-                          }}
-                          className="text-xs text-rose-700 hover:underline"
-                        >
-                          刪除
-                        </button>
-                      </td>
-                    ) : null}
-                  </tr>
-                );
-              })}
+                  ) : null}
+                </tr>
+              );
+            })}
             {Array.from({ length: pad }).map((_, i) => (
               <tr key={`ph_${i}`} aria-hidden className="border-t border-border/20">
                 {Array.from({ length: colCount }).map((__, j) => (
@@ -410,6 +465,17 @@ function ItemsSection({
               </tr>
             ))}
           </tbody>
+          <tfoot className="sticky bottom-0 z-10 border-t border-border/60 bg-muted text-sm">
+            <tr>
+              <td className="px-3 py-2 text-right text-xs text-muted-foreground" colSpan={7}>
+                合計
+              </td>
+              <td className="px-3 py-2 text-right font-medium tabular-nums">{q.subtotal}</td>
+              <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">{q.taxAmount}</td>
+              <td className="px-3 py-2 text-right text-base font-semibold tabular-nums">{q.totalAmount}</td>
+              {editable ? <td /> : null}
+            </tr>
+          </tfoot>
         </table>
       </div>
     </section>
