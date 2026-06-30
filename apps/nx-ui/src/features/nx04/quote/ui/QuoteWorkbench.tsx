@@ -62,12 +62,14 @@ const SORT_OPTIONS: SortableOption[] = [
   { key: 'totalAmount', label: '總金額' },
 ];
 
-function isInvalid(q: Quote): boolean {
-  if (q.voidedAt) return true;
-  if (q.status === 'REJECTED' || q.status === 'EXPIRED' || q.status === 'CANCELLED') return true;
-  if (q.validUntil && new Date(q.validUntil) < new Date(new Date().toDateString())) return true;
-  return false;
+// 列表狀態：純看有效期（作廢 / 失效(逾期) / 有效）；不碰接受·拒絕（成交與否走銷貨單拉報價）
+type ListStatus = 'valid' | 'expired' | 'void';
+function listStatus(q: Quote): ListStatus {
+  if (q.voidedAt) return 'void';
+  if (q.validUntil && new Date(q.validUntil) < new Date(new Date().toDateString())) return 'expired';
+  return 'valid';
 }
+const LIST_STATUS_LABEL: Record<ListStatus, string> = { valid: '有效', expired: '失效', void: '作廢' };
 
 export function QuoteWorkbench({
   initialId,
@@ -82,7 +84,7 @@ export function QuoteWorkbench({
   const [total, setTotal] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
-  const [validFilter, setValidFilter] = useState<'all' | 'valid' | 'invalid'>('all');
+  const [validFilter, setValidFilter] = useState<'all' | ListStatus>('all');
   const [showNew, setShowNew] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [sortKey, setSortKey] = useState<string | null>('docNo');
@@ -112,8 +114,7 @@ export function QuoteWorkbench({
   // 篩選（有效/失效）+ 排序
   const displayRows = useMemo(() => {
     let r = rows;
-    if (validFilter === 'valid') r = r.filter((q) => !isInvalid(q));
-    else if (validFilter === 'invalid') r = r.filter((q) => isInvalid(q));
+    if (validFilter !== 'all') r = r.filter((q) => listStatus(q) === validFilter);
     if (!sortKey) return r;
     const dir = sortOrder === 'asc' ? 1 : -1;
     return [...r].sort((a, b) => {
@@ -238,7 +239,7 @@ export function QuoteWorkbench({
     const lines = displayRows.map((r) =>
       [
         r.docNo,
-        isInvalid(r) ? '失效' : '有效',
+        LIST_STATUS_LABEL[listStatus(r)],
         r.createdAt.slice(0, 10),
         r.quoteDate.slice(0, 10),
         r.customerCode ?? '',
@@ -265,12 +266,16 @@ export function QuoteWorkbench({
       {
         key: 'valid',
         label: '狀態',
-        render: (r) =>
-          isInvalid(r) ? (
-            <span className="rounded bg-zinc-200 px-2 py-0.5 text-[11px] text-zinc-600">失效</span>
-          ) : (
-            <span className="rounded bg-emerald-100 px-2 py-0.5 text-[11px] text-emerald-800">有效</span>
-          ),
+        render: (r) => {
+          const s = listStatus(r);
+          const cls =
+            s === 'valid'
+              ? 'bg-emerald-100 text-emerald-800'
+              : s === 'void'
+                ? 'bg-rose-100 text-rose-700'
+                : 'bg-zinc-200 text-zinc-600';
+          return <span className={`rounded px-2 py-0.5 text-[11px] ${cls}`}>{LIST_STATUS_LABEL[s]}</span>;
+        },
       },
       { key: 'createdAt', label: '建單日期', sortable: true, render: (r) => r.createdAt.slice(0, 10) },
       { key: 'quoteDate', label: '報價日期', sortable: true, render: (r) => r.quoteDate.slice(0, 10) },
@@ -450,9 +455,9 @@ function QuoteFilterPanel({
   onApply,
   onClose,
 }: {
-  validFilter: 'all' | 'valid' | 'invalid';
+  validFilter: 'all' | ListStatus;
   search: string;
-  onApply: (validFilter: 'all' | 'valid' | 'invalid', search: string) => void;
+  onApply: (validFilter: 'all' | ListStatus, search: string) => void;
   onClose: () => void;
 }) {
   const [vf, setVf] = useState(validFilter);
@@ -461,10 +466,11 @@ function QuoteFilterPanel({
     <div className="flex flex-wrap items-end gap-3 border-b border-border/40 bg-muted/20 px-4 py-3">
       <label className="text-sm">
         <span className="mb-1 block text-xs text-muted-foreground">狀態</span>
-        <select value={vf} onChange={(e) => setVf(e.target.value as 'all' | 'valid' | 'invalid')} className="rounded border bg-background px-2 py-1 text-sm">
+        <select value={vf} onChange={(e) => setVf(e.target.value as 'all' | ListStatus)} className="rounded border bg-background px-2 py-1 text-sm">
           <option value="all">全部</option>
           <option value="valid">有效</option>
-          <option value="invalid">失效</option>
+          <option value="expired">失效</option>
+          <option value="void">作廢</option>
         </select>
       </label>
       <label className="min-w-[16rem] flex-1 text-sm">
