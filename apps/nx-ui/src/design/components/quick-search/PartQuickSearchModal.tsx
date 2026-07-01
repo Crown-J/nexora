@@ -348,8 +348,11 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
         }
       }
     };
-    window.addEventListener('keydown', h);
-    return () => window.removeEventListener('keydown', h);
+    // ⚠️ capture 階段：本窗在 FocusLockedDialog 內、modal-stack bubbleGuard 會在 document bubble
+    // 就 stopImmediatePropagation（layer 內事件不傳 window），若掛 bubble 則此 handler 永不執行、
+    // Alt+F 的 preventDefault 失效 → Chrome 吃到 Alt+F 開選單。掛 capture 比 guard 更早跑才攔得住。
+    window.addEventListener('keydown', h, true);
+    return () => window.removeEventListener('keydown', h, true);
   }, [focusedSide, switchMethod, triggerSearchAndFocusResult, backToInput]);
 
   // 結果區動作 callbacks（抽出來、給 row onKeyDown 和 FocusZone 容器共用、邏輯不重複）
