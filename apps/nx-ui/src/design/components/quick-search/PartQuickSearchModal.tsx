@@ -67,23 +67,24 @@ const METHOD_TABS: Array<{ key: Method; label: string; alt: string }> = [
 ];
 
 // 零件分類（寫死、對齊 features/nx01/product/part-zoned/helpers.ts；design 層不跨 features、就地複製）
+// label 開頭帶數字：native select 打字跳選（按 1~9 直接選該項）
 const TECH_CATEGORY_OPTIONS = [
-  { value: '1', label: '引擎／動力系統' },
-  { value: '2', label: '傳動系統' },
-  { value: '3', label: '制動系統' },
-  { value: '4', label: '轉向系統' },
-  { value: '5', label: '懸吊與底盤系統' },
-  { value: '6', label: '電氣與電子系統' },
-  { value: '7', label: '冷卻與空調系統' },
-  { value: '8', label: '車體外觀與內裝' },
-  { value: '9', label: '安全與輔助系統' },
+  { value: '1', label: '1 引擎／動力系統' },
+  { value: '2', label: '2 傳動系統' },
+  { value: '3', label: '3 制動系統' },
+  { value: '4', label: '4 轉向系統' },
+  { value: '5', label: '5 懸吊與底盤系統' },
+  { value: '6', label: '6 電氣與電子系統' },
+  { value: '7', label: '7 冷卻與空調系統' },
+  { value: '8', label: '8 車體外觀與內裝' },
+  { value: '9', label: '9 安全與輔助系統' },
 ];
 const PURCHASE_CATEGORY_OPTIONS = [
-  { value: '1', label: '保養件' },
-  { value: '2', label: '維修件' },
-  { value: '3', label: '事故件' },
-  { value: '4', label: '改裝件' },
-  { value: '5', label: '油品耗材' },
+  { value: '1', label: '1 保養件' },
+  { value: '2', label: '2 維修件' },
+  { value: '3', label: '3 事故件' },
+  { value: '4', label: '4 改裝件' },
+  { value: '5', label: '5 油品耗材' },
 ];
 
 type FlatResultRow =
