@@ -54,6 +54,10 @@ export type PartSearchQuery = {
   partGroupQuery?: string;
   /** 車型關鍵字（model.code/name 含此字、經 part_model 篩；品名/廠牌/族群 加車型用）*/
   modelQuery?: string;
+  /** 系統別（techCategory 1~9、族群查法）*/
+  techCategory?: number;
+  /** 用途別（purchaseCategory 1~5、族群查法）*/
+  purchaseCategory?: number;
   keyword?: string;
   partNo?: string;
   includeInactive?: boolean;

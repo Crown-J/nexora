@@ -36,6 +36,12 @@ export class PartSearchQueryDto {
    */
   @IsOptional() @IsString() @MaxLength(100) modelQuery?: string;
 
+  /** 系統別（技術角度、寫死 1~9；F2 族群查法 AND 篩）*/
+  @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(9) techCategory?: number;
+
+  /** 用途別（採購角度、寫死 1~5；F2 族群查法 AND 篩）*/
+  @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(5) purchaseCategory?: number;
+
   /**
    * 品名關鍵字（同時打：name contains + 注音聲母碼 contains）。
    * 前端 F4 候選下拉若選定具體中文詞，會把該詞填回此欄。

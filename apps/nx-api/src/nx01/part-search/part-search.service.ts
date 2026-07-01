@@ -116,6 +116,8 @@ export class PartSearchService {
     if (!q.includeInactive) where.isActive = true;
     if (brandId) where.brandId = brandId;
     if (partGroupId) where.partGroupId = partGroupId;
+    if (q.techCategory) where.techCategory = q.techCategory; // 系統別（族群查法）
+    if (q.purchaseCategory) where.purchaseCategory = q.purchaseCategory; // 用途別（族群查法）
 
     // 廠牌關鍵字（執行長 2026-06-17 拍板四欄都 input）：brand.code/name contains
     if (brandQuery) {

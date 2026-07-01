@@ -66,6 +66,26 @@ const METHOD_TABS: Array<{ key: Method; label: string; alt: string }> = [
   { key: 'all', label: '綜合', alt: '5' },
 ];
 
+// 零件分類（寫死、對齊 features/nx01/product/part-zoned/helpers.ts；design 層不跨 features、就地複製）
+const TECH_CATEGORY_OPTIONS = [
+  { value: '1', label: '引擎／動力系統' },
+  { value: '2', label: '傳動系統' },
+  { value: '3', label: '制動系統' },
+  { value: '4', label: '轉向系統' },
+  { value: '5', label: '懸吊與底盤系統' },
+  { value: '6', label: '電氣與電子系統' },
+  { value: '7', label: '冷卻與空調系統' },
+  { value: '8', label: '車體外觀與內裝' },
+  { value: '9', label: '安全與輔助系統' },
+];
+const PURCHASE_CATEGORY_OPTIONS = [
+  { value: '1', label: '保養件' },
+  { value: '2', label: '維修件' },
+  { value: '3', label: '事故件' },
+  { value: '4', label: '改裝件' },
+  { value: '5', label: '油品耗材' },
+];
+
 type FlatResultRow =
   | { kind: 'group-primary'; groupId: string; member: PartSearchRow & { role?: number; isMatch?: boolean } }
   | { kind: 'group-alt'; groupId: string; member: PartSearchRow & { role?: number; isMatch?: boolean } }
@@ -81,6 +101,9 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
   const [partGroupQuery, setPartGroupQuery] = useState('');
   // 執行長 2026-06-26：品名/廠牌/族群 加車型縮小範圍（次要 AND 篩選欄）
   const [modelQuery, setModelQuery] = useState('');
+  // 執行長 2026-07-01：族群查法加 系統別(techCategory)/用途別(purchaseCategory) 兩下拉
+  const [techCategory, setTechCategory] = useState('');
+  const [purchaseCategory, setPurchaseCategory] = useState('');
   const [includeInactive, setIncludeInactive] = useState(false);
 
   const [result, setResult] = useState<PartSearchResult | null>(null);
@@ -97,6 +120,8 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
   const brandInputRef = useRef<HTMLInputElement>(null);
   const partGroupInputRef = useRef<HTMLInputElement>(null);
   const modelInputRef = useRef<HTMLInputElement>(null);
+  const techCategoryRef = useRef<HTMLSelectElement>(null);
+  const purchaseCategoryRef = useRef<HTMLSelectElement>(null);
 
   const reqIdRef = useRef(0);
   // 強制搜尋（空欄視同 All）切右後、等結果進來再補 focus row 0 用
@@ -120,27 +145,34 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
   }, [method]);
 
   // 各 method 的「欄位順序」（Enter/Tab 導航；末欄 Enter=查詢、末欄 Tab=回首欄）
-  const fieldOrder = useMemo<React.RefObject<HTMLInputElement | null>[]>(() => {
+  // 族群查法 4 欄：族群類型→車型→系統類型(select)→零件類型(select)
+  const fieldOrder = useMemo<React.RefObject<HTMLElement | null>[]>(() => {
+    let arr: any[];
     switch (method) {
       case 'partNo':
-        return [partNoInputRef];
+        arr = [partNoInputRef];
+        break;
       case 'name':
-        return [keywordInputRef, modelInputRef];
+        arr = [keywordInputRef, modelInputRef];
+        break;
       case 'brand':
-        return [brandInputRef, modelInputRef];
+        arr = [brandInputRef, modelInputRef];
+        break;
       case 'group':
-        return [partGroupInputRef, modelInputRef];
+        arr = [partGroupInputRef, modelInputRef, techCategoryRef, purchaseCategoryRef];
+        break;
       case 'all':
       default:
-        return [partNoInputRef, keywordInputRef, brandInputRef, partGroupInputRef, modelInputRef];
+        arr = [partNoInputRef, keywordInputRef, brandInputRef, partGroupInputRef, modelInputRef];
     }
+    return arr as React.RefObject<HTMLElement | null>[];
   }, [method]);
   const focusFieldAt = useCallback(
     (i: number) => {
       const el = fieldOrder[i]?.current;
       if (!el) return;
       el.focus();
-      if (el.value) el.select();
+      if (el instanceof HTMLInputElement && el.value) el.select();
     },
     [fieldOrder],
   );
@@ -157,6 +189,8 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
     setBrandQuery('');
     setPartGroupQuery('');
     setModelQuery('');
+    setTechCategory('');
+    setPurchaseCategory('');
     setIncludeInactive(false);
     setResult(null);
     setError(null);
@@ -172,6 +206,8 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
     setBrandQuery('');
     setPartGroupQuery('');
     setModelQuery('');
+    setTechCategory('');
+    setPurchaseCategory('');
     setIncludeInactive(false);
     setResult(null);
     setError(null);
@@ -232,9 +268,13 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
     if (method === 'group' || method === 'all') q.partGroupQuery = partGroupQuery.trim() || undefined;
     if (method === 'name' || method === 'brand' || method === 'group' || method === 'all')
       q.modelQuery = modelQuery.trim() || undefined;
+    if (method === 'group') {
+      if (techCategory) q.techCategory = Number(techCategory);
+      if (purchaseCategory) q.purchaseCategory = Number(purchaseCategory);
+    }
     q.includeInactive = includeInactive;
     const hasAny = Boolean(
-      q.partNo || q.keyword || q.brandQuery || q.partGroupQuery || q.modelQuery,
+      q.partNo || q.keyword || q.brandQuery || q.partGroupQuery || q.modelQuery || q.techCategory || q.purchaseCategory,
     );
     if (!hasAny && !force) {
       setResult(null);
@@ -255,13 +295,13 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
     } finally {
       if (reqIdRef.current === myReqId) setLoading(false);
     }
-  }, [method, partNo, keyword, brandQuery, partGroupQuery, modelQuery, includeInactive]);
+  }, [method, partNo, keyword, brandQuery, partGroupQuery, modelQuery, techCategory, purchaseCategory, includeInactive]);
 
   // 打字 debounce 自動搜尋（資料即時更新、不動焦點）
   useEffect(() => {
     const handle = setTimeout(() => void runSearch(), SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(handle);
-  }, [partNo, keyword, brandQuery, partGroupQuery, modelQuery, includeInactive, method, runSearch]);
+  }, [partNo, keyword, brandQuery, partGroupQuery, modelQuery, techCategory, purchaseCategory, includeInactive, method, runSearch]);
 
   // 觸發搜尋 + 焦點鎖定到右側
   const triggerSearchAndFocusResult = useCallback(() => {
@@ -499,6 +539,16 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
   );
   const handleInputEnter = advanceOnEnter;
   const handleInputArrowDown = moveFocusToResult;
+  // 下拉（系統類型/零件類型）：Enter=下一欄/查詢；↑↓ 留給原生切選項、不攔（Tab 由容器 handleFieldsKeyDown 接）
+  const handleSelectKey = useCallback(
+    (e: React.KeyboardEvent<HTMLSelectElement>) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        advanceOnEnter();
+      }
+    },
+    [advanceOnEnter],
+  );
 
   // 純輸入欄（料號 / 品名）共用 keydown
   const handlePlainInputKey = useCallback(
@@ -644,7 +694,7 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
               )}
               {(method === 'group' || method === 'all') && (
                 <Combobox<PartGroupOpt>
-                  label="族群"
+                  label={method === 'group' ? '族群類型' : '族群'}
                   value={partGroupQuery}
                   onChange={setPartGroupQuery}
                   placeholder="空白=展開、或打字篩選"
@@ -659,13 +709,35 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
               )}
               {(method === 'name' || method === 'brand' || method === 'group' || method === 'all') && (
                 <PlainInputBlock
-                  label="車型（縮小範圍）"
+                  label={method === 'group' ? '車型' : '車型（縮小範圍）'}
                   value={modelQuery}
                   onChange={setModelQuery}
                   inputRef={modelInputRef}
                   placeholder="車型代碼/名稱，如 T5 / F30（可空）"
                   onKeyDown={handlePlainInputKey}
                 />
+              )}
+              {method === 'group' && (
+                <>
+                  <SelectBlock
+                    label="系統類型"
+                    value={techCategory}
+                    onChange={setTechCategory}
+                    selectRef={techCategoryRef}
+                    options={TECH_CATEGORY_OPTIONS}
+                    placeholder="全部系統別"
+                    onKeyDown={handleSelectKey}
+                  />
+                  <SelectBlock
+                    label="零件類型"
+                    value={purchaseCategory}
+                    onChange={setPurchaseCategory}
+                    selectRef={purchaseCategoryRef}
+                    options={PURCHASE_CATEGORY_OPTIONS}
+                    placeholder="全部用途別"
+                    onKeyDown={handleSelectKey}
+                  />
+                </>
               )}
               {method === 'all' && (
                 <label className="flex cursor-pointer items-center gap-2 text-[13px] text-foreground/90">
@@ -830,6 +902,45 @@ function PlainInputBlock({
             : 'h-10 border border-border/40 text-sm text-foreground focus:border-primary/60',
         )}
       />
+    </div>
+  );
+}
+
+/** 下拉選欄（系統類型 / 零件類型；寫死選項、AND 篩）*/
+function SelectBlock({
+  label,
+  value,
+  onChange,
+  selectRef,
+  options,
+  placeholder,
+  onKeyDown,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  selectRef: React.RefObject<HTMLSelectElement | null>;
+  options: Array<{ value: string; label: string }>;
+  placeholder: string;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLSelectElement>) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground/70">{label}</span>
+      <select
+        ref={selectRef}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={onKeyDown}
+        className="h-10 rounded-md border border-border/40 bg-background/60 px-2.5 text-sm text-foreground outline-none focus:border-primary/60"
+      >
+        <option value="">{placeholder}</option>
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }
