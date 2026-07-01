@@ -99,6 +99,8 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
   const modelInputRef = useRef<HTMLInputElement>(null);
 
   const reqIdRef = useRef(0);
+  // 強制搜尋（空欄視同 All）切右後、等結果進來再補 focus row 0 用
+  const pendingResultFocusRef = useRef(false);
 
   // 各 method 下「左區第一個 input ref」
   const firstInputRef = useMemo<React.RefObject<HTMLInputElement | null>>(() => {
@@ -116,6 +118,36 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
         return partNoInputRef;
     }
   }, [method]);
+
+  // 各 method 的「欄位順序」（Enter/Tab 導航；末欄 Enter=查詢、末欄 Tab=回首欄）
+  const fieldOrder = useMemo<React.RefObject<HTMLInputElement | null>[]>(() => {
+    switch (method) {
+      case 'partNo':
+        return [partNoInputRef];
+      case 'name':
+        return [keywordInputRef, modelInputRef];
+      case 'brand':
+        return [brandInputRef, modelInputRef];
+      case 'group':
+        return [partGroupInputRef, modelInputRef];
+      case 'all':
+      default:
+        return [partNoInputRef, keywordInputRef, brandInputRef, partGroupInputRef, modelInputRef];
+    }
+  }, [method]);
+  const focusFieldAt = useCallback(
+    (i: number) => {
+      const el = fieldOrder[i]?.current;
+      if (!el) return;
+      el.focus();
+      if (el.value) el.select();
+    },
+    [fieldOrder],
+  );
+  const currentFieldIndex = useCallback(
+    () => fieldOrder.findIndex((r) => r.current === document.activeElement),
+    [fieldOrder],
+  );
 
   // 切 method：清四欄輸入 + 重置 result + 焦點回左區首欄
   const switchMethod = useCallback((next: Method) => {
@@ -181,8 +213,18 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
     setHighlightIndex(0);
   }, [flatRows]);
 
+  // 強制搜尋切右後、結果 async 進來時補 focus row 0（空欄視同 All 用）
+  useEffect(() => {
+    if (!pendingResultFocusRef.current || focusedSide !== 'result' || flatRows.length === 0) return;
+    const el = document.querySelector('[data-pqs-row="0"]') as HTMLElement | null;
+    if (el) {
+      el.focus();
+      pendingResultFocusRef.current = false;
+    }
+  }, [flatRows, focusedSide]);
+
   // 主搜尋（依 method 帶條件、Alt5 帶所有欄）
-  const runSearch = useCallback(async () => {
+  const runSearch = useCallback(async (force = false) => {
     const q: PartSearchQuery = { groupByCompat: true, page: 1, pageSize: PAGE_SIZE };
     if (method === 'partNo' || method === 'all') q.partNo = partNo.trim() || undefined;
     if (method === 'name' || method === 'all') q.keyword = keyword.trim() || undefined;
@@ -194,7 +236,7 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
     const hasAny = Boolean(
       q.partNo || q.keyword || q.brandQuery || q.partGroupQuery || q.modelQuery,
     );
-    if (!hasAny) {
+    if (!hasAny && !force) {
       setResult(null);
       setError(null);
       setLoading(false);
@@ -223,12 +265,16 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
 
   // 觸發搜尋 + 焦點鎖定到右側
   const triggerSearchAndFocusResult = useCallback(() => {
-    void runSearch();
-    // 等下次 paint，render 完 row 再 focus
+    pendingResultFocusRef.current = true;
     setFocusedSide('result');
+    void runSearch(true); // 空欄視同 All（強制搜尋、不因無條件而 bail）
+    // 已有結果 → 立即 focus；無（空搜等 async）→ 由 flatRows effect 補 focus
     queueMicrotask(() => {
       const el = document.querySelector('[data-pqs-row="0"]') as HTMLElement | null;
-      el?.focus();
+      if (el) {
+        el.focus();
+        pendingResultFocusRef.current = false;
+      }
     });
   }, [runSearch]);
 
@@ -319,16 +365,13 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
   const resultMoveUp = useCallback(() => {
     const total = flatRows.length;
     if (total === 0) return;
+    // 執行長 2026-07-01 F2 右區：↑↓ 純瀏覽清單、頂端不外跳；回左區一律走 Alt+F
     setHighlightIndex((i) => {
-      if (i === 0) {
-        backToInput();
-        return 0;
-      }
-      const next = i - 1;
+      const next = Math.max(0, i - 1);
       focusRow(next);
       return next;
     });
-  }, [flatRows.length, backToInput]);
+  }, [flatRows.length]);
   const resultMovePageDown = useCallback(() => {
     const total = flatRows.length;
     if (total === 0) return;
@@ -418,10 +461,7 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
     ],
   );
 
-  // 執行長 2026-06-25 修正單：左區 Enter 只做「焦點切右」一件事。
-  // 不重跑搜尋（即時搜尋 debounce 已跑）、不選定 row、不關窗。
-  // 右區 Enter 才是「選定 + 關窗」（在 handleResultKey 內）。
-  // ↓ 鍵在左區也走同一條路：只切焦點。
+  // ↓ 鍵在左區：直接切焦點進結果區（快捷、跳過中間欄）
   const moveFocusToResult = useCallback(() => {
     if (flatRows.length === 0) return; // 無結果不切焦點、避免左區變灰但無處可選
     setFocusedSide('result');
@@ -430,7 +470,31 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
       el?.focus();
     });
   }, [flatRows.length]);
-  const handleInputEnter = moveFocusToResult;
+  // Enter（執行長 2026-07-01 F2 左區規格）：非末欄→下一欄；末欄（或找不到）→ 查詢+切右（空欄視同 All）
+  const advanceOnEnter = useCallback(() => {
+    const i = currentFieldIndex();
+    const n = fieldOrder.length;
+    if (i < 0 || i >= n - 1) {
+      triggerSearchAndFocusResult();
+    } else {
+      focusFieldAt(i + 1);
+    }
+  }, [currentFieldIndex, fieldOrder.length, triggerSearchAndFocusResult, focusFieldAt]);
+  // Tab 循環：下一欄、末欄回首欄；Shift+Tab 反向（不讓 native tab 跑到搜尋鈕/背景）
+  const handleFieldsKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key !== 'Tab' || e.nativeEvent.isComposing) return;
+      const i = currentFieldIndex();
+      if (i < 0) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const n = fieldOrder.length;
+      const next = e.shiftKey ? (i - 1 + n) % n : (i + 1) % n;
+      focusFieldAt(next);
+    },
+    [currentFieldIndex, fieldOrder.length, focusFieldAt],
+  );
+  const handleInputEnter = advanceOnEnter;
   const handleInputArrowDown = moveFocusToResult;
 
   // 純輸入欄（料號 / 品名）共用 keydown
@@ -535,6 +599,7 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
               className="flex flex-1 flex-col gap-3 px-5 py-4"
               style={{ pointerEvents: inputDisabled ? 'none' : 'auto' }}
               aria-hidden={inputDisabled || undefined}
+              onKeyDown={handleFieldsKeyDown}
             >
               {(method === 'partNo' || method === 'all') && (
                 <PlainInputBlock
@@ -868,7 +933,7 @@ function ResultRow({
       onMouseEnter={onHover}
       onKeyDown={onKeyDown}
       className={cn(
-        'group/card relative flex w-full flex-col gap-2 overflow-hidden rounded-xl px-4 py-3 text-left outline-none',
+        'group/card relative flex w-full items-stretch gap-3 overflow-hidden rounded-xl px-4 py-3 text-left outline-none',
         'border bg-gradient-to-b from-card/65 to-card/45',
         'shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]',
         'transition-[border-color,box-shadow,background-color] duration-150 ease-out',
@@ -892,6 +957,7 @@ function ResultRow({
         />
       )}
 
+      <div className="flex min-w-0 flex-1 flex-col gap-2">
       {/* 上排：料號（L 級、mono）+ 徽章群 */}
       <div className="flex items-baseline justify-between gap-3">
         <span
@@ -943,7 +1009,61 @@ function ResultRow({
           <span className="text-[13px] text-foreground/90">{m.brandCode ?? m.brandName ?? '—'}</span>
         </span>
       </div>
+      </div>
+
+      {/* 右側庫存三數（業務第一眼看有沒有貨）：總數量 / 可出量 / 不可出 */}
+      <StockCell onHand={m.onHandTotal} available={m.availableTotal} />
     </button>
+  );
+}
+
+/** 卡片右側庫存三數：總數量 / 可出量 / 不可出（= 總 − 可出）*/
+function StockCell({ onHand, available }: { onHand: string; available: string }) {
+  const total = Number(onHand) || 0;
+  const avail = Number(available) || 0;
+  const blocked = Math.max(0, total - avail);
+  return (
+    <div className="flex w-[108px] shrink-0 flex-col justify-center gap-1 self-center border-l border-border/30 pl-3">
+      <StockLine label="總數量" value={total} className="text-foreground/80" />
+      <StockLine
+        label="可出量"
+        value={avail}
+        strong
+        className={avail > 0 ? 'text-emerald-400' : 'text-destructive'}
+      />
+      <StockLine
+        label="不可出"
+        value={blocked}
+        className={blocked > 0 ? 'text-amber-400' : 'text-muted-foreground/45'}
+      />
+    </div>
+  );
+}
+
+function StockLine({
+  label,
+  value,
+  className,
+  strong,
+}: {
+  label: string;
+  value: number;
+  className?: string;
+  strong?: boolean;
+}) {
+  return (
+    <div className="flex items-baseline justify-between gap-2">
+      <span className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground/60">{label}</span>
+      <span
+        className={cn(
+          'font-mono tabular-nums',
+          strong ? 'text-[15px] font-semibold' : 'text-[13px]',
+          className,
+        )}
+      >
+        {value.toLocaleString('en-US', { maximumFractionDigits: 2 })}
+      </span>
+    </div>
   );
 }
 
