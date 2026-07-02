@@ -80,10 +80,29 @@ export function BatchQuoteDialog({
     });
   }, []);
 
+  // 聚焦某列的可編欄位（報價數量 / 此次報價）並全選
+  const focusCell = useCallback((kind: 'qty' | 'price', idx: number) => {
+    const el = gridRef.current?.querySelector(`[data-${kind}="${idx}"]`) as HTMLInputElement | null;
+    el?.focus();
+    el?.select();
+  }, []);
+
   // 選中列捲入可視
   useEffect(() => {
     gridRef.current?.querySelector(`[data-cand-row="${hi}"]`)?.scrollIntoView({ block: 'nearest' });
   }, [hi]);
+
+  // Alt+S → 存檔確認報價（跳確認視窗）
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => {
+      if (e.altKey && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        if (checked.size) setConfirmOpen(true);
+      }
+    };
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, [checked.size]);
 
   const onGridKey = (e: React.KeyboardEvent) => {
     const inInput = (e.target as HTMLElement).tagName === 'INPUT';
@@ -96,8 +115,13 @@ export function BatchQuoteDialog({
     } else if ((e.key === ' ' || e.code === 'Space') && !inInput) {
       e.preventDefault();
       const c = rows[hi];
-      if (c) toggle(c.id);
-    } else if (e.key === 'Enter') {
+      if (c) {
+        const willCheck = !checked.has(c.id);
+        toggle(c.id);
+        // 勾選後依序進欄位填寫：報價數量 → 此次報價（Enter 逐格、最後回選取模式）
+        if (willCheck) queueMicrotask(() => focusCell('qty', hi));
+      }
+    } else if (e.key === 'Enter' && !inInput) {
       e.preventDefault();
       if (checked.size) setConfirmOpen(true);
     }
@@ -226,9 +250,16 @@ export function BatchQuoteDialog({
                           type="number"
                           min="0"
                           step="1"
+                          data-qty={i}
                           value={qty[c.id] ?? '1'}
                           onChange={(e) => setQty((m) => ({ ...m, [c.id]: e.target.value }))}
                           onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              focusCell('price', i);
+                            }
+                          }}
                           className={cellInput}
                         />
                       </td>
@@ -241,9 +272,16 @@ export function BatchQuoteDialog({
                           type="number"
                           min="0"
                           step="0.01"
+                          data-price={i}
                           value={price[c.id] ?? ''}
                           onChange={(e) => setPrice((m) => ({ ...m, [c.id]: e.target.value }))}
                           onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              gridRef.current?.focus(); // 最後一欄 → 回選取模式，↑↓ 續選下一項
+                            }
+                          }}
                           className={`${cellInput} w-24 font-semibold`}
                         />
                       </td>
@@ -297,6 +335,7 @@ export function BatchQuoteDialog({
               </button>
               <button
                 type="button"
+                autoFocus
                 disabled={busy}
                 onClick={() => void doConfirm()}
                 className="rounded bg-primary px-4 py-1.5 text-sm text-primary-foreground disabled:opacity-50"

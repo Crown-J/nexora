@@ -293,7 +293,8 @@ export function QuoteDetailPanel({
               />
               <ToolbarSeparator />
               <ToolbarButton icon={Plus} letter="A" label="新增" enabled={!!onCreate} onClick={onCreate} />
-              <ToolbarButton icon={Pencil} letter="E" label="編輯" enabled={statusEditable && !busy} onClick={() => setMode('editHeader')} />
+              <ToolbarButton icon={Pencil} letter="E" label="編輯表頭" enabled={statusEditable && !busy} onClick={() => setMode('editHeader')} />
+              <ToolbarButton icon={Pencil} letter="I" label="編輯明細" enabled={statusEditable && !busy} onClick={() => setMode('editItems')} />
               <ToolbarButton
                 icon={Trash2}
                 letter="D"

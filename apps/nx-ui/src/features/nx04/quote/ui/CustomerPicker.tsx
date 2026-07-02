@@ -47,6 +47,12 @@ export function CustomerPicker({
   const [hi, setHi] = useState(0);
   const [picked, setPicked] = useState(false);
   const reqRef = useRef(0);
+  const listRef = useRef<HTMLDivElement>(null);
+
+  // 鍵盤 ↑↓ 時把高亮列捲入可視
+  useEffect(() => {
+    listRef.current?.querySelector(`[data-hi="${hi}"]`)?.scrollIntoView({ block: 'nearest' });
+  }, [hi, open]);
 
   // 關鍵字搜尋（debounce）；已選定後不自動搜。所有 setState 走 timeout（非 effect 同步）
   useEffect(() => {
@@ -148,11 +154,12 @@ export function CustomerPicker({
         className="w-full rounded border bg-background px-2 py-1 text-sm"
       />
       {open && rows.length ? (
-        <div className="absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-border bg-card shadow-lg">
+        <div ref={listRef} className="absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-border bg-card shadow-lg">
           {rows.map((r, i) => (
             <button
               key={r.id}
               type="button"
+              data-hi={i}
               onMouseDown={(e) => {
                 e.preventDefault();
                 select(r);
