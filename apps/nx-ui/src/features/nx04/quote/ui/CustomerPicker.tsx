@@ -22,7 +22,13 @@ function keyToBopomofo(s: string): string {
     .join('');
 }
 
-export type PickedCustomer = { id: string; code: string; name: string };
+export type PickedCustomer = {
+  id: string;
+  code: string;
+  name: string;
+  defaultWarehouseId?: string | null;
+  defaultWarehouseName?: string | null;
+};
 
 export function CustomerPicker({
   onPick,
@@ -56,7 +62,15 @@ export function CustomerPicker({
       try {
         const res = await listPartner({ page: 1, pageSize: 20, q: t, partnerType: 'C', isActive: true });
         if (myReq !== reqRef.current) return;
-        setRows(res.items.map((p) => ({ id: p.id, code: p.code, name: p.name })));
+        setRows(
+          res.items.map((p) => ({
+            id: p.id,
+            code: p.code,
+            name: p.name,
+            defaultWarehouseId: p.defaultWarehouseId,
+            defaultWarehouseName: p.defaultWarehouseName,
+          })),
+        );
         setOpen(true);
         setHi(0);
       } catch {

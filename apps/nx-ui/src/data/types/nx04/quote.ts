@@ -115,6 +115,7 @@ export interface UpdateQuotePayload {
   validUntil?: string;
   salesPersonId?: string;
   customerRefNo?: string;
+  warehouseId?: string;
   remark?: string;
   status?: QuoteStatus;
 }

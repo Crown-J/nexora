@@ -146,6 +146,12 @@ export class UpdateQuoteDto {
   @IsString()
   @MaxLength(50)
   customerRefNo?: string;
+
+  /// 出貨倉庫（FK nx01_warehouse，表頭可改）
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  warehouseId?: string;
 }
 
 export class PatchQuoteItemDto {

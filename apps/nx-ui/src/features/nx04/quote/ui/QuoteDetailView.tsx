@@ -40,6 +40,8 @@ import {
   voidQuote,
 } from '@data/endpoints/nx04/quote/api/quote';
 
+import { listWarehouses } from '@data/endpoints/nx01/api/warehouse';
+
 import { CustomerPicker, type PickedCustomer } from './CustomerPicker';
 import { PartPicker, type PickedPart } from './PartPicker';
 import type {
@@ -87,6 +89,20 @@ export function QuoteDetailPanel({
   const [validUntil, setValidUntil] = useState('');
   const [customerRefNo, setCustomerRefNo] = useState('');
   const [remark, setRemark] = useState('');
+  const [warehouseId, setWarehouseId] = useState('');
+  const [warehouses, setWarehouses] = useState<{ id: string; code: string; name: string }[]>([]);
+
+  // 倉庫清單（出貨倉庫下拉、編輯表頭用）
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await listWarehouses({ page: 1, pageSize: 200, isActive: true });
+        setWarehouses(res.items.map((w) => ({ id: w.id, code: w.code, name: w.name })));
+      } catch {
+        /* 撈不到不擋 */
+      }
+    })();
+  }, []);
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -116,6 +132,7 @@ export function QuoteDetailPanel({
     setValidUntil(q.validUntil?.slice(0, 10) ?? '');
     setCustomerRefNo(q.customerRefNo ?? '');
     setRemark(q.remark ?? '');
+    setWarehouseId(q.warehouseId ?? '');
   }, [q?.id, q?.updatedAt]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 換筆時自動回瀏覽（僅 id 真的變動才重置；初次掛載保留 initialMode，否則建單後的「編輯明細」會被洗掉）
@@ -199,6 +216,7 @@ export function QuoteDetailPanel({
         quoteDate,
         validUntil: validUntil || undefined,
         customerRefNo: customerRefNo.trim() || undefined,
+        warehouseId: warehouseId || undefined,
         remark,
       });
       setMode('editItems'); // 表頭存檔後進入編輯明細（對齊 表頭→明細 流程）
@@ -216,6 +234,7 @@ export function QuoteDetailPanel({
       setValidUntil(q.validUntil?.slice(0, 10) ?? '');
       setCustomerRefNo(q.customerRefNo ?? '');
       setRemark(q.remark ?? '');
+      setWarehouseId(q.warehouseId ?? '');
     }
     setMode('browse');
   }
@@ -335,6 +354,23 @@ export function QuoteDetailPanel({
           <FieldRow label="幣別">
             <input readOnly value={q.currencyCode ?? q.currencyId} className={roCls} />
           </FieldRow>
+          <FieldRow label="出貨倉庫">
+            {headerEditing ? (
+              <select value={warehouseId} onChange={(e) => setWarehouseId(e.target.value)} className={inputCls}>
+                {warehouses.map((w) => (
+                  <option key={w.id} value={w.id}>
+                    {w.code}　{w.name}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <input
+                readOnly
+                value={q.warehouseName ? `${q.warehouseCode ?? ''}　${q.warehouseName}` : (q.warehouseCode ?? q.warehouseId)}
+                className={roCls}
+              />
+            )}
+          </FieldRow>
           <FieldRow label="建單人員">
             <input readOnly value={q.createdByName ?? ''} className={roCls} />
           </FieldRow>
@@ -392,7 +428,7 @@ const TOOLBAR_STYLE: React.CSSProperties = {
 /**
  * 新增報價單面板（內嵌、無彈窗）：鎖右編左
  * 單號/狀態/建單 自動；停客戶編號（picker + F4 注音）→ Enter 跳幣別 → Enter 存檔確認 → 確認建單。
- * 倉庫由後端自動帶使用者隸屬倉。
+ * 出貨倉庫：選客戶時預帶該客戶預設取貨倉，可改；未指定則後端自動帶（客戶預設→使用者隸屬倉→主倉）。
  */
 export function QuoteCreatePanel({
   onCreated,
@@ -405,6 +441,8 @@ export function QuoteCreatePanel({
   const [quoteDate, setQuoteDate] = useState(new Date().toISOString().slice(0, 10));
   const [currency, setCurrency] = useState('TWD');
   const [remark, setRemark] = useState('');
+  const [warehouses, setWarehouses] = useState<{ id: string; code: string; name: string }[]>([]);
+  const [warehouseId, setWarehouseId] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -414,6 +452,24 @@ export function QuoteCreatePanel({
   useEffect(() => {
     if (confirmOpen) confirmRef.current?.focus();
   }, [confirmOpen]);
+
+  // 倉庫清單（出貨倉庫下拉）
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await listWarehouses({ page: 1, pageSize: 200, isActive: true });
+        setWarehouses(res.items.map((w) => ({ id: w.id, code: w.code, name: w.name })));
+      } catch {
+        /* 撈不到不擋建單 */
+      }
+    })();
+  }, []);
+
+  // 選客戶 → 出貨倉庫預帶該客戶預設取貨倉
+  const handlePickCustomer = (c: PickedCustomer) => {
+    setCustomer(c);
+    if (c.defaultWarehouseId) setWarehouseId(c.defaultWarehouseId);
+  };
 
   async function doSave() {
     if (!customer) {
@@ -427,6 +483,7 @@ export function QuoteCreatePanel({
         customerId: customer.id,
         quoteDate,
         currencyId: currency.trim() || undefined,
+        warehouseId: warehouseId || undefined,
         taxRate: 5,
         remark: remark.trim() || undefined,
       });
@@ -469,10 +526,20 @@ export function QuoteCreatePanel({
             <input type="date" value={quoteDate} onChange={(e) => setQuoteDate(e.target.value)} className={inputCls} />
           </FieldRow>
           <FieldRow label="客戶編號">
-            <CustomerPicker autoFocus onPick={setCustomer} onCommit={() => currencyRef.current?.focus()} />
+            <CustomerPicker autoFocus onPick={handlePickCustomer} onCommit={() => currencyRef.current?.focus()} />
           </FieldRow>
           <FieldRow label="客戶名稱">
             <input readOnly value={customer?.name ?? ''} className={roCls} />
+          </FieldRow>
+          <FieldRow label="出貨倉庫">
+            <select value={warehouseId} onChange={(e) => setWarehouseId(e.target.value)} className={inputCls}>
+              <option value="">（未指定，存檔自動帶）</option>
+              {warehouses.map((w) => (
+                <option key={w.id} value={w.id}>
+                  {w.code}　{w.name}
+                </option>
+              ))}
+            </select>
           </FieldRow>
           <FieldRow label="幣別">
             <input

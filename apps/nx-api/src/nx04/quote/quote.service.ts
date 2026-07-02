@@ -443,12 +443,13 @@ export class QuoteService {
     return wanted;
   }
 
-  /** 建單倉庫：指定優先 → 使用者隸屬倉(user_warehouse isPrimary) → 租戶主倉(isMain) → 任一倉 */
+  /** 建單倉庫：指定優先 → 客戶預設取貨倉 → 使用者隸屬倉(user_warehouse isPrimary) → 租戶主倉(isMain) → 任一倉 */
   private async resolveCreateWarehouse(
     tx: Prisma.TransactionClient,
     tenantId: string,
     userId: string,
     provided?: string,
+    customerDefaultWhId?: string,
   ): Promise<{ id: string; code: string }> {
     if (provided?.trim()) {
       const w = await tx.nx01Warehouse.findFirst({
@@ -457,6 +458,14 @@ export class QuoteService {
       });
       if (!w) throw new BadRequestException('warehouseId invalid');
       return w;
+    }
+    // 客戶預設取貨倉（業界 muscle memory：客戶習慣取貨倉、建單自動帶）
+    if (customerDefaultWhId?.trim()) {
+      const w = await tx.nx01Warehouse.findFirst({
+        where: { id: customerDefaultWhId.trim(), tenantId, isActive: true },
+        select: { id: true, code: true },
+      });
+      if (w) return w;
     }
     const uw = await tx.nx01UserWarehouse.findFirst({
       where: { userId, tenantId },
@@ -483,7 +492,17 @@ export class QuoteService {
     const tenantId = requireTenantId(user);
     return this.prisma.$transaction(async (tx) => {
       await this.assertCustomerC(tx, tenantId, dto.customerId.trim());
-      const wh = await this.resolveCreateWarehouse(tx, tenantId, user.sub, dto.warehouseId);
+      const cust = await tx.nx01Partner.findFirst({
+        where: { id: dto.customerId.trim(), tenantId },
+        select: { defaultWarehouseId: true },
+      });
+      const wh = await this.resolveCreateWarehouse(
+        tx,
+        tenantId,
+        user.sub,
+        dto.warehouseId,
+        cust?.defaultWarehouseId ?? undefined,
+      );
       const currencyId = await resolveCurrencyId(tx, dto.currencyId);
       const taxRate = new PrismaNs.Decimal(dto.taxRate);
       const docNo = await allocNx04DocNo(tx, tenantId, 'QT', wh.code);
@@ -583,6 +602,14 @@ export class QuoteService {
     if (!existing) throw new NotFoundException('Quote not found');
     if (existing.voidedAt) throw new BadRequestException('Quote is voided');
 
+    if (dto.warehouseId !== undefined && dto.warehouseId.trim()) {
+      const w = await this.prisma.nx01Warehouse.findFirst({
+        where: { id: dto.warehouseId.trim(), tenantId },
+        select: { id: true },
+      });
+      if (!w) throw new BadRequestException('warehouseId invalid');
+    }
+
     if (dto.status !== undefined && dto.status !== existing.status) {
       assertQuoteStatusTransition(existing.status, dto.status);
     }
@@ -606,6 +633,7 @@ export class QuoteService {
           ...(dto.validUntil !== undefined ? { validUntil: dto.validUntil ? new Date(dto.validUntil) : null } : {}),
           ...(dto.salesPersonId !== undefined ? { salesPersonId: dto.salesPersonId?.trim() || null } : {}),
           ...(dto.customerRefNo !== undefined ? { customerRefNo: dto.customerRefNo?.trim() || null } : {}),
+          ...(dto.warehouseId !== undefined && dto.warehouseId.trim() ? { warehouseId: dto.warehouseId.trim() } : {}),
           ...(dto.remark !== undefined ? { remark: dto.remark } : {}),
           ...(dto.status !== undefined ? { status: dto.status } : {}),
           updatedBy: user.sub,
