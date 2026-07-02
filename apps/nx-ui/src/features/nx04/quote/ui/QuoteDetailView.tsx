@@ -41,6 +41,7 @@ import {
 } from '@data/endpoints/nx04/quote/api/quote';
 
 import { CustomerPicker, type PickedCustomer } from './CustomerPicker';
+import { PartPicker, type PickedPart } from './PartPicker';
 import type {
   CreateQuoteItemPayload,
   Quote,
@@ -735,7 +736,7 @@ function AddItemDialog({
   onClose: () => void;
   onAdded: () => void | Promise<void>;
 }) {
-  const [partId, setPartId] = useState('');
+  const [part, setPart] = useState<PickedPart | null>(null);
   const [qty, setQty] = useState('1');
   const [unitPrice, setUnitPrice] = useState('0');
   const [belowMinReason, setBelowMinReason] = useState('');
@@ -745,35 +746,37 @@ function AddItemDialog({
   const [history, setHistory] = useState<QuoteHistoricalPrice[]>([]);
   const [histLoading, setHistLoading] = useState(false);
 
-  const fetchHistory = useCallback(async () => {
-    if (!partId.trim()) {
-      setErr('請先輸入 partId');
-      return;
-    }
-    setHistLoading(true);
-    setErr(null);
-    try {
-      const rows = await getQuoteHistoricalPrices(customerId, partId.trim(), 5);
-      setHistory(rows);
-      if (rows.length && Number(unitPrice) === 0) setUnitPrice(rows[0].unitPrice);
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : '查歷史價失敗');
-    } finally {
-      setHistLoading(false);
-    }
-  }, [customerId, partId, unitPrice]);
+  // 選中料號 → 自動帶該客戶歷史價（並以最近一筆預填單價）
+  const handlePick = useCallback(
+    async (p: PickedPart) => {
+      setPart(p);
+      setErr(null);
+      setHistory([]);
+      setHistLoading(true);
+      try {
+        const rows = await getQuoteHistoricalPrices(customerId, p.id, 5);
+        setHistory(rows);
+        if (rows.length) setUnitPrice(rows[0].unitPrice);
+      } catch {
+        /* 查不到歷史價不擋新增 */
+      } finally {
+        setHistLoading(false);
+      }
+    },
+    [customerId],
+  );
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!partId.trim() || Number(qty) <= 0) {
-      setErr('partId / qty 必填');
+    if (!part || Number(qty) <= 0) {
+      setErr('請先選料號、數量需大於 0');
       return;
     }
     setBusy(true);
     setErr(null);
     try {
       const payload: CreateQuoteItemPayload = {
-        partId: partId.trim(),
+        partId: part.id,
         qty: Number(qty),
         unitPriceSnapshot: Number(unitPrice),
         belowMinReason: belowMinReason.trim() || undefined,
@@ -800,21 +803,29 @@ function AddItemDialog({
         className="relative w-full max-w-2xl space-y-3 rounded-xl border border-border bg-card p-5 shadow-2xl"
       >
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold">新增明細（料號 picker 待 Step4）</h3>
+          <h3 className="text-sm font-semibold">新增明細</h3>
           <button type="button" onClick={onClose} className="rounded p-1 hover:bg-accent/20" aria-label="關閉">
             <X className="h-4 w-4" />
           </button>
         </div>
         <div className="grid gap-3 md:grid-cols-3">
-          <label className="text-sm md:col-span-3">
-            <span className="mb-1 block text-xs text-muted-foreground">料號 ID *</span>
-            <div className="flex gap-1">
-              <input value={partId} onChange={(e) => setPartId(e.target.value)} placeholder="NX01PART..." className={cls} required />
-              <button type="button" onClick={() => void fetchHistory()} disabled={histLoading} className="rounded border px-2 text-xs disabled:opacity-50" title="查歷史價">
-                📜 歷史價
-              </button>
-            </div>
-          </label>
+          <div className="text-sm md:col-span-3">
+            <span className="mb-1 block text-xs text-muted-foreground">料號 *</span>
+            <PartPicker autoFocus onPick={handlePick} />
+            {part ? (
+              <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-0.5 text-xs text-muted-foreground">
+                <span>品名：{part.name}</span>
+                {part.brandName ? <span>廠牌：{part.brandName}</span> : null}
+                <span>
+                  可出量：
+                  <span className={Number(part.availableTotal) > 0 ? 'font-semibold text-emerald-600' : ''}>
+                    {Number(part.availableTotal).toLocaleString()}
+                  </span>
+                </span>
+                {histLoading ? <span className="text-primary">查歷史價中…</span> : null}
+              </div>
+            ) : null}
+          </div>
           <label className="text-sm">
             <span className="mb-1 block text-xs text-muted-foreground">數量 *</span>
             <input type="number" step="0.0001" min="0" value={qty} onChange={(e) => setQty(e.target.value)} className={`${cls} tabular-nums`} required />
