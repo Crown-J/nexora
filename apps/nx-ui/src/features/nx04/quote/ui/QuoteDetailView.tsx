@@ -446,6 +446,7 @@ export function QuoteCreatePanel({
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const warehouseRef = useRef<HTMLSelectElement>(null);
   const currencyRef = useRef<HTMLInputElement>(null);
   const confirmRef = useRef<HTMLButtonElement>(null);
 
@@ -526,13 +527,24 @@ export function QuoteCreatePanel({
             <input type="date" value={quoteDate} onChange={(e) => setQuoteDate(e.target.value)} className={inputCls} />
           </FieldRow>
           <FieldRow label="客戶編號">
-            <CustomerPicker autoFocus onPick={handlePickCustomer} onCommit={() => currencyRef.current?.focus()} />
+            <CustomerPicker autoFocus onPick={handlePickCustomer} onCommit={() => warehouseRef.current?.focus()} />
           </FieldRow>
           <FieldRow label="客戶名稱">
             <input readOnly value={customer?.name ?? ''} className={roCls} />
           </FieldRow>
           <FieldRow label="出貨倉庫">
-            <select value={warehouseId} onChange={(e) => setWarehouseId(e.target.value)} className={inputCls}>
+            <select
+              ref={warehouseRef}
+              value={warehouseId}
+              onChange={(e) => setWarehouseId(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  currencyRef.current?.focus();
+                }
+              }}
+              className={inputCls}
+            >
               <option value="">（未指定，存檔自動帶）</option>
               {warehouses.map((w) => (
                 <option key={w.id} value={w.id}>
