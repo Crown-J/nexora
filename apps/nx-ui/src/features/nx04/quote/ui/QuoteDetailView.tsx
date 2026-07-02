@@ -31,10 +31,8 @@ import { NavButton, ToolbarButton, ToolbarSeparator } from '@/features/nx01/shel
 import { ToolbarPortal } from '@design/layout/workbench/WorkbenchToolbarSlot';
 
 import {
-  addQuoteItem,
   createQuote,
   getQuote,
-  getQuoteHistoricalPrices,
   removeQuoteItem,
   updateQuote,
   voidQuote,
@@ -42,14 +40,9 @@ import {
 
 import { listWarehouses } from '@data/endpoints/nx01/api/warehouse';
 
+import { BatchQuoteDialog } from './BatchQuoteDialog';
 import { CustomerPicker, type PickedCustomer } from './CustomerPicker';
-import { PartPicker, type PickedPart } from './PartPicker';
-import type {
-  CreateQuoteItemPayload,
-  Quote,
-  QuoteHistoricalPrice,
-  QuoteItem,
-} from '@data/types/nx04/quote';
+import type { Quote, QuoteItem } from '@data/types/nx04/quote';
 
 export function QuoteDetailPanel({
   id,
@@ -143,6 +136,15 @@ export function QuoteDetailPanel({
       setMode('browse');
     }
   }, [id]);
+
+  // 建單後（initialMode=editItems）q 載入即自動跳出批次報價 picker（一次性）
+  const autoPickRef = useRef(false);
+  useEffect(() => {
+    if (initialMode === 'editItems' && q && !autoPickRef.current) {
+      autoPickRef.current = true;
+      setAddOpen(true);
+    }
+  }, [q, initialMode]);
 
   // 明細：預設選第一列；換單/明細變動時若選中列失效則回第一列
   useEffect(() => {
@@ -406,9 +408,11 @@ export function QuoteDetailPanel({
       </div>
 
       {addOpen ? (
-        <AddItemDialog
-          customerId={q.customerId}
+        <BatchQuoteDialog
           quoteId={q.id}
+          customerId={q.customerId}
+          warehouseId={q.warehouseId}
+          warehouseName={q.warehouseName ?? ''}
           onClose={() => setAddOpen(false)}
           onAdded={async () => {
             setAddOpen(false);
@@ -800,156 +804,5 @@ function QuoteItemsTable({
           </tfoot>
         </table>
       </div>
-  );
-}
-
-/** 新增明細對話框（含歷史價提示）*/
-function AddItemDialog({
-  customerId,
-  quoteId,
-  onClose,
-  onAdded,
-}: {
-  customerId: string;
-  quoteId: string;
-  onClose: () => void;
-  onAdded: () => void | Promise<void>;
-}) {
-  const [part, setPart] = useState<PickedPart | null>(null);
-  const [qty, setQty] = useState('1');
-  const [unitPrice, setUnitPrice] = useState('0');
-  const [belowMinReason, setBelowMinReason] = useState('');
-  const [remark, setRemark] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-  const [history, setHistory] = useState<QuoteHistoricalPrice[]>([]);
-  const [histLoading, setHistLoading] = useState(false);
-
-  // 選中料號 → 自動帶該客戶歷史價（並以最近一筆預填單價）
-  const handlePick = useCallback(
-    async (p: PickedPart) => {
-      setPart(p);
-      setErr(null);
-      setHistory([]);
-      setHistLoading(true);
-      try {
-        const rows = await getQuoteHistoricalPrices(customerId, p.id, 5);
-        setHistory(rows);
-        if (rows.length) setUnitPrice(rows[0].unitPrice);
-      } catch {
-        /* 查不到歷史價不擋新增 */
-      } finally {
-        setHistLoading(false);
-      }
-    },
-    [customerId],
-  );
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!part || Number(qty) <= 0) {
-      setErr('請先選料號、數量需大於 0');
-      return;
-    }
-    setBusy(true);
-    setErr(null);
-    try {
-      const payload: CreateQuoteItemPayload = {
-        partId: part.id,
-        qty: Number(qty),
-        unitPriceSnapshot: Number(unitPrice),
-        belowMinReason: belowMinReason.trim() || undefined,
-        remark: remark.trim() || undefined,
-      };
-      await addQuoteItem(quoteId, payload);
-      await onAdded();
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : '新增失敗';
-      setErr(msg.includes('belowMinReason') ? `${msg}（請補填「低於最低售價的原因」後重送）` : msg);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  const cls = 'w-full rounded border bg-background px-2 py-1 text-sm';
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/40" />
-      <form
-        onSubmit={submit}
-        onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-2xl space-y-3 rounded-xl border border-border bg-card p-5 shadow-2xl"
-      >
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold">新增明細</h3>
-          <button type="button" onClick={onClose} className="rounded p-1 hover:bg-accent/20" aria-label="關閉">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-        <div className="grid gap-3 md:grid-cols-3">
-          <div className="text-sm md:col-span-3">
-            <span className="mb-1 block text-xs text-muted-foreground">料號 *</span>
-            <PartPicker autoFocus onPick={handlePick} />
-            {part ? (
-              <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-0.5 text-xs text-muted-foreground">
-                <span>品名：{part.name}</span>
-                {part.brandName ? <span>廠牌：{part.brandName}</span> : null}
-                <span>
-                  可出量：
-                  <span className={Number(part.availableTotal) > 0 ? 'font-semibold text-emerald-600' : ''}>
-                    {Number(part.availableTotal).toLocaleString()}
-                  </span>
-                </span>
-                {histLoading ? <span className="text-primary">查歷史價中…</span> : null}
-              </div>
-            ) : null}
-          </div>
-          <label className="text-sm">
-            <span className="mb-1 block text-xs text-muted-foreground">數量 *</span>
-            <input type="number" step="0.0001" min="0" value={qty} onChange={(e) => setQty(e.target.value)} className={`${cls} tabular-nums`} required />
-          </label>
-          <label className="text-sm">
-            <span className="mb-1 block text-xs text-muted-foreground">報價單價 *</span>
-            <input type="number" step="0.0001" min="0" value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} className={`${cls} tabular-nums`} required />
-          </label>
-          <label className="text-sm">
-            <span className="mb-1 block text-xs text-muted-foreground">低於最低售價原因</span>
-            <input value={belowMinReason} onChange={(e) => setBelowMinReason(e.target.value)} placeholder="老主顧 / 量大…" className={cls} />
-          </label>
-          <label className="text-sm md:col-span-3">
-            <span className="mb-1 block text-xs text-muted-foreground">備註</span>
-            <input value={remark} onChange={(e) => setRemark(e.target.value)} className={cls} />
-          </label>
-        </div>
-
-        {history.length > 0 ? (
-          <div className="rounded border border-emerald-200 bg-emerald-50 p-3 text-xs">
-            <div className="mb-2 font-semibold text-emerald-900">📜 該客戶歷史報價（最近 {history.length} 筆）</div>
-            <div className="space-y-1 font-mono">
-              {history.map((h) => (
-                <div key={h.quoteItemId} className="flex flex-wrap gap-3 text-emerald-900">
-                  <span>{h.docNo}</span>
-                  <span>{h.quoteDate.slice(0, 10)}</span>
-                  <span>{h.status}</span>
-                  <span>單價 {h.unitPrice}</span>
-                  <span>數量 {h.qty}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : null}
-
-        {err ? <div className="text-xs text-destructive">{err}</div> : null}
-        <div className="flex justify-end gap-2">
-          <button type="button" onClick={onClose} className="rounded border px-4 py-1.5 text-sm">
-            取消
-          </button>
-          <button type="submit" disabled={busy} className="rounded bg-primary px-4 py-1.5 text-sm text-primary-foreground disabled:opacity-50">
-            {busy ? '新增中…' : '新增明細'}
-          </button>
-        </div>
-      </form>
-    </div>
   );
 }
