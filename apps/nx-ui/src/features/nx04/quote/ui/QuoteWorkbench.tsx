@@ -64,6 +64,9 @@ function listStatus(q: Quote): ListStatus {
 }
 const LIST_STATUS_LABEL: Record<ListStatus, string> = { valid: '有效', expired: '失效', void: '作廢' };
 
+// 金額千分位（列表顯示用；CSV 匯出仍用原始值避免逗號破欄）
+const fmtMoney = (n: string | number) => Number(n).toLocaleString('en-US', { maximumFractionDigits: 2 });
+
 type QuoteCriteria = {
   docNoFrom?: string;
   docNoTo?: string;
@@ -330,8 +333,8 @@ export function QuoteWorkbench({
       { key: 'customerName', label: '客戶名稱', render: (r) => r.customerName ?? r.customerId },
       { key: 'createdByName', label: '建單人員', render: (r) => r.createdByName ?? '—' },
       { key: 'itemCount', label: '項目數', render: (r) => <span className="tabular-nums">{r.itemCount ?? 0}</span> },
-      { key: 'subtotal', label: '未稅金額', render: (r) => <span className="tabular-nums">{r.subtotal}</span> },
-      { key: 'totalAmount', label: '總金額', sortable: true, render: (r) => <span className="font-medium tabular-nums">{r.totalAmount}</span> },
+      { key: 'subtotal', label: '未稅金額', render: (r) => <span className="tabular-nums">{fmtMoney(r.subtotal)}</span> },
+      { key: 'totalAmount', label: '總金額', sortable: true, render: (r) => <span className="font-medium tabular-nums">{fmtMoney(r.totalAmount)}</span> },
       {
         key: 'validUntil',
         label: '有效日期',
