@@ -939,14 +939,29 @@ export class QuoteService {
       if (p) candidateParts = [{ partId: p.id, role: 1, part: p }];
     }
     const partIds = candidateParts.map((c) => c.partId);
-    if (!partIds.length) return { warehouseId: whId, warehouseCode: wh.code, warehouseName: wh.name, candidates: [] };
+    if (!partIds.length) return { warehouseId: whId, warehouseCode: wh.code, warehouseName: wh.name, warehouses: [], candidates: [] };
 
-    // 該倉可出量 + avgCost
+    // 各倉可出量（每列可換倉看庫存）+ 出貨倉 avgCost（建議價 ③ 用）
     const balances = await this.prisma.nx03StockBalance.findMany({
-      where: { tenantId, warehouseId: whId, partId: { in: partIds } },
-      select: { partId: true, availableQty: true, avgCost: true },
+      where: { tenantId, partId: { in: partIds } },
+      select: { partId: true, warehouseId: true, availableQty: true, avgCost: true },
     });
-    const balMap = new Map(balances.map((b) => [b.partId, b]));
+    const stockByPart = new Map<string, Record<string, string>>();
+    const avgCostAtWh = new Map<string, PrismaNs.Decimal>();
+    for (const b of balances) {
+      let rec = stockByPart.get(b.partId);
+      if (!rec) {
+        rec = {};
+        stockByPart.set(b.partId, rec);
+      }
+      rec[b.warehouseId] = b.availableQty.toString();
+      if (b.warehouseId === whId) avgCostAtWh.set(b.partId, new PrismaNs.Decimal(b.avgCost));
+    }
+    const activeWarehouses = await this.prisma.nx01Warehouse.findMany({
+      where: { tenantId, isActive: true },
+      orderBy: [{ isMain: 'desc' }, { code: 'asc' }],
+      select: { id: true, code: true, name: true },
+    });
 
     // 最近一筆（報價 + 銷貨合併取最新）——該客戶 / 該零件市場
     const latestPerPart = (
@@ -1003,14 +1018,15 @@ export class QuoteService {
     }
 
     const candidates = candidateParts.map((c) => {
-      const bal = balMap.get(c.partId);
+      const stockByWh = stockByPart.get(c.partId) ?? {};
+      const avgCost = avgCostAtWh.get(c.partId);
       const cl = customerLast.get(c.partId);
       const pl = partLast.get(c.partId);
       let suggested: string | null = null;
       if (cl) suggested = cl.amount;
       else if (pl) suggested = pl.amount;
-      else if (marginPct && bal && new PrismaNs.Decimal(bal.avgCost).gt(0)) {
-        suggested = new PrismaNs.Decimal(bal.avgCost).mul(marginPct.div(100).add(1)).toDecimalPlaces(2).toString();
+      else if (marginPct && avgCost && avgCost.gt(0)) {
+        suggested = avgCost.mul(marginPct.div(100).add(1)).toDecimalPlaces(2).toString();
       }
       return {
         id: c.part.id,
@@ -1022,7 +1038,8 @@ export class QuoteService {
         isOem: c.part.isOem,
         isActive: c.part.isActive,
         role: c.role,
-        warehouseAvailable: bal?.availableQty?.toString() ?? '0',
+        warehouseAvailable: stockByWh[whId] ?? '0',
+        stockByWh,
         customerLastDate: cl ? cl.date.toISOString() : null,
         customerLastAmount: cl?.amount ?? null,
         partLastDate: pl ? pl.date.toISOString() : null,
@@ -1031,7 +1048,13 @@ export class QuoteService {
       };
     });
 
-    return { warehouseId: whId, warehouseCode: wh.code, warehouseName: wh.name, candidates };
+    return {
+      warehouseId: whId,
+      warehouseCode: wh.code,
+      warehouseName: wh.name,
+      warehouses: activeWarehouses,
+      candidates,
+    };
   }
 
   /**

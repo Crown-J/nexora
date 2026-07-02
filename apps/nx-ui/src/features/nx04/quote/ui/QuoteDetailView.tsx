@@ -75,6 +75,7 @@ export function QuoteDetailPanel({
   const [busy, setBusy] = useState(false);
   const [mode, setMode] = useState<'browse' | 'editHeader' | 'editItems'>(initialMode);
   const [addOpen, setAddOpen] = useState(false);
+  const [headerConfirmOpen, setHeaderConfirmOpen] = useState(false);
   const [selItem, setSelItem] = useState<string | null>(null); // 明細選中列（↑↓ 用）
 
   // 表頭可編欄位（編輯模式）
@@ -293,8 +294,7 @@ export function QuoteDetailPanel({
               />
               <ToolbarSeparator />
               <ToolbarButton icon={Plus} letter="A" label="新增" enabled={!!onCreate} onClick={onCreate} />
-              <ToolbarButton icon={Pencil} letter="E" label="編輯表頭" enabled={statusEditable && !busy} onClick={() => setMode('editHeader')} />
-              <ToolbarButton icon={Pencil} letter="I" label="編輯明細" enabled={statusEditable && !busy} onClick={() => setMode('editItems')} />
+              <ToolbarButton icon={Pencil} letter="E" label="編輯" enabled={statusEditable && !busy} onClick={() => setMode('editHeader')} />
               <ToolbarButton
                 icon={Trash2}
                 letter="D"
@@ -346,7 +346,7 @@ export function QuoteDetailPanel({
             <input readOnly value={q.voidedAt ? '作廢' : expired ? '失效' : '有效'} className={roCls} />
           </FieldRow>
           <FieldRow label="報價日期">
-            <input type="date" value={quoteDate} onChange={(e) => setQuoteDate(e.target.value)} disabled={!headerEditing} className={inputCls} />
+            <input type="date" value={quoteDate} onChange={(e) => setQuoteDate(e.target.value)} disabled className={inputCls} />
           </FieldRow>
           <FieldRow label="客戶編號">
             <input readOnly value={q.customerCode ?? q.customerId} className={`${roCls} font-mono`} />
@@ -359,7 +359,18 @@ export function QuoteDetailPanel({
           </FieldRow>
           <FieldRow label="出貨倉庫">
             {headerEditing ? (
-              <select value={warehouseId} onChange={(e) => setWarehouseId(e.target.value)} className={inputCls}>
+              <select
+                autoFocus
+                value={warehouseId}
+                onChange={(e) => setWarehouseId(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    setHeaderConfirmOpen(true);
+                  }
+                }}
+                className={inputCls}
+              >
                 {warehouses.map((w) => (
                   <option key={w.id} value={w.id}>
                     {w.code}　{w.name}
@@ -381,14 +392,14 @@ export function QuoteDetailPanel({
             <input readOnly value={q.createdAt.slice(0, 10)} className={roCls} />
           </FieldRow>
           <FieldRow label="有效日期" labelDanger={expired}>
-            <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} disabled={!headerEditing} className={inputCls} />
+            <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} disabled className={inputCls} />
           </FieldRow>
           <div>
             <div className="mb-1 text-xs text-muted-foreground">備註：</div>
             <textarea
               value={remark}
               onChange={(e) => setRemark(e.target.value)}
-              disabled={!headerEditing}
+              disabled
               rows={3}
               className="w-full resize-y rounded border bg-background px-2 py-1 text-sm disabled:opacity-60"
             />
@@ -420,6 +431,38 @@ export function QuoteDetailPanel({
             await reloadAll();
           }}
         />
+      ) : null}
+
+      {/* 編輯表頭 Enter → 確認 → 存檔並進入明細 */}
+      {headerConfirmOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setHeaderConfirmOpen(false)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-sm space-y-4 rounded-xl border border-border bg-card p-5 shadow-2xl">
+            <h2 className="text-sm font-semibold">確認並進入明細編輯</h2>
+            <p className="text-sm text-muted-foreground">
+              出貨倉庫：
+              {warehouses.find((w) => w.id === warehouseId)?.code ?? ''}
+              {warehouses.find((w) => w.id === warehouseId)?.name ?? ''}
+            </p>
+            <div className="flex justify-end gap-2">
+              <button type="button" onClick={() => setHeaderConfirmOpen(false)} className="rounded border px-4 py-1.5 text-sm">
+                返回
+              </button>
+              <button
+                type="button"
+                autoFocus
+                disabled={busy}
+                onClick={() => {
+                  setHeaderConfirmOpen(false);
+                  void saveHeader();
+                }}
+                className="rounded bg-primary px-4 py-1.5 text-sm text-primary-foreground disabled:opacity-50"
+              >
+                {busy ? '存檔中…' : '確認 (Enter)'}
+              </button>
+            </div>
+          </div>
+        </div>
       ) : null}
     </div>
   );

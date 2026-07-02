@@ -33,6 +33,9 @@ export function BatchQuoteDialog({
 }) {
   const [rows, setRows] = useState<QuoteCandidate[]>([]);
   const [whName, setWhName] = useState(warehouseName);
+  const [warehouses, setWarehouses] = useState<{ id: string; code: string; name: string }[]>([]);
+  const [defaultWh, setDefaultWh] = useState(warehouseId);
+  const [rowWh, setRowWh] = useState<Record<string, string>>({}); // 每列出貨倉庫（預設倉沒貨可換）
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [checked, setChecked] = useState<Set<string>>(new Set());
@@ -51,14 +54,19 @@ export function BatchQuoteDialog({
         const res = await getQuoteCandidates(customerId, partId, warehouseId);
         setRows(res.candidates);
         setWhName(res.warehouseName);
+        setWarehouses(res.warehouses);
+        setDefaultWh(res.warehouseId);
         const p: Record<string, string> = {};
         const q: Record<string, string> = {};
+        const w: Record<string, string> = {};
         res.candidates.forEach((c) => {
           p[c.id] = c.suggestedPrice ?? '';
           q[c.id] = '1';
+          w[c.id] = res.warehouseId;
         });
         setPrice(p);
         setQty(q);
+        setRowWh(w);
         setChecked(new Set());
         setHi(0);
         queueMicrotask(() => gridRef.current?.focus());
@@ -80,11 +88,11 @@ export function BatchQuoteDialog({
     });
   }, []);
 
-  // 聚焦某列的可編欄位（報價數量 / 此次報價）並全選
-  const focusCell = useCallback((kind: 'qty' | 'price', idx: number) => {
-    const el = gridRef.current?.querySelector(`[data-${kind}="${idx}"]`) as HTMLInputElement | null;
+  // 聚焦某列的可編欄位（出貨倉庫 / 報價數量 / 此次報價）；input 順便全選
+  const focusCell = useCallback((kind: 'wh' | 'qty' | 'price', idx: number) => {
+    const el = gridRef.current?.querySelector(`[data-${kind}="${idx}"]`) as HTMLElement | null;
     el?.focus();
-    el?.select();
+    if (el instanceof HTMLInputElement) el.select();
   }, []);
 
   // 選中列捲入可視
@@ -118,8 +126,8 @@ export function BatchQuoteDialog({
       if (c) {
         const willCheck = !checked.has(c.id);
         toggle(c.id);
-        // 勾選後依序進欄位填寫：報價數量 → 此次報價（Enter 逐格、最後回選取模式）
-        if (willCheck) queueMicrotask(() => focusCell('qty', hi));
+        // 勾選後依序進欄位填寫：出貨倉庫 → 報價數量 → 此次報價（Enter 逐格、最後回選取模式）
+        if (willCheck) queueMicrotask(() => focusCell('wh', hi));
       }
     } else if (e.key === 'Enter' && !inInput) {
       e.preventDefault();
@@ -219,7 +227,8 @@ export function BatchQuoteDialog({
                 {rows.map((c, i) => {
                   const on = checked.has(c.id);
                   const sel = i === hi;
-                  const avail = Number(c.warehouseAvailable);
+                  const wid = rowWh[c.id] ?? defaultWh;
+                  const avail = Number(c.stockByWh[wid] ?? '0');
                   return (
                     <tr
                       key={c.id}
@@ -243,8 +252,31 @@ export function BatchQuoteDialog({
                       <td className={`${td} font-mono text-muted-foreground`}>{c.secCode ?? '—'}</td>
                       <td className={td}>{c.brandName ?? '—'}</td>
                       <td className={td}>{c.name}</td>
-                      <td className={`${td} text-muted-foreground`}>{whName}</td>
-                      <td className={`${td} text-right tabular-nums ${avail > 0 ? 'font-semibold text-emerald-600' : 'text-muted-foreground'}`}>{fmt(c.warehouseAvailable)}</td>
+                      <td className={td}>
+                        <select
+                          data-wh={i}
+                          value={wid}
+                          onChange={(e) => setRowWh((m) => ({ ...m, [c.id]: e.target.value }))}
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              focusCell('qty', i);
+                            }
+                          }}
+                          className="w-28 rounded border bg-background px-1 py-0.5 text-xs"
+                        >
+                          {warehouses.map((w) => {
+                            const q = Number(c.stockByWh[w.id] ?? '0');
+                            return (
+                              <option key={w.id} value={w.id}>
+                                {w.code}（{q}）
+                              </option>
+                            );
+                          })}
+                        </select>
+                      </td>
+                      <td className={`${td} text-right tabular-nums ${avail > 0 ? 'font-semibold text-emerald-600' : 'text-muted-foreground'}`}>{fmt(avail)}</td>
                       <td className={`${td} text-right`}>
                         <input
                           type="number"

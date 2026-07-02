@@ -153,6 +153,8 @@ export interface QuoteCandidate {
   isActive: boolean;
   role: number; // 1=主件 / 2=替代
   warehouseAvailable: string;
+  /** 各倉可出量（warehouseId → available）；換倉看該倉剩餘用 */
+  stockByWh: Record<string, string>;
   customerLastDate: string | null;
   customerLastAmount: string | null;
   partLastDate: string | null;
@@ -164,5 +166,6 @@ export interface QuoteCandidatesResult {
   warehouseId: string;
   warehouseCode: string;
   warehouseName: string;
+  warehouses: { id: string; code: string; name: string }[];
   candidates: QuoteCandidate[];
 }
