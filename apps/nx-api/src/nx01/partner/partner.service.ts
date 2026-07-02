@@ -130,6 +130,7 @@ export class PartnerService {
       const s = q.search.trim();
       where.OR = [
         { code: { contains: s, mode: 'insensitive' } },
+        { legacyCode: { contains: s, mode: 'insensitive' } }, // 舊系統代碼也可搜到
         { name: { contains: s, mode: 'insensitive' } },
         { contactName: { contains: s, mode: 'insensitive' } },
       ];
