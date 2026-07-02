@@ -9,6 +9,7 @@ import type {
   CreateQuotePayload,
   PatchQuoteItemPayload,
   Quote,
+  QuoteCandidatesResult,
   QuoteHistoricalPrice,
   QuoteItem,
   QuoteListResponse,
@@ -115,4 +116,14 @@ export function getQuoteHistoricalPrices(
     limit: limit ? String(limit) : undefined,
   });
   return apiJson(`/nx04/quote/history${qs}`);
+}
+
+/// 批次報價 picker：整組替代料候選 + 各列可出量/歷史價/建議價
+export function getQuoteCandidates(
+  customerId: string,
+  partId: string,
+  warehouseId?: string,
+): Promise<QuoteCandidatesResult> {
+  const qs = buildQueryString({ customerId, partId, warehouseId: warehouseId || undefined });
+  return apiJson(`/nx04/quote/candidates${qs}`);
 }

@@ -862,6 +862,179 @@ export class QuoteService {
   }
 
   /**
+   * 報價候選清單（批次報價 picker）：給 客戶 + 主件料號 + 出貨倉 →
+   * 回傳該料的通用件群組全員（含自己），每列帶：
+   *   · 該倉可出量
+   *   · 上一次「該客戶」報價/銷貨（取最近一筆，date+amount）
+   *   · 上一次「該零件」市場報價/銷貨（任一客戶，取最近一筆）
+   *   · 建議售價：① 該客戶上次價 → ② 該零件市場近價 → ③ 客戶等級價(avgCost×(1+毛利率)) → ④ 空
+   */
+  async getQuoteCandidates(
+    user: RequestUser,
+    customerId: string,
+    partId: string,
+    warehouseId?: string,
+  ) {
+    const tenantId = requireTenantId(user);
+    const customer = await this.prisma.nx01Partner.findFirst({
+      where: { id: customerId.trim(), tenantId },
+      select: { id: true, customerGradeId: true, defaultWarehouseId: true },
+    });
+    if (!customer) throw new NotFoundException('Customer not found');
+
+    // 出貨倉：指定 → 客戶預設 → 主倉 → 任一
+    let wh = warehouseId?.trim()
+      ? await this.prisma.nx01Warehouse.findFirst({
+          where: { id: warehouseId.trim(), tenantId, isActive: true },
+          select: { id: true, code: true, name: true },
+        })
+      : null;
+    if (!wh && customer.defaultWarehouseId) {
+      wh = await this.prisma.nx01Warehouse.findFirst({
+        where: { id: customer.defaultWarehouseId, tenantId, isActive: true },
+        select: { id: true, code: true, name: true },
+      });
+    }
+    if (!wh) {
+      wh = await this.prisma.nx01Warehouse.findFirst({
+        where: { tenantId, isActive: true },
+        orderBy: [{ isMain: 'desc' }, { code: 'asc' }],
+        select: { id: true, code: true, name: true },
+      });
+    }
+    if (!wh) throw new BadRequestException('找不到可用倉庫');
+    const whId = wh.id;
+
+    // 候選 = 該料通用件群組全員（含自己）；無群組 → 只有自己
+    const PART_SEL = {
+      id: true,
+      code: true,
+      name: true,
+      secCode: true,
+      isOem: true,
+      isActive: true,
+      brand: { select: { code: true, name: true } },
+    } as const;
+    const memberships = await this.prisma.nx01PartCompatGroupMember.findMany({
+      where: { tenantId, partId: partId.trim() },
+      select: { groupId: true },
+    });
+    const groupIds = Array.from(new Set(memberships.map((m) => m.groupId)));
+    type Cand = { partId: string; role: number; part: Prisma.Nx01PartGetPayload<{ select: typeof PART_SEL }> };
+    let candidateParts: Cand[] = [];
+    if (groupIds.length) {
+      const members = await this.prisma.nx01PartCompatGroupMember.findMany({
+        where: { tenantId, groupId: { in: groupIds } },
+        orderBy: [{ role: 'asc' }, { sortNo: 'asc' }],
+        select: { partId: true, role: true, part: { select: PART_SEL } },
+      });
+      const seen = new Set<string>();
+      for (const m of members) {
+        if (seen.has(m.partId)) continue;
+        seen.add(m.partId);
+        candidateParts.push({ partId: m.partId, role: m.role, part: m.part });
+      }
+    } else {
+      const p = await this.prisma.nx01Part.findFirst({ where: { id: partId.trim(), tenantId }, select: PART_SEL });
+      if (p) candidateParts = [{ partId: p.id, role: 1, part: p }];
+    }
+    const partIds = candidateParts.map((c) => c.partId);
+    if (!partIds.length) return { warehouseId: whId, warehouseCode: wh.code, warehouseName: wh.name, candidates: [] };
+
+    // 該倉可出量 + avgCost
+    const balances = await this.prisma.nx03StockBalance.findMany({
+      where: { tenantId, warehouseId: whId, partId: { in: partIds } },
+      select: { partId: true, availableQty: true, avgCost: true },
+    });
+    const balMap = new Map(balances.map((b) => [b.partId, b]));
+
+    // 最近一筆（報價 + 銷貨合併取最新）——該客戶 / 該零件市場
+    const latestPerPart = (
+      quotes: { partId: string; unitPrice: PrismaNs.Decimal; quote: { quoteDate: Date } }[],
+      sos: { partId: string; unitPrice: PrismaNs.Decimal; so: { soDate: Date } }[],
+    ) => {
+      const m = new Map<string, { date: Date; amount: string }>();
+      const consider = (pid: string, date: Date, amount: string) => {
+        const ex = m.get(pid);
+        if (!ex || date.getTime() > ex.date.getTime()) m.set(pid, { date, amount });
+      };
+      for (const r of quotes) consider(r.partId, r.quote.quoteDate, r.unitPrice.toString());
+      for (const r of sos) consider(r.partId, r.so.soDate, r.unitPrice.toString());
+      return m;
+    };
+
+    const [custQ, custS, mktQ, mktS] = await Promise.all([
+      this.prisma.nx04QuoteItem.findMany({
+        where: { partId: { in: partIds }, quote: { tenantId, customerId: customer.id, voidedAt: null } },
+        orderBy: { quote: { quoteDate: 'desc' } },
+        take: 500,
+        select: { partId: true, unitPrice: true, quote: { select: { quoteDate: true } } },
+      }),
+      this.prisma.nx04SoItem.findMany({
+        where: { partId: { in: partIds }, so: { tenantId, customerId: customer.id } },
+        orderBy: { so: { soDate: 'desc' } },
+        take: 500,
+        select: { partId: true, unitPrice: true, so: { select: { soDate: true } } },
+      }),
+      this.prisma.nx04QuoteItem.findMany({
+        where: { partId: { in: partIds }, quote: { tenantId, voidedAt: null } },
+        orderBy: { quote: { quoteDate: 'desc' } },
+        take: 500,
+        select: { partId: true, unitPrice: true, quote: { select: { quoteDate: true } } },
+      }),
+      this.prisma.nx04SoItem.findMany({
+        where: { partId: { in: partIds }, so: { tenantId } },
+        orderBy: { so: { soDate: 'desc' } },
+        take: 500,
+        select: { partId: true, unitPrice: true, so: { select: { soDate: true } } },
+      }),
+    ]);
+    const customerLast = latestPerPart(custQ, custS);
+    const partLast = latestPerPart(mktQ, mktS);
+
+    // 客戶等級毛利率（建議價 ③ fallback）
+    let marginPct: PrismaNs.Decimal | null = null;
+    if (customer.customerGradeId) {
+      const grade = await this.prisma.nx01CustomerGrade.findFirst({
+        where: { id: customer.customerGradeId, tenantId },
+        select: { marginPct: true },
+      });
+      if (grade) marginPct = new PrismaNs.Decimal(grade.marginPct);
+    }
+
+    const candidates = candidateParts.map((c) => {
+      const bal = balMap.get(c.partId);
+      const cl = customerLast.get(c.partId);
+      const pl = partLast.get(c.partId);
+      let suggested: string | null = null;
+      if (cl) suggested = cl.amount;
+      else if (pl) suggested = pl.amount;
+      else if (marginPct && bal && new PrismaNs.Decimal(bal.avgCost).gt(0)) {
+        suggested = new PrismaNs.Decimal(bal.avgCost).mul(marginPct.div(100).add(1)).toDecimalPlaces(2).toString();
+      }
+      return {
+        id: c.part.id,
+        code: c.part.code,
+        name: c.part.name,
+        secCode: c.part.secCode,
+        brandCode: c.part.brand?.code ?? null,
+        brandName: c.part.brand?.name ?? null,
+        isOem: c.part.isOem,
+        isActive: c.part.isActive,
+        role: c.role,
+        warehouseAvailable: bal?.availableQty?.toString() ?? '0',
+        customerLastDate: cl ? cl.date.toISOString() : null,
+        customerLastAmount: cl?.amount ?? null,
+        partLastDate: pl ? pl.date.toISOString() : null,
+        partLastAmount: pl?.amount ?? null,
+        suggestedPrice: suggested,
+      };
+    });
+
+    return { warehouseId: whId, warehouseCode: wh.code, warehouseName: wh.name, candidates };
+  }
+
+  /**
    * SO 拉報價後的 cascade 副作用（NX04-M2 §A C1 採用後失效機制、commit 2 SO 串接）
    *
    * 動作 1：被 SO 拉走的 quote（adoptedQuoteIds）若所有 isSelected line 都 transferredQty>=qty

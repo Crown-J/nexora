@@ -140,3 +140,29 @@ export interface QuoteHistoricalPrice {
   belowMinReason: string | null;
   createdAt: string;
 }
+
+/** 批次報價 picker 的候選列（整組替代料，每列帶可出量/歷史價/建議價）*/
+export interface QuoteCandidate {
+  id: string;
+  code: string;
+  name: string;
+  secCode: string | null;
+  brandCode: string | null;
+  brandName: string | null;
+  isOem: boolean;
+  isActive: boolean;
+  role: number; // 1=主件 / 2=替代
+  warehouseAvailable: string;
+  customerLastDate: string | null;
+  customerLastAmount: string | null;
+  partLastDate: string | null;
+  partLastAmount: string | null;
+  suggestedPrice: string | null;
+}
+
+export interface QuoteCandidatesResult {
+  warehouseId: string;
+  warehouseCode: string;
+  warehouseName: string;
+  candidates: QuoteCandidate[];
+}

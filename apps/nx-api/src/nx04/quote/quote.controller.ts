@@ -35,6 +35,18 @@ export class QuoteController {
     return this.svc.getHistoricalPrices(user, customerId, partId, Number.isFinite(n) ? n : undefined);
   }
 
+  /// 批次報價 picker：整組替代料候選 + 各列可出量/歷史價/建議價
+  @Get('candidates')
+  @Permission('sale.quote.create', 'sale.quote.edit')
+  candidates(
+    @CurrentUser() user: RequestUser,
+    @Query('customerId') customerId: string,
+    @Query('partId') partId: string,
+    @Query('warehouseId') warehouseId?: string,
+  ) {
+    return this.svc.getQuoteCandidates(user, customerId, partId, warehouseId);
+  }
+
   @Post(':id/items')
   @Permission('sale.quote.edit')
   addItem(@CurrentUser() user: RequestUser, @Param('id') id: string, @Body() dto: CreateQuoteItemDto) {
