@@ -12,6 +12,7 @@ import { addQuoteItem, getQuoteCandidates } from '@data/endpoints/nx04/quote/api
 import type { QuoteCandidate } from '@data/types/nx04/quote';
 
 import { PartPicker } from './PartPicker';
+import { PriceIntelPanel } from './PriceIntelPanel';
 
 const fmt = (n: string | number) => Number(n).toLocaleString('en-US', { maximumFractionDigits: 2 });
 const fmtDate = (s: string | null) => (s ? s.slice(0, 10) : '—');
@@ -324,6 +325,16 @@ export function BatchQuoteDialog({
             </table>
           )}
         </div>
+
+        {/* 選中列的 5 格比價面板 */}
+        {rows.length > 0 && rows[hi] ? (
+          <div className="border-t border-border/40 px-4 py-2">
+            <div className="mb-1 text-[11px] text-muted-foreground">
+              比價 · <span className="font-mono">{rows[hi].code}</span> {rows[hi].name}
+            </div>
+            <PriceIntelPanel customerId={customerId} partId={rows[hi].id} />
+          </div>
+        ) : null}
 
         {/* Footer */}
         <div className="flex items-center justify-end gap-2 border-t border-border/50 px-4 py-2.5">
