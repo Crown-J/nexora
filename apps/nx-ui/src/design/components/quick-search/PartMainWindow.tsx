@@ -235,7 +235,16 @@ export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props
     ],
   );
 
-  // 全域 Space 放大（任何地方按、除了 input/textarea）
+  // 即時報價（F4 / 按鈕）：dispatch 事件，全域 GlobalInstantQuote 接（design 層不 import nx04）
+  const fireInstantQuote = useCallback(() => {
+    window.dispatchEvent(
+      new CustomEvent('nx-instant-quote', {
+        detail: { partId: effectivePartId, code: detail?.code, name: detail?.name },
+      }),
+    );
+  }, [effectivePartId, detail?.code, detail?.name]);
+
+  // 全域 Space 放大 / F4 即時報價（任何地方按、除了 input/textarea）
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if (e.isComposing) return;
@@ -248,11 +257,14 @@ export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props
       if (e.key === ' ' || e.code === 'Space') {
         e.preventDefault();
         setPhotoZoom((z) => !z);
+      } else if (e.key === 'F4') {
+        e.preventDefault();
+        fireInstantQuote();
       }
     };
     window.addEventListener('keydown', h);
     return () => window.removeEventListener('keydown', h);
-  }, []);
+  }, [fireInstantQuote]);
 
   // 執行長 2026-06-25：開窗焦點永遠在右側通用零件、不去 Header「退回搜尋」按鈕。
   // 1. initialFocusRef={compatListRef} → mount 時先 focus FocusZone 容器（即使資料還沒載完、容器可 focus）
@@ -295,7 +307,16 @@ export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props
               預覽中
             </span>
           ) : null}
-          <span className="ml-auto text-[10px] font-semibold uppercase tracking-[0.28em] text-muted-foreground/60">
+          <button
+            type="button"
+            onClick={fireInstantQuote}
+            className="ml-auto inline-flex items-center gap-1.5 rounded-md border border-primary/55 bg-primary/15 px-2.5 py-1 text-xs font-medium text-primary hover:bg-primary/25"
+            title="即時報價 (F4)"
+          >
+            即時報價
+            <kbd className="rounded border border-primary/40 bg-primary/10 px-1 py-px font-mono text-[10px]">F4</kbd>
+          </button>
+          <span className="text-[10px] font-semibold uppercase tracking-[0.28em] text-muted-foreground/60">
             F2 · 視窗 2
           </span>
           <button
