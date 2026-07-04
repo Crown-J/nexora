@@ -58,6 +58,7 @@ export interface Quote {
   taxAmount: string;
   totalAmount: string;
   status: QuoteStatus;
+  source: string; // FORMAL 正式報價單 / INSTANT 即時報價
   remark: string | null;
   voidedAt: string | null;
   voidedBy: string | null;
@@ -105,6 +106,7 @@ export interface CreateQuotePayload {
   customerRefNo?: string;
   validUntil?: string;
   currencyId?: string;
+  source?: string; // FORMAL（預設）/ INSTANT
   taxRate: number;
   remark?: string;
   items?: CreateQuoteItemPayload[];

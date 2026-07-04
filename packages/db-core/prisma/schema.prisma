@@ -4158,6 +4158,8 @@ model Nx04Quote {
   salesPersonId             String?            @map("sales_person_id") @db.VarChar(15)
   /// 參考文號（客戶採購單號等對帳用，選填）。；啟用最低需求版本：LITE-CORE
   customerRefNo             String?            @map("customer_ref_no") @db.VarChar(50)
+  /// 來源（FORMAL 正式報價單=多行文件 / INSTANT 即時報價=單行紀錄）。NX04 報價架構 2026-07-02。；啟用最低需求版本：LITE-CORE
+  source                    String             @default("FORMAL") @db.VarChar(10)
   tenant                    Nx99Tenant         @relation("R_Nx04Quote_tenantId", fields: [tenantId], references: [id])
   warehouse                 Nx01Warehouse      @relation("R_Nx04Quote_warehouseId", fields: [warehouseId], references: [id])
   customer                  Nx01Partner        @relation("R_Nx04Quote_customerId", fields: [customerId], references: [id])

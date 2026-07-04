@@ -66,6 +66,12 @@ export class CreateQuoteDto {
   @MaxLength(15)
   warehouseId?: string;
 
+  /** 來源：FORMAL 正式報價單（預設）/ INSTANT 即時報價；省略=FORMAL */
+  @IsOptional()
+  @IsString()
+  @MaxLength(10)
+  source?: string;
+
   @IsDateString()
   quoteDate!: string;
 
