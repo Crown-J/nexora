@@ -130,9 +130,10 @@
 - **Step5A isSelected 重整**：批次帶入=未選定(選項不計總價)、明細加「選定」勾選欄、合計「僅計選定」。（後端 recalc 本就只算 isSelected。）
 - **Step5B 即時報價入口**（a 案）：F2 主視窗「即時報價 (F4)」→ dispatch `nx-instant-quote` → `GlobalInstantQuote`(掛 dashboard layout) → `InstantQuoteDialog`（選客戶+5格比價+自動帶價→建 source=INSTANT 單行）。
 - **Step5C-1 列表過濾**：`listQuote` 加 `source` 參數；報價單工作台預設 `source=FORMAL`（即時報價紀錄不洗版）。
+- **Step5C-2(a) 報價紀錄頁**（`ac67808c`）：銷售作業選單新增「報價紀錄」入口 `/dashboard/sale/quote-log`；`QuoteRecordWorkbench` = source=INSTANT 只讀日誌（報價日期/客戶/料號/廠牌/品名/量/價/業務）；後端 `list` 加 `firstItem` 首筆明細快照（即時報價=單行直接攤）；`ErpToolbar` 加 `hideMutations`（純日誌頁隱新增/編輯/刪除）。⚠️ **firstItem 為後端改動、需重啟 nx-api 才生效**（否則料號/廠牌/量/價欄顯「—」）。
 
 ### ⬜ 待辦（下一棒接續）
-- **Step5C-2 報價紀錄視圖**：瀏覽即時報價紀錄的畫面。執行長傾向 **併進 5D「銷貨拉報價」時做（b 案）**、不先做孤兒頁。
+- **Step5C-2(b) 銷貨拉報價**：從報價紀錄挑貨帶入銷貨 —— 併進 5D 一起做。
 - **Step5D 銷貨引用/部分轉**（⭐ 最大、獨立軌，動 SO 模組）：銷貨單輸入料號帶價（一個月規則）、拉報價「已選定」行轉單、每張 SO 指回來源報價。
 - **追蹤階段 + 暫緩日 + 首頁待辦 + 自動老化**（§8）。
 - **明細凍結四數**（§9，明細待加 進價+建議價 快照欄，additive）。
