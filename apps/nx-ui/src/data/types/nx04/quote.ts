@@ -162,6 +162,19 @@ export interface QuoteCandidate {
   suggestedPrice: string | null;
 }
 
+/** 報價比價面板 5 格（②~⑤ 逾一個月回 null）*/
+export interface QuotePriceRef {
+  date: string;
+  amount: string;
+}
+export interface QuotePriceIntel {
+  suggestedPrice: string | null; // ① 建議售價（等級地板）
+  sameCustomerQuote: QuotePriceRef | null; // ② 同客戶最近報價
+  sameCustomerSale: QuotePriceRef | null; // ③ 同客戶最近成交
+  sameGradeQuote: QuotePriceRef | null; // ④ 同級距他客最近報價
+  sameGradeSale: QuotePriceRef | null; // ⑤ 同級距他客最近成交
+}
+
 export interface QuoteCandidatesResult {
   warehouseId: string;
   warehouseCode: string;

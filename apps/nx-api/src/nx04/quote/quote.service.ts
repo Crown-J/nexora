@@ -862,6 +862,66 @@ export class QuoteService {
   }
 
   /**
+   * 報價比價面板（5 格）：給 客戶 + 料號 →
+   *   ① 建議售價：進價 ×(1+客戶等級毛利率)（成本中心暫緩期暫用算法，= 該等級地板）
+   *   ② 同客戶最近報價 ③ 同客戶最近成交 ④ 同級距他客最近報價 ⑤ 同級距他客最近成交
+   *   ②~⑤ 皆「近一個月」內才回（逾期回 null）；報價/成交分開；④⑤「同級距」= 同客戶等級。
+   */
+  async getPriceIntel(user: RequestUser, customerId: string, partId: string) {
+    const tenantId = requireTenantId(user);
+    const pid = partId.trim();
+    const customer = await this.prisma.nx01Partner.findFirst({
+      where: { id: customerId.trim(), tenantId },
+      select: { id: true, customerGradeId: true },
+    });
+    if (!customer) throw new NotFoundException('Customer not found');
+    const gradeId = customer.customerGradeId;
+
+    // ① 建議售價（暫用：進價 ×(1+等級毛利率)）
+    let suggestedPrice: string | null = null;
+    if (gradeId) {
+      const [grade, part] = await Promise.all([
+        this.prisma.nx01CustomerGrade.findFirst({ where: { id: gradeId, tenantId }, select: { marginPct: true } }),
+        this.prisma.nx01Part.findFirst({ where: { id: pid, tenantId }, select: { cost: true } }),
+      ]);
+      if (grade && part?.cost && new PrismaNs.Decimal(part.cost).gt(0)) {
+        const m = new PrismaNs.Decimal(grade.marginPct);
+        suggestedPrice = new PrismaNs.Decimal(part.cost).mul(m.div(100).add(1)).toDecimalPlaces(2).toString();
+      }
+    }
+
+    // 一個月前（②~⑤ 的時間閘）
+    const cutoff = new Date();
+    cutoff.setMonth(cutoff.getMonth() - 1);
+
+    const latestQuote = async (quoteWhere: Prisma.Nx04QuoteWhereInput) => {
+      const r = await this.prisma.nx04QuoteItem.findFirst({
+        where: { partId: pid, quote: { tenantId, voidedAt: null, quoteDate: { gte: cutoff }, ...quoteWhere } },
+        orderBy: { quote: { quoteDate: 'desc' } },
+        select: { unitPrice: true, quote: { select: { quoteDate: true } } },
+      });
+      return r ? { date: r.quote.quoteDate.toISOString(), amount: r.unitPrice.toString() } : null;
+    };
+    const latestSale = async (soWhere: Prisma.Nx04SoWhereInput) => {
+      const r = await this.prisma.nx04SoItem.findFirst({
+        where: { partId: pid, so: { tenantId, soDate: { gte: cutoff }, ...soWhere } },
+        orderBy: { so: { soDate: 'desc' } },
+        select: { unitPrice: true, so: { select: { soDate: true } } },
+      });
+      return r ? { date: r.so.soDate.toISOString(), amount: r.unitPrice.toString() } : null;
+    };
+
+    const [sameCustomerQuote, sameCustomerSale, sameGradeQuote, sameGradeSale] = await Promise.all([
+      latestQuote({ customerId: customer.id }),
+      latestSale({ customerId: customer.id }),
+      gradeId ? latestQuote({ customerId: { not: customer.id }, customerGradeId: gradeId }) : Promise.resolve(null),
+      gradeId ? latestSale({ customerId: { not: customer.id }, customer: { customerGradeId: gradeId } }) : Promise.resolve(null),
+    ]);
+
+    return { suggestedPrice, sameCustomerQuote, sameCustomerSale, sameGradeQuote, sameGradeSale };
+  }
+
+  /**
    * 報價候選清單（批次報價 picker）：給 客戶 + 主件料號 + 出貨倉 →
    * 回傳該料的通用件群組全員（含自己），每列帶：
    *   · 該倉可出量

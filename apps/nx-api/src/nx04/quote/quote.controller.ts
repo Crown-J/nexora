@@ -35,6 +35,17 @@ export class QuoteController {
     return this.svc.getHistoricalPrices(user, customerId, partId, Number.isFinite(n) ? n : undefined);
   }
 
+  /// 報價比價面板（5 格）：建議售價 + 同客戶/同級距 × 報價/成交（近一個月）
+  @Get('price-intel')
+  @Permission('sale.quote.create', 'sale.quote.edit')
+  priceIntel(
+    @CurrentUser() user: RequestUser,
+    @Query('customerId') customerId: string,
+    @Query('partId') partId: string,
+  ) {
+    return this.svc.getPriceIntel(user, customerId, partId);
+  }
+
   /// 批次報價 picker：整組替代料候選 + 各列可出量/歷史價/建議價
   @Get('candidates')
   @Permission('sale.quote.create', 'sale.quote.edit')

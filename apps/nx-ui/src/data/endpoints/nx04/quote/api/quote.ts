@@ -10,6 +10,7 @@ import type {
   PatchQuoteItemPayload,
   Quote,
   QuoteCandidatesResult,
+  QuotePriceIntel,
   QuoteHistoricalPrice,
   QuoteItem,
   QuoteListResponse,
@@ -116,6 +117,12 @@ export function getQuoteHistoricalPrices(
     limit: limit ? String(limit) : undefined,
   });
   return apiJson(`/nx04/quote/history${qs}`);
+}
+
+/// 報價比價面板（5 格）：建議售價 + 同客戶/同級距 × 報價/成交（近一個月）
+export function getQuotePriceIntel(customerId: string, partId: string): Promise<QuotePriceIntel> {
+  const qs = buildQueryString({ customerId, partId });
+  return apiJson(`/nx04/quote/price-intel${qs}`);
 }
 
 /// 批次報價 picker：整組替代料候選 + 各列可出量/歷史價/建議價
