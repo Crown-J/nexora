@@ -152,6 +152,7 @@ export const MENU_BAR: MenuNode[] = [
     accel: 'W',
     children: [
       { key: 'qt', label: '報價單', href: '/dashboard/sale/qt' },
+      { key: 'qt-log', label: '報價紀錄', href: '/dashboard/sale/quote-log' },
       { key: 'so', label: '銷貨單', href: '/dashboard/sale/so' },
       { key: 'sreturn', label: '銷貨退回', href: '/dashboard/sale/return' },
       { key: 'inquiry', label: '調貨詢價', href: '/dashboard/sale/inquiry' },

@@ -120,6 +120,7 @@ export function ErpToolbar({
   onOpenFilter,
   columnsHiddenCount = 0,
   filterCount = 0,
+  hideMutations = false,
 }: {
   mode: ErpMode;
   hasActiveRow: boolean;
@@ -186,6 +187,8 @@ export function ErpToolbar({
   onOpenFilter?: () => void;
   columnsHiddenCount?: number;
   filterCount?: number;
+  /** 純紀錄/日誌頁：隱藏 新增/編輯/刪除（A/E/D）；只留導航+查詢+重整+匯出 */
+  hideMutations?: boolean;
 }) {
   // 2026-06-18 執行長範式:D 按鈕 label 改「刪除」（實際軟刪除 isActive=false）/ 「啟用」
   //   選中啟用列 → 「刪除」（danger / Trash2）
@@ -292,17 +295,21 @@ export function ErpToolbar({
       </span>
       <NavButton icon={ChevronRight} disabled={navLastDisabled} onClick={handleNext} title={`下一${navLabel}`} />
       <NavButton icon={ChevronsRight} disabled={navLastDisabled} onClick={handleLast} title={`最末${navLabel}`} />
-      <ToolbarSeparator />
-      <ToolbarButton icon={Plus} letter="A" label="新增" enabled onClick={onCreate} />
-      <ToolbarButton icon={Pencil} letter="E" label="編輯" enabled={hasActiveRow} onClick={onEdit} />
-      <ToolbarButton
-        icon={DisableButtonIcon}
-        letter="D"
-        label={selectedRowBuiltin ? '內建鎖定' : disableButtonLabel}
-        enabled={hasActiveRow && !selectedRowBuiltin}
-        variant={selectedRowBuiltin ? 'default' : disableButtonVariant}
-        onClick={onDelete}
-      />
+      {hideMutations ? null : (
+        <>
+          <ToolbarSeparator />
+          <ToolbarButton icon={Plus} letter="A" label="新增" enabled onClick={onCreate} />
+          <ToolbarButton icon={Pencil} letter="E" label="編輯" enabled={hasActiveRow} onClick={onEdit} />
+          <ToolbarButton
+            icon={DisableButtonIcon}
+            letter="D"
+            label={selectedRowBuiltin ? '內建鎖定' : disableButtonLabel}
+            enabled={hasActiveRow && !selectedRowBuiltin}
+            variant={selectedRowBuiltin ? 'default' : disableButtonVariant}
+            onClick={onDelete}
+          />
+        </>
+      )}
       <ToolbarSeparator />
       <ToolbarButton icon={Search} letter="F" label="查詢" enabled onClick={onSearch} />
       {sortOptions && onSortChange && onSortReset ? (
@@ -378,15 +385,19 @@ export function ErpToolbar({
     >
       <ToolbarButton icon={Search} letter="F" label="查詢" enabled onClick={onSearch} />
       <ToolbarButton icon={RefreshCcw} letter="R" label="重整" enabled onClick={onRefresh} />
-      <ToolbarButton icon={Pencil} letter="E" label="編輯" enabled={hasActiveRow} onClick={onEdit} />
-      <ToolbarButton
-        icon={DisableButtonIcon}
-        letter="D"
-        label={selectedRowBuiltin ? '鎖' : disableButtonLabel}
-        enabled={hasActiveRow && !selectedRowBuiltin}
-        variant={selectedRowBuiltin ? 'default' : disableButtonVariant}
-        onClick={onDelete}
-      />
+      {hideMutations ? null : (
+        <>
+          <ToolbarButton icon={Pencil} letter="E" label="編輯" enabled={hasActiveRow} onClick={onEdit} />
+          <ToolbarButton
+            icon={DisableButtonIcon}
+            letter="D"
+            label={selectedRowBuiltin ? '鎖' : disableButtonLabel}
+            enabled={hasActiveRow && !selectedRowBuiltin}
+            variant={selectedRowBuiltin ? 'default' : disableButtonVariant}
+            onClick={onDelete}
+          />
+        </>
+      )}
       <div className="flex-1" />
       <ToolbarButton icon={MoreHorizontal} label="更多" enabled onClick={() => setMoreOpen(true)} />
     </div>
