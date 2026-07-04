@@ -973,6 +973,7 @@ export class QuoteService {
       secCode: true,
       isOem: true,
       isActive: true,
+      cost: true,
       brand: { select: { code: true, name: true } },
     } as const;
     const memberships = await this.prisma.nx01PartCompatGroupMember.findMany({
@@ -1001,13 +1002,12 @@ export class QuoteService {
     const partIds = candidateParts.map((c) => c.partId);
     if (!partIds.length) return { warehouseId: whId, warehouseCode: wh.code, warehouseName: wh.name, warehouses: [], candidates: [] };
 
-    // 各倉可出量（每列可換倉看庫存）+ 出貨倉 avgCost（建議價 ③ 用）
+    // 各倉可出量（每列可換倉看庫存）
     const balances = await this.prisma.nx03StockBalance.findMany({
       where: { tenantId, partId: { in: partIds } },
-      select: { partId: true, warehouseId: true, availableQty: true, avgCost: true },
+      select: { partId: true, warehouseId: true, availableQty: true },
     });
     const stockByPart = new Map<string, Record<string, string>>();
-    const avgCostAtWh = new Map<string, PrismaNs.Decimal>();
     for (const b of balances) {
       let rec = stockByPart.get(b.partId);
       if (!rec) {
@@ -1015,8 +1015,10 @@ export class QuoteService {
         stockByPart.set(b.partId, rec);
       }
       rec[b.warehouseId] = b.availableQty.toString();
-      if (b.warehouseId === whId) avgCostAtWh.set(b.partId, new PrismaNs.Decimal(b.avgCost));
     }
+    // 自動帶價一個月閘（執行長 2026-07-02）：本客戶最近報價/成交在一個月內才當預帶價，否則落建議售價
+    const cutoff = new Date();
+    cutoff.setMonth(cutoff.getMonth() - 1);
     const activeWarehouses = await this.prisma.nx01Warehouse.findMany({
       where: { tenantId, isActive: true },
       orderBy: [{ isMain: 'desc' }, { code: 'asc' }],
@@ -1079,14 +1081,15 @@ export class QuoteService {
 
     const candidates = candidateParts.map((c) => {
       const stockByWh = stockByPart.get(c.partId) ?? {};
-      const avgCost = avgCostAtWh.get(c.partId);
       const cl = customerLast.get(c.partId);
       const pl = partLast.get(c.partId);
+      // 自動帶價：① 本客戶最近(報價/成交)且一個月內 → 帶入；② 否則落建議售價(進價×(1+等級毛利率))。
+      // 市場價(pl)只在比價面板顯示、不當自動填來源。
       let suggested: string | null = null;
-      if (cl) suggested = cl.amount;
-      else if (pl) suggested = pl.amount;
-      else if (marginPct && avgCost && avgCost.gt(0)) {
-        suggested = avgCost.mul(marginPct.div(100).add(1)).toDecimalPlaces(2).toString();
+      if (cl && cl.date.getTime() >= cutoff.getTime()) {
+        suggested = cl.amount;
+      } else if (marginPct && c.part.cost && new PrismaNs.Decimal(c.part.cost).gt(0)) {
+        suggested = new PrismaNs.Decimal(c.part.cost).mul(marginPct.div(100).add(1)).toDecimalPlaces(2).toString();
       }
       return {
         id: c.part.id,
