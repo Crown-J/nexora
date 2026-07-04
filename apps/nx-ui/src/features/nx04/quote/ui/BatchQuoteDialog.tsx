@@ -148,6 +148,7 @@ export function BatchQuoteDialog({
           partId: c.id,
           qty: Number(qty[c.id] || '1'),
           unitPriceSnapshot: Number(price[c.id] || '0'),
+          isSelected: false, // 批次帶入=攤給客戶看的「選項」，未選定不計入總價；客戶挑定後在明細打勾
         });
         done++;
       }

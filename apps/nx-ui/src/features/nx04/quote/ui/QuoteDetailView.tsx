@@ -33,6 +33,7 @@ import { ToolbarPortal } from '@design/layout/workbench/WorkbenchToolbarSlot';
 import {
   createQuote,
   getQuote,
+  patchQuoteItem,
   removeQuoteItem,
   updateQuote,
   voidQuote,
@@ -412,6 +413,7 @@ export function QuoteDetailPanel({
             q={q}
             items={q.items ?? []}
             editable={itemsEditable}
+            canSelect={statusEditable && !q.voidedAt}
             onChanged={reloadAll}
             selectedItemId={selItem}
             onSelectItem={setSelItem}
@@ -681,6 +683,7 @@ function ItemsSection({
   q,
   items,
   editable,
+  canSelect,
   onChanged,
   selectedItemId,
   onSelectItem,
@@ -688,6 +691,7 @@ function ItemsSection({
   q: Quote;
   items: QuoteItem[];
   editable: boolean;
+  canSelect: boolean;
   onChanged: () => void | Promise<void>;
   selectedItemId: string | null;
   onSelectItem: (id: string) => void;
@@ -698,6 +702,14 @@ function ItemsSection({
       await onChanged();
     } catch (err) {
       alert(err instanceof Error ? err.message : '刪除失敗');
+    }
+  };
+  const handleToggleSelect = async (itemId: string, next: boolean) => {
+    try {
+      await patchQuoteItem(q.id, itemId, { isSelected: next });
+      await onChanged();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '選定切換失敗');
     }
   };
   return (
@@ -712,6 +724,8 @@ function ItemsSection({
         selectedItemId={selectedItemId}
         onSelectItem={onSelectItem}
         onRemoveItem={handleRemove}
+        canSelect={canSelect}
+        onToggleSelect={handleToggleSelect}
       />
     </section>
   );
@@ -728,6 +742,8 @@ function QuoteItemsTable({
   selectedItemId,
   onSelectItem,
   onRemoveItem,
+  canSelect,
+  onToggleSelect,
 }: {
   items: QuoteItem[];
   taxRate: number;
@@ -738,9 +754,11 @@ function QuoteItemsTable({
   selectedItemId: string | null;
   onSelectItem?: (id: string) => void;
   onRemoveItem?: (id: string) => void;
+  canSelect?: boolean; // 可切換「選定」（狀態可編、未作廢）
+  onToggleSelect?: (id: string, next: boolean) => void;
 }) {
   const rate = taxRate;
-  const colCount = editable ? 11 : 10;
+  const colCount = (editable ? 11 : 10) + 1; // +1 = 選定欄
   const fmt = (n: string | number) => Number(n).toLocaleString('en-US', { maximumFractionDigits: 2 });
   // 依容器高度動態補足空白列（填滿到底）；不足則捲動
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -761,6 +779,7 @@ function QuoteItemsTable({
         <table className="w-full border-collapse text-sm [&_td]:whitespace-nowrap [&_td]:border [&_td]:border-border/60 [&_th]:whitespace-nowrap [&_th]:border [&_th]:border-border/60">
           <thead className="sticky top-0 z-10 bg-muted text-xs uppercase text-muted-foreground">
             <tr>
+              <th className="px-3 py-2 text-center" title="選定才計入總價">選定</th>
               <th className="px-3 py-2 text-left">序號</th>
               <th className="px-3 py-2 text-left">基準料號</th>
               <th className="px-3 py-2 text-left">廠牌料號</th>
@@ -790,8 +809,19 @@ function QuoteItemsTable({
                     sel
                       ? 'bg-[var(--primary)]/15 shadow-[inset_3px_0_0_var(--primary)]'
                       : `${i % 2 === 1 ? 'bg-foreground/[0.04]' : 'bg-card'} hover:bg-accent/15`
-                  }`}
+                  } ${it.isSelected ? '' : 'opacity-50'}`}
                 >
+                  <td className="px-3 py-2 text-center">
+                    <input
+                      type="checkbox"
+                      checked={it.isSelected}
+                      disabled={!canSelect}
+                      onClick={(e) => e.stopPropagation()}
+                      onChange={(e) => onToggleSelect?.(it.id, e.target.checked)}
+                      className="size-4 accent-primary disabled:opacity-40"
+                      title={canSelect ? '打勾＝客戶選定、計入總價' : undefined}
+                    />
+                  </td>
                   <td className="px-3 py-2 text-xs text-muted-foreground">{it.lineNo}</td>
                   <td className="px-3 py-2 font-mono text-xs">{it.baseNo ?? it.partNo}</td>
                   <td className="px-3 py-2 font-mono text-xs">{it.brandNo ?? '—'}</td>
@@ -837,8 +867,8 @@ function QuoteItemsTable({
           </tbody>
           <tfoot className="sticky bottom-0 z-10 border-t border-border/60 bg-muted text-sm">
             <tr>
-              <td className="px-3 py-2 text-right text-xs text-muted-foreground" colSpan={7}>
-                合計
+              <td className="px-3 py-2 text-right text-xs text-muted-foreground" colSpan={8}>
+                合計（僅計選定）
               </td>
               <td className="px-3 py-2 text-right font-medium tabular-nums">{fmt(subtotal)}</td>
               <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">{fmt(taxAmount)}</td>
