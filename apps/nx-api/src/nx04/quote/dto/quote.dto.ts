@@ -28,6 +28,7 @@ export class QuoteListQueryDto extends Nx04ListQueryDto {
   @IsOptional() @IsString() @MaxLength(100) customerName?: string;
   @IsOptional() @IsString() @MaxLength(50) creator?: string;
   @IsOptional() @IsString() @MaxLength(50) partNo?: string;
+  @IsOptional() @IsIn(['FORMAL', 'INSTANT']) source?: string;
 }
 
 export class CreateQuoteItemDto {

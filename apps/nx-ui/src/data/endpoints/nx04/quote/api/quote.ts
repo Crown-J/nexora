@@ -34,6 +34,7 @@ export interface ListQuoteParams {
   customerName?: string;
   creator?: string;
   partNo?: string;
+  source?: 'FORMAL' | 'INSTANT';
 }
 
 export function listQuote(params: ListQuoteParams = {}): Promise<QuoteListResponse> {
@@ -53,6 +54,7 @@ export function listQuote(params: ListQuoteParams = {}): Promise<QuoteListRespon
     customerName: params.customerName,
     creator: params.creator,
     partNo: params.partNo,
+    source: params.source,
   });
   return apiJson(`/nx04/quote${qs}`);
 }

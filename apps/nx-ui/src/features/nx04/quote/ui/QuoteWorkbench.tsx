@@ -112,6 +112,8 @@ export function QuoteWorkbench({
     try {
       const resp = await listQuote({
         pageSize: 100,
+        source: 'FORMAL', // 報價單列表只顯示正式報價單；即時報價紀錄不洗版
+
         docNoFrom: criteria.docNoFrom?.trim() || undefined,
         docNoTo: criteria.docNoTo?.trim() || undefined,
         createdFrom: criteria.createdFrom || undefined,

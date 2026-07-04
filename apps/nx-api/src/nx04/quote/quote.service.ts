@@ -147,6 +147,9 @@ export class QuoteService {
     const and: Prisma.Nx04QuoteWhereInput[] = [];
     const todayStart = new Date(new Date().toDateString());
 
+    // 來源（正式 FORMAL / 即時 INSTANT）；報價單列表預設只看正式，即時報價紀錄另外看
+    if (q.source === 'FORMAL' || q.source === 'INSTANT') and.push({ source: q.source });
+
     // 狀態（純有效期：有效 / 失效(逾期) / 作廢）
     if (q.validity === 'void') and.push({ voidedAt: { not: null } });
     else if (q.validity === 'expired') and.push({ voidedAt: null, validUntil: { lt: todayStart } });
