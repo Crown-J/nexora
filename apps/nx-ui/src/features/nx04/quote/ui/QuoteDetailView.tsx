@@ -35,6 +35,7 @@ import {
   addQuoteItem,
   createQuote,
   getQuote,
+  getQuotePriceIntel,
   patchQuoteItem,
   removeQuoteItem,
   updateQuote,
@@ -43,8 +44,8 @@ import {
 
 import { listWarehouses } from '@data/endpoints/nx01/api/warehouse';
 
-import { BatchQuoteDialog } from './BatchQuoteDialog';
 import { CustomerPicker, type PickedCustomer } from './CustomerPicker';
+import { PartPicker, type PickedPart } from './PartPicker';
 import { QuoteRecordPickerDialog } from './QuoteRecordPickerDialog';
 import type { Quote, QuoteItem } from '@data/types/nx04/quote';
 
@@ -78,7 +79,7 @@ export function QuoteDetailPanel({
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [mode, setMode] = useState<'browse' | 'editHeader' | 'editItems'>(initialMode);
-  const [addOpen, setAddOpen] = useState(false);
+  const [addFocusSignal, setAddFocusSignal] = useState(0); // 遞增→內嵌新增行聚焦料號
   const [recordPickerOpen, setRecordPickerOpen] = useState(false);
   const [headerConfirmOpen, setHeaderConfirmOpen] = useState(false);
   const [selItem, setSelItem] = useState<string | null>(null); // 明細選中列（↑↓ 用）
@@ -143,12 +144,12 @@ export function QuoteDetailPanel({
     }
   }, [id]);
 
-  // 建單後（initialMode=editItems）q 載入即自動跳出批次報價 picker（一次性）
+  // 建單後（initialMode=editItems）q 載入即聚焦內嵌新增行料號（一次性、不再彈舊 picker）
   const autoPickRef = useRef(false);
   useEffect(() => {
     if (initialMode === 'editItems' && q && !autoPickRef.current) {
       autoPickRef.current = true;
-      setAddOpen(true);
+      setAddFocusSignal((n) => n + 1);
     }
   }, [q, initialMode]);
 
@@ -165,7 +166,7 @@ export function QuoteDetailPanel({
   // 明細：↑↓ 選列（焦點固定在明細表格、輸入框/彈窗時讓位）
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (addOpen || recordPickerOpen) return;
+      if (recordPickerOpen) return;
       const t = e.target as HTMLElement | null;
       if (t && ['INPUT', 'SELECT', 'TEXTAREA'].includes(t.tagName)) return;
       if (e.altKey || e.ctrlKey || e.metaKey) return;
@@ -184,7 +185,7 @@ export function QuoteDetailPanel({
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [q, selItem, addOpen, recordPickerOpen]);
+  }, [q, selItem, recordPickerOpen]);
 
   // 選中明細列捲入可視
   useEffect(() => {
@@ -326,7 +327,7 @@ export function QuoteDetailPanel({
           ) : (
             <>
               <ToolbarButton icon={Save} letter="S" label="存檔" enabled={!busy} accent onClick={() => setMode('browse')} />
-              <ToolbarButton icon={Plus} letter="A" label="新增項目" enabled={itemsEditable} onClick={() => setAddOpen(true)} />
+              <ToolbarButton icon={Plus} letter="A" label="新增項目" enabled={itemsEditable} onClick={() => setAddFocusSignal((n) => n + 1)} />
               <ToolbarButton icon={FileClock} letter="Q" label="從報價紀錄" enabled={itemsEditable} onClick={() => setRecordPickerOpen(true)} />
               <ToolbarButton icon={Pencil} letter="E" label="編輯項目" enabled={itemsEditable && !!selItem} onClick={() => alert('編輯項目（開發中）')} />
               <ToolbarButton icon={Trash2} letter="D" label="移除項目" enabled={itemsEditable && !!selItem} variant="danger" onClick={() => void removeSelectedItem()} />
@@ -430,23 +431,10 @@ export function QuoteDetailPanel({
             onChanged={reloadAll}
             selectedItemId={selItem}
             onSelectItem={setSelItem}
+            addFocusSignal={addFocusSignal}
           />
         </section>
       </div>
-
-      {addOpen ? (
-        <BatchQuoteDialog
-          quoteId={q.id}
-          customerId={q.customerId}
-          warehouseId={q.warehouseId}
-          warehouseName={q.warehouseName ?? ''}
-          onClose={() => setAddOpen(false)}
-          onAdded={async () => {
-            setAddOpen(false);
-            await reloadAll();
-          }}
-        />
-      ) : null}
 
       {recordPickerOpen ? (
         <QuoteRecordPickerDialog
@@ -725,6 +713,7 @@ function ItemsSection({
   onChanged,
   selectedItemId,
   onSelectItem,
+  addFocusSignal,
 }: {
   q: Quote;
   items: QuoteItem[];
@@ -733,6 +722,7 @@ function ItemsSection({
   onChanged: () => void | Promise<void>;
   selectedItemId: string | null;
   onSelectItem: (id: string) => void;
+  addFocusSignal?: number;
 }) {
   const handleRemove = async (itemId: string) => {
     try {
@@ -765,7 +755,136 @@ function ItemsSection({
         canSelect={canSelect}
         onToggleSelect={handleToggleSelect}
       />
+      {editable ? (
+        <InlineAddItem
+          quoteId={q.id}
+          customerId={q.customerId}
+          focusSignal={addFocusSignal ?? 0}
+          onAdded={onChanged}
+        />
+      ) : null}
     </section>
+  );
+}
+
+/** 內嵌新增明細（取代舊彈窗 picker）：料號 picker → 自動帶價 → 加入；連續輸入。帶入=未選定（比照拉入）*/
+function InlineAddItem({
+  quoteId,
+  customerId,
+  focusSignal,
+  onAdded,
+}: {
+  quoteId: string;
+  customerId: string;
+  focusSignal: number;
+  onAdded: () => void | Promise<void>;
+}) {
+  const [part, setPart] = useState<PickedPart | null>(null);
+  const [qty, setQty] = useState('1');
+  const [price, setPrice] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const [pickerKey, setPickerKey] = useState(0); // 重掛 PartPicker 以清空
+  const partRef = useRef<HTMLInputElement>(null);
+  const qtyRef = useRef<HTMLInputElement>(null);
+
+  // 工具列「新增項目」/建單後 → 聚焦料號
+  useEffect(() => {
+    if (focusSignal > 0) partRef.current?.focus();
+  }, [focusSignal]);
+
+  const pickPart = async (p: PickedPart) => {
+    setPart(p);
+    setErr(null);
+    qtyRef.current?.focus();
+    // 自動帶價：近一個月本客戶價（含即時報價）否則建議售價
+    try {
+      const intel = await getQuotePriceIntel(customerId, p.id);
+      const cq = intel.sameCustomerQuote;
+      const cs = intel.sameCustomerSale;
+      const recent = cq && cs ? (cq.date >= cs.date ? cq : cs) : (cq ?? cs);
+      setPrice(recent?.amount ?? intel.suggestedPrice ?? '');
+    } catch {
+      /* 查不到不擋 */
+    }
+  };
+
+  const reset = () => {
+    setPart(null);
+    setQty('1');
+    setPrice('');
+    setPickerKey((k) => k + 1);
+    setTimeout(() => partRef.current?.focus(), 0);
+  };
+
+  const submit = async () => {
+    if (!part) {
+      setErr('請先選料號');
+      partRef.current?.focus();
+      return;
+    }
+    if (Number(qty) <= 0 || Number(price) < 0) {
+      setErr('數量需大於 0、單價不可負');
+      return;
+    }
+    setBusy(true);
+    setErr(null);
+    try {
+      await addQuoteItem(quoteId, {
+        partId: part.id,
+        qty: Number(qty),
+        unitPriceSnapshot: Number(price),
+        isSelected: false, // 新增=未選定（比照拉入，選項不計總價；客戶挑了再勾選定）
+      });
+      await onAdded();
+      reset();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : '新增失敗');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const enterToSubmit = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      void submit();
+    }
+  };
+
+  const cellCls = 'rounded border bg-background px-2 py-1 text-sm tabular-nums';
+  return (
+    <div className="mt-2 rounded-lg border border-primary/30 bg-primary/[0.03] p-2">
+      <div className="flex flex-wrap items-end gap-2">
+        <div className="min-w-[240px] flex-1">
+          <div className="mb-1 text-[11px] text-muted-foreground">料號（Enter 選取）</div>
+          <PartPicker key={pickerKey} inputRef={partRef} onPick={(p) => void pickPart(p)} />
+        </div>
+        <div className="w-20">
+          <div className="mb-1 text-[11px] text-muted-foreground">數量</div>
+          <input ref={qtyRef} type="number" min="0" step="1" value={qty} onChange={(e) => setQty(e.target.value)} onKeyDown={enterToSubmit} className={`${cellCls} w-full text-right`} />
+        </div>
+        <div className="w-28">
+          <div className="mb-1 text-[11px] text-muted-foreground">單價</div>
+          <input type="number" min="0" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} onKeyDown={enterToSubmit} className={`${cellCls} w-full text-right font-medium`} />
+        </div>
+        <button
+          type="button"
+          disabled={busy || !part}
+          onClick={() => void submit()}
+          className="h-[30px] rounded bg-primary px-4 text-sm text-primary-foreground disabled:opacity-50"
+        >
+          {busy ? '加入中…' : '加入'}
+        </button>
+        {part ? (
+          <span className="pb-1 text-xs text-muted-foreground">
+            {part.code}　{part.name}
+            {part.brandName ? ` · ${part.brandName}` : ''}
+          </span>
+        ) : null}
+      </div>
+      {err ? <div className="mt-1 text-xs text-destructive">{err}</div> : null}
+    </div>
   );
 }
 

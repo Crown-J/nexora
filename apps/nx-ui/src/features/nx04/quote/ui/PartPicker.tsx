@@ -21,9 +21,11 @@ export type PickedPart = {
 export function PartPicker({
   onPick,
   autoFocus,
+  inputRef,
 }: {
   onPick: (p: PickedPart) => void;
   autoFocus?: boolean;
+  inputRef?: React.Ref<HTMLInputElement>;
 }) {
   const [text, setText] = useState('');
   const [rows, setRows] = useState<PartSearchRow[]>([]);
@@ -80,6 +82,7 @@ export function PartPicker({
   return (
     <div className="relative">
       <input
+        ref={inputRef}
         autoFocus={autoFocus}
         value={text}
         onChange={(e) => {
