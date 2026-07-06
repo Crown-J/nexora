@@ -25,7 +25,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 
 import { NavButton, ToolbarButton, ToolbarSeparator } from '@/features/nx01/shell/ui/ErpToolbar';
 
@@ -36,6 +36,7 @@ import {
   createQuote,
   getQuote,
   getQuotePriceIntel,
+  patchQuoteItem,
   removeQuoteItem,
   updateQuote,
   voidQuote,
@@ -79,6 +80,7 @@ export function QuoteDetailPanel({
   const [busy, setBusy] = useState(false);
   const [mode, setMode] = useState<'browse' | 'editHeader' | 'editItems'>(initialMode);
   const [addMode, setAddMode] = useState(false); // 編輯明細時的內嵌新增（Excel 式逐列）
+  const [editingItemId, setEditingItemId] = useState<string | null>(null); // 該明細列改內嵌編輯
   const [recordPickerOpen, setRecordPickerOpen] = useState(false);
   const [headerConfirmOpen, setHeaderConfirmOpen] = useState(false);
   const [selItem, setSelItem] = useState<string | null>(null); // 明細選中列（↑↓ 用）
@@ -190,23 +192,34 @@ export function QuoteDetailPanel({
   useEffect(() => {
     if (mode !== 'editItems') return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && addMode) {
+      if (e.key === 'Escape' && (addMode || editingItemId)) {
         e.preventDefault();
         setAddMode(false);
+        setEditingItemId(null);
         return;
       }
       if (!e.altKey || e.ctrlKey || e.metaKey) return;
       const map: Record<string, () => void> = {
-        a: () => setAddMode(true),
+        a: () => {
+          setEditingItemId(null);
+          setAddMode(true);
+        },
         f: () => setRecordPickerOpen(true),
-        e: () => selItem && alert('編輯項目（開發中）'),
+        e: () => {
+          if (selItem) {
+            setAddMode(false);
+            setEditingItemId(selItem);
+          }
+        },
         d: () => void removeSelectedItem(),
         s: () => {
           setAddMode(false);
+          setEditingItemId(null);
           setMode('browse');
         },
         c: () => {
           setAddMode(false);
+          setEditingItemId(null);
           setMode('browse');
         },
       };
@@ -220,11 +233,14 @@ export function QuoteDetailPanel({
     return () => window.removeEventListener('keydown', onKey, true);
     // removeSelectedItem 依當前閉包；以 disable 略過 deps
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, addMode, selItem]);
+  }, [mode, addMode, editingItemId, selItem]);
 
-  // 離開編輯明細 → 關閉新增模式
+  // 離開編輯明細 → 關閉新增/編輯模式
   useEffect(() => {
-    if (mode !== 'editItems') setAddMode(false);
+    if (mode !== 'editItems') {
+      setAddMode(false);
+      setEditingItemId(null);
+    }
   }, [mode]);
 
   // 選中明細列捲入可視
@@ -367,9 +383,9 @@ export function QuoteDetailPanel({
           ) : (
             <>
               <ToolbarButton icon={Save} letter="S" label="存檔" enabled={!busy} accent onClick={() => setMode('browse')} />
-              <ToolbarButton icon={Plus} letter="A" label="新增項目" enabled={itemsEditable} pressed={addMode} onClick={() => setAddMode(true)} />
+              <ToolbarButton icon={Plus} letter="A" label="新增項目" enabled={itemsEditable} pressed={addMode} onClick={() => { setEditingItemId(null); setAddMode(true); }} />
               <ToolbarButton icon={FileClock} letter="F" label="從報價紀錄" enabled={itemsEditable} onClick={() => setRecordPickerOpen(true)} />
-              <ToolbarButton icon={Pencil} letter="E" label="編輯項目" enabled={itemsEditable && !!selItem} onClick={() => alert('編輯項目（開發中）')} />
+              <ToolbarButton icon={Pencil} letter="E" label="編輯項目" enabled={itemsEditable && !!selItem} pressed={!!editingItemId} onClick={() => { if (selItem) { setAddMode(false); setEditingItemId(selItem); } }} />
               <ToolbarButton icon={Trash2} letter="D" label="移除項目" enabled={itemsEditable && !!selItem} variant="danger" onClick={() => void removeSelectedItem()} />
               <ToolbarButton icon={X} letter="C" label="取消" enabled={!busy} onClick={() => setMode('browse')} />
             </>
@@ -472,6 +488,8 @@ export function QuoteDetailPanel({
             onSelectItem={setSelItem}
             addMode={itemsEditable && addMode}
             onExitAdd={() => setAddMode(false)}
+            editingItemId={itemsEditable ? editingItemId : null}
+            onExitEdit={() => setEditingItemId(null)}
           />
         </section>
       </div>
@@ -754,6 +772,8 @@ function ItemsSection({
   onSelectItem,
   addMode,
   onExitAdd,
+  editingItemId,
+  onExitEdit,
 }: {
   q: Quote;
   items: QuoteItem[];
@@ -763,6 +783,8 @@ function ItemsSection({
   onSelectItem: (id: string) => void;
   addMode?: boolean;
   onExitAdd?: () => void;
+  editingItemId?: string | null;
+  onExitEdit?: () => void;
 }) {
   const handleRemove = async (itemId: string) => {
     try {
@@ -784,14 +806,26 @@ function ItemsSection({
         selectedItemId={selectedItemId}
         onSelectItem={onSelectItem}
         onRemoveItem={handleRemove}
+        editingItemId={editable ? editingItemId : null}
+        renderEditRow={(it) => (
+          <InlineItemRow
+            quoteId={q.id}
+            customerId={q.customerId}
+            taxRate={Number(q.taxRate) || 0}
+            nextLineNo={it.lineNo}
+            editItem={it}
+            onSaved={onChanged}
+            onExit={onExitEdit ?? (() => {})}
+          />
+        )}
         addRow={
           editable && addMode ? (
-            <InlineAddRow
+            <InlineItemRow
               quoteId={q.id}
               customerId={q.customerId}
               taxRate={Number(q.taxRate) || 0}
               nextLineNo={(items[items.length - 1]?.lineNo ?? 0) + 1}
-              onAdded={onChanged}
+              onSaved={onChanged}
               onExit={onExitAdd ?? (() => {})}
             />
           ) : null
@@ -802,31 +836,45 @@ function ItemsSection({
 }
 
 /** 內嵌 Excel 式新增列（<tr>）：料號→數量→單價，Enter 逐格前進、末格存檔續下一列、ESC 退出。新增即計入總價。 */
-function InlineAddRow({
+/** 內嵌 Excel 式明細列（<tr>）：新增或編輯共用。料號→數量→單價，Enter 逐格前進、末格存檔、ESC 退出。
+ *  新增：末格存檔後續下一列；編輯：存檔後退出。欄位聚焦即全選（免先 Backspace）。 */
+function InlineItemRow({
   quoteId,
   customerId,
   taxRate,
   nextLineNo,
-  onAdded,
+  editItem,
+  onSaved,
   onExit,
 }: {
   quoteId: string;
   customerId: string;
   taxRate: number;
   nextLineNo: number;
-  onAdded: () => void | Promise<void>;
+  editItem?: QuoteItem; // 提供＝編輯模式（預填、patch）
+  onSaved: () => void | Promise<void>;
   onExit: () => void;
 }) {
-  const [part, setPart] = useState<PickedPart | null>(null);
-  const [qty, setQty] = useState('1');
-  const [price, setPrice] = useState('');
+  const isEdit = !!editItem;
+  const partFromItem = (it: QuoteItem): PickedPart => ({
+    id: it.partId,
+    code: it.baseNo ?? it.partNo,
+    name: it.partName,
+    secCode: it.brandNo ?? null,
+    brandName: it.brandName ?? null,
+    availableTotal: '0',
+    onHandTotal: '0',
+  });
+  const [part, setPart] = useState<PickedPart | null>(editItem ? partFromItem(editItem) : null);
+  const [qty, setQty] = useState(editItem ? String(editItem.qty) : '1');
+  const [price, setPrice] = useState(editItem ? String(editItem.unitPrice) : '');
   const [busy, setBusy] = useState(false);
   const [pickerKey, setPickerKey] = useState(0);
   const partRef = useRef<HTMLInputElement>(null);
   const qtyRef = useRef<HTMLInputElement>(null);
   const priceRef = useRef<HTMLInputElement>(null);
 
-  // 進入新增即聚焦料號
+  // 進入即聚焦料號（新增與編輯都從料號開始）
   useEffect(() => {
     partRef.current?.focus();
   }, []);
@@ -860,16 +908,26 @@ function InlineAddRow({
     }
     setBusy(true);
     try {
-      await addQuoteItem(quoteId, {
-        partId: part.id,
-        qty: Number(qty),
-        unitPriceSnapshot: Number(price),
-        isSelected: true, // 報價單每一行都算進總價
-      });
-      await onAdded();
-      reset(); // 續打下一列
+      if (isEdit && editItem) {
+        await patchQuoteItem(quoteId, editItem.id, {
+          partId: part.id,
+          qty: Number(qty),
+          unitPriceSnapshot: Number(price),
+        });
+        await onSaved();
+        onExit(); // 編輯單筆、存檔即退出
+      } else {
+        await addQuoteItem(quoteId, {
+          partId: part.id,
+          qty: Number(qty),
+          unitPriceSnapshot: Number(price),
+          isSelected: true, // 報價單每一行都算進總價
+        });
+        await onSaved();
+        reset(); // 續打下一列
+      }
     } catch (e) {
-      alert(e instanceof Error ? e.message : '新增失敗');
+      alert(e instanceof Error ? e.message : isEdit ? '修改失敗' : '新增失敗');
     } finally {
       setBusy(false);
     }
@@ -879,10 +937,11 @@ function InlineAddRow({
   const lineTax = Math.round((lineSub * taxRate) / 100);
   const fmt = (n: number) => Number(n).toLocaleString('en-US', { maximumFractionDigits: 2 });
   const cell = 'w-full rounded border border-primary/40 bg-background px-2 py-1 text-sm tabular-nums';
+  const selectAll = (e: React.FocusEvent<HTMLInputElement>) => e.target.select();
 
   return (
     <tr
-      className="bg-primary/[0.06]"
+      className={isEdit ? 'bg-amber-400/10' : 'bg-primary/[0.06]'}
       onKeyDown={(e) => {
         if (e.key === 'Escape') {
           e.preventDefault();
@@ -890,9 +949,23 @@ function InlineAddRow({
         }
       }}
     >
-      <td className="px-3 py-1 text-xs text-primary">{nextLineNo}</td>
-      <td className="px-2 py-1" colSpan={4}>
-        <PartPicker key={pickerKey} inputRef={partRef} onPick={(p) => void pickPart(p)} />
+      <td className="px-3 py-1 text-xs text-primary">{isEdit ? editItem!.lineNo : nextLineNo}</td>
+      <td
+        className="px-2 py-1"
+        colSpan={4}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            qtyRef.current?.focus();
+          }
+        }}
+      >
+        <PartPicker
+          key={pickerKey}
+          inputRef={partRef}
+          initialText={editItem ? `${editItem.baseNo ?? editItem.partNo}　${editItem.partName}` : undefined}
+          onPick={(p) => void pickPart(p)}
+        />
       </td>
       <td className="px-2 py-1">
         <input
@@ -901,6 +974,7 @@ function InlineAddRow({
           min="0"
           step="1"
           value={qty}
+          onFocus={selectAll}
           onChange={(e) => setQty(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
@@ -918,6 +992,7 @@ function InlineAddRow({
           min="0"
           step="0.01"
           value={price}
+          onFocus={selectAll}
           onChange={(e) => setPrice(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
@@ -949,6 +1024,8 @@ function QuoteItemsTable({
   onSelectItem,
   onRemoveItem,
   addRow,
+  editingItemId,
+  renderEditRow,
 }: {
   items: QuoteItem[];
   taxRate: number;
@@ -960,6 +1037,8 @@ function QuoteItemsTable({
   onSelectItem?: (id: string) => void;
   onRemoveItem?: (id: string) => void;
   addRow?: React.ReactNode; // 內嵌新增列（編輯明細 + 新增模式時）
+  editingItemId?: string | null; // 該列改用內嵌編輯列
+  renderEditRow?: (it: QuoteItem) => React.ReactNode;
 }) {
   const rate = taxRate;
   const colCount = editable ? 11 : 10; // 序號..總價 10 欄 + 編輯時刪除欄
@@ -998,6 +1077,9 @@ function QuoteItemsTable({
           </thead>
           <tbody>
             {items.map((it, i) => {
+              if (editingItemId && it.id === editingItemId && renderEditRow) {
+                return <Fragment key={it.id}>{renderEditRow(it)}</Fragment>;
+              }
               const below = it.minPrice && Number(it.unitPrice) < Number(it.minPrice);
               const lineSub = Number(it.lineAmount);
               const lineTax = Math.round((lineSub * rate) / 100);

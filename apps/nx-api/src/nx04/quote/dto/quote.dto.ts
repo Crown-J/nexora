@@ -162,6 +162,12 @@ export class UpdateQuoteDto {
 }
 
 export class PatchQuoteItemDto {
+  /// 換料號（編輯項目可從料號改起；後端重抓料號快照）
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  partId?: string;
+
   @IsOptional()
   @IsNumber()
   @Min(0.0001)

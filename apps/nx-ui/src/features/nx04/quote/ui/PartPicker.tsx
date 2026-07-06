@@ -22,16 +22,19 @@ export function PartPicker({
   onPick,
   autoFocus,
   inputRef,
+  initialText,
 }: {
   onPick: (p: PickedPart) => void;
   autoFocus?: boolean;
   inputRef?: React.Ref<HTMLInputElement>;
+  /** 預填輸入框（編輯項目：帶入目前料號；聚焦時全選、可直接改） */
+  initialText?: string;
 }) {
-  const [text, setText] = useState('');
+  const [text, setText] = useState(initialText ?? '');
   const [rows, setRows] = useState<PartSearchRow[]>([]);
   const [open, setOpen] = useState(false);
   const [hi, setHi] = useState(0);
-  const [picked, setPicked] = useState(false);
+  const [picked, setPicked] = useState(!!initialText);
   const reqRef = useRef(0);
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -85,6 +88,7 @@ export function PartPicker({
         ref={inputRef}
         autoFocus={autoFocus}
         value={text}
+        onFocus={(e) => e.target.select()}
         onChange={(e) => {
           setPicked(false);
           setText(e.target.value);

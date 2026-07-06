@@ -123,6 +123,7 @@ export interface UpdateQuotePayload {
 }
 
 export interface PatchQuoteItemPayload {
+  partId?: string;
   qty?: number;
   unitPriceSnapshot?: number;
   isSelected?: boolean;

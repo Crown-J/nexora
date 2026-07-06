@@ -772,6 +772,12 @@ export class QuoteService {
     this.assertQuoteItemsEditable(head.status);
     const existing = await this.prisma.nx04QuoteItem.findFirst({ where: { id: itemId, quoteId }, select: Q_ITEM_SEL });
     if (!existing) throw new NotFoundException('Quote item not found');
+    // 換料號（編輯可從料號改起）：重抓料號快照、以新料號重算 minPrice
+    const newPartId = dto.partId?.trim();
+    const partChanged = !!newPartId && newPartId !== existing.partId;
+    const effPartId = newPartId || existing.partId;
+    const snap = partChanged ? await this.loadPartSnapshot(this.prisma, tenantId, effPartId) : null;
+    const priceOrPartChanged = dto.unitPriceSnapshot !== undefined || partChanged;
     const qty = dto.qty !== undefined ? new PrismaNs.Decimal(dto.qty) : new PrismaNs.Decimal(existing.qty);
     const unit =
       dto.unitPriceSnapshot !== undefined
@@ -779,23 +785,23 @@ export class QuoteService {
         : new PrismaNs.Decimal(existing.unitPrice);
     const sel = dto.isSelected !== undefined ? dto.isSelected : existing.isSelected;
     const lineAmount = sel ? this.lineAmount(qty, unit) : new PrismaNs.Decimal(0);
-    const minPrice =
-      dto.unitPriceSnapshot !== undefined
-        ? await this.computeMinPrice(this.prisma, tenantId, existing.partId, head.warehouseId, head.customerGradeId)
-        : existing.minPrice
+    const minPrice = priceOrPartChanged
+      ? await this.computeMinPrice(this.prisma, tenantId, effPartId, head.warehouseId, head.customerGradeId)
+      : existing.minPrice
         ? new PrismaNs.Decimal(existing.minPrice)
         : null;
     const effectiveBelowMinReason = dto.belowMinReason ?? existing.belowMinReason ?? undefined;
-    if (dto.unitPriceSnapshot !== undefined) {
+    if (priceOrPartChanged) {
       this.assertMinPriceReason(unit, minPrice, effectiveBelowMinReason);
     }
     const row = await this.prisma.nx04QuoteItem.update({
       where: { id: itemId },
       data: {
+        ...(partChanged && snap ? { partId: effPartId, partNo: snap.partNo, partName: snap.partName } : {}),
         qty,
         unitPrice: unit,
         lineAmount,
-        ...(dto.unitPriceSnapshot !== undefined ? { minPrice } : {}),
+        ...(priceOrPartChanged ? { minPrice } : {}),
         ...(dto.belowMinReason !== undefined ? { belowMinReason: dto.belowMinReason?.trim() || null } : {}),
         ...(dto.isSelected !== undefined ? { isSelected: dto.isSelected } : {}),
         ...(dto.remark !== undefined ? { remark: dto.remark } : {}),
