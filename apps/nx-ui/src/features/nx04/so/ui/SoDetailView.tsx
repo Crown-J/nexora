@@ -12,6 +12,8 @@ import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { lookupStockBalance } from '@data/endpoints/nx03/stock-balance/api/lookup';
+import { getQuotePriceIntel } from '@data/endpoints/nx04/quote/api/quote';
+import { QuoteRecordPickerDialog } from '@/features/nx04/quote/ui/QuoteRecordPickerDialog';
 import { IssueReportTrigger } from '@/features/shared/issue-report-trigger';
 import { TieredFormProvider } from '@/features/shared/tiered-form/TieredFormProvider';
 
@@ -514,6 +516,7 @@ function AddItemArea({
   onAdded: () => void | Promise<void>;
 }) {
   const [showPullQuote, setShowPullQuote] = useState(false);
+  const [recordPickerOpen, setRecordPickerOpen] = useState(false);
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap gap-2">
@@ -522,6 +525,12 @@ function AddItemArea({
           className="rounded border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-sm text-emerald-900 hover:bg-emerald-100"
         >
           {showPullQuote ? '收起拉報價' : '📜 拉客戶舊報價'}
+        </button>
+        <button
+          onClick={() => setRecordPickerOpen(true)}
+          className="rounded border border-primary/40 bg-primary/10 px-3 py-1.5 text-sm text-primary hover:bg-primary/20"
+        >
+          📋 從報價紀錄
         </button>
       </div>
       {showPullQuote ? (
@@ -533,7 +542,31 @@ function AddItemArea({
           onClose={() => setShowPullQuote(false)}
         />
       ) : null}
-      <AddItemForm soId={soId} defaultWarehouseId={defaultWarehouseId} onAdded={onAdded} />
+      <AddItemForm customerId={customerId} soId={soId} defaultWarehouseId={defaultWarehouseId} onAdded={onAdded} />
+
+      {recordPickerOpen ? (
+        <QuoteRecordPickerDialog
+          customerId={customerId}
+          onClose={() => setRecordPickerOpen(false)}
+          onConfirm={async (recs) => {
+            setRecordPickerOpen(false);
+            try {
+              for (const r of recs) {
+                await addSoItem(soId, {
+                  partId: r.partId,
+                  warehouseId: r.warehouseId || defaultWarehouseId,
+                  qty: Number(r.qty) || 1,
+                  unitPriceSnapshot: Number(r.unitPrice) || 0,
+                  transferSourceType: 'S',
+                });
+              }
+              await onAdded();
+            } catch (e) {
+              alert(e instanceof Error ? e.message : '帶入失敗');
+            }
+          }}
+        />
+      ) : null}
     </div>
   );
 }
@@ -725,10 +758,12 @@ function PullQuotePanel({
 }
 
 function AddItemForm({
+  customerId,
   soId,
   defaultWarehouseId,
   onAdded,
 }: {
+  customerId: string;
   soId: string;
   defaultWarehouseId: string;
   onAdded: () => void | Promise<void>;
@@ -741,6 +776,32 @@ function AddItemForm({
   const [remark, setRemark] = useState('');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [autoPriced, setAutoPriced] = useState(false);
+
+  // 自動帶價：輸入料號後，讀報價紀錄/成交近一個月價（含即時報價）→ 未手動改價時帶入。
+  useEffect(() => {
+    const pid = partId.trim();
+    if (!pid || !customerId) return;
+    const h = setTimeout(async () => {
+      try {
+        const intel = await getQuotePriceIntel(customerId, pid);
+        const cq = intel.sameCustomerQuote;
+        const cs = intel.sameCustomerSale;
+        const recent = cq && cs ? (cq.date >= cs.date ? cq : cs) : (cq ?? cs);
+        const auto = recent?.amount ?? intel.suggestedPrice;
+        // 只在使用者還沒手動改價（維持 0 或前次自動值）時帶入，不覆蓋手動輸入
+        if (auto != null && (unitPrice === '0' || unitPrice === '' || autoPriced)) {
+          setUnitPrice(auto);
+          setAutoPriced(true);
+        }
+      } catch {
+        /* 查不到不擋 */
+      }
+    }, 400);
+    return () => clearTimeout(h);
+    // unitPrice/autoPriced 為判斷是否可覆蓋、不進 deps（避免自我觸發迴圈）
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [partId, customerId]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -763,6 +824,7 @@ function AddItemForm({
       setPartId('');
       setQty('1');
       setUnitPrice('0');
+      setAutoPriced(false);
       setRemark('');
       setTransferSourceType('S');
       await onAdded();
@@ -816,7 +878,10 @@ function AddItemForm({
             step="0.0001"
             min="0"
             value={unitPrice}
-            onChange={(e) => setUnitPrice(e.target.value)}
+            onChange={(e) => {
+              setUnitPrice(e.target.value);
+              setAutoPriced(false); // 手動改價 → 不再被自動帶價覆蓋
+            }}
             className="w-full rounded border bg-background px-2 py-1 tabular-nums"
             required
           />
