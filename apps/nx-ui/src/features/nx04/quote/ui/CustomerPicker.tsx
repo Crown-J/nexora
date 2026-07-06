@@ -34,12 +34,15 @@ export function CustomerPicker({
   onPick,
   onCommit,
   autoFocus,
+  partnerType = 'C',
 }: {
   /** 選定客戶 */
   onPick: (c: PickedCustomer) => void;
   /** 已選後再按 Enter → 跳下一欄 */
   onCommit: () => void;
   autoFocus?: boolean;
+  /** partner 類型過濾（預設 C 客戶；即時詢價傳 O 挑同行）*/
+  partnerType?: 'C' | 'O';
 }) {
   const [text, setText] = useState('');
   const [rows, setRows] = useState<PickedCustomer[]>([]);
@@ -66,7 +69,7 @@ export function CustomerPicker({
         return;
       }
       try {
-        const res = await listPartner({ page: 1, pageSize: 20, q: t, partnerType: 'C', isActive: true });
+        const res = await listPartner({ page: 1, pageSize: 20, q: t, partnerType, isActive: true });
         if (myReq !== reqRef.current) return;
         setRows(
           res.items.map((p) => ({
@@ -84,14 +87,14 @@ export function CustomerPicker({
       }
     }, 200);
     return () => clearTimeout(h);
-  }, [text, picked]);
+  }, [text, picked, partnerType]);
 
   async function doPhonetic() {
     const code = keyToBopomofo(text.trim());
     if (!code) return;
     const myReq = ++reqRef.current;
     try {
-      const res = await listPartner({ page: 1, pageSize: 20, phonetic: code, partnerType: 'C', isActive: true });
+      const res = await listPartner({ page: 1, pageSize: 20, phonetic: code, partnerType, isActive: true });
       if (myReq !== reqRef.current) return;
       setRows(res.items.map((p) => ({ id: p.id, code: p.code, name: p.name })));
       setOpen(true);

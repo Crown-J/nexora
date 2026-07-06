@@ -20,6 +20,7 @@ import { Suspense } from 'react';
 import { WorkbenchShell } from '@design/layout/workbench/WorkbenchShell';
 import { GlobalPartQuickSearch } from '@design/components/quick-search/GlobalPartQuickSearch';
 import { GlobalInstantQuote } from '@/features/nx04/quote/ui/GlobalInstantQuote';
+import { GlobalInstantInquiry } from '@/features/nx04/quote/ui/GlobalInstantInquiry';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
@@ -29,6 +30,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <GlobalPartQuickSearch />
       {/* 即時報價：聽 F2 主視窗發的 nx-instant-quote 事件（Step5B）*/}
       <GlobalInstantQuote />
+      {/* 即時詢價：聽 F2 主視窗發的 nx-instant-inquiry 事件（調貨側 B1）*/}
+      <GlobalInstantInquiry />
     </WorkbenchShell>
   );
 }
