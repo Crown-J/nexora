@@ -2786,6 +2786,8 @@ model Nx02TiItem {
   updatedBy      String        @map("updated_by") @db.VarChar(15)
   /// 來源銷貨明細 ID（必填，反向追蹤這個 TI 明細是為了哪張 SO 的哪個 line 而存在）。Phase 0 D3 新增。；啟用最低需求版本：LITE-CORE
   sourceSoItemId String        @map("source_so_item_id") @db.VarChar(15)
+  /// 來源詢價紀錄 ID（可空，建 TI 時同行報價取自此筆詢價紀錄；id 快照、不設 FK）。NX04 紀錄表 B3 2026-07-06。；啟用最低需求版本：LITE-CORE
+  sourceInquiryRecordId String? @map("source_inquiry_record_id") @db.VarChar(15)
   ti             Nx02Ti        @relation("R_Nx02TiItem_tiId", fields: [tiId], references: [id])
   rfqItem        Nx02RfqItem?  @relation("R_Nx02TiItem_rfqItemId", fields: [rfqItemId], references: [id])
   part           Nx01Part      @relation("R_Nx02TiItem_partId", fields: [partId], references: [id])

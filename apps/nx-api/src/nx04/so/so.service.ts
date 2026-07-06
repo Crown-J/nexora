@@ -1259,8 +1259,8 @@ export class SoService {
       const tiDocNo = await allocNx02DocNo(tx, tenantId, 'TI', wh.code);
       const taxRate = new PrismaNs.Decimal('5.00');
 
-      // 計算 subtotal（M2 階段 unitCost=0 待同行報價、subtotal=0）
-      // 業務上 SO unitPrice 是賣價、不是進貨成本、TI unitCost 不能直接 = SO.unitPrice
+      // subtotal 先建 0、明細帶入同行報價後於迴圈末重算（NX04 紀錄表 B3）。
+      // 業務上 SO unitPrice 是賣價、不是進貨成本、TI unitCost 不能直接 = SO.unitPrice；成本改取自詢價紀錄。
       const subtotal = new PrismaNs.Decimal(0);
       const taxAmount = new PrismaNs.Decimal(0);
       const totalAmount = new PrismaNs.Decimal(0);
@@ -1285,9 +1285,24 @@ export class SoService {
         select: { id: true, docNo: true },
       });
 
+      // 同行報價：從詢價紀錄帶入（這個同行 × 這顆料、取最近一筆）填 unitCost（NX04 紀錄表 B3）
+      const inqRecs = await tx.nx04InquiryRecord.findMany({
+        where: { tenantId, sourcePartnerId: partner.id, partId: { in: items.map((i) => i.partId) } },
+        orderBy: [{ recordDate: 'desc' }, { createdAt: 'desc' }],
+        select: { id: true, partId: true, unitPrice: true },
+      });
+      const inqByPart = new Map<string, { id: string; unitPrice: PrismaNs.Decimal }>();
+      for (const q of inqRecs) if (!inqByPart.has(q.partId)) inqByPart.set(q.partId, { id: q.id, unitPrice: q.unitPrice });
+
       // 建 TiItem + 更新 SO line
       let line = 1;
+      let sub = new PrismaNs.Decimal(0);
       for (const it of items) {
+        const inq = inqByPart.get(it.partId);
+        const unitCost = inq ? new PrismaNs.Decimal(inq.unitPrice) : new PrismaNs.Decimal(0);
+        const qtyD = new PrismaNs.Decimal(String(it.qty));
+        const lineAmt = qtyD.mul(unitCost).toDecimalPlaces(2);
+        sub = sub.add(lineAmt);
         await tx.nx02TiItem.create({
           data: {
             tiId: ti.id,
@@ -1295,10 +1310,11 @@ export class SoService {
             partId: it.partId,
             partNo: it.partNo,
             partName: it.partName,
-            qty: new PrismaNs.Decimal(String(it.qty)),
-            unitCost: new PrismaNs.Decimal(0),
-            lineAmount: new PrismaNs.Decimal(0),
+            qty: qtyD,
+            unitCost,
+            lineAmount: lineAmt,
             sourceSoItemId: it.id,
+            sourceInquiryRecordId: inq?.id ?? null,
             createdBy: user.sub,
             updatedBy: user.sub,
           },
@@ -1312,6 +1328,13 @@ export class SoService {
           },
         });
       }
+
+      // 更新 TI 表頭金額（帶入同行報價後重算 subtotal/tax/total）
+      const tiTax = sub.mul(taxRate).div(100).toDecimalPlaces(2);
+      await tx.nx02Ti.update({
+        where: { id: ti.id },
+        data: { subtotal: sub, taxAmount: tiTax, totalAmount: sub.add(tiTax) },
+      });
 
       await this.audit.write({
         tenantId,
