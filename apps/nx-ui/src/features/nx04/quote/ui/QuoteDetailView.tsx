@@ -71,7 +71,7 @@ export function QuoteDetailPanel({
   onJumpLast?: () => void;
   onCreate?: () => void;
   onSearch?: () => void;
-  initialMode?: 'browse' | 'editItems'; // 建單後直接進「編輯明細」
+  initialMode?: 'browse' | 'editHeader' | 'editItems'; // 建單後→編輯明細；列表編輯→編輯表頭
 }) {
   const [q, setQ] = useState<Quote | null>(null);
   const [loading, setLoading] = useState(false);
@@ -343,8 +343,12 @@ export function QuoteDetailPanel({
 
       {/* 左右兩塊：左＝表頭 Form、右＝明細 Table ＋ 金額結算（高度滿版）*/}
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-4 lg:flex-row">
-        {/* 左：表頭 Form（標籤：輸入框、每欄獨立一列、滿版）*/}
-        <section className="w-full shrink-0 space-y-2 overflow-auto rounded-lg border border-border/40 bg-card p-4 lg:w-[420px]">
+        {/* 左：表頭 Form（標籤：輸入框、每欄獨立一列、滿版）；編輯明細時暗面讓位 */}
+        <section
+          className={`w-full shrink-0 space-y-2 overflow-auto rounded-lg border border-border/40 bg-card p-4 transition-opacity lg:w-[420px] ${
+            mode === 'editItems' ? 'pointer-events-none opacity-40' : ''
+          }`}
+        >
           <FieldRow label="單號">
             <input readOnly value={q.docNo} className={`${roCls} font-mono`} />
           </FieldRow>
@@ -352,7 +356,7 @@ export function QuoteDetailPanel({
             <input readOnly value={q.voidedAt ? '作廢' : expired ? '失效' : '有效'} className={roCls} />
           </FieldRow>
           <FieldRow label="報價日期">
-            <input type="date" value={quoteDate} onChange={(e) => setQuoteDate(e.target.value)} disabled className={inputCls} />
+            <input type="date" value={quoteDate} onChange={(e) => setQuoteDate(e.target.value)} disabled={!headerEditing} className={inputCls} />
           </FieldRow>
           <FieldRow label="客戶編號">
             <input readOnly value={q.customerCode ?? q.customerId} className={`${roCls} font-mono`} />
@@ -398,22 +402,26 @@ export function QuoteDetailPanel({
             <input readOnly value={q.createdAt.slice(0, 10)} className={roCls} />
           </FieldRow>
           <FieldRow label="有效日期" labelDanger={expired}>
-            <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} disabled className={inputCls} />
+            <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} disabled={!headerEditing} className={inputCls} />
           </FieldRow>
           <div>
             <div className="mb-1 text-xs text-muted-foreground">備註：</div>
             <textarea
               value={remark}
               onChange={(e) => setRemark(e.target.value)}
-              disabled
+              disabled={!headerEditing}
               rows={3}
               className="w-full resize-y rounded border bg-background px-2 py-1 text-sm disabled:opacity-60"
             />
           </div>
         </section>
 
-        {/* 右：明細（含 tfoot 金額結算對齊欄位）*/}
-        <section className="flex min-h-0 min-w-0 flex-1 flex-col">
+        {/* 右：明細（含 tfoot 金額結算對齊欄位）；編輯表頭時暗面讓位 */}
+        <section
+          className={`flex min-h-0 min-w-0 flex-1 flex-col transition-opacity ${
+            mode === 'editHeader' ? 'pointer-events-none opacity-40' : ''
+          }`}
+        >
           <ItemsSection
             q={q}
             items={q.items ?? []}
