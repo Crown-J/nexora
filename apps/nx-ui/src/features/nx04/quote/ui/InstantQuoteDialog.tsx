@@ -6,7 +6,8 @@
 import { X } from 'lucide-react';
 import { useState } from 'react';
 
-import { addQuoteItem, createQuote, getQuotePriceIntel } from '@data/endpoints/nx04/quote/api/quote';
+import { getQuotePriceIntel } from '@data/endpoints/nx04/quote/api/quote';
+import { createQuoteRecord } from '@data/endpoints/nx04/record/api/record';
 import { FocusLockedDialog } from '@design/primitives/focus-locked-dialog';
 
 import { CustomerPicker, type PickedCustomer } from './CustomerPicker';
@@ -59,20 +60,15 @@ export function InstantQuoteDialog({
     setBusy(true);
     setErr(null);
     try {
-      const q = await createQuote({
+      const rec = await createQuoteRecord({
         customerId: customer.id,
-        quoteDate: new Date().toISOString().slice(0, 10),
-        warehouseId: customer.defaultWarehouseId ?? undefined,
-        source: 'INSTANT',
-        taxRate: 5,
-      });
-      await addQuoteItem(q.id, {
         partId,
         qty: Number(qty),
-        unitPriceSnapshot: Number(price),
-        isSelected: true, // 即時報價=單行、就是這筆，計入
+        unitPrice: Number(price),
+        warehouseId: customer.defaultWarehouseId ?? undefined,
+        source: 'INSTANT',
       });
-      onDone?.(q.id);
+      onDone?.(rec.id);
       onClose();
     } catch (e) {
       setErr(e instanceof Error ? e.message : '即時報價失敗');

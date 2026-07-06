@@ -1,141 +1,47 @@
 // packages/db-core/scripts/seed-instant-quote-demo.ts
-// 一次性測試資料：對 TW-100001（恆迎）塞即時報價紀錄（source=INSTANT），供「報價紀錄」頁預覽。
-//   鏡像 nx-api QuoteService.create() 的欄位邏輯：單號產生器 / 金額結算 / 單行明細 / validUntil。
+// 一次性測試資料：對 TW-100001（恆迎）塞報價紀錄表（nx04_quote_record，source=INSTANT），供「報價紀錄」頁預覽。
 //   帶測試標記 remark，可用 --purge 一鍵清除。重跑預設會擋（已存在測試資料時）；--force 強制再塞。
+//   --purge-legacy：清掉舊版塞在 nx04_quote 的 source=INSTANT 測試報價（A3 搬遷用）。
 import { prisma, disconnectPrisma } from '../prisma/seed/client';
 import { Prisma } from '../generated/prisma';
 
 const MARK = '【測試】即時報價示範';
 
-// 單號產生器（鏡像 apps/nx-api/src/shared/nx04/nx04-doc-no.ts）
-async function allocQtDocNo(tenantId: string, warehouseCode: string): Promise<string> {
-  const y = new Date();
-  const yyyymm = `${y.getFullYear()}${String(y.getMonth() + 1).padStart(2, '0')}`;
-  const prefix = `QT-${yyyymm}-${warehouseCode}-`;
-  const last = await prisma.nx04Quote.findFirst({
-    where: { tenantId, docNo: { startsWith: prefix } },
-    orderBy: { docNo: 'desc' },
-    select: { docNo: true },
-  });
-  let next = 1;
-  if (last?.docNo) {
-    const num = parseInt(last.docNo.split('-').pop() ?? '', 10);
-    if (!Number.isNaN(num)) next = num + 1;
-  }
-  return `${prefix}${String(next).padStart(5, '0')}`;
-}
-
-// 塞單一即時報價（單行）：完整鏡像 create() 的欄位
-async function seedOne(spec: {
-  tenantId: string;
-  custId: string;
-  userId: string;
-  whId: string;
-  whCode: string;
-  currencyId: string;
-  partId: string;
-  partNo: string;
-  partName: string;
-  daysAgo: number;
-  qty: number;
-  unitPrice: number;
-  validityDays: number;
-}) {
-  const quoteDate = new Date();
-  quoteDate.setDate(quoteDate.getDate() - spec.daysAgo);
-  quoteDate.setHours(9 + (spec.daysAgo % 8), 20, 0, 0); // 分散建單時間
-  const validUntil = new Date(quoteDate);
-  validUntil.setDate(validUntil.getDate() + spec.validityDays);
-
-  const qty = new Prisma.Decimal(spec.qty);
-  const unit = new Prisma.Decimal(spec.unitPrice);
-  const lineAmount = qty.mul(unit).toDecimalPlaces(2);
-  const taxRate = new Prisma.Decimal(5);
-  const tax = lineAmount.mul(taxRate).div(100).toDecimalPlaces(2);
-  const total = lineAmount.add(tax);
-
-  await prisma.$transaction(async (tx) => {
-    const docNo = await allocQtDocNo(spec.tenantId, spec.whCode);
-    const quote = await tx.nx04Quote.create({
-      data: {
-        tenantId: spec.tenantId,
-        docNo,
-        warehouseId: spec.whId,
-        quoteDate,
-        customerId: spec.custId,
-        customerGradeId: null,
-        salesPersonId: spec.userId,
-        source: 'INSTANT',
-        validUntil,
-        currencyId: spec.currencyId,
-        taxRate,
-        subtotal: lineAmount,
-        taxAmount: tax,
-        totalAmount: total,
-        status: 'DRAFT',
-        remark: MARK,
-        createdAt: quoteDate,
-        updatedAt: quoteDate,
-        createdBy: spec.userId,
-        updatedBy: spec.userId,
-      },
-      select: { id: true, docNo: true },
-    });
-    await tx.nx04QuoteItem.create({
-      data: {
-        quoteId: quote.id,
-        lineNo: 1,
-        partId: spec.partId,
-        partNo: spec.partNo,
-        partName: spec.partName,
-        qty,
-        unitPrice: unit,
-        minPrice: null,
-        lineAmount,
-        isSelected: true,
-        remark: null,
-        createdAt: quoteDate,
-        updatedAt: quoteDate,
-        createdBy: spec.userId,
-        updatedBy: spec.userId,
-      },
-    });
-    console.log(`  ✔ ${quote.docNo}  ${spec.partNo}  x${spec.qty} @${spec.unitPrice}`);
-  });
-}
-
 async function main() {
   const purge = process.argv.includes('--purge');
+  const purgeLegacy = process.argv.includes('--purge-legacy');
   const force = process.argv.includes('--force');
 
-  const t = await prisma.nx99Tenant.findFirst({
-    where: { code: 'TW-100001' },
-    select: { id: true, quoteDefaultValidityDays: true },
-  });
+  const t = await prisma.nx99Tenant.findFirst({ where: { code: 'TW-100001' }, select: { id: true } });
   if (!t) throw new Error('租戶 TW-100001 不存在');
   const tenantId = t.id;
-  const validityDays = t.quoteDefaultValidityDays ?? 30;
 
-  if (purge) {
-    // 先刪 item 再刪 header（測試標記為準）
+  // 舊版清理：把塞在 nx04_quote 的 INSTANT 測試報價（含明細）刪掉
+  if (purgeLegacy) {
     const marked = await prisma.nx04Quote.findMany({
       where: { tenantId, source: 'INSTANT', remark: MARK },
       select: { id: true },
     });
     const ids = marked.map((m) => m.id);
     if (!ids.length) {
-      console.log('沒有測試資料可清除。');
+      console.log('沒有舊版 nx04_quote INSTANT 測試資料。');
       return;
     }
     await prisma.nx04QuoteItem.deleteMany({ where: { quoteId: { in: ids } } });
     const del = await prisma.nx04Quote.deleteMany({ where: { id: { in: ids } } });
-    console.log(`已清除 ${del.count} 筆測試即時報價。`);
+    console.log(`已清除 ${del.count} 筆舊版 nx04_quote INSTANT 測試報價。`);
     return;
   }
 
-  const existing = await prisma.nx04Quote.count({ where: { tenantId, source: 'INSTANT', remark: MARK } });
+  if (purge) {
+    const del = await prisma.nx04QuoteRecord.deleteMany({ where: { tenantId, remark: MARK } });
+    console.log(del.count ? `已清除 ${del.count} 筆測試報價紀錄。` : '沒有測試資料可清除。');
+    return;
+  }
+
+  const existing = await prisma.nx04QuoteRecord.count({ where: { tenantId, remark: MARK } });
   if (existing > 0 && !force) {
-    console.log(`已存在 ${existing} 筆測試即時報價；如要再塞請加 --force，或先 --purge 清除。`);
+    console.log(`已存在 ${existing} 筆測試報價紀錄；如要再塞請加 --force，或先 --purge 清除。`);
     return;
   }
 
@@ -150,7 +56,6 @@ async function main() {
   if (!wh) throw new Error('找不到可用倉庫');
   if (!twd) throw new Error('找不到 TWD 幣別');
 
-  // 依 code 取具體 客戶 / 業務 / 零件（穩定、不靠 take 順序）
   const custCodes = ['C0020', 'C0030', 'C0035', 'C0042', 'C0048', 'C0049'];
   const userAccounts = ['Y0001', 'Y0002', 'Y0003', 'Y0004', 'Y0005'];
   const partCodes = ['021 115 562 *', '025 260 849B', '023 121 004', '020 941 521A', '06B 133 551L', '020 498 085G', '025 129 638', '025 129 391A'];
@@ -178,30 +83,40 @@ async function main() {
     { cust: 'C0048', user: 'Y0001', part: '025 129 391A', daysAgo: 2, qty: 1, unitPrice: 540 },
   ];
 
-  console.log(`開始塞 ${specs.length} 筆測試即時報價（租戶 TW-100001 / 倉 ${wh.code}）…`);
+  console.log(`開始塞 ${specs.length} 筆測試報價紀錄（租戶 TW-100001 / 倉 ${wh.code}）…`);
   for (const s of specs) {
-    const custId = custBy.get(s.cust);
+    const customerId = custBy.get(s.cust);
     const userId = userBy.get(s.user);
     const part = partBy.get(s.part);
-    if (!custId || !userId || !part) {
+    if (!customerId || !userId || !part) {
       console.warn(`  ⚠ 跳過（查無 ${s.cust}/${s.user}/${s.part}）`);
       continue;
     }
-    await seedOne({
-      tenantId,
-      custId,
-      userId,
-      whId: wh.id,
-      whCode: wh.code,
-      currencyId: twd.id,
-      partId: part.id,
-      partNo: part.code,
-      partName: part.name,
-      daysAgo: s.daysAgo,
-      qty: s.qty,
-      unitPrice: s.unitPrice,
-      validityDays,
+    const recordDate = new Date();
+    recordDate.setDate(recordDate.getDate() - s.daysAgo);
+    recordDate.setHours(9 + (s.daysAgo % 8), 20, 0, 0);
+    await prisma.nx04QuoteRecord.create({
+      data: {
+        tenantId,
+        recordDate,
+        customerId,
+        partId: part.id,
+        partNo: part.code,
+        partName: part.name,
+        warehouseId: wh.id,
+        qty: new Prisma.Decimal(s.qty),
+        unitPrice: new Prisma.Decimal(s.unitPrice),
+        currencyId: twd.id,
+        source: 'INSTANT',
+        salesPersonId: userId,
+        remark: MARK,
+        createdAt: recordDate,
+        updatedAt: recordDate,
+        createdBy: userId,
+        updatedBy: userId,
+      },
     });
+    console.log(`  ✔ ${s.cust} ${part.code} x${s.qty} @${s.unitPrice}`);
   }
   console.log('完成。');
 }
