@@ -18,6 +18,8 @@ import { PromotionEngineService } from './promotion/promotion-engine.service';
 import { PromotionController } from './promotion/promotion.controller';
 import { PromotionService } from './promotion/promotion.service';
 import { QuoteController } from './quote/quote.controller';
+import { InquiryRecordController, QuoteRecordController } from './record/record.controller';
+import { RecordService } from './record/record.service';
 import { SalesPerformanceController } from './sales-performance/sales-performance.controller';
 import { SalesPerformanceService } from './sales-performance/sales-performance.service';
 import { QuoteService } from './quote/quote.service';
@@ -34,6 +36,8 @@ import { Nx04SoTranslatorService } from './so/translator/translator.service';
   imports: [PrismaModule],
   controllers: [
     QuoteController,
+    QuoteRecordController,
+    InquiryRecordController,
     SoController,
     SoTranslatorController,
     SalesReturnController,
@@ -47,6 +51,7 @@ import { Nx04SoTranslatorService } from './so/translator/translator.service';
   ],
   providers: [
     QuoteService,
+    RecordService,
     SoService,
     SalesReturnService,
     Nx04SoTranslatorService,
