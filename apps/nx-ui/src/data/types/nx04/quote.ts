@@ -79,19 +79,6 @@ export interface Quote {
   currencyCode?: string | null;
   createdByName?: string | null;
   itemCount?: number;
-  // 列表首筆明細快照（報價紀錄視圖用：即時報價=單行、直接顯示料號/廠牌/量/價）
-  firstItem?: QuoteFirstItem | null;
-}
-
-/** 列表首筆明細快照（後端 list 帶回；報價紀錄視圖顯示用） */
-export interface QuoteFirstItem {
-  partNo: string | null;
-  partName: string | null;
-  baseNo: string | null;
-  brandNo: string | null;
-  brandName: string | null;
-  qty: string | null;
-  unitPrice: string | null;
 }
 
 export interface QuoteListResponse {

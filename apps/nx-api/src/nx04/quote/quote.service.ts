@@ -347,18 +347,6 @@ export class QuoteService {
           ...Q_SEL,
           ...Q_REL_SEL,
           _count: { select: { rev_Nx04QuoteItem_quoteId: true } },
-          // 首筆明細快照（報價紀錄視圖用：即時報價=單行，直接顯示料號/廠牌/量/價）
-          rev_Nx04QuoteItem_quoteId: {
-            orderBy: { lineNo: 'asc' },
-            take: 1,
-            select: {
-              partNo: true,
-              partName: true,
-              qty: true,
-              unitPrice: true,
-              part: { select: { code: true, secCode: true, brand: { select: { name: true } } } },
-            },
-          },
         },
       }),
     ]);
@@ -376,27 +364,10 @@ export class QuoteService {
       const count =
         (r as { _count?: { rev_Nx04QuoteItem_quoteId?: number } })._count
           ?.rev_Nx04QuoteItem_quoteId ?? 0;
-      // 首筆明細 → firstItem 快照（報價紀錄視圖顯示料號/廠牌/量/價）
-      const firstItems = (r as { rev_Nx04QuoteItem_quoteId?: unknown[] }).rev_Nx04QuoteItem_quoteId;
-      const fi = Array.isArray(firstItems) && firstItems[0] ? (firstItems[0] as Record<string, unknown>) : null;
-      const fiPart = fi?.part as { code?: string; secCode?: string; brand?: { name?: string } | null } | null | undefined;
-      const firstItem = fi
-        ? {
-            partNo: fi.partNo ?? null,
-            partName: fi.partName ?? null,
-            baseNo: fiPart?.code ?? null,
-            brandNo: fiPart?.secCode ?? null,
-            brandName: fiPart?.brand?.name ?? null,
-            qty: fi.qty ?? null,
-            unitPrice: fi.unitPrice ?? null,
-          }
-        : null;
       delete flat._count;
-      delete flat.rev_Nx04QuoteItem_quoteId;
       return {
         ...flat,
         itemCount: count,
-        firstItem,
         createdByName: creatorMap.get(r.createdBy) ?? null,
       };
     });

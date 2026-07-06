@@ -1,8 +1,7 @@
 // apps/nx-ui/src/features/nx04/quote/ui/QuoteRecordWorkbench.tsx
-// NX04-QT-SHELL Step5C-2(a)：報價紀錄視圖（銷售作業 → 報價紀錄）
-//   即時報價（source=INSTANT）的原子日誌瀏覽頁：料號/廠牌/量/價/客戶/日期/業務。
+// NX04-QT-SHELL Step5C-2(a) / 紀錄表 A4：報價紀錄視圖（銷售作業 → 報價紀錄）
+//   讀報價紀錄表 nx04_quote_record（客戶側原子日誌）：料號/廠牌/量/價/客戶/日期/業務。
 //   純紀錄 → 只讀（無新增/編輯/作廢）；工具列 = 導航 + 查詢 + 重整 + 匯出。
-//   單行紀錄直接攤 firstItem（後端 list 帶回首筆明細快照），不必進詳情。
 
 'use client';
 
@@ -12,10 +11,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ErpToolbar, type ExportFormat } from '@/features/nx01/shell/ui/ErpToolbar';
 import { MasterTable, type MasterTableColumn } from '@/features/nx01/shell/ui/MasterTable';
 
-import { listQuote } from '@data/endpoints/nx04/quote/api/quote';
-import type { Quote } from '@data/types/nx04/quote';
+import { listQuoteRecords } from '@data/endpoints/nx04/record/api/record';
+import type { QuoteRecord } from '@data/types/nx04/record';
 
-// ── 欄位順序 / 寬度 記憶（localStorage、與報價單列表分開 key）──
+// ── 欄位順序 / 寬度 記憶（localStorage）──
 const COL_ORDER_KEY = 'nx04.quoteLog.list.colOrder';
 const COL_WIDTH_KEY = 'nx04.quoteLog.list.colWidths';
 function loadJSON<T>(key: string): T | null {
@@ -37,7 +36,7 @@ function saveJSON(key: string, val: unknown) {
 }
 
 const DEFAULT_WIDTHS: Record<string, number> = {
-  quoteDate: 110,
+  recordDate: 110,
   customerCode: 100,
   customerName: 170,
   baseNo: 130,
@@ -45,20 +44,16 @@ const DEFAULT_WIDTHS: Record<string, number> = {
   partName: 200,
   qty: 80,
   unitPrice: 110,
-  createdByName: 100,
-  docNo: 150,
+  salesPersonName: 100,
   createdAt: 150,
 };
 
-// 金額 / 數量 千分位（顯示用；CSV 匯出仍用原始值避免逗號破欄）
 const fmtNum = (n: string | number | null | undefined) =>
   n == null || n === '' ? '—' : Number(n).toLocaleString('en-US', { maximumFractionDigits: 2 });
 
 type RecordCriteria = {
-  createdFrom?: string;
-  createdTo?: string;
-  quoteFrom?: string;
-  quoteTo?: string;
+  dateFrom?: string;
+  dateTo?: string;
   customerCode?: string;
   customerName?: string;
   creator?: string;
@@ -68,14 +63,16 @@ function countCriteria(c: RecordCriteria): number {
   return Object.values(c).filter((v) => v != null && String(v).trim() !== '').length;
 }
 
+const salesName = (r: QuoteRecord) => r.salesPersonName ?? r.createdByName ?? '—';
+
 export function QuoteRecordWorkbench() {
-  const [rows, setRows] = useState<Quote[]>([]);
+  const [rows, setRows] = useState<QuoteRecord[]>([]);
   const [total, setTotal] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [criteria, setCriteria] = useState<RecordCriteria>({});
-  const [sortKey, setSortKey] = useState<string | null>('quoteDate');
+  const [sortKey, setSortKey] = useState<string | null>('recordDate');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const [colOrder, setColOrder] = useState<string[] | null>(() => loadJSON<string[]>(COL_ORDER_KEY));
@@ -85,13 +82,10 @@ export function QuoteRecordWorkbench() {
 
   const reload = useCallback(async () => {
     try {
-      const resp = await listQuote({
-        pageSize: 200,
-        source: 'INSTANT', // 只看即時報價紀錄
-        createdFrom: criteria.createdFrom || undefined,
-        createdTo: criteria.createdTo || undefined,
-        quoteFrom: criteria.quoteFrom || undefined,
-        quoteTo: criteria.quoteTo || undefined,
+      const resp = await listQuoteRecords({
+        pageSize: 100,
+        dateFrom: criteria.dateFrom || undefined,
+        dateTo: criteria.dateTo || undefined,
         customerCode: criteria.customerCode?.trim() || undefined,
         customerName: criteria.customerName?.trim() || undefined,
         creator: criteria.creator?.trim() || undefined,
@@ -109,17 +103,12 @@ export function QuoteRecordWorkbench() {
     void reload();
   }, [reload]);
 
-  // 排序（篩選走伺服器端：查詢彈窗）
   const displayRows = useMemo(() => {
     if (!sortKey) return rows;
     const dir = sortOrder === 'asc' ? 1 : -1;
-    const pick = (r: Quote): unknown => {
-      if (sortKey in (r.firstItem ?? {})) return (r.firstItem as unknown as Record<string, unknown>)[sortKey];
-      return (r as unknown as Record<string, unknown>)[sortKey];
-    };
     return [...rows].sort((a, b) => {
-      const av = pick(a);
-      const bv = pick(b);
+      const av = (a as unknown as Record<string, unknown>)[sortKey];
+      const bv = (b as unknown as Record<string, unknown>)[sortKey];
       const an = Number(av);
       const bn = Number(bv);
       if (!Number.isNaN(an) && !Number.isNaN(bn)) return (an - bn) * dir;
@@ -143,7 +132,6 @@ export function QuoteRecordWorkbench() {
     if (r) setSelectedId(r.id);
   };
 
-  // 選中列捲入可視
   useEffect(() => {
     if (!selectedId) return;
     document.querySelector(`[data-row-id="${selectedId}"]`)?.scrollIntoView({ block: 'nearest' });
@@ -203,23 +191,21 @@ export function QuoteRecordWorkbench() {
       alert('PDF / 列印開發中');
       return;
     }
-    const header = ['報價日期', '客戶編號', '客戶名稱', '基準料號', '廠牌', '品名', '數量', '單價', '業務', '單號', '建單時間'];
-    const lines = displayRows.map((r) => {
-      const fi = r.firstItem;
-      return [
-        r.quoteDate.slice(0, 10),
+    const header = ['報價日期', '客戶編號', '客戶名稱', '基準料號', '廠牌', '品名', '數量', '單價', '業務', '建單時間'];
+    const lines = displayRows.map((r) =>
+      [
+        r.recordDate.slice(0, 10),
         r.customerCode ?? '',
         r.customerName ?? r.customerId,
-        fi?.baseNo ?? fi?.partNo ?? '',
-        fi?.brandName ?? '',
-        fi?.partName ?? '',
-        fi?.qty ?? '',
-        fi?.unitPrice ?? '',
-        r.createdByName ?? '',
-        r.docNo,
+        r.baseNo ?? r.partNo ?? '',
+        r.brandName ?? '',
+        r.partName ?? '',
+        r.qty ?? '',
+        r.unitPrice ?? '',
+        salesName(r),
         r.createdAt.slice(0, 19).replace('T', ' '),
-      ].join(',');
-    });
+      ].join(','),
+    );
     const csv = '﻿' + [header.join(','), ...lines].join('\n');
     const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
     const a = document.createElement('a');
@@ -229,28 +215,26 @@ export function QuoteRecordWorkbench() {
     URL.revokeObjectURL(url);
   };
 
-  const baseColumns: MasterTableColumn<Quote>[] = useMemo(
+  const baseColumns: MasterTableColumn<QuoteRecord>[] = useMemo(
     () => [
-      { key: 'quoteDate', label: '報價日期', sortable: true, render: (r) => r.quoteDate.slice(0, 10) },
+      { key: 'recordDate', label: '報價日期', sortable: true, render: (r) => r.recordDate.slice(0, 10) },
       { key: 'customerCode', label: '客戶編號', render: (r) => <span className="font-mono text-xs">{r.customerCode ?? '—'}</span> },
       { key: 'customerName', label: '客戶名稱', render: (r) => r.customerName ?? r.customerId },
-      { key: 'baseNo', label: '基準料號', render: (r) => <span className="font-mono text-xs">{r.firstItem?.baseNo ?? r.firstItem?.partNo ?? '—'}</span> },
-      { key: 'brandName', label: '廠牌', render: (r) => r.firstItem?.brandName ?? '—' },
-      { key: 'partName', label: '品名', render: (r) => r.firstItem?.partName ?? '—' },
-      { key: 'qty', label: '數量', sortable: true, render: (r) => <span className="tabular-nums">{fmtNum(r.firstItem?.qty)}</span> },
-      { key: 'unitPrice', label: '單價', sortable: true, render: (r) => <span className="font-medium tabular-nums">{fmtNum(r.firstItem?.unitPrice)}</span> },
-      { key: 'createdByName', label: '業務', render: (r) => r.createdByName ?? '—' },
-      { key: 'docNo', label: '單號', sortable: true, render: (r) => <span className="font-mono text-xs text-muted-foreground">{r.docNo}</span> },
+      { key: 'baseNo', label: '基準料號', render: (r) => <span className="font-mono text-xs">{r.baseNo ?? r.partNo ?? '—'}</span> },
+      { key: 'brandName', label: '廠牌', render: (r) => r.brandName ?? '—' },
+      { key: 'partName', label: '品名', render: (r) => r.partName ?? '—' },
+      { key: 'qty', label: '數量', sortable: true, render: (r) => <span className="tabular-nums">{fmtNum(r.qty)}</span> },
+      { key: 'unitPrice', label: '單價', sortable: true, render: (r) => <span className="font-medium tabular-nums">{fmtNum(r.unitPrice)}</span> },
+      { key: 'salesPersonName', label: '業務', render: (r) => salesName(r) },
       { key: 'createdAt', label: '建單時間', sortable: true, render: (r) => <span className="text-xs text-muted-foreground">{r.createdAt.slice(0, 16).replace('T', ' ')}</span> },
     ],
     [],
   );
 
-  // 套用記憶的欄位順序
   const columns = useMemo(() => {
     if (!colOrder) return baseColumns;
     const map = new Map(baseColumns.map((c) => [c.key, c]));
-    const ordered = colOrder.map((k) => map.get(k)).filter(Boolean) as MasterTableColumn<Quote>[];
+    const ordered = colOrder.map((k) => map.get(k)).filter(Boolean) as MasterTableColumn<QuoteRecord>[];
     baseColumns.forEach((c) => {
       if (!colOrder.includes(c.key)) ordered.push(c);
     });
@@ -304,7 +288,7 @@ export function QuoteRecordWorkbench() {
       ) : null}
 
       <div className="flex min-h-0 flex-1 flex-col">
-        <MasterTable<Quote>
+        <MasterTable<QuoteRecord>
           columns={columns}
           rows={displayRows}
           getRowId={(r) => r.id}
@@ -386,10 +370,8 @@ function RecordSearchDialog({
 
   function apply() {
     onApply({
-      createdFrom: c.createdFrom,
-      createdTo: c.createdTo,
-      quoteFrom: c.quoteFrom,
-      quoteTo: c.quoteTo,
+      dateFrom: c.dateFrom,
+      dateTo: c.dateTo,
       customerCode: c.customerCode,
       customerName: c.customerName,
       creator: c.creator,
@@ -417,14 +399,9 @@ function RecordSearchDialog({
         </div>
 
         <SearchRow label="報價區間">
-          <input type="date" value={c.quoteFrom ?? ''} onChange={(e) => set('quoteFrom', e.target.value)} className={cls} autoFocus />
+          <input type="date" value={c.dateFrom ?? ''} onChange={(e) => set('dateFrom', e.target.value)} className={cls} autoFocus />
           <span className="text-muted-foreground">~</span>
-          <input type="date" value={c.quoteTo ?? ''} onChange={(e) => set('quoteTo', e.target.value)} className={cls} />
-        </SearchRow>
-        <SearchRow label="建單區間">
-          <input type="date" value={c.createdFrom ?? ''} onChange={(e) => set('createdFrom', e.target.value)} className={cls} />
-          <span className="text-muted-foreground">~</span>
-          <input type="date" value={c.createdTo ?? ''} onChange={(e) => set('createdTo', e.target.value)} className={cls} />
+          <input type="date" value={c.dateTo ?? ''} onChange={(e) => set('dateTo', e.target.value)} className={cls} />
         </SearchRow>
         <SearchRow label="客戶">
           <input value={c.customerCode ?? ''} onChange={(e) => set('customerCode', e.target.value)} placeholder="客戶編號" className={cls} />
