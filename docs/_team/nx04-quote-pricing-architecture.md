@@ -132,7 +132,28 @@
 - **Step5C-1 列表過濾**：`listQuote` 加 `source` 參數；報價單工作台預設 `source=FORMAL`（即時報價紀錄不洗版）。
 - **Step5C-2(a) 報價紀錄頁**（`ac67808c`）：銷售作業選單新增「報價紀錄」入口 `/dashboard/sale/quote-log`；`QuoteRecordWorkbench` = source=INSTANT 只讀日誌（報價日期/客戶/料號/廠牌/品名/量/價/業務）；後端 `list` 加 `firstItem` 首筆明細快照（即時報價=單行直接攤）；`ErpToolbar` 加 `hideMutations`（純日誌頁隱新增/編輯/刪除）。⚠️ **firstItem 為後端改動、需重啟 nx-api 才生效**（否則料號/廠牌/量/價欄顯「—」）。
 
-### ⬜ 待辦（下一棒接續）
+### ⭐ 2026-07-06 架構收斂：兩張獨立紀錄表（執行長拍板，取代 source 旗標做法）
+即時查詢分三條線，各自「即時記錄 → 紀錄表 → 拉進正式單」：
+| 側 | 即時(F2) | 紀錄表（獨立） | 拉進的單 |
+|---|---|---|---|
+| 銷售·客戶 | 即時報價 | **報價紀錄表** nx04_quote_record | 報價單、銷貨單 |
+| 調貨·同行 | 即時詢價（=原調貨詢價改清單）| **詢價紀錄表** nx04_inquiry_record | 調貨單(Nx03St) |
+| 採購·供應商 | —（正式）| 詢價單(RFQ)→缺貨簿 | 採購單→進貨單 |
+- 缺貨分流：能同行調到→即時詢價→調貨單；要跟供應商進貨→業務轉客訂(缺貨簿)→採購走 RFQ。
+- 舊「即時報價=Nx04Quote source=INSTANT」做法**已廢**、搬進報價紀錄表；Nx04Quote.source 留著（都 FORMAL、無害）。
+
+#### A 階段（兩張紀錄表地基）✅ 已做
+- **A1** schema：`nx04_quote_record` + `nx04_inquiry_record` 兩張獨立表（欄位鏡像、顯示欄走 FK、grade/業務/來源為 id 快照）。migration `20260706000000_nx04_quote_inquiry_records`、本機 db execute 套用、Railway 未碰。
+- **A2** 後端 record 模組：`/nx04/quote-record` + `/nx04/inquiry-record` 的 list/create（權限暫沿用 sale.quote.*）。
+- **A3** 即時報價改寫進報價紀錄表（InstantQuoteDialog → POST quote-record）；10 筆測試資料已從報價單搬進新表；seeder 改寫、含 --purge / --purge-legacy。
+- **A4** 報價紀錄頁改讀新表（拿掉舊 firstItem 中介、還原報價單 list）。
+
+#### B/C/D 階段 ⬜ 待辦
+- **B** 即時詢價：F2 加「即時詢價」入口→寫詢價紀錄表；銷售選單加「詢價紀錄」頁；調貨單明細從詢價紀錄拉入。
+- **C** 報價側拉入：報價單/銷貨單明細「從報價紀錄拉入」＋自動帶價改讀報價紀錄表。
+- **D** 調貨詢價單據降級成詢價紀錄清單；詢價專屬權限；手冊對齊。
+
+### ⬜ 更早的待辦（下一棒接續）
 - **Step5C-2(b) 銷貨拉報價**：從報價紀錄挑貨帶入銷貨 —— 併進 5D 一起做。
 - **Step5D 銷貨引用/部分轉**（⭐ 最大、獨立軌，動 SO 模組）：銷貨單輸入料號帶價（一個月規則）、拉報價「已選定」行轉單、每張 SO 指回來源報價。
 - **追蹤階段 + 暫緩日 + 首頁待辦 + 自動老化**（§8）。
