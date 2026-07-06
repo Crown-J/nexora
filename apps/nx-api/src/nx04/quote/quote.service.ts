@@ -899,13 +899,27 @@ export class QuoteService {
     const cutoff = new Date();
     cutoff.setMonth(cutoff.getMonth() - 1);
 
-    const latestQuote = async (quoteWhere: Prisma.Nx04QuoteWhereInput) => {
-      const r = await this.prisma.nx04QuoteItem.findFirst({
-        where: { partId: pid, quote: { tenantId, voidedAt: null, quoteDate: { gte: cutoff }, ...quoteWhere } },
-        orderBy: { quote: { quoteDate: 'desc' } },
-        select: { unitPrice: true, quote: { select: { quoteDate: true } } },
-      });
-      return r ? { date: r.quote.quoteDate.toISOString(), amount: r.unitPrice.toString() } : null;
+    // 報價歷史：報價紀錄表(即時+正式行) + 正式報價單(向後相容) 併讀、取最近一筆
+    const latestQuote = async (
+      quoteWhere: Prisma.Nx04QuoteWhereInput,
+      recWhere: Prisma.Nx04QuoteRecordWhereInput,
+    ) => {
+      const [qi, qr] = await Promise.all([
+        this.prisma.nx04QuoteItem.findFirst({
+          where: { partId: pid, quote: { tenantId, voidedAt: null, quoteDate: { gte: cutoff }, ...quoteWhere } },
+          orderBy: { quote: { quoteDate: 'desc' } },
+          select: { unitPrice: true, quote: { select: { quoteDate: true } } },
+        }),
+        this.prisma.nx04QuoteRecord.findFirst({
+          where: { tenantId, partId: pid, recordDate: { gte: cutoff }, ...recWhere },
+          orderBy: { recordDate: 'desc' },
+          select: { unitPrice: true, recordDate: true },
+        }),
+      ]);
+      const a = qi ? { date: qi.quote.quoteDate, amount: qi.unitPrice.toString() } : null;
+      const b = qr ? { date: qr.recordDate, amount: qr.unitPrice.toString() } : null;
+      const pick = !a ? b : !b ? a : a.date.getTime() >= b.date.getTime() ? a : b;
+      return pick ? { date: pick.date.toISOString(), amount: pick.amount } : null;
     };
     const latestSale = async (soWhere: Prisma.Nx04SoWhereInput) => {
       const r = await this.prisma.nx04SoItem.findFirst({
@@ -917,9 +931,14 @@ export class QuoteService {
     };
 
     const [sameCustomerQuote, sameCustomerSale, sameGradeQuote, sameGradeSale] = await Promise.all([
-      latestQuote({ customerId: customer.id }),
+      latestQuote({ customerId: customer.id }, { customerId: customer.id }),
       latestSale({ customerId: customer.id }),
-      gradeId ? latestQuote({ customerId: { not: customer.id }, customerGradeId: gradeId }) : Promise.resolve(null),
+      gradeId
+        ? latestQuote(
+            { customerId: { not: customer.id }, customerGradeId: gradeId },
+            { customerId: { not: customer.id }, customerGradeId: gradeId },
+          )
+        : Promise.resolve(null),
       gradeId ? latestSale({ customerId: { not: customer.id }, customer: { customerGradeId: gradeId } }) : Promise.resolve(null),
     ]);
 
@@ -1030,10 +1049,12 @@ export class QuoteService {
       select: { id: true, code: true, name: true },
     });
 
-    // 最近一筆（報價 + 銷貨合併取最新）——該客戶 / 該零件市場
+    // 最近一筆（報價紀錄 + 正式報價單 + 銷貨合併取最新）——該客戶 / 該零件市場
+    // 報價紀錄表(nx04_quote_record)＝即時報價+正式報價行的統一價格記憶；正式報價單(nx04QuoteItem)向後相容併讀
     const latestPerPart = (
       quotes: { partId: string; unitPrice: PrismaNs.Decimal; quote: { quoteDate: Date } }[],
       sos: { partId: string; unitPrice: PrismaNs.Decimal; so: { soDate: Date } }[],
+      recs: { partId: string; unitPrice: PrismaNs.Decimal; recordDate: Date }[] = [],
     ) => {
       const m = new Map<string, { date: Date; amount: string }>();
       const consider = (pid: string, date: Date, amount: string) => {
@@ -1042,10 +1063,11 @@ export class QuoteService {
       };
       for (const r of quotes) consider(r.partId, r.quote.quoteDate, r.unitPrice.toString());
       for (const r of sos) consider(r.partId, r.so.soDate, r.unitPrice.toString());
+      for (const r of recs) consider(r.partId, r.recordDate, r.unitPrice.toString());
       return m;
     };
 
-    const [custQ, custS, mktQ, mktS] = await Promise.all([
+    const [custQ, custS, mktQ, mktS, custRec, mktRec] = await Promise.all([
       this.prisma.nx04QuoteItem.findMany({
         where: { partId: { in: partIds }, quote: { tenantId, customerId: customer.id, voidedAt: null } },
         orderBy: { quote: { quoteDate: 'desc' } },
@@ -1070,9 +1092,22 @@ export class QuoteService {
         take: 500,
         select: { partId: true, unitPrice: true, so: { select: { soDate: true } } },
       }),
+      // 報價紀錄表（即時報價 + 正式報價行）：該客戶 / 市場
+      this.prisma.nx04QuoteRecord.findMany({
+        where: { partId: { in: partIds }, tenantId, customerId: customer.id },
+        orderBy: { recordDate: 'desc' },
+        take: 500,
+        select: { partId: true, unitPrice: true, recordDate: true },
+      }),
+      this.prisma.nx04QuoteRecord.findMany({
+        where: { partId: { in: partIds }, tenantId },
+        orderBy: { recordDate: 'desc' },
+        take: 500,
+        select: { partId: true, unitPrice: true, recordDate: true },
+      }),
     ]);
-    const customerLast = latestPerPart(custQ, custS);
-    const partLast = latestPerPart(mktQ, mktS);
+    const customerLast = latestPerPart(custQ, custS, custRec);
+    const partLast = latestPerPart(mktQ, mktS, mktRec);
 
     // 客戶等級毛利率（建議價 ③ fallback）
     let marginPct: PrismaNs.Decimal | null = null;
