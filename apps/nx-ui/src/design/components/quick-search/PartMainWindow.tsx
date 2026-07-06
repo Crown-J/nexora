@@ -274,8 +274,9 @@ export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props
         fireInstantInquiry();
       }
     };
-    window.addEventListener('keydown', h);
-    return () => window.removeEventListener('keydown', h);
+    // capture 階段：搶在焦點鎖定對話框冒泡攔截 + 瀏覽器默認（F3=找下一個）之前 preventDefault
+    window.addEventListener('keydown', h, true);
+    return () => window.removeEventListener('keydown', h, true);
   }, [fireInstantQuote, fireInstantInquiry]);
 
   // 執行長 2026-06-25：開窗焦點永遠在右側通用零件、不去 Header「退回搜尋」按鈕。
