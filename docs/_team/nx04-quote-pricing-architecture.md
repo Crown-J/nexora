@@ -148,8 +148,12 @@
 - **A3** 即時報價改寫進報價紀錄表（InstantQuoteDialog → POST quote-record）；10 筆測試資料已從報價單搬進新表；seeder 改寫、含 --purge / --purge-legacy。
 - **A4** 報價紀錄頁改讀新表（拿掉舊 firstItem 中介、還原報價單 list）。
 
-#### B/C/D 階段 ⬜ 待辦
-- **B** 即時詢價：F2 加「即時詢價」入口→寫詢價紀錄表；銷售選單加「詢價紀錄」頁；調貨單明細從詢價紀錄拉入。
+#### B 階段（即時詢價 / 調貨線）
+- **B1** ✅ F2 加「即時詢價 (F3)」入口→ InstantInquiryDialog（挑同行 O）→ 寫詢價紀錄表；GlobalInstantInquiry 掛 layout；CustomerPicker 通用化 partnerType。
+- **B2** ✅ 銷售選單加「詢價紀錄」頁 /dashboard/sale/inquiry-log（InquiryRecordWorkbench）；demo seeder 8 筆。
+- **B3** ⛔ 卡：調貨單從詢價紀錄拉入 —— **語意矛盾待執行長拍板**。現有「調貨單」=Nx03St 是**倉對倉內部調撥**（fromWh→toWh、無同行欄、無同行成本），結構塞不進「同行報價」。詢價紀錄（同行+價）要拉進的其實是「**同行調貨**」，但系統目前沒有這張單。選項：(a) 幫 Nx03St 加同行來源+成本欄；(b) 新開「同行調貨單」；(c) 同行調貨走採購進貨。→ 待拍板。
+
+#### C/D 階段 ⬜ 待辦
 - **C** 報價側拉入：報價單/銷貨單明細「從報價紀錄拉入」＋自動帶價改讀報價紀錄表。
 - **D** 調貨詢價單據降級成詢價紀錄清單；詢價專屬權限；手冊對齊。
 
