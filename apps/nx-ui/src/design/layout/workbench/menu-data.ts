@@ -156,7 +156,7 @@ export const MENU_BAR: MenuNode[] = [
       { key: 'iq-log', label: '詢價紀錄', href: '/dashboard/sale/inquiry-log' },
       { key: 'so', label: '銷貨單', href: '/dashboard/sale/so' },
       { key: 'sreturn', label: '銷貨退回', href: '/dashboard/sale/return' },
-      { key: 'inquiry', label: '調貨詢價', href: '/dashboard/sale/inquiry' },
+      // 「調貨詢價」單據降級成清單＝上方「詢價紀錄」（即時詢價寫入）；舊 R7 mock 入口退役、路由留給內部 prototype。
       // ⚠️ Nx03St = 倉對倉「內部調撥單」（非同行調貨）；同行調貨單是 Nx02Ti（TI）。勿混淆。
       { key: 'transfer-doc', label: '調撥單', href: '/dashboard/sale/docs/transfer' },
       { key: 'promotion', label: '促銷組合', href: '/dashboard/sale/promotion' },
