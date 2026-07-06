@@ -8,6 +8,8 @@ import { Nx04ListQueryDto } from '../../../shared/nx04/nx04-list-query.dto';
 export class QuoteRecordListQueryDto extends Nx04ListQueryDto {
   @IsOptional() @IsDateString() dateFrom?: string;
   @IsOptional() @IsDateString() dateTo?: string;
+  /** 精確客戶 ID 過濾（單據內「從報價紀錄拉入」picker 用）*/
+  @IsOptional() @IsString() @MaxLength(15) customerId?: string;
   @IsOptional() @IsString() @MaxLength(30) customerCode?: string;
   @IsOptional() @IsString() @MaxLength(100) customerName?: string;
   @IsOptional() @IsString() @MaxLength(50) creator?: string;

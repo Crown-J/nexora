@@ -17,6 +17,7 @@ export interface QuoteRecordListParams {
   pageSize?: number;
   dateFrom?: string;
   dateTo?: string;
+  customerId?: string;
   customerCode?: string;
   customerName?: string;
   creator?: string;
@@ -30,6 +31,7 @@ export function listQuoteRecords(params: QuoteRecordListParams = {}): Promise<Re
     pageSize: params.pageSize ? String(params.pageSize) : undefined,
     dateFrom: params.dateFrom,
     dateTo: params.dateTo,
+    customerId: params.customerId,
     customerCode: params.customerCode,
     customerName: params.customerName,
     creator: params.creator,

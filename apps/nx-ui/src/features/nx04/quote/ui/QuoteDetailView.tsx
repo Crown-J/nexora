@@ -15,6 +15,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Download,
+  FileClock,
   Pencil,
   Plus,
   Printer,
@@ -31,6 +32,7 @@ import { NavButton, ToolbarButton, ToolbarSeparator } from '@/features/nx01/shel
 import { ToolbarPortal } from '@design/layout/workbench/WorkbenchToolbarSlot';
 
 import {
+  addQuoteItem,
   createQuote,
   getQuote,
   patchQuoteItem,
@@ -43,6 +45,7 @@ import { listWarehouses } from '@data/endpoints/nx01/api/warehouse';
 
 import { BatchQuoteDialog } from './BatchQuoteDialog';
 import { CustomerPicker, type PickedCustomer } from './CustomerPicker';
+import { QuoteRecordPickerDialog } from './QuoteRecordPickerDialog';
 import type { Quote, QuoteItem } from '@data/types/nx04/quote';
 
 export function QuoteDetailPanel({
@@ -76,6 +79,7 @@ export function QuoteDetailPanel({
   const [busy, setBusy] = useState(false);
   const [mode, setMode] = useState<'browse' | 'editHeader' | 'editItems'>(initialMode);
   const [addOpen, setAddOpen] = useState(false);
+  const [recordPickerOpen, setRecordPickerOpen] = useState(false);
   const [headerConfirmOpen, setHeaderConfirmOpen] = useState(false);
   const [selItem, setSelItem] = useState<string | null>(null); // 明細選中列（↑↓ 用）
 
@@ -161,7 +165,7 @@ export function QuoteDetailPanel({
   // 明細：↑↓ 選列（焦點固定在明細表格、輸入框/彈窗時讓位）
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (addOpen) return;
+      if (addOpen || recordPickerOpen) return;
       const t = e.target as HTMLElement | null;
       if (t && ['INPUT', 'SELECT', 'TEXTAREA'].includes(t.tagName)) return;
       if (e.altKey || e.ctrlKey || e.metaKey) return;
@@ -180,7 +184,7 @@ export function QuoteDetailPanel({
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [q, selItem, addOpen]);
+  }, [q, selItem, addOpen, recordPickerOpen]);
 
   // 選中明細列捲入可視
   useEffect(() => {
@@ -323,6 +327,7 @@ export function QuoteDetailPanel({
             <>
               <ToolbarButton icon={Save} letter="S" label="存檔" enabled={!busy} accent onClick={() => setMode('browse')} />
               <ToolbarButton icon={Plus} letter="A" label="新增項目" enabled={itemsEditable} onClick={() => setAddOpen(true)} />
+              <ToolbarButton icon={FileClock} letter="Q" label="從報價紀錄" enabled={itemsEditable} onClick={() => setRecordPickerOpen(true)} />
               <ToolbarButton icon={Pencil} letter="E" label="編輯項目" enabled={itemsEditable && !!selItem} onClick={() => alert('編輯項目（開發中）')} />
               <ToolbarButton icon={Trash2} letter="D" label="移除項目" enabled={itemsEditable && !!selItem} variant="danger" onClick={() => void removeSelectedItem()} />
               <ToolbarButton icon={X} letter="C" label="取消" enabled={!busy} onClick={() => setMode('browse')} />
@@ -431,6 +436,31 @@ export function QuoteDetailPanel({
           onAdded={async () => {
             setAddOpen(false);
             await reloadAll();
+          }}
+        />
+      ) : null}
+
+      {recordPickerOpen ? (
+        <QuoteRecordPickerDialog
+          customerId={q.customerId}
+          customerName={q.customerName}
+          onClose={() => setRecordPickerOpen(false)}
+          onConfirm={async (recs) => {
+            setRecordPickerOpen(false);
+            try {
+              for (const r of recs) {
+                // 拉入=未選定（比照批次帶入、選項不計總價）；價格帶紀錄的單價
+                await addQuoteItem(q.id, {
+                  partId: r.partId,
+                  qty: Number(r.qty) || 1,
+                  unitPriceSnapshot: Number(r.unitPrice) || 0,
+                  isSelected: false,
+                });
+              }
+              await reloadAll();
+            } catch (e) {
+              alert(e instanceof Error ? e.message : '帶入失敗');
+            }
           }}
         />
       ) : null}

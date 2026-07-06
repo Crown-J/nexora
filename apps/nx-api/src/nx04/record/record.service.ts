@@ -93,6 +93,7 @@ export class RecordService {
     if (q.source === 'INSTANT' || q.source === 'QUOTE') and.push({ source: q.source });
     const dr = this.dateRange(q.dateFrom, q.dateTo);
     if (dr) and.push({ recordDate: dr });
+    if (q.customerId?.trim()) and.push({ customerId: q.customerId.trim() });
     if (q.customerCode?.trim())
       and.push({ customer: { code: { contains: q.customerCode.trim(), mode: 'insensitive' } } });
     if (q.customerName?.trim())
