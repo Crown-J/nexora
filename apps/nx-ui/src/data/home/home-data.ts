@@ -120,7 +120,7 @@ export const DOCK_NAV: DockItem[] = [
       { key: 'so', label: '銷貨單', icon: 'receipt', href: '/dashboard/sale/so' },
       { key: 'return', label: '銷貨退回', icon: 'undo-2', href: '/dashboard/sale/return' },
       { key: 'inquiry', label: '調貨詢價', icon: 'search', href: '/dashboard/sale/inquiry' },
-      { key: 'transfer', label: '調貨單', icon: 'package-check', href: '/dashboard/sale/docs/transfer' },
+      { key: 'transfer', label: '調撥單', icon: 'package-check', href: '/dashboard/sale/docs/transfer' },
       { key: 'sale-product', label: '產品管理', icon: 'box', href: '/dashboard/sale/product' },
       { key: 'customer', label: '客戶管理', icon: 'users-2', href: '/dashboard/sale/customer/info' },
     ],

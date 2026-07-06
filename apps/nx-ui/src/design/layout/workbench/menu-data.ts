@@ -157,7 +157,8 @@ export const MENU_BAR: MenuNode[] = [
       { key: 'so', label: '銷貨單', href: '/dashboard/sale/so' },
       { key: 'sreturn', label: '銷貨退回', href: '/dashboard/sale/return' },
       { key: 'inquiry', label: '調貨詢價', href: '/dashboard/sale/inquiry' },
-      { key: 'transfer-doc', label: '調貨單', href: '/dashboard/sale/docs/transfer' },
+      // ⚠️ Nx03St = 倉對倉「內部調撥單」（非同行調貨）；同行調貨單是 Nx02Ti（TI）。勿混淆。
+      { key: 'transfer-doc', label: '調撥單', href: '/dashboard/sale/docs/transfer' },
       { key: 'promotion', label: '促銷組合', href: '/dashboard/sale/promotion' },
       { key: 'discount', label: '優惠折扣管理', href: '/dashboard/master/discount-code' },
       { key: 'sale-issue', label: '銷售異常回報', pending: true },
