@@ -121,7 +121,7 @@ export const DOCK_NAV: DockItem[] = [
       { key: 'return', label: '銷貨退回', icon: 'undo-2', href: '/dashboard/sale/return' },
       // 調貨詢價降級成清單＝「詢價紀錄」（sale/inquiry-log）；舊 R7 mock 入口退役。
       { key: 'iq-log', label: '詢價紀錄', icon: 'search', href: '/dashboard/sale/inquiry-log' },
-      { key: 'transfer', label: '調撥單', icon: 'package-check', href: '/dashboard/sale/docs/transfer' },
+      // 調撥單 2026-07-07 執行長拍板改歸「庫存」dock（見下方 inventory sub）、不在銷貨。
       { key: 'sale-product', label: '產品管理', icon: 'box', href: '/dashboard/sale/product' },
       { key: 'customer', label: '客戶管理', icon: 'users-2', href: '/dashboard/sale/customer/info' },
     ],
@@ -138,6 +138,8 @@ export const DOCK_NAV: DockItem[] = [
       { key: 'conversion', label: '重組分解', icon: 'combine', href: '/dashboard/inventory/conversion' },
       { key: 'issue', label: '異常處理', icon: 'alert-circle', href: '/dashboard/inventory/issue-report' },
       { key: 'stock-setting', label: '安全量設定', icon: 'sliders-horizontal', href: '/dashboard/inventory/stock-setting' },
+      // 調撥單（Nx03St 倉對倉內部調撥）2026-07-07 執行長拍板從銷貨移來庫存。
+      { key: 'transfer', label: '調撥單', icon: 'package-check', href: '/dashboard/inventory/transfer' },
       { key: 'auto-replenish', label: '自動補貨', icon: 'repeat', href: '/dashboard/inventory/auto-replenish' },
       { key: 'balance', label: '庫存查詢', icon: 'search', href: '/dashboard/inventory/balance' },
       { key: 'warehouse-setting', label: '倉庫設定', icon: 'warehouse', href: '/dashboard/inventory/warehouse-setting' },
