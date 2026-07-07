@@ -252,7 +252,13 @@ export class SoService {
     if (q.status?.trim()) where.status = q.status.trim();
     if (q.search?.trim()) {
       const s = q.search.trim();
-      where.OR = [{ docNo: { contains: s, mode: 'insensitive' } }, { remark: { contains: s, mode: 'insensitive' } }];
+      // NX04-QT-SHELL：搜尋含 單號/備註/客戶編號/客戶名稱（比照 QuoteService）
+      where.OR = [
+        { docNo: { contains: s, mode: 'insensitive' } },
+        { remark: { contains: s, mode: 'insensitive' } },
+        { customer: { code: { contains: s, mode: 'insensitive' } } },
+        { customer: { name: { contains: s, mode: 'insensitive' } } },
+      ];
     }
     return where;
   }
