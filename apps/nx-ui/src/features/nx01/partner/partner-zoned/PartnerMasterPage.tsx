@@ -208,8 +208,7 @@ export function PartnerMasterPage({
         pageSize,
         q: debouncedKw,
         partnerType: onlyType,
-        // 有輸入關鍵字搜尋時連停用一起搜（找特定一筆、含舊碼，不被啟用狀態擋）；純瀏覽才維持只顯啟用
-        isActive: showInactive || debouncedKw.trim() ? undefined : true,
+        isActive: showInactive ? undefined : true,
       });
       // 若 filterPartnerTypes 有多個、後端僅查一種、前端額外提示
       setRows(res.items);
