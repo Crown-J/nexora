@@ -1,9 +1,13 @@
 <!-- docs/_team/weimeng-import-handoff.md -->
 <!-- 位置：docs/_team/weimeng-import-handoff.md -->
-<!-- 版本：v1（2026-07-07 Hank 執行）— 動工報告書 + 交接（對話將滿、供下一棒接手）-->
-<!-- 說明：偉盟進銷存歷史「銷貨」匯入的完成報告與續作交接。跨對話接手先讀本檔 + git log。 -->
+<!-- 版本：v2（2026-07-07 Hank 執行）— v1 銷貨近三年 + v2 續作(早年銷貨全補 + 進貨全補) -->
+<!-- 說明：偉盟進銷存歷史匯入的完成報告與續作交接。跨對話接手先讀本檔 + git log。 -->
 
 # 偉盟進銷存匯入 — 動工報告書 + 交接
+
+> ⭐ **2026-07-07 第二輪續作已完成**（見文末 §10）：早年銷貨 2001~2023 全補 + 進貨 2001~2026 全補。
+> 現況：銷貨 SO **1,620,569** / 明細 **3,058,864**（全年份齊）；進貨 RR **117,850** / 明細 **591,799**。
+> 以下 §0~§9 為 v1（第一輪、僅近三年銷貨）原始紀錄，保留不動。
 
 ## 0. 一句話
 把偉盟 2.23GB / 640 萬列的進銷存歷史，**只取「銷貨(類型3) 2024-01~2026-06-22」共 41.7 萬列**，當**唯讀歷史單**（不過帳、不動庫存）灌進 `Nx04So/Nx04SoItem`，孤兒客戶/料號自動建 placeholder，並做查詢壓測。**已完成、待執行長驗收**。
@@ -92,3 +96,57 @@
 ## 9. 關聯文件
 - NX04 報價/詢價紀錄軌（A~D 已完成）：`docs/_team/nx04-quote-pricing-architecture.md`
 - 記憶：[[project_nx04_quote_pricing_architecture]]、[[project_henyin_part_import]]
+
+---
+
+## 10. 第二輪續作（2026-07-07、執行長指示「繼續完成未完成的部分」）
+
+### 10.1 範圍（執行長勾選）
+- **早年銷貨 2001~2023 全補**（v1 只做近三年 2024~6/22）→ 銷貨全年份齊
+- **進貨 1 全補 2001~2026/6/22**（近三年+全年份聯集）
+- **銷退 4**：執行長指出「偉盟本來就沒去對應銷貨單」→ ⚠️ **未做、待 schema 決策**（見 §10.5）
+- 略過（同 v1 建議）：多倉調撥 M、進退 2、重組 5、盤點 6、報廢 7
+
+### 10.2 成果（都入 git、本機 TW-100001、Railway 0 碰）
+| 項目 | 結果 |
+|---|---|
+| 早年銷貨 | SO **1,411,635** 張 / 明細 **2,641,209** 列（=抽取總數、0 跳過）|
+| 進貨 | RR **117,850** 張 / 明細 **591,799** 列（=抽取總數、0 跳過）|
+| 銷貨總計（含 v1 近三年）| SO **1,620,569** / 明細 **3,058,864** |
+| 新建 placeholder | 對象 25（客戶C23/供應商S1/同行O1）、料號 13,702、庫位 24 |
+| 進貨性質 | status=**POSTED** 唯讀、remark=偉盟匯入、**不寫 Nx03 庫存/分類帳（不過帳）** |
+| 進貨金額 | subtotal=total=Σ(數量×單價)、taxRate=0（偉盟未稅欄不可靠、稅不強算）|
+| 進貨成本 | RrItem.unitCost/originalUnitCost/actualUnitCost 都填單價（供成本記憶查詢）|
+| 壓測 | 銷貨查詢 1~4ms；進貨成本記憶查詢 27~38ms（互動可接受）|
+
+### 10.3 腳本（packages/db-core/scripts/、都入 git）
+- `weimeng-scan-types.ts` — 原檔各類型×年份盤點
+- `weimeng-sample-type1.ts` — 確認 type1/4 欄位佈局
+- `weimeng-extract-more.ts` — 一次串流抽 sales_early.tsv + purchases.tsv + 缺失集合
+- `weimeng-placeholders-more.ts` — 建 對象/料號/庫位 placeholder（dry 預設、go 才寫）
+- `weimeng-load-sales-early.ts` — 早年銷貨載入（**吃年檔參數**）
+- `weimeng-load-purchases.ts` — 進貨載入（**吃年檔參數**）
+- `weimeng-early-cleanup.ts` / `weimeng-purchase-cleanup.ts` — 批次迴圈清殘留
+- `weimeng-pgstat.ts` / `weimeng-pgkill.ts` / `weimeng-diag.ts` / `weimeng-count.ts` / `weimeng-spotcheck.ts` — 診斷工具
+
+### 10.4 ⚠️ 踩過的坑（下一棒務必知道）
+1. **readline 串流大檔會 OOM**：`for await (readline)` 對 334MB 大檔無背壓、緩衝爆 8GB heap。
+   解法：**按年切成小檔（scratchpad/years、pyears）、每年一個獨立短命程序**（fresh heap）。
+   （對照：v1 的 load-items 用 readFileSync 未爆、證明 Prisma 本身不洩漏。）
+2. **Windows 上 TaskStop / bash 停止不會殺子程序**：背景 bash 迴圈被停後、子 tsx 仍在插資料（殭屍），
+   造成「邊刪邊插永遠清不完」。**要用 PowerShell 按 CommandLine 精準殺**（`*weimeng-load*` / `*run-years*`）。
+3. **nx04_so_item 缺 so_id 單獨索引** 🛠：刪 SO 要 FK 檢查、無索引就對 41 萬列 so_item seq scan、
+   66 萬刪除天文級慢（單一 deleteMany 跑 33 分沒完）。清理時**建臨時索引 tmp_soitem_soid → 刪 → 卸**。
+   → **建議給 Alex：nx04_so_item 應永久補 so_id 索引**（載入 SO 明細本來就常用；nx02_rr_item 同理）。
+4. **RrItem/SoItem 無自然唯一鍵**：skipDuplicates 擋不住重複明細。重跑前**務必先清該範圍**再載。
+5. **currencyId 必帶真 TWD FK**（NX01CURR…）、schema 預設 "TWD" 是字串會炸 FK（v1 已記、進貨同樣要注意）。
+
+### 10.5 ⚠️ 銷退(4) 待決策（唯一未完成）
+- 偉盟銷退資料**無原始銷貨單參照欄**（執行長確認），但 schema `Nx04Sr.soId` + `Nx04SrItem.soItemId` **必填 FK**。
+- 選項：(A) **跳過銷退**（維持現狀）；(B) **改 schema 讓來源單可空**、當獨立單匯（~20 萬列、近三年 2.2 萬）。
+- 改 schema 屬「執行長 review 後才動」→ **等執行長拍板**。
+
+### 10.6 續作再擴（若日後要）
+- 銷退：先解 §10.5 決策。
+- 進退(2)/盤點(6) 等其他類型：改 extract 類型碼 + 對應落地表。
+- 重跑任一塊：先 cleanup 該範圍 → placeholders（如有新缺）→ 按年 load。
