@@ -116,6 +116,15 @@ export interface So {
   updatedAt: string;
   updatedBy: string;
   items?: SoItem[];
+  // NX04-QT-SHELL 2026-07-07：單據模板 enriched 顯示欄（後端 SO_SEL/list 回傳）
+  customerCode?: string | null;
+  customerName?: string | null;
+  warehouseCode?: string | null;
+  warehouseName?: string | null;
+  currencyCode?: string | null;
+  salesPersonName?: string | null;
+  createdByName?: string | null;
+  itemCount?: number;
 }
 
 export interface SoListResponse {

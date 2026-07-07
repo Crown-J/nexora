@@ -115,6 +115,11 @@ const SO_SEL = {
   createdBy: true,
   updatedAt: true,
   updatedBy: true,
+  // NX04-QT-SHELL 2026-07-07：單據模板需顯示名稱欄（比照 QuoteService enrich）
+  customer: { select: { code: true, name: true } },
+  warehouse: { select: { code: true, name: true } },
+  currency: { select: { code: true } },
+  salesPerson: { select: { userName: true } },
 } as const;
 
 // W4 [3-5] 散客 L 強制二聯（service 端守門、不允許 SO 對散客客戶改 invoiceCopies）
@@ -172,6 +177,27 @@ const Q_ITEM_MIN = {
 function mapSoItemApi<T extends { unitPrice: PrismaNs.Decimal | unknown }>(row: T) {
   const u = row.unitPrice as PrismaNs.Decimal;
   return { ...row, unitPriceSnapshot: u };
+}
+
+// NX04-QT-SHELL 2026-07-07：把 SO_SEL 帶的 customer/warehouse/currency/salesPerson 關聯攤平成
+//   customerCode/customerName/warehouseCode/warehouseName/currencyCode/salesPersonName（比照 QuoteService）。
+//   剝掉關聯物件本身、避免回傳巢狀重複。createdByName 由呼叫端另補（需查 user）。
+function flattenSoRefs<T extends Record<string, unknown>>(rest: T) {
+  const { customer, warehouse, currency, salesPerson, ...plain } = rest as Record<string, unknown> & {
+    customer?: { code?: string; name?: string } | null;
+    warehouse?: { code?: string; name?: string } | null;
+    currency?: { code?: string } | null;
+    salesPerson?: { userName?: string } | null;
+  };
+  return {
+    ...plain,
+    customerCode: customer?.code ?? null,
+    customerName: customer?.name ?? null,
+    warehouseCode: warehouse?.code ?? null,
+    warehouseName: warehouse?.name ?? null,
+    currencyCode: currency?.code ?? null,
+    salesPersonName: salesPerson?.userName ?? null,
+  };
 }
 
 @Injectable()
@@ -310,7 +336,7 @@ export class SoService {
     const { rev_Nx04SoItem_soId: items, ...rest } = row;
     const mappedItems = (items as object[]).map((it) => mapSoItemApi(it as never));
     return {
-      ...rest,
+      ...flattenSoRefs(rest),
       // 05 補做 D1 2026-06-09：揀貨/出貨整體進度 = lines 中最落後的 fulfillStatus
       // 值序：W(等貨) < PK(撿貨中) < PL(包貨中) < D(配送中) < F(已送達)
       // null=無 lines；UI 直接拿這欄顯示「header 揀貨狀態」
@@ -369,10 +395,26 @@ export class SoService {
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * pageSize,
         take: pageSize,
-        select: SO_SEL,
+        // NX04-QT-SHELL：單據模板列表需 建單人員名 + 項目數
+        select: { ...SO_SEL, _count: { select: { rev_Nx04SoItem_soId: true } } },
       }),
     ]);
-    return { page, pageSize, total, items: rows };
+    // 建單人員名（批次查 user）
+    const creatorIds = [...new Set(rows.map((r) => r.createdBy).filter(Boolean))];
+    const creators = creatorIds.length
+      ? await this.prisma.nx01User.findMany({ where: { id: { in: creatorIds } }, select: { id: true, userName: true } })
+      : [];
+    const creatorMap = new Map(creators.map((c) => [c.id, c.userName]));
+    const items = rows.map((r) => {
+      const { _count, ...rest } = r as typeof r & { _count: { rev_Nx04SoItem_soId: number } };
+      const flat = flattenSoRefs(rest as never);
+      return {
+        ...flat,
+        itemCount: _count?.rev_Nx04SoItem_soId ?? 0,
+        createdByName: creatorMap.get(r.createdBy) ?? null,
+      };
+    });
+    return { page, pageSize, total, items };
   }
 
   async getById(user: RequestUser, id: string) {
@@ -385,7 +427,12 @@ export class SoService {
       },
     });
     if (!row) throw new NotFoundException('SO not found');
-    return this.mapDetail(row as never);
+    const mapped = this.mapDetail(row as never);
+    // NX04-QT-SHELL：建單人員名（詳情顯示）
+    const creator = row.createdBy
+      ? await this.prisma.nx01User.findFirst({ where: { id: row.createdBy }, select: { userName: true } })
+      : null;
+    return { ...mapped, createdByName: creator?.userName ?? null };
   }
 
   async create(user: RequestUser, dto: CreateSoDto) {
