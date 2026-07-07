@@ -148,7 +148,8 @@ export interface CreateSoItemPayload {
 }
 
 export interface CreateSoPayload {
-  warehouseId: string;
+  // NX04-QT-SHELL：選填（後端 create 有 fallback：客戶預設倉→使用者隸屬倉→主倉）
+  warehouseId?: string;
   soDate: string;
   customerId: string;
   quoteId?: string;

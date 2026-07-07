@@ -1,7 +1,7 @@
 // apps/nx-ui/src/app/dashboard/sale/so/[id]/page.tsx
-// NX04-M3 C2：SO 銷貨單 - detail route
+// NX04-QT-SHELL：SO 銷貨單 - detail route（改用單據模板 SoWorkbench、深連結開詳情）
 
-import { SoDetailView } from '@/features/nx04/so/ui/SoDetailView';
+import { SoWorkbench } from '@/features/nx04/so/ui/SoWorkbench';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -9,5 +9,5 @@ interface PageProps {
 
 export default async function SalesOrderDetailPage({ params }: PageProps) {
   const { id } = await params;
-  return <SoDetailView id={id} />;
+  return <SoWorkbench initialId={id} initialTab="detail" />;
 }

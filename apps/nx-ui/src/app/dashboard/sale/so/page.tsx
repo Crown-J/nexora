@@ -1,8 +1,8 @@
 // apps/nx-ui/src/app/dashboard/sale/so/page.tsx
-// NX04-M3 C2：SO 銷貨單工作台 - list route
+// NX04-QT-SHELL：SO 銷貨單工作台 - list route（改用單據模板 SoWorkbench）
 
-import { SoListView } from '@/features/nx04/so/ui/SoListView';
+import { SoWorkbench } from '@/features/nx04/so/ui/SoWorkbench';
 
 export default function SalesOrderListPage() {
-  return <SoListView />;
+  return <SoWorkbench />;
 }
