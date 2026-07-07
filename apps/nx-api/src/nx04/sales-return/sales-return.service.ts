@@ -200,6 +200,8 @@ export class SalesReturnService {
     });
     if (!items.length) throw new BadRequestException('Sales return has no items to post');
     for (const item of items) {
+      // 歷史匯入銷退（soItemId=null、無來源明細）不可過帳；系統內建立的銷退必掛來源明細
+      if (!item.soItemId) throw new BadRequestException('歷史匯入銷退（無來源明細）不可過帳');
       const soItem = await tx.nx04SoItem.findFirst({
         where: { id: item.soItemId, so: { tenantId } },
         select: { warehouseId: true, unitPrice: true },
@@ -597,11 +599,14 @@ export class SalesReturnService {
     const head = await this.prisma.nx04Sr.findFirst({ where: { id: srId, tenantId }, select: SR_SEL });
     if (!head) throw new NotFoundException('Sales return not found');
     this.assertSrItemsEditable(head.status);
+    // 歷史匯入銷退（soId=null、無來源單）不可新增明細；系統內建立的銷退必掛來源單
+    if (!head.soId) throw new BadRequestException('歷史匯入銷退（無來源單）不可新增明細');
+    const headSoId = head.soId;
     const maxLine = await this.prisma.nx04SrItem.aggregate({ where: { srId }, _max: { lineNo: true } });
     const lineNo = (maxLine._max.lineNo ?? 0) + 1;
     await this.prisma.$transaction(async (tx) => {
       const batchAccum = new Map<string, PrismaNs.Decimal>();
-      await this.createSrItemTx(tx, user, srId, lineNo, dto, head.soId, batchAccum);
+      await this.createSrItemTx(tx, user, srId, lineNo, dto, headSoId, batchAccum);
       await this.recalcSrTotals(tx, srId, new PrismaNs.Decimal(String(head.taxRate)));
     });
     const row = await this.prisma.nx04SrItem.findFirst({
@@ -629,9 +634,12 @@ export class SalesReturnService {
     this.assertSrItemsEditable(head.status);
     const existing = await this.prisma.nx04SrItem.findFirst({ where: { id: itemId, srId }, select: SR_ITEM_SEL });
     if (!existing) throw new NotFoundException('Sales return item not found');
+    // 歷史匯入銷退明細（soItemId=null、無來源明細）不可編輯；系統內建立的必掛來源明細
+    if (!existing.soItemId) throw new BadRequestException('歷史匯入銷退明細（無來源明細）不可編輯');
+    const existingSoItemId = existing.soItemId;
     if (dto.locationId !== undefined) {
       const soItem = await this.prisma.nx04SoItem.findFirst({
-        where: { id: existing.soItemId },
+        where: { id: existingSoItemId },
         select: { warehouseId: true },
       });
       const loc = await this.prisma.nx01Location.findFirst({
@@ -644,7 +652,7 @@ export class SalesReturnService {
     const unit = new PrismaNs.Decimal(existing.unitPrice);
     await this.prisma.$transaction(async (tx) => {
       if (dto.qty !== undefined) {
-        await this.validateReturnQty(tx, tenantId, existing.soItemId, qty, itemId);
+        await this.validateReturnQty(tx, tenantId, existingSoItemId, qty, itemId);
       }
       await tx.nx04SrItem.update({
         where: { id: itemId },

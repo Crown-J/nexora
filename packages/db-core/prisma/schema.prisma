@@ -4546,8 +4546,10 @@ model Nx04Sr {
   srDate                DateTime      @map("sr_date") @db.Date
   /// 客戶ID（FK nx01_partner）。；啟用最低需求版本：LITE-CORE
   customerId            String        @map("customer_id") @db.VarChar(15)
-  /// 來源銷貨單ID（必填，FK nx04_so）。；啟用最低需求版本：LITE-CORE
-  soId                  String        @map("so_id") @db.VarChar(15)
+  /// 來源銷貨單ID（FK nx04_so）。；啟用最低需求版本：LITE-CORE
+  /// 2026-07-07 改可空（Crown 拍板）：DB 層可空僅供偉盟歷史銷退匯入（無原單參照）；
+  /// 系統內建立銷退仍必填（DTO soId! + service assertSoReturnable 驗證、不受此變更影響）。
+  soId                  String?       @map("so_id") @db.VarChar(15)
   /// 退貨取件方式（S=客戶自行送回/C=外務順路取回/P=客戶自行寄回）。由外務組長在 NX07 決定並更新，NX04 建立時可預填供參考。；啟用最低需求版本：LITE-CORE
   returnMethod          String        @map("return_method") @db.VarChar(1)
   /// 退回方式（A=業務發起／計畫性、B=送貨員當場帶回／臨時）。
@@ -4587,7 +4589,7 @@ model Nx04Sr {
   tenant                Nx99Tenant    @relation("R_Nx04Sr_tenantId", fields: [tenantId], references: [id])
   warehouse             Nx01Warehouse @relation("R_Nx04Sr_warehouseId", fields: [warehouseId], references: [id])
   customer              Nx01Partner   @relation("R_Nx04Sr_customerId", fields: [customerId], references: [id])
-  so                    Nx04So        @relation("R_Nx04Sr_soId", fields: [soId], references: [id])
+  so                    Nx04So?       @relation("R_Nx04Sr_soId", fields: [soId], references: [id])
   rev_Nx04SrItem_srId   Nx04SrItem[]  @relation("R_Nx04SrItem_srId")
   rev_Nx06Dn_sourceSrId Nx06Dn[]      @relation("R_Nx06Dn_sourceSrId")
 
@@ -4604,7 +4606,8 @@ model Nx04SrItem {
   /// 對應銷退單表頭ID（FK nx04_sr）。；啟用最低需求版本：LITE-CORE
   srId             String        @map("sr_id") @db.VarChar(15)
   /// 來源銷貨明細ID（FK nx04_so_item）。；啟用最低需求版本：LITE-CORE
-  soItemId         String        @map("so_item_id") @db.VarChar(15)
+  /// 2026-07-07 改可空（Crown 拍板）：DB 層可空僅供偉盟歷史銷退匯入；系統內建立仍必填（DTO soItemId! 驗證）。
+  soItemId         String?       @map("so_item_id") @db.VarChar(15)
   /// 明細行號（1,2,3…）。；啟用最低需求版本：LITE-CORE
   lineNo           Int           @map("line_no")
   /// 零件ID（FK nx01_part）。；啟用最低需求版本：LITE-CORE
@@ -4642,7 +4645,7 @@ model Nx04SrItem {
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
   updatedBy        String        @map("updated_by") @db.VarChar(15)
   sr               Nx04Sr        @relation("R_Nx04SrItem_srId", fields: [srId], references: [id])
-  soItem           Nx04SoItem    @relation("R_Nx04SrItem_soItemId", fields: [soItemId], references: [id])
+  soItem           Nx04SoItem?   @relation("R_Nx04SrItem_soItemId", fields: [soItemId], references: [id])
   part             Nx01Part      @relation("R_Nx04SrItem_partId", fields: [partId], references: [id])
   location         Nx01Location? @relation("R_Nx04SrItem_locationId", fields: [locationId], references: [id])
 
