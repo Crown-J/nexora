@@ -112,13 +112,14 @@ export function PartZonedPage({
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const COLUMN_ALL_KEYS = useMemo(
-    () => ['code', 'name', 'isOem', 'partGroupCode', 'uom', 'isActive', 'photos'],
+    () => ['code', 'name', 'isOem', 'partGroupCode', 'uom', 'isActive', 'photos', 'barcodes'],
     [],
   );
   const {
     visibleKeys: columnsOrder,
     setVisibleKeys: setColumnsOrder,
-  } = useColumnsPref('master-parts:columns:v1', COLUMN_ALL_KEYS, COLUMN_ALL_KEYS);
+    // 偉盟 P2 2.6 2026-07-11：加 barcodes 欄、storage key v1→v2（舊偏好無此 key 會蓋住新欄、bump 重置一次）
+  } = useColumnsPref('master-parts:columns:v2', COLUMN_ALL_KEYS, COLUMN_ALL_KEYS);
   const SORT_OPTIONS: SortableOption[] = useMemo(
     () => [
       { key: 'code', label: '料號' },
@@ -771,6 +772,22 @@ export function PartZonedPage({
             title="照片管理"
           >
             📷
+          </a>
+        ),
+      },
+      // 偉盟 P2 2.6 2026-07-11：條碼維護 sub-page 入口（範式同照片）
+      {
+        key: 'barcodes',
+        label: '條碼',
+        minWidthClass: 'min-w-[50px]',
+        render: (row) => (
+          <a
+            href={`/dashboard/master/parts/${row.id}/barcodes`}
+            className="text-xs text-[#22D88F] hover:underline focus:outline-none"
+            onClick={(e) => e.stopPropagation()}
+            title="條碼維護"
+          >
+            🏷
           </a>
         ),
       },

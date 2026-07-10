@@ -857,6 +857,8 @@ model Nx01Part {
   rev_Nx01PartCompatGroupMember_partId Nx01PartCompatGroupMember[] @relation("R_Nx01PartCompatGroupMember_partId")
   // 02 第三批 T4 2026-06-07：零件照片子表
   rev_Nx01PartPhoto_partId             Nx01PartPhoto[]              @relation("R_Nx01PartPhoto_partId")
+  /// 偉盟 P2 2.6 2026-07-11：條碼對照子表（一料多條碼）
+  rev_Nx01PartBarcode_partId           Nx01PartBarcode[]            @relation("R_Nx01PartBarcode_partId")
   // 2026-06-26：組合/拆解組件關係（whole=整體件、item=組件）
   rev_Nx01PartKit_wholePartId          Nx01PartKit[]               @relation("R_Nx01PartKit_wholePartId")
   rev_Nx01PartKitItem_partId           Nx01PartKitItem[]           @relation("R_Nx01PartKitItem_partId")
@@ -931,6 +933,36 @@ model Nx01PartPhoto {
 
   @@index([tenantId, partId, sortNo])
   @@map("nx01_part_photo")
+}
+
+/// =======================================================
+/// Nx01PartBarcode — DB table `nx01_part_barcode`
+/// 零件條碼對照（偉盟 P2 2.6 2026-07-11、參考偉盟 BANO 一料多條碼＋預設旗標）
+/// 用途：掃碼工作站 條碼→料號 解析（同租戶條碼唯一）、標籤列印預設條碼
+/// =======================================================
+model Nx01PartBarcode {
+  /// [NX01]+[PBAR]+[7碼流水號]，EX : NX01PBAR0000001；啟用最低需求版本：LITE
+  id        String     @id @default(dbgenerated("gen_nx01_part_barcode_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵）；啟用最低需求版本：LITE
+  tenantId  String     @map("tenant_id") @db.VarChar(15)
+  /// 零件 ID（外鍵）；啟用最低需求版本：LITE
+  partId    String     @map("part_id") @db.VarChar(15)
+  /// 條碼內容（EAN/Code128/QR 皆存原字串、掃碼比對用；同租戶唯一）；啟用最低需求版本：LITE
+  barcode   String     @db.VarChar(64)
+  /// 預設條碼（標籤列印預設用；同 part 至多一條 true、application 自律）；啟用最低需求版本：LITE
+  isDefault Boolean    @default(false) @map("is_default")
+  /// 備註（例：原廠盒條碼 / 自印標籤）；啟用最低需求版本：LITE
+  remark    String?    @db.VarChar(100)
+  /// 建立時間。；啟用最低需求版本：LITE
+  createdAt DateTime   @default(now()) @map("created_at")
+  /// 建立人（必填；系統操作帶入使用者 ID）；啟用最低需求版本：LITE
+  createdBy String     @map("created_by") @db.VarChar(15)
+  tenant    Nx99Tenant @relation("R_Nx01PartBarcode_tenantId", fields: [tenantId], references: [id])
+  part      Nx01Part   @relation("R_Nx01PartBarcode_partId", fields: [partId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, barcode])
+  @@index([tenantId, partId])
+  @@map("nx01_part_barcode")
 }
 
 model Nx01PartGroup {
@@ -7272,6 +7304,7 @@ model Nx99Tenant {
   rev_Nx01PartnerContact_tenantId          Nx01PartnerContact[]          @relation("R_Nx01PartnerContact_tenantId")
   // 02 第三批 T4 2026-06-07：零件照片子表
   rev_Nx01PartPhoto_tenantId               Nx01PartPhoto[]               @relation("R_Nx01PartPhoto_tenantId")
+  rev_Nx01PartBarcode_tenantId             Nx01PartBarcode[]             @relation("R_Nx01PartBarcode_tenantId")
   rev_Nx01SupplierGrade_tenantId           Nx01SupplierGrade[]           @relation("R_Nx01SupplierGrade_tenantId")
   rev_Nx02WarrantyClaim_tenantId           Nx02WarrantyClaim[]           @relation("R_Nx02WarrantyClaim_tenantId")
   rev_Nx02WarrantyClaimAttachment_tenantId Nx02WarrantyClaimAttachment[] @relation("R_Nx02WarrantyClaimAttachment_tenantId")
