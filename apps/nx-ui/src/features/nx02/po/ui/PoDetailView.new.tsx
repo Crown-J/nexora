@@ -45,14 +45,14 @@ import {
   updatePo,
   voidPo,
 } from '@data/endpoints/nx02/po/api/po';
-import { getRfq } from '@data/endpoints/nx02/api/rfq';
+import { getRfq } from '@data/endpoints/nx02/rfq/api/rfq';
 import { fetchAllPages } from '@data/api/fetchAllPages';
 import { listPartner } from '@data/endpoints/shared/master/partner/api/partner';
 import type { PartnerDto } from '@data/types/shared/master/partner';
 import { listPartnerAddresses, type PartnerAddressRow } from '@data/endpoints/shared/address/partner-address-api';
 import { listLocation } from '@data/endpoints/shared/master/location/api/location';
 import { listWarehouses } from '@data/endpoints/nx01/api/warehouse';
-import type { RfqDetailDto } from '@data/types/nx02';
+import type { Rfq } from '@data/types/nx02/rfq';
 import type { Po, PoItem } from '@data/types/nx02/po';
 import { PAYMENT_MILESTONE_LABEL, PO_STATUS_LABEL, PURCHASE_TYPE_LABEL } from '@data/types/nx02/po';
 
@@ -1189,7 +1189,7 @@ export function PoCreatePanel({
   const [firstCost, setFirstCost] = useState('');
 
   // rfq 路徑
-  const [rfq, setRfq] = useState<RfqDetailDto | null>(null);
+  const [rfq, setRfq] = useState<Rfq | null>(null);
   const [rfqChecked, setRfqChecked] = useState<Set<string>>(new Set());
   const [rfqQtys, setRfqQtys] = useState<Record<string, string>>({});
 
