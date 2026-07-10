@@ -55,8 +55,12 @@ import { FocusLockedDialog } from '@design/primitives/focus-locked-dialog';
 import { FocusZone } from '@design/primitives/focus-zone';
 import { cn } from '@design/utils/cn';
 
+import type { F2EntryContext } from './GlobalPartQuickSearch';
+
 type Props = {
   partId: string;
+  /** F2 三入口情境（Step 5、交接 §1 §4：銷售為錨／採購／倉管；倉別＝情境決定）*/
+  entryContext?: F2EntryContext;
   /** 關閉主視窗、退回搜尋窗 */
   onBack: () => void;
   /** 整個關閉（搜尋窗也關）*/
@@ -72,7 +76,7 @@ const STOCK_COLORS = {
 } as const;
 const ZERO_GREY = '#5A5A60'; // 0 值弱化色
 
-export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props) {
+export function PartMainWindow({ partId: initialPartId, entryContext, onBack, onClose }: Props) {
   // 主件：Alt+F 跳搜時切換
   const [mainPartId, setMainPartId] = useState(initialPartId);
   // 預覽：Enter 暫切（null = 顯示 mainPartId 自己）
@@ -383,6 +387,19 @@ export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props
               預覽中
             </span>
           ) : null}
+          {/* Step 5：情境倉徽章（倉別＝情境決定、交接 §4）*/}
+          {entryContext?.warehouseId && (
+            <span
+              className="ml-2 inline-flex items-center gap-1 rounded border border-primary/50 bg-primary/12 px-2 py-0.5 text-[11px] text-primary"
+              title={`${entryContext.label ?? '情境倉'}：依入口情境帶入`}
+            >
+              <Pin className="size-3" />
+              {entryContext.label ?? '情境倉'}
+              <span className="font-mono">
+                {entryContext.warehouseName ?? entryContext.warehouseId}
+              </span>
+            </span>
+          )}
           {/* Step 4：F3 改綁可替代零件（交接 §5）、即時詢價保留按鈕（滑鼠）*/}
           <button
             type="button"
@@ -426,8 +443,15 @@ export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props
             onZoomToggle={() => setPhotoZoom((z) => !z)}
           />
 
-          {/* 中欄：公司總存貨（不分倉）*/}
-          <CompanyStockColumn stock={stock} settings={stockSettings} loading={leftLoading} />
+          {/* 中欄：公司總存貨（不分倉）；情境倉/倉管入口 → 各倉分布自動展開 */}
+          <CompanyStockColumn
+            stock={stock}
+            settings={stockSettings}
+            loading={leftLoading}
+            contextWarehouseId={entryContext?.warehouseId}
+            contextLabel={entryContext?.label}
+            autoExpandBars={Boolean(entryContext?.warehouseId) || entryContext?.entry === 'warehouse'}
+          />
 
           {/* 右欄：通用零件 */}
           <RightColumn
@@ -621,10 +645,18 @@ function CompanyStockColumn({
   stock,
   settings,
   loading,
+  contextWarehouseId,
+  contextLabel,
+  autoExpandBars,
 }: {
   stock: PartStockSummaryDto | null;
   settings: PartStockSettingRow[];
   loading: boolean;
+  /** Step 5：情境倉（銷售=客戶預設出貨倉）→ 各倉分布 pin 頂 + 徽章 */
+  contextWarehouseId?: string;
+  contextLabel?: string;
+  /** Step 5：情境倉存在或倉管入口 → 各倉分布自動展開 */
+  autoExpandBars?: boolean;
 }) {
   const company = stock?.company;
   const onHand = Number(company?.onHand ?? 0);
@@ -687,8 +719,14 @@ function CompanyStockColumn({
           </p>
         )}
 
-        {/* Step 3：各倉分布橫向長條（預設收合、遵守 §3 不攤在預設頁）*/}
-        <WarehouseBarsSection warehouses={stock?.warehouses ?? []} />
+        {/* Step 3：各倉分布橫向長條（預設收合、遵守 §3 不攤在預設頁）
+            Step 5：情境倉 pin 頂＋徽章；情境入口自動展開 */}
+        <WarehouseBarsSection
+          warehouses={stock?.warehouses ?? []}
+          contextWarehouseId={contextWarehouseId}
+          contextLabel={contextLabel}
+          autoExpand={autoExpandBars}
+        />
       </div>
     </section>
   );
@@ -702,9 +740,28 @@ function CompanyStockColumn({
 const WH_BARS_SOFT_CAP = 8;
 const WH_BAR_ROW_PX = 34;
 
-function WarehouseBarsSection({ warehouses }: { warehouses: PartStockWarehouseRow[] }) {
-  const [expanded, setExpanded] = useState(false);
+function WarehouseBarsSection({
+  warehouses,
+  contextWarehouseId,
+  contextLabel,
+  autoExpand,
+}: {
+  warehouses: PartStockWarehouseRow[];
+  contextWarehouseId?: string;
+  contextLabel?: string;
+  autoExpand?: boolean;
+}) {
+  const [expanded, setExpanded] = useState(Boolean(autoExpand));
   const [showZeros, setShowZeros] = useState(false);
+
+  // Step 5：情境倉事後才帶入（如視窗 2 開著時報價選客戶）→ 補展開。
+  // render 期間調整衍生狀態（React 官方 pattern、避免 effect 級聯 render）
+  const autoKey = autoExpand ? (contextWarehouseId ?? 'auto') : null;
+  const [prevAutoKey, setPrevAutoKey] = useState(autoKey);
+  if (autoKey !== prevAutoKey) {
+    setPrevAutoKey(autoKey);
+    if (autoKey) setExpanded(true);
+  }
 
   const isAllZero = (w: PartStockWarehouseRow) =>
     Number(w.onHand) === 0 &&
@@ -712,14 +769,17 @@ function WarehouseBarsSection({ warehouses }: { warehouses: PartStockWarehouseRo
     Number(w.reserved) === 0 &&
     Number(w.inTransit) === 0;
 
-  // 本倉 pin 頂（isPrimary 最前、其餘依 API 排序 sortNo）；本倉即使空倉也不進折疊區
+  // pin 順序：情境倉（Step 5、如客戶預設出貨倉）→ 本倉（isPrimary）→ 其餘依 API 排序 sortNo；
+  // 情境倉/本倉即使空倉也不進折疊區
   const { pinnedRows, zeroRows, maxOnHand } = useMemo(() => {
-    const visible = warehouses.filter((w) => w.isPrimary || !isAllZero(w));
-    const zeros = warehouses.filter((w) => !w.isPrimary && isAllZero(w));
-    const sorted = [...visible].sort((a, b) => Number(b.isPrimary) - Number(a.isPrimary));
+    const isCtx = (w: PartStockWarehouseRow) => w.warehouseId === contextWarehouseId;
+    const visible = warehouses.filter((w) => isCtx(w) || w.isPrimary || !isAllZero(w));
+    const zeros = warehouses.filter((w) => !isCtx(w) && !w.isPrimary && isAllZero(w));
+    const rank = (w: PartStockWarehouseRow) => (isCtx(w) ? 2 : w.isPrimary ? 1 : 0);
+    const sorted = [...visible].sort((a, b) => rank(b) - rank(a));
     const max = Math.max(...warehouses.map((w) => Number(w.onHand)), 1);
     return { pinnedRows: sorted, zeroRows: zeros, maxOnHand: max };
-  }, [warehouses]);
+  }, [warehouses, contextWarehouseId]);
 
   if (warehouses.length === 0) return null;
 
@@ -741,7 +801,13 @@ function WarehouseBarsSection({ warehouses }: { warehouses: PartStockWarehouseRo
           style={{ maxHeight: WH_BARS_SOFT_CAP * WH_BAR_ROW_PX }}
         >
           {pinnedRows.map((w) => (
-            <WarehouseBar key={w.warehouseId} w={w} maxOnHand={maxOnHand} dimmed={isAllZero(w)} />
+            <WarehouseBar
+              key={w.warehouseId}
+              w={w}
+              maxOnHand={maxOnHand}
+              dimmed={isAllZero(w)}
+              contextLabel={w.warehouseId === contextWarehouseId ? (contextLabel ?? '情境倉') : undefined}
+            />
           ))}
 
           {zeroRows.length > 0 && (
@@ -770,10 +836,13 @@ function WarehouseBar({
   w,
   maxOnHand,
   dimmed,
+  contextLabel,
 }: {
   w: PartStockWarehouseRow;
   maxOnHand: number;
   dimmed?: boolean;
+  /** Step 5：此倉為情境倉時的徽章文字（如「客戶倉」）*/
+  contextLabel?: string;
 }) {
   const onHand = Number(w.onHand);
   const available = Number(w.available);
@@ -786,6 +855,15 @@ function WarehouseBar({
     <div className={cn('flex flex-col gap-0.5', dimmed && 'opacity-55')}>
       <div className="flex items-baseline justify-between gap-2">
         <span className="flex min-w-0 items-baseline gap-1.5 truncate text-[12px]">
+          {contextLabel && (
+            <span
+              className="inline-flex shrink-0 items-center gap-0.5 rounded border border-primary/55 bg-primary/15 px-1 py-px font-mono text-[10px] font-bold text-primary"
+              title={`${contextLabel}（依入口情境帶入）`}
+            >
+              <Pin className="size-2.5" />
+              {contextLabel}
+            </span>
+          )}
           {w.isPrimary && (
             <span
               className="inline-flex shrink-0 items-center gap-0.5 rounded border border-primary/55 bg-primary/15 px-1 py-px font-mono text-[10px] font-bold text-primary"

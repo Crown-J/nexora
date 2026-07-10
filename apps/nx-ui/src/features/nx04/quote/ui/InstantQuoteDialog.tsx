@@ -36,6 +36,19 @@ export function InstantQuoteDialog({
   const handlePickCustomer = async (c: PickedCustomer) => {
     setCustomer(c);
     setErr(null);
+    // F2 改版 Step 5（交接 §4 銷售錨定）：選客戶 → 帶出客戶預設出貨倉、
+    // F2 視窗 2 各倉分布錨定該倉（window event、feature 層不 import design 內部）
+    if (c.defaultWarehouseId) {
+      window.dispatchEvent(
+        new CustomEvent('nx-f2-context-warehouse', {
+          detail: {
+            warehouseId: c.defaultWarehouseId,
+            warehouseName: c.defaultWarehouseName ?? undefined,
+            label: '客戶倉',
+          },
+        }),
+      );
+    }
     try {
       const intel = await getQuotePriceIntel(c.id, partId);
       const cq = intel.sameCustomerQuote;

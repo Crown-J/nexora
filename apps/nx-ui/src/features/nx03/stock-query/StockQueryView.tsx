@@ -10,8 +10,10 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { PackageSearch } from 'lucide-react';
 
 import { apiJson } from '@data/api/client';
+import { openPartQuickSearch } from '@design/components/quick-search/GlobalPartQuickSearch';
 
 type Tab = 'part' | 'location' | 'warehouse';
 
@@ -76,12 +78,25 @@ export function StockQueryView() {
   const [tab, setTab] = useState<Tab>('part');
   return (
     <div className="w-full min-w-0 space-y-6 p-6">
-      <header className="space-y-1">
-        <p className="text-xs tracking-[0.35em] text-muted-foreground">INVENTORY · STOCK QUERY</p>
-        <h1 className="text-2xl font-semibold tracking-tight">庫存查詢</h1>
-        <p className="text-sm text-muted-foreground">
-          三維度：料號（哪幾倉幾庫位）/ 庫位（此位有哪些料）/ 倉庫（整倉 + 4 KPI）
-        </p>
+      <header className="flex flex-wrap items-start justify-between gap-2">
+        <div className="space-y-1">
+          <p className="text-xs tracking-[0.35em] text-muted-foreground">INVENTORY · STOCK QUERY</p>
+          <h1 className="text-2xl font-semibold tracking-tight">庫存查詢</h1>
+          <p className="text-sm text-muted-foreground">
+            三維度：料號（哪幾倉幾庫位）/ 庫位（此位有哪些料）/ 倉庫（整倉 + 4 KPI）
+          </p>
+        </div>
+        {/* F2 改版 Step 5（交接 §1 §4）：倉管入口＝嵌庫存管理；開窗自動展開各倉、本倉 pin 頂 */}
+        <button
+          type="button"
+          onClick={() => openPartQuickSearch({ entry: 'warehouse' })}
+          className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-background px-3 text-sm text-muted-foreground hover:border-primary/50"
+          title="料號即時搜尋（F2）：自動展開各倉分布、本倉置頂"
+        >
+          <PackageSearch className="size-4" />
+          料號查詢
+          <kbd className="rounded border border-border/50 bg-muted/40 px-1 py-px font-mono text-[10px]">F2</kbd>
+        </button>
       </header>
 
       <nav className="flex gap-2 border-b">
