@@ -6,6 +6,7 @@
 'use client';
 
 import {
+  AlertTriangle,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
@@ -43,6 +44,8 @@ import { getSo, listSo } from '@data/endpoints/nx04/so/api/so';
 import type { So, SoItem } from '@data/types/nx04/so';
 import type { Sr, SrItem } from '@data/types/nx04/sales-return';
 import { SR_STATUS_LABEL } from '@data/types/nx04/sales-return';
+// W5-ISSUE-CHAIN Step 5 2026-07-11：問題回報孤兒按鈕復活（單據外殼改版時掉的掛載點）
+import { IssueReportModal } from '@/features/shared/issue-report-trigger';
 
 const fmt = (n: string | number) => Number(n).toLocaleString('en-US', { maximumFractionDigits: 2 });
 
@@ -91,6 +94,8 @@ export function SrDetailPanel({
 }) {
   const [sr, setSr] = useState<Sr | null>(null);
   const [printOpen, setPrintOpen] = useState(false);
+  // W5-ISSUE-CHAIN Step 5：問題回報 modal
+  const [irModalOpen, setIrModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -369,6 +374,9 @@ export function SrDetailPanel({
               />
               <ToolbarButton icon={XCircle} label="駁回" enabled={canReject && !busy} variant="danger" onClick={doReject} />
               <ToolbarSeparator />
+              {/* W5-ISSUE-CHAIN Step 5：問題回報 → 統一異常登記簿 */}
+              <ToolbarButton icon={AlertTriangle} label="問題回報" enabled={!busy} onClick={() => setIrModalOpen(true)} />
+              <ToolbarSeparator />
               <ToolbarButton icon={Search} letter="F" label="查詢" enabled={!!onSearch} onClick={onSearch} />
               <ToolbarButton icon={RefreshCcw} letter="R" label="重新整理" enabled onClick={() => void reload()} />
               <ToolbarButton icon={Printer} letter="P" label="列印" enabled onClick={() => setPrintOpen(true)} />
@@ -396,6 +404,17 @@ export function SrDetailPanel({
       </ToolbarPortal>
 
       {printOpen && sr ? <SrPrintSheet doc={sr} onClose={() => setPrintOpen(false)} /> : null}
+
+      {irModalOpen && sr ? (
+        <IssueReportModal
+          sourceDocType="SR"
+          sourceDocId={sr.id}
+          sourceDocNo={sr.docNo}
+          warehouseId={sr.warehouseId}
+          partOptions={(sr.items ?? []).map((it) => ({ partId: it.partId, partNo: it.partNo, partName: it.partName }))}
+          onClose={() => setIrModalOpen(false)}
+        />
+      ) : null}
 
       {error ? <div className="mx-4 mt-3 rounded border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm">{error}</div> : null}
       {sr.status === 'REJECTED' && sr.rejectReason ? (
