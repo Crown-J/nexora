@@ -40,7 +40,7 @@ import {
 } from '@data/endpoints/nx04/sales-return/api/sales-return';
 import { getSo, listSo } from '@data/endpoints/nx04/so/api/so';
 import type { So, SoItem } from '@data/types/nx04/so';
-import type { Sr, SrItem, SrStatus } from '@data/types/nx04/sales-return';
+import type { Sr, SrItem } from '@data/types/nx04/sales-return';
 import { SR_STATUS_LABEL } from '@data/types/nx04/sales-return';
 
 const fmt = (n: string | number) => Number(n).toLocaleString('en-US', { maximumFractionDigits: 2 });
