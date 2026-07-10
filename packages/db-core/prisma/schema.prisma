@@ -1054,6 +1054,9 @@ model Nx01Partner {
   customMarginPct                          Decimal?                     @map("custom_margin_pct") @db.Decimal(5, 2)
   /// 統一編號（開立發票用，客戶與廠商均可填寫，選填）。；啟用最低需求版本：LITE-CORE
   taxId                                    String?                      @map("tax_id") @db.VarChar(20)
+  /// 發票抬頭（可異於客戶名稱、開發票用；空=用 name）。偉盟 BCINT 印證常態需求（92% 有值、常異於客戶名）。
+  /// 2026-07-10 執行長拍板（偉盟設計檢視 P1-2）；啟用最低需求版本：LITE
+  invoiceTitle                             String?                      @map("invoice_title") @db.VarChar(120)
   /// 國內付款條件（PREPAY=先付款/NET30=月結30天/NET60=月結60天/NET90=月結90天）。影響國內採購AP/AR到期日計算。建立採購單時自動帶入，可手動覆蓋。；啟用最低需求版本：LITE-CORE
   paymentTermDomestic                      String                       @default("NET30") @map("payment_term_domestic") @db.VarChar(10)
   /// 客戶等級ID（FK nx01_customer_grade），供報價單定價邏輯使用。partner_type IN ('C', 'O') 通用（保養廠+同行都走 ABCD 定價、業界 muscle memory：同行看交情/量、保養廠看消費力）。；啟用最低需求版本：LITE-CORE
@@ -7549,6 +7552,9 @@ model Nx01PartnerAddress {
   /// 收件 / 送達聯絡
   recipientName   String?       @map("recipient_name") @db.VarChar(50)
   recipientPhone  String?       @map("recipient_phone") @db.VarChar(50)
+  /// 發票抬頭（BILLING 該筆各自開票用；空=用 partner.invoiceTitle→name）。偉盟 BCUX 印證多據點各自開票。
+  /// 2026-07-10 執行長拍板（偉盟設計檢視 P1-2）；啟用最低需求版本：LITE
+  invoiceTitle    String?       @map("invoice_title") @db.VarChar(120)
   note            String?       @db.VarChar(200)
   isActive        Boolean       @default(true) @map("is_active")
   createdAt       DateTime      @default(now()) @map("created_at")

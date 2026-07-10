@@ -34,6 +34,8 @@ export class CreatePartnerAddressDto {
 
   @IsOptional() @IsString() @MaxLength(50) recipientName?: string;
   @IsOptional() @IsString() @MaxLength(50) recipientPhone?: string;
+  /** 發票抬頭（BILLING 該筆各自開票；空=用 partner.invoiceTitle）。偉盟設計檢視 P1-2 2026-07-10 */
+  @IsOptional() @IsString() @MaxLength(120) invoiceTitle?: string;
   @IsOptional() @IsString() @MaxLength(200) note?: string;
   @IsOptional() @Type(() => Boolean) @IsBoolean() isActive?: boolean;
 }
@@ -55,6 +57,8 @@ export class UpdatePartnerAddressDto {
   @IsOptional() @IsString() @MaxLength(500) freeformAddress?: string | null;
   @IsOptional() @IsString() @MaxLength(50) recipientName?: string | null;
   @IsOptional() @IsString() @MaxLength(50) recipientPhone?: string | null;
+  /** 發票抬頭（BILLING 用；空=用 partner.invoiceTitle）。偉盟設計檢視 P1-2 2026-07-10 */
+  @IsOptional() @IsString() @MaxLength(120) invoiceTitle?: string | null;
   @IsOptional() @IsString() @MaxLength(200) note?: string | null;
   @IsOptional() @Type(() => Boolean) @IsBoolean() isActive?: boolean;
 }

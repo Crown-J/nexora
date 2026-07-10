@@ -70,6 +70,8 @@ export const PARTNER_FIELDS: FieldDef<PartnerZone>[] = [
 
   // ─── finance 財務區 ───
   { key: 'taxId', label: '統一編號', zone: 'finance' },
+  // 偉盟設計檢視 P1-2 2026-07-10：發票抬頭（偉盟 BCINT 印證常異於客戶名）
+  { key: 'invoiceTitle', label: '發票抬頭', zone: 'finance', notes: '可異於客戶名稱；空=同客戶名稱' },
   { key: 'paymentTermDomestic', label: '國內付款條件', zone: 'finance', required: true, notes: 'PREPAY / NET30 / NET60 / NET90' },
   { key: 'paymentTermImport', label: '國外付款條件', zone: 'finance', notes: 'TT / LC / DP / DA' },
   { key: 'incoterm', label: '貿易條件', zone: 'finance', notes: 'FOB / CIF / EXW / DDP' },

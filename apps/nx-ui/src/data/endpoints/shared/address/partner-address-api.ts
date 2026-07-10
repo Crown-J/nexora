@@ -23,6 +23,8 @@ export type PartnerAddressRow = {
   freeformAddress: string | null;
   recipientName: string | null;
   recipientPhone: string | null;
+  /** 發票抬頭（BILLING 該筆各自開票；空=用 partner.invoiceTitle）。偉盟設計檢視 P1-2 2026-07-10 */
+  invoiceTitle: string | null;
   note: string | null;
   isActive: boolean;
   city?: { code: string; name: string } | null;

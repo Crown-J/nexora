@@ -52,6 +52,8 @@ const SEL = {
   legacyCode: true,
   // W4 [3-6] 預設發票聯式
   defaultInvoiceCopies: true,
+  // 偉盟設計檢視 P1-2 2026-07-10：發票抬頭
+  invoiceTitle: true,
   // 02 對齊第二批 C 軌 CP1：地區 / 總公司 / 個別毛利率
   regionId: true,
   parentPartnerId: true,
@@ -300,6 +302,8 @@ export class PartnerService {
         defaultInvoiceCopies: isRetail
           ? RETAIL_FORCED.defaultInvoiceCopies
           : (dto.defaultInvoiceCopies ?? 3),
+        // 偉盟設計檢視 P1-2：發票抬頭（空=用 name）
+        invoiceTitle: dto.invoiceTitle?.trim() || null,
         // 02 對齊第二批 C 軌 CP1：地區 / 總公司 / 個別毛利率
         regionId: dto.regionId?.trim() || null,
         parentPartnerId: dto.parentPartnerId?.trim() || null,
@@ -411,6 +415,10 @@ export class PartnerService {
           : dto.defaultInvoiceCopies !== undefined
             ? { defaultInvoiceCopies: dto.defaultInvoiceCopies }
             : {}),
+        // 偉盟設計檢視 P1-2：發票抬頭
+        ...(dto.invoiceTitle !== undefined
+          ? { invoiceTitle: dto.invoiceTitle?.trim() || null }
+          : {}),
         // 02 對齊第二批 C 軌 CP1：地區 / 總公司 / 個別毛利率
         ...(dto.regionId !== undefined ? { regionId: dto.regionId?.trim() || null } : {}),
         ...(dto.parentPartnerId !== undefined
