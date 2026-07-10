@@ -2271,6 +2271,8 @@ model Nx02Pr {
   returnMode            String         @default("P") @map("return_mode") @db.VarChar(1)
   /// 階段 I P1 加：退貨處置標記（G=一般退 / B=壞品退 / W=走保固）。Alex Q1=a 拍板。W 觸發 service 層自動建 Nx02WarrantyClaim 進保固理賠流程；G/B 走既有 ledger。default 'G' = 既有 row backfill 為一般退、不破壞歷史語意。
   dispositionFlag       String         @default("G") @map("disposition_flag") @db.VarChar(1)
+  /// W5 異常鏈 Step 3 2026-07-11 加：來源異常回報單 ID（軟連結 nx03_issue_report、不建 FK、對齊 nx98 跨模組範式）。IR dispose 一鍵開單 / 手動連結時 service 回填；PR 過帳時回寫 IR 自動結案。；啟用最低需求版本：LITE
+  sourceIssueReportId   String?        @map("source_issue_report_id") @db.VarChar(15)
   tenant                Nx99Tenant     @relation("R_Nx02Pr_tenantId", fields: [tenantId], references: [id])
   warehouse             Nx01Warehouse  @relation("R_Nx02Pr_warehouseId", fields: [warehouseId], references: [id])
   supplier              Nx01Partner    @relation("R_Nx02Pr_supplierId", fields: [supplierId], references: [id])
@@ -3750,6 +3752,8 @@ model Nx03Disposal {
   voidedAt     DateTime?          @map("voided_at")
   /// 作廢人；啟用最低需求版本：LITE
   voidedBy     String?            @map("voided_by") @db.VarChar(15)
+  /// W5 異常鏈 Step 3 2026-07-11 加：來源異常回報單 ID（軟連結 nx03_issue_report、不建 FK）。IR dispose 一鍵開單 / 手動連結時 service 回填；報廢過帳時回寫 IR 自動結案；來源 IR 帳已調（盤點/銷退）時過帳免扣帳（防重複扣）。；啟用最低需求版本：LITE
+  sourceIssueReportId String?     @map("source_issue_report_id") @db.VarChar(15)
   tenant       Nx99Tenant         @relation("R_Nx03Disposal_tenantId", fields: [tenantId], references: [id])
   warehouse    Nx01Warehouse      @relation("R_Nx03Disposal_warehouseId", fields: [warehouseId], references: [id])
   items        Nx03DisposalItem[] @relation("R_Nx03DisposalItem_disposalId")
@@ -3847,6 +3851,8 @@ model Nx03Conversion {
   voidedAt       DateTime?              @map("voided_at")
   /// 作廢人；啟用最低需求版本：LITE
   voidedBy       String?                @map("voided_by") @db.VarChar(15)
+  /// W5 異常鏈 Step 3 2026-07-11 加：來源異常回報單 ID（軟連結 nx03_issue_report、不建 FK）。IR dispose 手動連結時 service 回填（重組分解 outputs 需人工定義、不支援一鍵開單）；轉換過帳時回寫 IR 自動結案。；啟用最低需求版本：LITE
+  sourceIssueReportId String?           @map("source_issue_report_id") @db.VarChar(15)
   tenant         Nx99Tenant             @relation("R_Nx03Conversion_tenantId", fields: [tenantId], references: [id])
   warehouse      Nx01Warehouse          @relation("R_Nx03Conversion_warehouseId", fields: [warehouseId], references: [id])
   inputs         Nx03ConversionInput[]  @relation("R_Nx03ConversionInput_conversionId")
@@ -8445,6 +8451,8 @@ model Nx02WarrantyClaim {
   sourcePrId                              String?                       @map("source_pr_id") @db.VarChar(15)
   /// 階段 I P1 加：來源退貨明細 ID（FK nx02_pr_item、Q1=a 拍板）。對應 sourcePrId 的具體 line item、便於追溯「哪筆退貨產生此保固單」、報表可 group。
   sourcePrItemId                          String?                       @map("source_pr_item_id") @db.VarChar(15)
+  /// W5 異常鏈 Step 3 2026-07-11 加：來源異常回報單 ID（軟連結 nx03_issue_report、不建 FK）。IR dispose 一鍵開單 / 手動連結時 service 回填；保固審核完成（status=C）時回寫 IR 自動結案。；啟用最低需求版本：LITE
+  sourceIssueReportId                     String?                       @map("source_issue_report_id") @db.VarChar(15)
   /// 備註；啟用最低需求版本：LITE
   remark                                  String?                       @db.VarChar(500)
   /// 建立時間。；啟用最低需求版本：LITE
