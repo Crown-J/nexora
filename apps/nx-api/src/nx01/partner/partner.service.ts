@@ -54,6 +54,8 @@ const SEL = {
   defaultInvoiceCopies: true,
   // 偉盟設計檢視 P1-2 2026-07-10：發票抬頭
   invoiceTitle: true,
+  // 偉盟設計檢視 P1-4 2026-07-10：每月結帳日
+  statementDay: true,
   // 02 對齊第二批 C 軌 CP1：地區 / 總公司 / 個別毛利率
   regionId: true,
   parentPartnerId: true,
@@ -304,6 +306,8 @@ export class PartnerService {
           : (dto.defaultInvoiceCopies ?? 3),
         // 偉盟設計檢視 P1-2：發票抬頭（空=用 name）
         invoiceTitle: dto.invoiceTitle?.trim() || null,
+        // 偉盟設計檢視 P1-4：每月結帳日（1~31、31=月底慣例）
+        statementDay: dto.statementDay ?? null,
         // 02 對齊第二批 C 軌 CP1：地區 / 總公司 / 個別毛利率
         regionId: dto.regionId?.trim() || null,
         parentPartnerId: dto.parentPartnerId?.trim() || null,
@@ -419,6 +423,8 @@ export class PartnerService {
         ...(dto.invoiceTitle !== undefined
           ? { invoiceTitle: dto.invoiceTitle?.trim() || null }
           : {}),
+        // 偉盟設計檢視 P1-4：每月結帳日
+        ...(dto.statementDay !== undefined ? { statementDay: dto.statementDay } : {}),
         // 02 對齊第二批 C 軌 CP1：地區 / 總公司 / 個別毛利率
         ...(dto.regionId !== undefined ? { regionId: dto.regionId?.trim() || null } : {}),
         ...(dto.parentPartnerId !== undefined

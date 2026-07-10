@@ -1058,6 +1058,9 @@ model Nx01Partner {
   /// 發票抬頭（可異於客戶名稱、開發票用；空=用 name）。偉盟 BCINT 印證常態需求（92% 有值、常異於客戶名）。
   /// 2026-07-10 執行長拍板（偉盟設計檢視 P1-2）；啟用最低需求版本：LITE
   invoiceTitle                             String?                      @map("invoice_title") @db.VarChar(120)
+  /// 每月結帳日（1~31、31=月底慣例；null=未設定）。台灣月結請款文化（偉盟 BCEDT 印證）；對帳單/請款循環用。
+  /// 2026-07-10 執行長拍板（偉盟設計檢視 P1-4）；啟用最低需求版本：LITE
+  statementDay                             Int?                         @map("statement_day") @db.SmallInt
   /// 國內付款條件（PREPAY=先付款/NET30=月結30天/NET60=月結60天/NET90=月結90天）。影響國內採購AP/AR到期日計算。建立採購單時自動帶入，可手動覆蓋。；啟用最低需求版本：LITE-CORE
   paymentTermDomestic                      String                       @default("NET30") @map("payment_term_domestic") @db.VarChar(10)
   /// 客戶等級ID（FK nx01_customer_grade），供報價單定價邏輯使用。partner_type IN ('C', 'O') 通用（保養廠+同行都走 ABCD 定價、業界 muscle memory：同行看交情/量、保養廠看消費力）。；啟用最低需求版本：LITE-CORE

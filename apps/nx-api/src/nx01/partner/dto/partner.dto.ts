@@ -6,6 +6,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  Max,
   MaxLength,
   Min,
   MinLength,
@@ -167,6 +168,9 @@ export class CreatePartnerDto {
   /** 發票抬頭（可異於客戶名稱；空=用 name）。偉盟設計檢視 P1-2 2026-07-10 */
   @IsOptional() @IsString() @MaxLength(120) invoiceTitle?: string;
 
+  /** 每月結帳日（1~31、31=月底慣例）。偉盟設計檢視 P1-4 2026-07-10 */
+  @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(31) statementDay?: number;
+
   // ── 02 對齊第二批 C 軌 CP1：地區 / 總公司 / 個別毛利率 ──
   /** 地區 ID（FK nx01_region、不入 partner code 編號） */
   @IsOptional() @IsString() @MaxLength(15) regionId?: string;
@@ -294,6 +298,9 @@ export class UpdatePartnerDto {
 
   /** 發票抬頭（可異於客戶名稱；空=用 name）。偉盟設計檢視 P1-2 2026-07-10 */
   @IsOptional() @IsString() @MaxLength(120) invoiceTitle?: string | null;
+
+  /** 每月結帳日（1~31；null=清除）。偉盟設計檢視 P1-4 2026-07-10 */
+  @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(31) statementDay?: number | null;
 
   // ── 02 對齊第二批 C 軌 CP1：地區 / 總公司 / 個別毛利率 ──
   @IsOptional() @IsString() @MaxLength(15) regionId?: string | null;
