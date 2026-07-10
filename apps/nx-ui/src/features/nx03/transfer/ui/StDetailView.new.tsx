@@ -26,6 +26,7 @@ import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 
 import { NavButton, ToolbarButton, ToolbarSeparator } from '@/features/nx01/shell/ui/ErpToolbar';
 import { ToolbarPortal } from '@design/layout/workbench/WorkbenchToolbarSlot';
+import { DocPrintView } from '@/features/shared/doc-shell/DocPrintView';
 
 import { PartPicker, type PickedPart } from '@/features/nx04/quote/ui/PartPicker';
 import {
@@ -87,6 +88,7 @@ export function StDetailPanel({
   initialMode?: 'browse' | 'editHeader' | 'editItems';
 }) {
   const [st, setSt] = useState<St | null>(null);
+  const [printOpen, setPrintOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -341,8 +343,8 @@ export function StDetailPanel({
               <ToolbarSeparator />
               <ToolbarButton icon={Search} letter="F" label="查詢" enabled={!!onSearch} onClick={onSearch} />
               <ToolbarButton icon={RefreshCcw} letter="R" label="重新整理" enabled onClick={() => void reload()} />
-              <ToolbarButton icon={Printer} letter="P" label="列印" enabled onClick={() => alert('列印開發中')} />
-              <ToolbarButton icon={Download} letter="O" label="匯出" enabled onClick={() => alert('匯出開發中')} />
+              <ToolbarButton icon={Printer} letter="P" label="列印" enabled onClick={() => setPrintOpen(true)} />
+              <ToolbarButton icon={Download} letter="O" label="匯出" enabled onClick={() => setPrintOpen(true)} />
             </>
           ) : mode === 'editHeader' ? (
             <>
@@ -361,6 +363,8 @@ export function StDetailPanel({
           <div className="flex-1" />
         </div>
       </ToolbarPortal>
+
+      {printOpen && st ? <StPrintSheet doc={st} fromLocs={fromLocs} toLocs={toLocs} onClose={() => setPrintOpen(false)} /> : null}
 
       {error ? <div className="mx-4 mt-3 rounded border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm">{error}</div> : null}
 
@@ -819,5 +823,52 @@ function StItemsTable({
         </tfoot>
       </table>
     </div>
+  );
+}
+
+/** NX-DOC-PRINT：調撥單列印設定（DocPrintView 皮；出/入庫位代碼由面板庫位表查） */
+function StPrintSheet({
+  doc,
+  fromLocs,
+  toLocs,
+  onClose,
+}: {
+  doc: St;
+  fromLocs: LocOpt[];
+  toLocs: LocOpt[];
+  onClose: () => void;
+}) {
+  const lc = (id: string | null, ls: LocOpt[]) => (id ? ls.find((l) => l.id === id)?.code ?? id : '—');
+  const totalQty = (doc.items ?? []).reduce((s, it) => s + Number(it.qty), 0);
+  return (
+    <DocPrintView
+      title="調　撥　單"
+      docNo={doc.docNo}
+      fields={[
+        { label: '單號', value: doc.docNo },
+        { label: '調撥日期', value: doc.stDate.slice(0, 10) },
+        { label: '撥出倉', value: doc.fromWarehouseName ? `${doc.fromWarehouseCode ?? ''} ${doc.fromWarehouseName}` : doc.fromWarehouseId },
+        { label: '撥入倉', value: doc.toWarehouseName ? `${doc.toWarehouseCode ?? ''} ${doc.toWarehouseName}` : doc.toWarehouseId },
+        { label: '出庫時間', value: doc.postedAt ? doc.postedAt.slice(0, 10) : '' },
+        { label: '收貨時間', value: doc.receivedAt ? doc.receivedAt.slice(0, 10) : '' },
+        { label: '建單人員', value: doc.createdByName ?? '' },
+        { label: '建單日期', value: doc.createdAt.slice(0, 10) },
+      ]}
+      columns={[
+        { label: '序', width: '6%', align: 'center', render: (it) => it.lineNo },
+        { label: '料號', width: '20%', render: (it) => <span className="font-mono">{it.partNo}</span> },
+        { label: '品名', render: (it) => it.partName },
+        { label: '出庫位', width: '13%', render: (it) => <span className="font-mono">{lc(it.fromLocationId, fromLocs)}</span> },
+        { label: '入庫位', width: '13%', render: (it) => <span className="font-mono">{lc(it.toLocationId, toLocs)}</span> },
+        { label: '數量', width: '9%', align: 'right', render: (it) => Number(it.qty) },
+        { label: '備註', width: '14%', render: (it) => it.remark ?? '' },
+      ]}
+      items={doc.items ?? []}
+      getRowKey={(it) => it.id}
+      totals={[{ label: '總數量', value: String(totalQty), strong: true }]}
+      note={doc.remark}
+      signatures={['出庫倉管', '運送', '收貨倉管']}
+      onClose={onClose}
+    />
   );
 }

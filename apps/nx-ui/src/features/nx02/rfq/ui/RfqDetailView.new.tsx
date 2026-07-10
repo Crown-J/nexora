@@ -32,6 +32,7 @@ import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 
 import { NavButton, ToolbarButton, ToolbarSeparator } from '@/features/nx01/shell/ui/ErpToolbar';
 import { ToolbarPortal } from '@design/layout/workbench/WorkbenchToolbarSlot';
+import { DocPrintView, printMoney } from '@/features/shared/doc-shell/DocPrintView';
 import { CustomerPicker, type PickedCustomer } from '@/features/nx04/quote/ui/CustomerPicker';
 import { PartPicker, type PickedPart } from '@/features/nx04/quote/ui/PartPicker';
 
@@ -85,6 +86,7 @@ export function RfqDetailPanel({
 }) {
   const router = useRouter();
   const [rfq, setRfq] = useState<Rfq | null>(null);
+  const [printOpen, setPrintOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -381,8 +383,8 @@ export function RfqDetailPanel({
               <ToolbarButton icon={ClipboardList} label="詢價文字" enabled={!inquiryBusy} pressed={inquiryText !== null} onClick={() => void onGenerateInquiryText()} />
               <ToolbarButton icon={Search} letter="F" label="查詢" enabled={!!onSearch} onClick={onSearch} />
               <ToolbarButton icon={RefreshCcw} letter="R" label="重新整理" enabled onClick={() => void reload()} />
-              <ToolbarButton icon={Printer} letter="P" label="列印" enabled onClick={() => alert('列印開發中')} />
-              <ToolbarButton icon={Download} letter="O" label="匯出" enabled onClick={() => alert('匯出開發中')} />
+              <ToolbarButton icon={Printer} letter="P" label="列印" enabled onClick={() => setPrintOpen(true)} />
+              <ToolbarButton icon={Download} letter="O" label="匯出" enabled onClick={() => setPrintOpen(true)} />
             </>
           ) : mode === 'editHeader' ? (
             <>
@@ -404,6 +406,8 @@ export function RfqDetailPanel({
           ) : null}
         </div>
       </ToolbarPortal>
+
+      {printOpen && rfq ? <RfqPrintSheet doc={rfq} onClose={() => setPrintOpen(false)} /> : null}
 
       {error ? <div className="mx-4 mt-3 rounded border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm">{error}</div> : null}
 
@@ -1024,5 +1028,47 @@ export function RfqCreatePanel({ onCreated, onCancel }: { onCreated: (id: string
         </section>
       </div>
     </div>
+  );
+}
+
+/** NX-DOC-PRINT：詢價單列印設定（DocPrintView 皮） */
+function RfqPrintSheet({ doc, onClose }: { doc: Rfq; onClose: () => void }) {
+  return (
+    <DocPrintView
+      title="詢　價　單"
+      docNo={doc.docNo}
+      fields={[
+        { label: '單號', value: doc.docNo },
+        { label: '詢價日期', value: doc.rfqDate.slice(0, 10) },
+        { label: '供應商編號', value: doc.supplierCode ?? '' },
+        { label: '供應商名稱', value: doc.supplierName ?? '未指定' },
+        { label: '聯絡人', value: doc.contactName ?? '' },
+        { label: '電話', value: doc.contactPhone ?? '' },
+        { label: '需求倉庫', value: doc.warehouseName ?? '' },
+        { label: '幣別', value: doc.currency },
+      ]}
+      columns={[
+        { label: '序', width: '6%', align: 'center', render: (it) => it.lineNo },
+        {
+          label: '料號', width: '20%',
+          render: (it) => (
+            <span className="font-mono">
+              {it.partNo}
+              {it.secCode ? <><br /><span className="text-neutral-500">{it.secCode}</span></> : null}
+            </span>
+          ),
+        },
+        { label: '品名', render: (it) => it.partName },
+        { label: '數量', width: '9%', align: 'right', render: (it) => Number(it.qty) },
+        { label: '回覆單價', width: '12%', align: 'right', render: (it) => (it.unitPrice != null ? printMoney(it.unitPrice) : '') },
+        { label: '交期(天)', width: '9%', align: 'right', render: (it) => it.leadTimeDays ?? '' },
+        { label: '備註', width: '14%', render: (it) => it.remark ?? '' },
+      ]}
+      items={doc.items ?? []}
+      getRowKey={(it) => it.id}
+      note={doc.remark}
+      signatures={['採購', '主管']}
+      onClose={onClose}
+    />
   );
 }
