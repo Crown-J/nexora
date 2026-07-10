@@ -19,12 +19,15 @@ export function FormField({
   mono,
   dim,
   tone,
+  emphasis,
 }: {
   label: string;
   value: string;
   mono?: boolean;
   dim?: boolean;
   tone?: 'amber' | 'green' | 'red' | 'muted';
+  /** 主識別欄位（代碼/名稱）：值加大加重金色強調（詳細頁排版 2026-07-11 執行長拍板） */
+  emphasis?: boolean;
 }) {
   return (
     <div className="flex flex-col gap-1">
@@ -42,6 +45,9 @@ export function FormField({
           tone === 'red' && '!border-[var(--color-danger)]/30 !bg-[var(--color-danger)]/8 text-[var(--color-danger)]',
           tone === 'muted' && '!border-[var(--border)] text-[var(--muted-foreground)]',
           !tone && !dim && 'text-[var(--nx-surface-input-fg)]',
+          emphasis &&
+            '!border-[var(--primary)]/35 !text-[15px] font-semibold text-[var(--primary)]',
+          emphasis && mono && '!text-[14px]',
         )}
       >
         {value}

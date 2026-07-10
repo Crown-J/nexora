@@ -19,8 +19,8 @@ export const CURRENCY_MASTER: EntityMasterConfig = {
   errorCodePrefix: 'nxui_base_currency',
   deleteMode: 'soft-delete-rest',
   fields: [
-    { key: 'code', label: '幣別代碼', required: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]', placeholder: 'TWD' },
-    { key: 'name', label: '幣別名稱', required: true, minWidthClass: 'min-w-[140px]', placeholder: '新台幣' },
+    { key: 'code', label: '幣別代碼', required: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]', placeholder: 'TWD', emphasis: true },
+    { key: 'name', label: '幣別名稱', required: true, minWidthClass: 'min-w-[140px]', placeholder: '新台幣', emphasis: true },
     { key: 'symbol', label: '幣別符號', placeholder: 'NT$' },
     { key: 'decimalPlaces', label: '小數位數', type: 'number', defaultValue: '2' },
     { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
@@ -36,8 +36,8 @@ export const COUNTRY_MASTER: EntityMasterConfig = {
   errorCodePrefix: 'nxui_base_country',
   deleteMode: 'soft-delete-rest',
   fields: [
-    { key: 'code', label: '國家代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]', placeholder: 'TW' },
-    { key: 'name', label: '國家名稱', required: true, minWidthClass: 'min-w-[140px]', placeholder: '台灣' },
+    { key: 'code', label: '國家代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]', placeholder: 'TW', emphasis: true },
+    { key: 'name', label: '國家名稱', required: true, minWidthClass: 'min-w-[140px]', placeholder: '台灣', emphasis: true },
     { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
   ],
 };
@@ -51,8 +51,8 @@ export const PART_GROUP_MASTER: EntityMasterConfig = {
   errorCodePrefix: 'nxui_base_part_group',
   deleteMode: 'soft-delete-rest',
   fields: [
-    { key: 'code', label: '群組代碼', required: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]' },
-    { key: 'name', label: '群組名稱', required: true, minWidthClass: 'min-w-[140px]' },
+    { key: 'code', label: '群組代碼', required: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]', emphasis: true },
+    { key: 'name', label: '群組名稱', required: true, minWidthClass: 'min-w-[140px]', emphasis: true },
     // 02 第四批 軌 6 2026-06-07：族群層預設保存期限（新增零件選此族群時自動帶入個別零件、可覆寫）
     { key: 'defaultShelfLifeMonths', label: '預設建議保存期限(月)', type: 'number', placeholder: '12', minWidthClass: 'min-w-[140px]' },
     { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },

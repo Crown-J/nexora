@@ -73,6 +73,16 @@ export type EntityFieldDef = {
   // ── type 'computed'（唯讀即時預覽，不存 DB、不送後端）──
   /** 依目前表單值即時計算顯示字串（如料號分段預覽）；editing 時讀 draft、瀏覽時讀 row */
   compute?: (values: Record<string, unknown>) => string;
+
+  // ── 詳細頁排版（2026-07-11 執行長拍板「統一底座 + 每檔個別調」、演進 2026-06-24「統一 5 欄」拍板）──
+  /** 詳細頁跨欄：2/3 = 佔 2/3 格（窄螢幕自動降級）、'full' = 整排（長文/地址/內容）。
+   *  未指定時 textarea/json 預設佔 2 格（維持既有行為） */
+  detailSpan?: 2 | 3 | 'full';
+  /** 詳細頁分組：相同字串的「連續」欄位歸一組（組間分隔線+小標）；未標=延續前一組。
+   *  依 fields 宣告順序切段、不重排欄位 */
+  detailGroup?: string;
+  /** 主識別欄位（代碼/名稱）：瀏覽模式值加大加重金色強調；編輯模式不影響 */
+  emphasis?: boolean;
 };
 
 export type EntityMasterConfig = {

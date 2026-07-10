@@ -278,35 +278,39 @@ export function PartnerFormZoned({
             );
           }
 
-          // 文字輸入
+          // 文字輸入（地址/備註長文 → 跨 2 欄、詳細頁排版 2026-07-11 執行長拍板）
+          const wide = f.key === 'address' || f.key === 'remark';
           if (fieldEditable) {
             return (
-              <FormInput
-                key={f.key}
-                label={f.label + (f.required ? ' *' : '')}
-                value={String(draft[f.key] ?? '')}
-                onChange={(v) => setDraft({ ...draft, [f.key]: v })}
-              />
+              <div key={f.key} className={wide ? 'sm:col-span-2' : undefined}>
+                <FormInput
+                  label={f.label + (f.required ? ' *' : '')}
+                  value={String(draft[f.key] ?? '')}
+                  onChange={(v) => setDraft({ ...draft, [f.key]: v })}
+                />
+              </div>
             );
           }
 
-          // 瀏覽 / locked / 非 editable zone 顯示
+          // 瀏覽 / locked / 非 editable zone 顯示（code/name 主識別 emphasis、詳細頁排版 2026-07-11）
           const raw = draft[f.key];
           const display = renderBrowseValue(f.key, raw, refOptions);
           return (
-            <FormField
-              key={f.key}
-              label={f.label}
-              value={display}
-              mono={f.key === 'code' || f.key === 'taxId'}
-              tone={
-                f.key === 'canTransferStock'
-                  ? (raw ? 'green' : 'muted')
-                  : f.key === 'creditStatus'
-                    ? (String(raw) === 'F' ? 'red' : String(raw) === 'W' ? 'amber' : undefined)
-                    : undefined
-              }
-            />
+            <div key={f.key} className={wide ? 'sm:col-span-2' : undefined}>
+              <FormField
+                label={f.label}
+                value={display}
+                mono={f.key === 'code' || f.key === 'taxId'}
+                emphasis={f.key === 'code' || f.key === 'name'}
+                tone={
+                  f.key === 'canTransferStock'
+                    ? (raw ? 'green' : 'muted')
+                    : f.key === 'creditStatus'
+                      ? (String(raw) === 'F' ? 'red' : String(raw) === 'W' ? 'amber' : undefined)
+                      : undefined
+                }
+              />
+            </div>
           );
         })}
       </div>
