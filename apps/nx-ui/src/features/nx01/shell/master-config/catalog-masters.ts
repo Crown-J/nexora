@@ -87,22 +87,8 @@ export const TEAM_MASTER: EntityMasterConfig = {
 };
 
 // ── 車型字典 ────────────────────────────────────────────
-export const CAR_BRAND_MASTER: EntityMasterConfig = {
-  basePath: 'nx01/car-brands',
-  category: '車型字典',
-  title: '車廠品牌基本資料',
-  entityNoun: '車廠品牌',
-  errorCodePrefix: 'nxui_base_car_brand',
-  deleteMode: SOFT,
-  fields: [
-    { key: 'code', label: '品牌代碼', required: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]', detailGroup: '識別', emphasis: true },
-    { key: 'name', label: '品牌名稱', required: true, minWidthClass: 'min-w-[140px]', emphasis: true },
-    { key: 'nameEn', label: '英文名稱', inList: false },
-    { key: 'countryId', label: '國別', type: 'ref', refBasePath: 'nx01/countries', minWidthClass: 'min-w-[120px]', detailGroup: '屬性' },
-    { key: 'logoUrl', label: 'Logo 網址', inList: false, detailGroup: '其他', detailSpan: 2 },
-    { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
-  ],
-};
+// CAR_BRAND_MASTER 已刪（2026-07-11 死碼清理）：W6 品牌合併後 car-brand/page.tsx
+// 於 2026-06-18 起 redirect 到 /dashboard/master/brand、config 零引用。
 
 export const MODEL_MASTER: EntityMasterConfig = {
   basePath: 'nx01/models',
@@ -168,26 +154,8 @@ export const REGION_MASTER: EntityMasterConfig = {
 };
 
 // ── 產品料號 ────────────────────────────────────────────
-/**
- * @deprecated 2026-06-18:已被 BRAND_MASTER 合併（nx01/brands + isPart=true）。
- * 保留 export 暫不刪、避免 part-brand/page.tsx 對應 page 編譯失敗。
- * pageId 移除（dock 不標亮）；page.tsx 應加 redirect 到 /dashboard/master/brand。
- */
-export const PART_BRAND_MASTER: EntityMasterConfig = {
-  basePath: 'nx01/part-brands',
-  category: '產品料號',
-  title: '零件廠牌基本資料',
-  entityNoun: '零件廠牌',
-  errorCodePrefix: 'nxui_base_part_brand',
-  deleteMode: SOFT,
-  fields: [
-    { key: 'code', label: '廠牌代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]' },
-    { key: 'name', label: '廠牌名稱', required: true, minWidthClass: 'min-w-[140px]' },
-    { key: 'countryId', label: '國別', type: 'ref', refBasePath: 'nx01/countries', inList: false },
-    { key: 'isOem', label: '是否原廠', type: 'toggle', defaultValue: false, inList: false },
-    { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
-  ],
-};
+// PART_BRAND_MASTER 已刪（2026-07-11 死碼清理）：deprecated 註解的保留理由已消失——
+// part-brand/page.tsx 於 2026-06-18 起 redirect 到 /dashboard/master/brand、config 零引用。
 
 export const PART_RELATION_MASTER: EntityMasterConfig = {
   basePath: 'nx01/part-relations',
