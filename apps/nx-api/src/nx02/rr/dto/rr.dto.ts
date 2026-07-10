@@ -92,6 +92,12 @@ export class CreateRrDto {
   @MaxLength(15)
   poId?: string;
 
+  // NX02-TI-SHELL 2026-07-11：來源同行調貨單（TI 轉進貨用；過帳時回寫 TI 完成 + SO 缺貨行補貨完成）
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  tiId?: string;
+
   @IsOptional()
   @IsString()
   @MaxLength(10)

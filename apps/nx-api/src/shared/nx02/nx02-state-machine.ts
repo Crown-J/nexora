@@ -123,6 +123,62 @@ export function assertPrStatusTransition(from: string, to: string): void {
   }
 }
 
+/**
+ * TiStatus 同行調貨單狀態（NX02-TI-SHELL 2026-07-11 啟動 TI 管理面時定義）。
+ * DB 存單字元（schema nx02_ti.status：D/S/R/P/C/V）、API 走全名 token。
+ *
+ * 狀態流：D 草稿（SO 缺貨行群組建單 / 比價採用建單）→ S 已發出（向同行送出）
+ *        → R 已回覆（同行回價、量價回填）→ P 待驗收（轉進貨後、貨在途）
+ *        → C 已完成（來源=TI 的進貨單過帳時自動回寫、SO 缺貨行同步補貨完成）
+ *        非終態（P 除外）→ V 作廢（連動來源 SO 行退回待補）
+ * 轉進貨放寬 D/S/R → P（實務上貨先到、單況未跟上很常見）；P 不可作廢（先處理其進貨單）。
+ */
+export const TiStatus = {
+  DRAFT: 'DRAFT',
+  SENT: 'SENT',
+  REPLIED: 'REPLIED',
+  PENDING_RECEIPT: 'PENDING_RECEIPT',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED',
+} as const;
+
+const TI_EDGES: Record<string, Set<string>> = {
+  [TiStatus.DRAFT]: new Set([TiStatus.SENT, TiStatus.REPLIED, TiStatus.PENDING_RECEIPT, TiStatus.CANCELLED]),
+  [TiStatus.SENT]: new Set([TiStatus.REPLIED, TiStatus.PENDING_RECEIPT, TiStatus.CANCELLED]),
+  [TiStatus.REPLIED]: new Set([TiStatus.PENDING_RECEIPT, TiStatus.CANCELLED]),
+  [TiStatus.PENDING_RECEIPT]: new Set([TiStatus.COMPLETED]),
+  [TiStatus.COMPLETED]: new Set(),
+  [TiStatus.CANCELLED]: new Set(),
+};
+
+export function assertTiStatusTransition(from: string, to: string): void {
+  const edges = TI_EDGES[from];
+  if (!edges || !edges.has(to)) {
+    throw new BadRequestException(`Invalid TI status transition: ${from} -> ${to}`);
+  }
+}
+
+const TI_DB_TO_API: Record<string, string> = {
+  D: TiStatus.DRAFT,
+  S: TiStatus.SENT,
+  R: TiStatus.REPLIED,
+  P: TiStatus.PENDING_RECEIPT,
+  C: TiStatus.COMPLETED,
+  V: TiStatus.CANCELLED,
+};
+const TI_API_TO_DB: Record<string, string> = Object.fromEntries(
+  Object.entries(TI_DB_TO_API).map(([db, api]) => [api, db]),
+);
+
+/** DB 單字元 TI 狀態轉 API token */
+export function tiDbToApi(s: string): string {
+  return TI_DB_TO_API[s] ?? TiStatus.DRAFT;
+}
+
+export function tiApiToDb(s: string): string {
+  return TI_API_TO_DB[s] ?? 'D';
+}
+
 /** DB 單字元 PR 狀態轉 API token */
 export function prDbToApi(s: string): string {
   if (s === 'P') return PrStatus.POSTED;

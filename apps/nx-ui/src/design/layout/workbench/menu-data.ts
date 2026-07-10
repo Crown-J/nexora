@@ -138,7 +138,11 @@ export const MENU_BAR: MenuNode[] = [
       { key: 'demand', label: '缺貨簿', href: '/dashboard/purchase/demand' },
       { key: 'rfq', label: '詢價作業', href: '/dashboard/purchase/rfq' },
       { key: 'po', label: '採購單', href: '/dashboard/purchase/po' },
-      { key: 'ti', label: '進貨單', href: '/dashboard/purchase/domestic' },
+      // NX02-TI-SHELL 2026-07-11：正名——原 key 'ti' 掛的是國內採購工作台（改 key 'domestic'）、
+      // 同行調貨單 TI 管理面首發、進貨單 RR 補上直達項
+      { key: 'domestic', label: '國內採購工作台', href: '/dashboard/purchase/domestic' },
+      { key: 'rr', label: '進貨單', href: '/dashboard/purchase/rr' },
+      { key: 'ti', label: '同行調貨單', href: '/dashboard/purchase/ti' },
       { key: 'pr', label: '進貨退回', href: '/dashboard/purchase/pr' },
       { key: 'warranty', label: '保固申請', href: '/dashboard/purchase/warranty' },
       { key: 'special', label: '特殊採購', href: '/dashboard/purchase/special' },

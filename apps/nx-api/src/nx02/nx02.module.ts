@@ -27,6 +27,8 @@ import { RfqController } from './rfq/rfq.controller';
 import { RfqService } from './rfq/rfq.service';
 import { RrController } from './rr/rr.controller';
 import { RrService } from './rr/rr.service';
+import { TiController } from './ti/ti.controller';
+import { TiService } from './ti/ti.service';
 import { WarrantyClaimAttachmentService } from './warranty-claim/warranty-claim-attachment.service';
 import { WarrantyClaimController } from './warranty-claim/warranty-claim.controller';
 import { WarrantyClaimService } from './warranty-claim/warranty-claim.service';
@@ -37,6 +39,7 @@ import { WarrantyClaimService } from './warranty-claim/warranty-claim.service';
     RfqController,
     PoController,
     RrController,
+    TiController,
     PurchaseReturnController,
     QtController,
     PartnerPartController,
@@ -51,6 +54,7 @@ import { WarrantyClaimService } from './warranty-claim/warranty-claim.service';
     RfqService,
     PoService,
     RrService,
+    TiService,
     PurchaseReturnService,
     Nx02QtService,
     PartnerPartService,

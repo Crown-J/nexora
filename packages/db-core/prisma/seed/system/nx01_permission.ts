@@ -54,6 +54,8 @@ const ALL_PERMS: PermissionRow[] = [
   ...crudPerms('purchase', 'warranty-claim', '保固申請單', 1060),
   ...crudPerms('purchase', 'vendor', '供應商管理', 1070),
   ...crudPerms('purchase', 'product', '產品（進貨角度）', 1080),
+  // NX02-TI-SHELL 2026-07-11：同行調貨單管理面首發（OWNER/SYSADMIN 有 guard 保險絲、一般角色待 seed 重跑後可指派）
+  ...crudPerms('purchase', 'ti', '同行調貨單', 1090),
   {
     code: 'purchase.rr.post',
     moduleCode: 'purchase',

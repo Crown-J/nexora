@@ -13,6 +13,7 @@ import {
   Download,
   FileClock,
   Pencil,
+  Handshake,
   Plus,
   Printer,
   RefreshCcw,
@@ -21,6 +22,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 
 import { NavButton, ToolbarButton, ToolbarSeparator } from '@/features/nx01/shell/ui/ErpToolbar';
@@ -43,6 +45,8 @@ import { SO_STATUS_LABEL, type SoStatus } from '@data/types/nx04/so';
 
 import { CustomerPicker, type PickedCustomer } from '../../quote/ui/CustomerPicker';
 import { PartPicker, type PickedPart } from '../../quote/ui/PartPicker';
+// NX02-TI-SHELL 2026-07-11：同行調貨入口接回新殼（缺貨行群組建 TI、建完跳 TI 詳情）
+import { CreateTiFromSoModal } from './CreateTiFromSoModal';
 
 const DELIVERY_LABEL: Record<string, string> = { P: '自取', D: '配送', S: '寄送' };
 const EDITABLE_STATUS: SoStatus[] = ['DRAFT'];
@@ -81,6 +85,9 @@ export function SoDetailPanel({
 }) {
   const [so, setSo] = useState<So | null>(null);
   const [printOpen, setPrintOpen] = useState(false);
+  // NX02-TI-SHELL：同行調貨 modal（缺貨行 → 建 TI）
+  const [tiModalOpen, setTiModalOpen] = useState(false);
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -323,6 +330,9 @@ export function SoDetailPanel({
                 }}
               />
               <ToolbarSeparator />
+              {/* NX02-TI-SHELL：缺貨行 → 同行調貨（modal 內列 transferSourceType=G 待補行） */}
+              <ToolbarButton icon={Handshake} label="同行調貨" enabled={!busy} onClick={() => setTiModalOpen(true)} />
+              <ToolbarSeparator />
               <ToolbarButton icon={Search} letter="F" label="查詢" enabled={!!onSearch} onClick={onSearch} />
               <ToolbarButton icon={RefreshCcw} letter="R" label="重新整理" enabled onClick={() => void reload()} />
               <ToolbarButton icon={Printer} letter="P" label="列印" enabled onClick={() => setPrintOpen(true)} />
@@ -348,6 +358,18 @@ export function SoDetailPanel({
       </ToolbarPortal>
 
       {printOpen && so ? <SoPrintSheet doc={so} onClose={() => setPrintOpen(false)} /> : null}
+
+      {tiModalOpen && so ? (
+        <CreateTiFromSoModal
+          soId={so.id}
+          docNo={so.docNo}
+          onClose={() => setTiModalOpen(false)}
+          onCreated={(resp) => {
+            setTiModalOpen(false);
+            router.push(`/dashboard/purchase/ti/${encodeURIComponent(resp.tiId)}`);
+          }}
+        />
+      ) : null}
 
       {error ? <div className="mx-4 mt-3 rounded border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm">{error}</div> : null}
 

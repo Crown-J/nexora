@@ -455,6 +455,11 @@ export class RrService {
         const p = await tx.nx02Po.findFirst({ where: { id: dto.poId, tenantId }, select: { id: true } });
         if (!p) throw new NotFoundException('poId not found');
       }
+      // NX02-TI-SHELL：來源同行調貨單（TI 轉進貨）
+      if (dto.tiId) {
+        const t = await tx.nx02Ti.findFirst({ where: { id: dto.tiId, tenantId }, select: { id: true } });
+        if (!t) throw new NotFoundException('tiId not found');
+      }
       const docNo = await allocDocNo(tx, tenantId, 'RR', wh.code);
       const taxRate = new PrismaNs.Decimal(dto.taxRate ?? 5);
       const currId = await resolveCurrencyId(tx, dto.currencyId ?? 'TWD');
@@ -467,6 +472,7 @@ export class RrService {
           supplierId: dto.supplierId,
           rfqId: dto.rfqId?.trim() || null,
           poId: dto.poId?.trim() || null,
+          tiId: dto.tiId?.trim() || null,
           currencyId: currId,
           status: RrStatus.DRAFT,
           taxRate,
@@ -584,6 +590,32 @@ export class RrService {
             updatedBy: user.sub,
           },
         });
+        // NX02-TI-SHELL 2026-07-11：來源=同行調貨單的進貨過帳 → 回寫鏈（同交易、要嘛全成要嘛全不動）
+        //   ① TI 狀態 → C 已完成（應付由本 RR 過帳的 createApFromPostedRr 立、TI 不重複立帳——執行長拍板「帳跟貨走」）
+        //   ② 該 TI 連結的 SO 缺貨行 transferStatus → C 補貨完成（業務端看到「貨到了可以出」）
+        if (head.tiId) {
+          const ti = await tx.nx02Ti.findFirst({
+            where: { id: head.tiId, tenantId },
+            select: { id: true, status: true },
+          });
+          if (ti && ti.status !== 'C' && ti.status !== 'V') {
+            await tx.nx02Ti.update({
+              where: { id: ti.id },
+              data: { status: 'C', updatedBy: user.sub },
+            });
+            const tiItems = await tx.nx02TiItem.findMany({
+              where: { tiId: ti.id },
+              select: { sourceSoItemId: true },
+            });
+            const soItemIds = tiItems.map((t) => t.sourceSoItemId).filter(Boolean);
+            if (soItemIds.length) {
+              await tx.nx04SoItem.updateMany({
+                where: { id: { in: soItemIds }, tiId: ti.id },
+                data: { transferStatus: 'C', updatedBy: user.sub },
+              });
+            }
+          }
+        }
       } else {
         await tx.nx02Rr.update({
           where: { id },
