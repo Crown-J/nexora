@@ -1,7 +1,14 @@
 // apps/nx-ui/src/design/components/quick-search/PartMainWindow.tsx
 // 料號即時搜尋 視窗 2：主視窗（執行長 2026-06-25 任務單）
 //
-// 三欄式：左基本資料 / 中庫存狀態 / 右通用零件
+// 三欄式：左基本資料 / 中公司總存貨 / 右通用零件
+//
+// F2 改版 Step 1（docs/_team/f2-redesign-handoff.md §3 §6、執行長 2026-06-25 拍板）：
+//   · 預設頁不分倉、只答「公司到底有沒有貨」：
+//     大狀態（有貨可出／低於安全／缺貨）+ 總可出/總庫存/在途 + 公司庫存水位條
+//   · 水位條一條看懂：安全量 ─ 現量 ─ 最高量（安全/最高 = 各倉庫存設定加總）
+//   · 各倉分布自預設頁移除（執行長明確拿掉；倉別改由入口情境決定、見交接 §4）
+//   · 基本資訊卡加大面積
 //
 // 核心連動（視窗 2 靈魂）：
 //   · Enter（右欄）= 預覽：左中切到該件資料、但主件保留置頂高亮（供比完切回）
@@ -15,8 +22,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowLeft,
-  ChevronDown,
-  ChevronRight,
   Image as ImageIcon,
   Loader2,
   Package,
@@ -28,6 +33,7 @@ import {
   buildPartSearchPhotoUrl,
   getPartCompatGroup,
   getPartDetail,
+  getPartStockSettings,
   getPartStockSummary,
   listPartSearchPhotos,
   type PartPhotoMeta,
@@ -36,6 +42,7 @@ import type {
   PartCompatGroupDto,
   PartCompatMemberDto,
   PartDetailDto,
+  PartStockSettingRow,
   PartStockSummaryDto,
 } from '@data/types/nx01/part-search';
 import { FocusLockedDialog } from '@design/primitives/focus-locked-dialog';
@@ -69,6 +76,7 @@ export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props
   // 左中欄資料（隨 effectivePartId 變）
   const [detail, setDetail] = useState<PartDetailDto | null>(null);
   const [stock, setStock] = useState<PartStockSummaryDto | null>(null);
+  const [stockSettings, setStockSettings] = useState<PartStockSettingRow[]>([]);
   const [photos, setPhotos] = useState<PartPhotoMeta[]>([]);
   const [leftLoading, setLeftLoading] = useState(false);
 
@@ -94,19 +102,23 @@ export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props
     setLeftLoading(true);
     void (async () => {
       try {
-        const [d, s, p] = await Promise.all([
+        const [d, s, g, p] = await Promise.all([
           getPartDetail(effectivePartId),
           getPartStockSummary(effectivePartId),
+          // 庫存設定（水位條安全/最高量用）；未設定或失敗 → 空陣列、水位條退化顯示
+          getPartStockSettings(effectivePartId).catch(() => ({ rows: [] as PartStockSettingRow[] })),
           listPartSearchPhotos(effectivePartId).catch(() => ({ rows: [] as PartPhotoMeta[] })),
         ]);
         if (leftReqRef.current !== myReq) return;
         setDetail(d);
         setStock(s);
+        setStockSettings(g.rows);
         setPhotos(p.rows);
       } catch {
         if (leftReqRef.current !== myReq) return;
         setDetail(null);
         setStock(null);
+        setStockSettings([]);
         setPhotos([]);
       } finally {
         if (leftReqRef.current === myReq) setLeftLoading(false);
@@ -352,8 +364,8 @@ export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props
           </button>
         </div>
 
-        {/* 三欄 */}
-        <div className="grid min-h-0 flex-1 grid-cols-[minmax(280px,1fr)_minmax(320px,1.1fr)_minmax(340px,1.2fr)]">
+        {/* 三欄（Step 1：基本資訊加大 → 左欄配比 1fr→1.25fr）*/}
+        <div className="grid min-h-0 flex-1 grid-cols-[minmax(340px,1.25fr)_minmax(300px,1fr)_minmax(340px,1.2fr)]">
           {/* 左欄：基本資料 + 縮圖 */}
           <LeftColumn
             detail={detail}
@@ -363,8 +375,8 @@ export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props
             onZoomToggle={() => setPhotoZoom((z) => !z)}
           />
 
-          {/* 中欄：庫存狀態 */}
-          <MiddleColumn stock={stock} loading={leftLoading} />
+          {/* 中欄：公司總存貨（不分倉）*/}
+          <CompanyStockColumn stock={stock} settings={stockSettings} loading={leftLoading} />
 
           {/* 右欄：通用零件 */}
           <RightColumn
@@ -458,7 +470,8 @@ function LeftColumn({
           type="button"
           onClick={onZoomToggle}
           className={cn(
-            'group relative mx-auto flex aspect-square w-full max-w-[220px] items-center justify-center overflow-hidden rounded-lg border-2 bg-background/40 transition-colors',
+            // Step 1：基本資訊卡加大面積（交接 §6）→ 縮圖 220 → 280
+            'group relative mx-auto flex aspect-square w-full max-w-[280px] items-center justify-center overflow-hidden rounded-lg border-2 bg-background/40 transition-colors',
             previewActive ? 'border-border/55' : 'border-primary/35',
             'hover:border-primary',
           )}
@@ -514,163 +527,162 @@ function LeftColumn({
   );
 }
 
-// ─── 中欄 ────────────────────────────────────────────────
-// 執行長 2026-06-25 修正單：
-//   1. 表格化（表頭一行 + 每倉一列、數字欄對齊）
-//   2. 表頭文字自帶顏色當圖例、數字跟欄色、不另設圖例列
-//   3. 隱藏全 0 倉、底部「其他 N 倉無庫存 ▾」折疊；全倉 0 顯「各倉皆無庫存」
-//   4. 視窗尺寸恆定（鐵律）：中欄分三段、各倉位分布區塊 flex-1 內部捲動、不撐大外框
-function MiddleColumn({
+// ─── 中欄：公司總存貨 ─────────────────────────────────────
+// F2 改版 Step 1（交接 §3 §6）：預設頁不分倉、只答「公司到底有沒有貨」。
+//   · 大狀態：有貨可出（可出 ≥ 安全）／低於安全（0 < 可出 < 安全）／缺貨（可出 ≤ 0）
+//     未設定安全量時：可出 > 0 即視為有貨可出
+//   · 三指標：總可出（主角）／總庫存／在途
+//   · 水位條一條看懂：安全量 ─ 現量 ─ 最高量（各倉庫存設定 min/max 加總）
+//   · 各倉分布已自預設頁移除（執行長拍板：那是過度設計；倉別由入口情境決定）
+type CompanyStockStatus = 'ok' | 'low' | 'out';
+
+const STATUS_META: Record<
+  CompanyStockStatus,
+  { label: string; sub: string; color: string }
+> = {
+  ok: { label: '有貨可出', sub: '公司可出量充足', color: STOCK_COLORS.available },
+  low: { label: '低於安全', sub: '可出量低於安全庫存', color: STOCK_COLORS.inTransit },
+  out: { label: '缺貨', sub: '公司無可出庫存', color: STOCK_COLORS.reserved },
+};
+
+function CompanyStockColumn({
   stock,
+  settings,
   loading,
 }: {
   stock: PartStockSummaryDto | null;
+  settings: PartStockSettingRow[];
   loading: boolean;
 }) {
   const company = stock?.company;
-  const warehouses = stock?.warehouses ?? [];
+  const onHand = Number(company?.onHand ?? 0);
+  const available = Number(company?.available ?? 0);
+  const inTransit = Number(company?.inTransit ?? 0);
 
-  // 過濾全 0 倉
-  const isAllZero = (w: (typeof warehouses)[number]) =>
-    Number(w.onHand) === 0 &&
-    Number(w.available) === 0 &&
-    Number(w.reserved) === 0 &&
-    Number(w.inTransit) === 0;
-  const nonZeroWh = warehouses.filter((w) => !isAllZero(w));
-  const zeroWh = warehouses.filter(isAllZero);
-  const [showZeros, setShowZeros] = useState(false);
-  const allZero = warehouses.length > 0 && nonZeroWh.length === 0;
+  // 公司層安全/最高 = 各倉庫存設定加總（設定為每倉一筆、無公司層欄位；0 = 未設定）
+  const safetyQty = settings.reduce((sum, s) => sum + Number(s.minQty || 0), 0);
+  const maxQty = settings.reduce((sum, s) => sum + Number(s.maxQty || 0), 0);
+
+  const status: CompanyStockStatus =
+    available <= 0 ? 'out' : safetyQty > 0 && available < safetyQty ? 'low' : 'ok';
+  const meta = STATUS_META[status];
 
   return (
     <section className="flex min-h-0 flex-col border-r border-border/40 bg-background/20">
-      <SectionHeader icon={<Warehouse className="size-3.5" />} label="庫存狀態" loading={loading} />
-      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden px-5 py-4">
-        {/* 上段：公司總 4 顆 KPI（shrink-0、固定高度）*/}
-        <div className="grid shrink-0 grid-cols-2 gap-2">
-          <KpiTile label="公司總庫存" value={company?.onHand} color={STOCK_COLORS.onHand} />
-          <KpiTile label="可出量" value={company?.available} color={STOCK_COLORS.available} />
-          <KpiTile
-            label="不可出量"
-            value={String(Number(company?.reserved ?? '0'))}
-            color={STOCK_COLORS.reserved}
-          />
-          <KpiTile
-            label="在進量（在途）"
-            value={company?.inTransit}
-            color={STOCK_COLORS.inTransit}
-          />
+      <SectionHeader
+        icon={<Warehouse className="size-3.5" />}
+        label="公司總存貨"
+        loading={loading}
+      />
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto px-5 py-4">
+        {/* 大狀態（視覺主角）*/}
+        <div
+          className="flex shrink-0 flex-col items-center gap-1 rounded-lg border-2 px-4 py-5"
+          style={{
+            borderColor: `${meta.color}88`,
+            backgroundColor: `${meta.color}14`,
+            boxShadow: `0 0 24px -8px ${meta.color}66`,
+          }}
+        >
+          <span className="text-[26px] font-bold tracking-[0.12em]" style={{ color: meta.color }}>
+            {stock ? meta.label : '—'}
+          </span>
+          <span className="text-[12px] text-muted-foreground/85">
+            {stock ? meta.sub : '庫存資料載入中'}
+          </span>
         </div>
 
-        {/* 下段：各倉位分布表格（flex-1 + overflow-auto、內容多時內部捲動）*/}
-        <div className="flex min-h-0 flex-1 flex-col gap-1.5 overflow-hidden">
-          <h4 className="shrink-0 text-[10px] uppercase tracking-[0.22em] text-muted-foreground/70">
-            各倉位分布
-          </h4>
-
-          {warehouses.length === 0 ? (
-            <div className="rounded-md border border-dashed border-border/35 px-3 py-4 text-center text-[11px] text-muted-foreground/55">
-              無倉位庫存資料
-            </div>
-          ) : allZero ? (
-            <div className="rounded-md border border-dashed border-border/35 px-3 py-6 text-center text-[12px] text-muted-foreground/65">
-              各倉皆無庫存
-            </div>
-          ) : (
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-border/50 bg-secondary/55">
-              {/* 表頭一行：文字自帶顏色當圖例 */}
-              <div
-                className="grid shrink-0 items-center border-b border-border/35 bg-background/45 px-3 py-2 text-[12px] font-medium uppercase tracking-[0.1em]"
-                style={{ gridTemplateColumns: WH_GRID_COLS }}
-              >
-                <span className="text-muted-foreground/85">倉位</span>
-                <span className="text-right" style={{ color: STOCK_COLORS.onHand }}>現有</span>
-                <span className="text-right" style={{ color: STOCK_COLORS.available }}>可出</span>
-                <span className="text-right" style={{ color: STOCK_COLORS.reserved }}>不可出</span>
-                <span className="text-right" style={{ color: STOCK_COLORS.inTransit }}>在途</span>
-              </div>
-
-              {/* 內容區（內部捲動）*/}
-              <div className="min-h-0 flex-1 overflow-auto">
-                <ul className="flex flex-col">
-                  {nonZeroWh.map((w) => (
-                    <WarehouseRow key={w.warehouseId} w={w} />
-                  ))}
-
-                  {/* 隱藏空倉折疊區 */}
-                  {zeroWh.length > 0 && (
-                    <li className="border-t border-border/20">
-                      <button
-                        type="button"
-                        onClick={() => setShowZeros((v) => !v)}
-                        className="flex w-full items-center gap-1.5 px-3 py-2 text-left text-[12px] text-muted-foreground/85 transition-colors hover:bg-secondary/60 hover:text-foreground"
-                      >
-                        {showZeros ? (
-                          <ChevronDown className="size-3" />
-                        ) : (
-                          <ChevronRight className="size-3" />
-                        )}
-                        <span>
-                          其他 <span className="font-mono">{zeroWh.length}</span> 倉無庫存
-                        </span>
-                      </button>
-                      {showZeros && (
-                        <ul className="border-t border-border/15 bg-background/20">
-                          {zeroWh.map((w) => (
-                            <WarehouseRow key={w.warehouseId} w={w} dimmed />
-                          ))}
-                        </ul>
-                      )}
-                    </li>
-                  )}
-                </ul>
-              </div>
-            </div>
-          )}
+        {/* 三指標：總可出（主角）／總庫存／在途 */}
+        <div className="grid shrink-0 grid-cols-3 gap-2">
+          <KpiTile label="總可出" value={company?.available} color={STOCK_COLORS.available} />
+          <KpiTile label="總庫存" value={company?.onHand} color={STOCK_COLORS.onHand} />
+          <KpiTile label="在途" value={company?.inTransit} color={STOCK_COLORS.inTransit} />
         </div>
+
+        {/* 公司庫存水位條：安全量 ─ 現量 ─ 最高量 */}
+        <CompanyWaterLevelBar
+          onHand={onHand}
+          safetyQty={safetyQty}
+          maxQty={maxQty}
+          statusColor={meta.color}
+          hasData={!!stock}
+        />
+
+        {/* 在途補充（有在途才顯示、避免版面死空）*/}
+        {inTransit > 0 && (
+          <p className="shrink-0 text-[12px] text-muted-foreground/75">
+            另有 <span className="font-mono" style={{ color: STOCK_COLORS.inTransit }}>{inTransit.toFixed(0)}</span> 件在途（採購已下單未入庫）
+          </p>
+        )}
       </div>
     </section>
   );
 }
 
-const WH_GRID_COLS = 'minmax(0, 1fr) 60px 60px 70px 60px';
-
-function WarehouseRow({
-  w,
-  dimmed,
+// 水位條：0 ──[安全]────現量▮──────[最高] 一條看懂（交接 §6）
+// 未設定安全/最高（皆 0）→ 只畫現量、附「未設定安全量」註記
+function CompanyWaterLevelBar({
+  onHand,
+  safetyQty,
+  maxQty,
+  statusColor,
+  hasData,
 }: {
-  w: PartStockSummaryDto['warehouses'][number];
-  dimmed?: boolean;
+  onHand: number;
+  safetyQty: number;
+  maxQty: number;
+  statusColor: string;
+  hasData: boolean;
 }) {
-  return (
-    <li
-      className={cn(
-        'grid items-center border-b border-border/15 px-3 py-1.5 last:border-b-0',
-        dimmed && 'opacity-55',
-      )}
-      style={{ gridTemplateColumns: WH_GRID_COLS }}
-    >
-      <span className="min-w-0 truncate text-[13px]">
-        <span className="font-mono font-medium text-primary">{w.warehouseCode}</span>
-        <span className="ml-1.5 text-foreground/85">{w.warehouseName}</span>
-      </span>
-      <WhCell value={w.onHand} color={STOCK_COLORS.onHand} />
-      <WhCell value={w.available} color={STOCK_COLORS.available} />
-      <WhCell value={w.reserved} color={STOCK_COLORS.reserved} />
-      <WhCell value={w.inTransit} color={STOCK_COLORS.inTransit} />
-    </li>
-  );
-}
+  // 刻度上限：最高量為主；現量爆錶（超過最高）或未設定時退化取現量，再退 1 防除以 0
+  const scale = Math.max(maxQty, onHand, safetyQty, 1);
+  const pct = (n: number) => `${Math.min(100, (n / scale) * 100)}%`;
+  const hasSettings = safetyQty > 0 || maxQty > 0;
 
-function WhCell({ value, color }: { value: string; color: string }) {
-  const n = Number(value);
-  const isZero = n === 0;
   return (
-    <span
-      className="text-right font-mono text-base tabular-nums"
-      style={{ color: isZero ? ZERO_GREY : color }}
-    >
-      {n.toFixed(0)}
-    </span>
+    <div className="flex shrink-0 flex-col gap-1.5">
+      <div className="flex items-baseline justify-between">
+        <h4 className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground/70">
+          公司庫存水位
+        </h4>
+        {!hasSettings && hasData && (
+          <span className="text-[10px] text-muted-foreground/55">未設定安全量／最高量</span>
+        )}
+      </div>
+
+      <div className="relative h-7 overflow-hidden rounded-md border border-border/50 bg-secondary/55">
+        {/* 現量填色 */}
+        <div
+          className="absolute inset-y-0 left-0 transition-[width] duration-300"
+          style={{ width: pct(onHand), backgroundColor: `${statusColor}40` }}
+        />
+        {/* 安全量刻線 */}
+        {safetyQty > 0 && (
+          <div
+            className="absolute inset-y-0 w-px"
+            style={{ left: pct(safetyQty), backgroundColor: STOCK_COLORS.reserved }}
+            title={`安全量 ${safetyQty}`}
+          />
+        )}
+        {/* 現量數字（貼填色右緣、靠左防溢出）*/}
+        <span
+          className="absolute top-1/2 -translate-y-1/2 pl-2 font-mono text-[13px] font-semibold tabular-nums"
+          style={{ color: statusColor }}
+        >
+          {hasData ? onHand.toFixed(0) : '—'}
+        </span>
+      </div>
+
+      {/* 底部圖例：安全 ─ 現量 ─ 最高 */}
+      <div className="flex items-baseline justify-between font-mono text-[11px] tabular-nums">
+        <span style={{ color: STOCK_COLORS.reserved }}>
+          安全 {safetyQty > 0 ? safetyQty.toFixed(0) : '—'}
+        </span>
+        <span className="text-muted-foreground/70">
+          最高 {maxQty > 0 ? maxQty.toFixed(0) : '—'}
+        </span>
+      </div>
+    </div>
   );
 }
 
