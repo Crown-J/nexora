@@ -10,6 +10,8 @@ import { useCallback, useEffect, useMemo, useState, type ComponentType } from 'r
 
 import { MasterPageHead } from '@/features/nx01/shell/master-nav';
 import { ErpToolbar, type ExportFormat } from '@/features/nx01/shell/ui/ErpToolbar';
+// W5 收尾 2026-07-11：列表層列印（吃 exportCsv 設定、泛型殼做一次十張單全通）
+import { ListPrintView } from '@/features/shared/doc-shell/DocPrintView';
 import { MasterTable, type MasterTableColumn } from '@/features/nx01/shell/ui/MasterTable';
 import type { MasterTab } from '@/features/nx01/shell/entity-master/MasterTabs';
 import { TieredFormProvider } from '@/features/shared/tiered-form/TieredFormProvider';
@@ -107,6 +109,8 @@ export function DocWorkbench<T extends DocRow, C extends object>({
   const [enterEditItems, setEnterEditItems] = useState(false); // 建單後一次性：詳情開在「編輯明細」
   const [enterEditHeader, setEnterEditHeader] = useState(false); // 列表按「編輯」一次性：詳情開在「編輯表頭」
   const [searchOpen, setSearchOpen] = useState(false);
+  // W5 收尾：列表層列印預覽
+  const [printOpen, setPrintOpen] = useState(false);
   const [criteria, setCriteria] = useState<C>(config.emptyCriteria);
   const [sortKey, setSortKey] = useState<string | null>('docNo');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -203,7 +207,7 @@ export function DocWorkbench<T extends DocRow, C extends object>({
     function onKey(e: KeyboardEvent) {
       const t = e.target as HTMLElement | null;
       const inField = !!t && ['INPUT', 'SELECT', 'TEXTAREA'].includes(t.tagName);
-      const modalOpen = searchOpen || creating;
+      const modalOpen = searchOpen || creating || printOpen;
 
       // Alt 系：選單切換 + 工具列字母快捷
       if (e.altKey && !e.ctrlKey && !e.metaKey) {
@@ -221,7 +225,7 @@ export function DocWorkbench<T extends DocRow, C extends object>({
             r: () => void reload(),
             e: openEdit,
             d: () => handleDelete(),
-            p: () => alert('列印開發中'),
+            p: () => setPrintOpen(true),
             o: () => setExportMenuOpen(true),
           });
         }
@@ -265,11 +269,12 @@ export function DocWorkbench<T extends DocRow, C extends object>({
     return () => window.removeEventListener('keydown', onKey);
     // selectAt/openDetail/handleDelete/reload 為依當前 render 的閉包；以 disable 略過 deps 檢查
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, creating, searchOpen, displayRows, idx, selectedId]);
+  }, [tab, creating, searchOpen, printOpen, displayRows, idx, selectedId]);
 
   const handleExport = (format: ExportFormat) => {
+    // W5 收尾：匯出 PDF＝列表列印流另存 PDF（對齊單據層 DocPrintView 收斂方案）
     if (format !== 'csv') {
-      alert('PDF / 列印開發中');
+      setPrintOpen(true);
       return;
     }
     const lines = displayRows.map((r) => config.exportCsv.line(r).join(','));
@@ -329,7 +334,7 @@ export function DocWorkbench<T extends DocRow, C extends object>({
               onExport={handleExport}
               exportMenuOpen={exportMenuOpen}
               onExportMenuOpenChange={setExportMenuOpen}
-              onPrint={() => alert('列印開發中')}
+              onPrint={() => setPrintOpen(true)}
               onRefresh={() => void reload()}
               onSave={noop}
               onCancel={noop}
@@ -417,6 +422,17 @@ export function DocWorkbench<T extends DocRow, C extends object>({
         ) : (
           <div className="p-6 text-sm text-muted-foreground">請先回資料瀏覽選一張{config.docLabel}。</div>
         )}
+
+        {printOpen ? (
+          <ListPrintView
+            title={`${config.docLabel}清單`}
+            header={config.exportCsv.header}
+            rows={displayRows.map((r) => config.exportCsv.line(r))}
+            total={total}
+            criteriaCount={activeCount}
+            onClose={() => setPrintOpen(false)}
+          />
+        ) : null}
 
         {searchOpen ? (
           <SearchDialog

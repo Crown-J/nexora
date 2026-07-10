@@ -222,3 +222,139 @@ export function DocPrintView<T>({
 /** 金額格式（列印用、千分位） */
 export const printMoney = (n: string | number | null | undefined) =>
   Number(n ?? 0).toLocaleString('en-US', { maximumFractionDigits: 2 });
+
+// ─────────────────────────────────────────────
+// ListPrintView — 列表層列印（W5 收尾 2026-07-11）
+//   十張單列表的列印鈕共用：吃 DocWorkbench 的 exportCsv 設定（欄頭 + 取值），
+//   泛型殼做一次、各單零改動。同一套瀏覽器列印流（另存 PDF = 匯出）。
+//   版面＝A4 橫式（列表欄多）：租戶抬頭 + 「◯◯清單」+ 條件摘要 + 表格 + 頁尾時間戳。
+// ─────────────────────────────────────────────
+
+export function ListPrintView({
+  title,
+  header,
+  rows,
+  total,
+  criteriaCount,
+  onClose,
+}: {
+  /** 例：同行調貨單清單 */
+  title: string;
+  header: string[];
+  /** 已照 header 順序攤平的字串列（來源＝exportCsv.line） */
+  rows: (string | number)[][];
+  /** 伺服器端總筆數（>列出筆數時摘要標示） */
+  total: number;
+  /** 生效中的查詢條件數（0=全部） */
+  criteriaCount: number;
+  onClose: () => void;
+}) {
+  const { tenantNameZh, tenantNameEn, tenantLogoUrl } = useSessionMe();
+
+  useEffect(() => {
+    document.body.classList.add('nx-print-mode');
+    return () => document.body.classList.remove('nx-print-mode');
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, [onClose]);
+
+  if (typeof document === 'undefined') return null;
+
+  const scopeText =
+    criteriaCount > 0
+      ? `查詢條件 ${criteriaCount} 項 · 列出 ${rows.length} 筆${total > rows.length ? `（符合共 ${total} 筆、僅列出目前載入的 ${rows.length} 筆）` : ''}`
+      : `全部 · 列出 ${rows.length} 筆${total > rows.length ? `（共 ${total} 筆、僅列出目前載入的 ${rows.length} 筆）` : ''}`;
+
+  return createPortal(
+    <div id="nx-print-portal">
+      <style>{`
+        @media print {
+          body.nx-print-mode > *:not(#nx-print-portal) { display: none !important; }
+          #nx-print-portal { position: static !important; inset: auto !important; background: none !important; padding: 0 !important; overflow: visible !important; }
+          #nx-print-portal .nx-print-toolbar { display: none !important; }
+          #nx-print-portal .nx-print-sheet { box-shadow: none !important; margin: 0 !important; width: auto !important; min-height: auto !important; }
+          @page { size: A4 landscape; margin: 10mm; }
+        }
+      `}</style>
+
+      <div
+        className="fixed inset-0 z-[90] overflow-auto bg-black/50 p-6"
+        onClick={onClose}
+        style={{ colorScheme: 'light' }}
+      >
+        <div className="nx-print-toolbar sticky top-0 z-10 mx-auto mb-3 flex w-[297mm] max-w-full items-center justify-between rounded-lg border border-border bg-card px-4 py-2 shadow-lg" onClick={(e) => e.stopPropagation()}>
+          <span className="text-sm font-medium">列印預覽　<span className="text-xs text-muted-foreground">{title}</span></span>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-muted-foreground">要存 PDF：列印對話框的目的地選「另存為 PDF」</span>
+            <button type="button" onClick={() => window.print()} className="flex items-center gap-1 rounded bg-primary px-3 py-1.5 text-sm text-primary-foreground">
+              <Printer className="h-4 w-4" />列印 / 存 PDF
+            </button>
+            <button type="button" onClick={onClose} className="rounded border px-2 py-1.5 text-sm" aria-label="關閉">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* A4 橫式紙 */}
+        <div
+          className="nx-print-sheet mx-auto w-[297mm] max-w-full bg-white p-[10mm] text-black shadow-2xl"
+          style={{ minHeight: '210mm', fontFamily: "'Microsoft JhengHei', 'PingFang TC', sans-serif" }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="mb-1 flex items-center justify-center gap-3">
+            {tenantLogoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={tenantLogoUrl} alt="" className="h-9 w-9 object-contain" />
+            ) : null}
+            <div className="text-center">
+              <div className="text-base font-bold tracking-wider">{tenantNameZh || tenantNameEn || ''}</div>
+              {tenantNameEn && tenantNameZh ? <div className="text-[9px] tracking-widest text-neutral-500">{tenantNameEn}</div> : null}
+            </div>
+          </div>
+          <div className="mb-1 text-center text-lg font-bold tracking-[0.4em]">{title}</div>
+          <div className="mb-2 text-center text-[11px] text-neutral-600">{scopeText}</div>
+
+          <table className="w-full border-collapse text-[10px] leading-4">
+            <thead>
+              <tr>
+                {header.map((h, i) => (
+                  <th key={i} className="border border-black bg-neutral-100 px-1 py-0.5 text-left font-semibold">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r, ri) => (
+                <tr key={ri} style={{ breakInside: 'avoid' }}>
+                  {r.map((cell, ci) => (
+                    <td key={ci} className="border border-black px-1 py-0.5 align-top">{String(cell ?? '')}</td>
+                  ))}
+                </tr>
+              ))}
+              {rows.length === 0 ? (
+                <tr>
+                  <td colSpan={header.length} className="border border-black px-2 py-3 text-center text-neutral-500">（無資料）</td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+
+          <div className="mt-4 flex justify-between text-[10px] text-neutral-500">
+            <span>{title}</span>
+            <span>列印時間：{nowStamp()}</span>
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
