@@ -25,6 +25,7 @@ import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 
 import { NavButton, ToolbarButton, ToolbarSeparator } from '@/features/nx01/shell/ui/ErpToolbar';
 import { ToolbarPortal } from '@design/layout/workbench/WorkbenchToolbarSlot';
+import { DocPrintView, printMoney } from '@/features/shared/doc-shell/DocPrintView';
 
 import {
   addSoItem,
@@ -79,6 +80,7 @@ export function SoDetailPanel({
   initialMode?: 'browse' | 'editHeader' | 'editItems';
 }) {
   const [so, setSo] = useState<So | null>(null);
+  const [printOpen, setPrintOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -323,8 +325,8 @@ export function SoDetailPanel({
               <ToolbarSeparator />
               <ToolbarButton icon={Search} letter="F" label="查詢" enabled={!!onSearch} onClick={onSearch} />
               <ToolbarButton icon={RefreshCcw} letter="R" label="重新整理" enabled onClick={() => void reload()} />
-              <ToolbarButton icon={Printer} letter="P" label="列印" enabled onClick={() => alert('列印開發中')} />
-              <ToolbarButton icon={Download} letter="O" label="匯出" enabled onClick={() => alert('匯出開發中')} />
+              <ToolbarButton icon={Printer} letter="P" label="列印" enabled onClick={() => setPrintOpen(true)} />
+              <ToolbarButton icon={Download} letter="O" label="匯出" enabled onClick={() => setPrintOpen(true)} />
             </>
           ) : mode === 'editHeader' ? (
             <>
@@ -344,6 +346,8 @@ export function SoDetailPanel({
           <div className="flex-1" />
         </div>
       </ToolbarPortal>
+
+      {printOpen && so ? <SoPrintSheet doc={so} onClose={() => setPrintOpen(false)} /> : null}
 
       {error ? <div className="mx-4 mt-3 rounded border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm">{error}</div> : null}
 
@@ -1030,5 +1034,53 @@ function SoQuoteLinePicker({
         </div>
       </div>
     </div>
+  );
+}
+
+/** NX-DOC-PRINT：銷貨單列印設定（DocPrintView 皮） */
+function SoPrintSheet({ doc, onClose }: { doc: So; onClose: () => void }) {
+  const delivery: Record<string, string> = { P: '自取', D: '配送', S: '寄送' };
+  return (
+    <DocPrintView
+      title="銷　貨　單"
+      docNo={doc.docNo}
+      fields={[
+        { label: '單號', value: doc.docNo },
+        { label: '銷貨日期', value: doc.soDate.slice(0, 10) },
+        { label: '客戶編號', value: doc.customerCode ?? '' },
+        { label: '客戶名稱', value: doc.customerName ?? '' },
+        { label: '業務員', value: doc.salesPersonName ?? '' },
+        { label: '出貨倉', value: doc.warehouseName ?? '' },
+        { label: '交貨方式', value: delivery[doc.deliveryType] ?? doc.deliveryType },
+        { label: '幣別 / 稅率', value: `${doc.currencyCode ?? doc.currencyId} / ${Number(doc.taxRate)}%` },
+      ]}
+      columns={[
+        { label: '序', width: '6%', align: 'center', render: (it) => it.lineNo },
+        {
+          label: '料號', width: '18%',
+          render: (it) => (
+            <span className="font-mono">
+              {it.partNo}
+              {it.actualPartNo && it.actualPartNo !== it.partNo ? <><br />↳實出 {it.actualPartNo}</> : null}
+            </span>
+          ),
+        },
+        { label: '品名', render: (it) => it.partName },
+        { label: '廠牌', width: '10%', render: (it) => it.brandName ?? '' },
+        { label: '數量', width: '8%', align: 'right', render: (it) => Number(it.qty) },
+        { label: '單價', width: '11%', align: 'right', render: (it) => printMoney(it.unitPrice) },
+        { label: '金額', width: '12%', align: 'right', render: (it) => printMoney(it.lineAmount) },
+      ]}
+      items={doc.items ?? []}
+      getRowKey={(it) => it.id}
+      totals={[
+        { label: '未稅金額', value: printMoney(doc.subtotal) },
+        { label: `稅額（${Number(doc.taxRate)}%）`, value: printMoney(doc.taxAmount) },
+        { label: '總計', value: printMoney(doc.totalAmount), strong: true },
+      ]}
+      note={doc.remark}
+      signatures={['製單', '主管', '客戶簽收']}
+      onClose={onClose}
+    />
   );
 }

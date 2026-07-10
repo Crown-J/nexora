@@ -31,6 +31,7 @@ import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 
 import { NavButton, ToolbarButton, ToolbarSeparator } from '@/features/nx01/shell/ui/ErpToolbar';
 import { ToolbarPortal } from '@design/layout/workbench/WorkbenchToolbarSlot';
+import { DocPrintView, printMoney } from '@/features/shared/doc-shell/DocPrintView';
 import { CustomerPicker, type PickedCustomer } from '@/features/nx04/quote/ui/CustomerPicker';
 import { PartPicker, type PickedPart } from '@/features/nx04/quote/ui/PartPicker';
 
@@ -96,6 +97,7 @@ export function PoDetailPanel({
 }) {
   const router = useRouter();
   const [po, setPo] = useState<Po | null>(null);
+  const [printOpen, setPrintOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -405,8 +407,8 @@ export function PoDetailPanel({
               <ToolbarSeparator />
               <ToolbarButton icon={Search} letter="F" label="查詢" enabled={!!onSearch} onClick={onSearch} />
               <ToolbarButton icon={RefreshCcw} letter="R" label="重新整理" enabled onClick={() => void reload()} />
-              <ToolbarButton icon={Printer} letter="P" label="列印" enabled onClick={() => alert('列印開發中')} />
-              <ToolbarButton icon={Download} letter="O" label="匯出" enabled onClick={() => alert('匯出開發中')} />
+              <ToolbarButton icon={Printer} letter="P" label="列印" enabled onClick={() => setPrintOpen(true)} />
+              <ToolbarButton icon={Download} letter="O" label="匯出" enabled onClick={() => setPrintOpen(true)} />
             </>
           ) : mode === 'editHeader' ? (
             <>
@@ -428,6 +430,8 @@ export function PoDetailPanel({
           ) : null}
         </div>
       </ToolbarPortal>
+
+      {printOpen && po ? <PoPrintSheet doc={po} onClose={() => setPrintOpen(false)} /> : null}
 
       {error ? <div className="mx-4 mt-3 rounded border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm">{error}</div> : null}
       {s === 'DRAFT' && po.rejectReason ? (
@@ -1387,5 +1391,53 @@ export function PoCreatePanel({
         </section>
       </div>
     </div>
+  );
+}
+
+/** NX-DOC-PRINT：採購單列印設定（DocPrintView 皮） */
+function PoPrintSheet({ doc, onClose }: { doc: Po; onClose: () => void }) {
+  return (
+    <DocPrintView
+      title="採　購　單"
+      docNo={doc.docNo}
+      fields={[
+        { label: '單號', value: doc.docNo },
+        { label: '採購日期', value: doc.poDate.slice(0, 10) },
+        { label: '供應商編號', value: doc.supplierCode ?? '' },
+        { label: '供應商名稱', value: doc.supplierName ?? '' },
+        { label: '採購類型', value: PURCHASE_TYPE_LABEL[doc.purchaseType ?? 'D'] ?? '' },
+        { label: '預計到貨', value: doc.expectedDate ? doc.expectedDate.slice(0, 10) : '' },
+        { label: '來源詢價單', value: doc.rfqDocNo ?? '' },
+        { label: '幣別 / 稅率', value: `${doc.currencyId} / ${Number(doc.taxRate)}%` },
+      ]}
+      columns={[
+        { label: '序', width: '6%', align: 'center', render: (it) => it.lineNo },
+        {
+          label: '料號', width: '18%',
+          render: (it) => (
+            <span className="font-mono">
+              {it.partNo}
+              {it.secCode ? <><br /><span className="text-neutral-500">{it.secCode}</span></> : null}
+            </span>
+          ),
+        },
+        { label: '品名', render: (it) => it.partName },
+        { label: '數量', width: '8%', align: 'right', render: (it) => Number(it.qty) },
+        { label: '單價', width: '11%', align: 'right', render: (it) => printMoney(it.unitCost) },
+        { label: '金額', width: '12%', align: 'right', render: (it) => printMoney(it.lineAmount) },
+        { label: '預交貨', width: '11%', render: (it) => (it.expectedDate ? it.expectedDate.slice(0, 10) : '') },
+        { label: '備註', width: '12%', render: (it) => it.remark ?? '' },
+      ]}
+      items={doc.items ?? []}
+      getRowKey={(it) => it.id}
+      totals={[
+        { label: '未稅金額', value: printMoney(doc.subtotal) },
+        { label: `稅額（${Number(doc.taxRate)}%）`, value: printMoney(doc.taxAmount) },
+        { label: '總計', value: printMoney(doc.totalAmount), strong: true },
+      ]}
+      note={doc.remark}
+      signatures={['採購', '核准主管', '廠商確認']}
+      onClose={onClose}
+    />
   );
 }

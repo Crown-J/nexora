@@ -27,6 +27,7 @@ import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 
 import { NavButton, ToolbarButton, ToolbarSeparator } from '@/features/nx01/shell/ui/ErpToolbar';
 import { ToolbarPortal } from '@design/layout/workbench/WorkbenchToolbarSlot';
+import { DocPrintView, printMoney } from '@/features/shared/doc-shell/DocPrintView';
 
 import {
   addPrItem,
@@ -100,6 +101,7 @@ export function PrDetailPanel({
   initialMode?: 'browse' | 'editHeader' | 'editItems';
 }) {
   const [pr, setPr] = useState<Pr | null>(null);
+  const [printOpen, setPrintOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -353,8 +355,8 @@ export function PrDetailPanel({
               <ToolbarSeparator />
               <ToolbarButton icon={Search} letter="F" label="查詢" enabled={!!onSearch} onClick={onSearch} />
               <ToolbarButton icon={RefreshCcw} letter="R" label="重新整理" enabled onClick={() => void reload()} />
-              <ToolbarButton icon={Printer} letter="P" label="列印" enabled onClick={() => alert('列印開發中')} />
-              <ToolbarButton icon={Download} letter="O" label="匯出" enabled onClick={() => alert('匯出開發中')} />
+              <ToolbarButton icon={Printer} letter="P" label="列印" enabled onClick={() => setPrintOpen(true)} />
+              <ToolbarButton icon={Download} letter="O" label="匯出" enabled onClick={() => setPrintOpen(true)} />
             </>
           ) : mode === 'editHeader' ? (
             <>
@@ -378,6 +380,8 @@ export function PrDetailPanel({
           ) : null}
         </div>
       </ToolbarPortal>
+
+      {printOpen && pr ? <PrPrintSheet doc={pr} locs={locs} onClose={() => setPrintOpen(false)} /> : null}
 
       {error ? <div className="mx-4 mt-3 rounded border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm">{error}</div> : null}
 
@@ -1157,5 +1161,46 @@ function RrPickerInput({ onPick }: { onPick: (row: Rr) => void }) {
         </div>
       ) : null}
     </div>
+  );
+}
+
+/** NX-DOC-PRINT：進貨退回單列印設定（DocPrintView 皮；庫位代碼由面板庫位表查） */
+function PrPrintSheet({ doc, locs, onClose }: { doc: Pr; locs: LocOpt[]; onClose: () => void }) {
+  const lc = (id: string | null) => (id ? locs.find((l) => l.id === id)?.code ?? id : '');
+  return (
+    <DocPrintView
+      title="進　貨　退　回　單"
+      docNo={doc.docNo}
+      fields={[
+        { label: '單號', value: doc.docNo },
+        { label: '退回日期', value: doc.prDate.slice(0, 10) },
+        { label: '供應商編號', value: doc.supplierCode ?? '' },
+        { label: '供應商名稱', value: doc.supplierName ?? '' },
+        { label: '來源進貨單', value: doc.rrDocNo ?? '' },
+        { label: '退回倉庫', value: doc.warehouseName ?? '' },
+        { label: '退貨類型', value: doc.returnMode ? RETURN_MODE_LABEL[doc.returnMode] ?? doc.returnMode : '' },
+        { label: '退貨處置', value: doc.dispositionFlag ? DISPOSITION_LABEL[doc.dispositionFlag] ?? doc.dispositionFlag : '' },
+      ]}
+      columns={[
+        { label: '序', width: '6%', align: 'center', render: (it) => it.lineNo },
+        { label: '料號', width: '18%', render: (it) => <span className="font-mono">{it.partNo}</span> },
+        { label: '品名', render: (it) => it.partName },
+        { label: '庫位', width: '10%', render: (it) => <span className="font-mono">{lc(it.locationId)}</span> },
+        { label: '退量', width: '8%', align: 'right', render: (it) => Number(it.qty) },
+        { label: '單價', width: '11%', align: 'right', render: (it) => printMoney(it.unitCost) },
+        { label: '金額', width: '12%', align: 'right', render: (it) => printMoney(it.lineAmount) },
+        { label: '原因', width: '10%', render: (it) => (it.returnReason ? PR_REASON_LABEL[it.returnReason] ?? it.returnReason : '') },
+      ]}
+      items={doc.items ?? []}
+      getRowKey={(it) => it.id}
+      totals={[
+        { label: '未稅金額', value: printMoney(doc.subtotal) },
+        { label: `稅額（${Number(doc.taxRate)}%）`, value: printMoney(doc.taxAmount) },
+        { label: '總計', value: printMoney(doc.totalAmount), strong: true },
+      ]}
+      note={doc.remark}
+      signatures={['製單', '主管', '廠商簽收']}
+      onClose={onClose}
+    />
   );
 }

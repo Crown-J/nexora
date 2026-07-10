@@ -28,6 +28,7 @@ import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 
 import { NavButton, ToolbarButton, ToolbarSeparator } from '@/features/nx01/shell/ui/ErpToolbar';
 import { ToolbarPortal } from '@design/layout/workbench/WorkbenchToolbarSlot';
+import { DocPrintView, printMoney } from '@/features/shared/doc-shell/DocPrintView';
 
 import {
   addSrItem,
@@ -89,6 +90,7 @@ export function SrDetailPanel({
   initialMode?: 'browse' | 'editHeader' | 'editItems';
 }) {
   const [sr, setSr] = useState<Sr | null>(null);
+  const [printOpen, setPrintOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -369,8 +371,8 @@ export function SrDetailPanel({
               <ToolbarSeparator />
               <ToolbarButton icon={Search} letter="F" label="查詢" enabled={!!onSearch} onClick={onSearch} />
               <ToolbarButton icon={RefreshCcw} letter="R" label="重新整理" enabled onClick={() => void reload()} />
-              <ToolbarButton icon={Printer} letter="P" label="列印" enabled onClick={() => alert('列印開發中')} />
-              <ToolbarButton icon={Download} letter="O" label="匯出" enabled onClick={() => alert('匯出開發中')} />
+              <ToolbarButton icon={Printer} letter="P" label="列印" enabled onClick={() => setPrintOpen(true)} />
+              <ToolbarButton icon={Download} letter="O" label="匯出" enabled onClick={() => setPrintOpen(true)} />
             </>
           ) : mode === 'editHeader' ? (
             <>
@@ -392,6 +394,8 @@ export function SrDetailPanel({
           ) : null}
         </div>
       </ToolbarPortal>
+
+      {printOpen && sr ? <SrPrintSheet doc={sr} onClose={() => setPrintOpen(false)} /> : null}
 
       {error ? <div className="mx-4 mt-3 rounded border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm">{error}</div> : null}
       {sr.status === 'REJECTED' && sr.rejectReason ? (
@@ -1069,5 +1073,45 @@ function SoLineAddDialog({
         </div>
       </div>
     </div>
+  );
+}
+
+/** NX-DOC-PRINT：銷退單列印設定（DocPrintView 皮） */
+function SrPrintSheet({ doc, onClose }: { doc: Sr; onClose: () => void }) {
+  return (
+    <DocPrintView
+      title="銷　貨　退　回　單"
+      docNo={doc.docNo}
+      fields={[
+        { label: '單號', value: doc.docNo },
+        { label: '銷退日期', value: doc.srDate.slice(0, 10) },
+        { label: '客戶編號', value: doc.customerCode ?? '' },
+        { label: '客戶名稱', value: doc.customerName ?? '' },
+        { label: '來源銷貨單', value: doc.soDocNo ?? '' },
+        { label: '退回倉庫', value: doc.warehouseName ?? '' },
+        { label: '退款方式', value: SR_METHOD_LABEL[doc.returnMethod] ?? doc.returnMethod },
+        { label: '稅率', value: `${Number(doc.taxRate)}%` },
+      ]}
+      columns={[
+        { label: '序', width: '6%', align: 'center', render: (it) => it.lineNo },
+        { label: '料號', width: '18%', render: (it) => <span className="font-mono">{it.partNo}</span> },
+        { label: '品名', render: (it) => it.partName },
+        { label: '退貨原因', width: '12%', render: (it) => REASON_LABEL[it.returnReason] ?? it.returnReason },
+        { label: '數量', width: '8%', align: 'right', render: (it) => Number(it.qty) },
+        { label: '單價', width: '11%', align: 'right', render: (it) => printMoney(it.unitPrice) },
+        { label: '金額', width: '12%', align: 'right', render: (it) => printMoney(it.lineAmount) },
+        { label: '處置', width: '8%', align: 'center', render: (it) => (it.dispositionFlag ? DISPOSITION_SHORT[it.dispositionFlag] ?? it.dispositionFlag : '') },
+      ]}
+      items={doc.items ?? []}
+      getRowKey={(it) => it.id}
+      totals={[
+        { label: '未稅金額', value: printMoney(doc.subtotal) },
+        { label: `稅額（${Number(doc.taxRate)}%）`, value: printMoney(doc.taxAmount) },
+        { label: '退款總額', value: printMoney(doc.totalAmount), strong: true },
+      ]}
+      note={doc.remark}
+      signatures={['製單', '主管', '客戶確認']}
+      onClose={onClose}
+    />
   );
 }

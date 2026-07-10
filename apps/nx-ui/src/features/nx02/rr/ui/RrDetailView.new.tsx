@@ -28,6 +28,7 @@ import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 
 import { NavButton, ToolbarButton, ToolbarSeparator } from '@/features/nx01/shell/ui/ErpToolbar';
 import { ToolbarPortal } from '@design/layout/workbench/WorkbenchToolbarSlot';
+import { DocPrintView, printMoney } from '@/features/shared/doc-shell/DocPrintView';
 import { CustomerPicker, type PickedCustomer } from '@/features/nx04/quote/ui/CustomerPicker';
 import { PartPicker, type PickedPart } from '@/features/nx04/quote/ui/PartPicker';
 
@@ -122,6 +123,7 @@ export function RrDetailPanel({
   initialMode?: 'browse' | 'editHeader' | 'editItems';
 }) {
   const [rr, setRr] = useState<Rr | null>(null);
+  const [printOpen, setPrintOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -407,8 +409,8 @@ export function RrDetailPanel({
               <ToolbarSeparator />
               <ToolbarButton icon={Search} letter="F" label="查詢" enabled={!!onSearch} onClick={onSearch} />
               <ToolbarButton icon={RefreshCcw} letter="R" label="重新整理" enabled onClick={() => void reload()} />
-              <ToolbarButton icon={Printer} letter="P" label="列印" enabled onClick={() => alert('列印開發中')} />
-              <ToolbarButton icon={Download} letter="O" label="匯出" enabled onClick={() => alert('匯出開發中')} />
+              <ToolbarButton icon={Printer} letter="P" label="列印" enabled onClick={() => setPrintOpen(true)} />
+              <ToolbarButton icon={Download} letter="O" label="匯出" enabled onClick={() => setPrintOpen(true)} />
             </>
           ) : mode === 'editHeader' ? (
             <>
@@ -431,6 +433,8 @@ export function RrDetailPanel({
           ) : null}
         </div>
       </ToolbarPortal>
+
+      {printOpen && rr ? <RrPrintSheet doc={rr} locs={locs} onClose={() => setPrintOpen(false)} /> : null}
 
       {error ? <div className="mx-4 mt-3 rounded border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm">{error}</div> : null}
 
@@ -1509,5 +1513,48 @@ function PoLineAddDialog({
         </div>
       </div>
     </div>
+  );
+}
+
+/** NX-DOC-PRINT：進貨單列印設定（DocPrintView 皮；庫位代碼由面板庫位表查） */
+function RrPrintSheet({ doc, locs, onClose }: { doc: Rr; locs: LocOpt[]; onClose: () => void }) {
+  const lc = (id: string) => locs.find((l) => l.id === id)?.code ?? id;
+  return (
+    <DocPrintView
+      title="進　貨　驗　收　單"
+      docNo={doc.docNo}
+      fields={[
+        { label: '單號', value: doc.docNo },
+        { label: '進貨日期', value: doc.rrDate.slice(0, 10) },
+        { label: '供應商編號', value: doc.supplierCode ?? '' },
+        { label: '供應商名稱', value: doc.supplierName ?? '' },
+        { label: '入庫倉庫', value: doc.warehouseName ?? '' },
+        { label: '來源單號', value: doc.poDocNo ?? doc.tiDocNo ?? doc.rfqDocNo ?? '' },
+        { label: '提貨單號', value: doc.deliveryOrderNo ?? '' },
+        { label: '幣別 / 稅率', value: `${doc.currencyId} / ${Number(doc.taxRate)}%` },
+      ]}
+      columns={[
+        { label: '序', width: '5%', align: 'center', render: (it) => it.lineNo },
+        { label: '料號', width: '16%', render: (it) => <span className="font-mono">{it.partNo}</span> },
+        { label: '品名', render: (it) => it.partName },
+        { label: '庫位', width: '9%', render: (it) => <span className="font-mono">{lc(it.locationId)}</span> },
+        { label: '數量', width: '7%', align: 'right', render: (it) => Number(it.qty) },
+        { label: '實收', width: '7%', align: 'right', render: (it) => (it.actualQty != null ? Number(it.actualQty) : '') },
+        { label: '瑕疵', width: '7%', align: 'right', render: (it) => (Number(it.defectQty || 0) > 0 ? Number(it.defectQty) : '') },
+        { label: '單價', width: '10%', align: 'right', render: (it) => printMoney(it.unitCost) },
+        { label: '金額', width: '11%', align: 'right', render: (it) => printMoney(it.lineAmount) },
+        { label: '批號', width: '10%', render: (it) => <span className="font-mono">{it.batchNo ?? ''}</span> },
+      ]}
+      items={doc.items ?? []}
+      getRowKey={(it) => it.id}
+      totals={[
+        { label: '未稅金額', value: printMoney(doc.subtotal) },
+        { label: `稅額（${Number(doc.taxRate)}%）`, value: printMoney(doc.taxAmount) },
+        { label: '總計', value: printMoney(doc.totalAmount), strong: true },
+      ]}
+      note={doc.remark}
+      signatures={['驗收', '倉管', '主管']}
+      onClose={onClose}
+    />
   );
 }
