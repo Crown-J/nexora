@@ -36,6 +36,7 @@ import {
   buildPartSearchPhotoUrl,
   getPartCompatGroup,
   getPartDetail,
+  getPartSalesHistory,
   getPartStockHistory,
   getPartStockSettings,
   getPartStockSummary,
@@ -46,6 +47,7 @@ import type {
   PartCompatGroupDto,
   PartCompatMemberDto,
   PartDetailDto,
+  PartSalesHistoryDto,
   PartStockHistoryRow,
   PartStockSettingRow,
   PartStockSummaryDto,
@@ -103,12 +105,17 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
   const [photoZoom, setPhotoZoom] = useState(false);
 
   // F2 改版 Step 4（交接 §5）：4 快捷鍵面板（F3 可替代 / F5 周轉率 / F6 出入庫；F4 報價走全域事件）
-  const [quickPanel, setQuickPanel] = useState<'alt' | 'turnover' | 'history' | null>(null);
+  // F2 下鑽（交接 §7 缺口、執行長 2026-07-11 拍板）：F8 銷貨比價
+  const [quickPanel, setQuickPanel] = useState<QuickPanelKind | null>(null);
   // 出入庫紀錄 lazy 載（F5/F6 共用、換料件清空重抓）
   const [historyRows, setHistoryRows] = useState<PartStockHistoryRow[] | null>(null);
   const [historyFetchedAt, setHistoryFetchedAt] = useState(0); // F5 統計基準時點（render 不可呼叫 Date.now）
   const [historyLoading, setHistoryLoading] = useState(false);
   const historyReqRef = useRef(0);
+  // 銷貨比價 lazy 載（F8、換料件清空重抓）
+  const [salesData, setSalesData] = useState<PartSalesHistoryDto | null>(null);
+  const [salesLoading, setSalesLoading] = useState(false);
+  const salesReqRef = useRef(0);
 
   // race 防護
   const leftReqRef = useRef(0);
@@ -144,9 +151,10 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
     })();
   }, [effectivePartId]);
 
-  // 換料件：出入庫快取失效、面板收起（避免顯示上一件的資料）
+  // 換料件：出入庫/銷貨比價快取失效、面板收起（避免顯示上一件的資料）
   useEffect(() => {
     setHistoryRows(null);
+    setSalesData(null);
     setQuickPanel(null);
   }, [effectivePartId]);
 
@@ -170,6 +178,30 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
       }
     })();
   }, [quickPanel, historyRows, effectivePartId]);
+
+  // F8 面板開啟時 lazy 載銷貨比價（同料件共用快取）
+  useEffect(() => {
+    if (quickPanel !== 'sales') return;
+    if (salesData !== null) return;
+    const myReq = ++salesReqRef.current;
+    setSalesLoading(true);
+    void (async () => {
+      try {
+        const r = await getPartSalesHistory(effectivePartId);
+        if (salesReqRef.current !== myReq) return;
+        setSalesData(r);
+      } catch {
+        if (salesReqRef.current !== myReq) return;
+        setSalesData({
+          suggestedPrices: { cost: null, priceA: null, priceB: null, priceC: null, priceD: null },
+          sales: [],
+          quotes: [],
+        });
+      } finally {
+        if (salesReqRef.current === myReq) setSalesLoading(false);
+      }
+    })();
+  }, [quickPanel, salesData, effectivePartId]);
 
   // 載 compat group（mainPartId、預覽不重抓）
   useEffect(() => {
@@ -322,7 +354,7 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
         tgt instanceof HTMLTextAreaElement ||
         (tgt instanceof HTMLElement && tgt.isContentEditable);
       if (isEditable) return;
-      const togglePanel = (p: 'alt' | 'turnover' | 'history') =>
+      const togglePanel = (p: QuickPanelKind) =>
         setQuickPanel((cur) => (cur === p ? null : p));
       if (e.key === ' ' || e.code === 'Space') {
         e.preventDefault();
@@ -342,6 +374,9 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
       } else if (e.key === 'F7') {
         e.preventDefault();
         fireInstantInquiry();
+      } else if (e.key === 'F8') {
+        e.preventDefault();
+        togglePanel('sales');
       }
     };
     // capture 階段：搶在焦點鎖定對話框冒泡攔截 + 瀏覽器默認（F3=找下一個/F5=重整）之前 preventDefault
@@ -496,6 +531,8 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
             <span className="text-muted-foreground/35">·</span>
             <Kbd>F7</Kbd> 詢價
             <span className="text-muted-foreground/35">·</span>
+            <Kbd>F8</Kbd> 銷貨比價
+            <span className="text-muted-foreground/35">·</span>
             <Kbd>↑↓</Kbd> 選通用件
             <span className="text-muted-foreground/35">·</span>
             <Kbd>Enter</Kbd> 預覽（留主件）
@@ -520,7 +557,8 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
           />
         )}
 
-        {/* Step 4：快捷鍵面板（F3/F5/F6、疊在視窗 2 上、Esc 或同鍵關）*/}
+        {/* Step 4：快捷鍵面板（F3/F5/F6、疊在視窗 2 上、Esc 或同鍵關）
+            F2 下鑽：F8 銷貨比價 */}
         {quickPanel && (
           <QuickPanelOverlay
             kind={quickPanel}
@@ -531,6 +569,8 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
             historyFetchedAt={historyFetchedAt}
             historyLoading={historyLoading}
             companyOnHand={Number(stock?.company.onHand ?? 0)}
+            salesData={salesData}
+            salesLoading={salesLoading}
             onClose={() => setQuickPanel(null)}
           />
         )}
@@ -1307,11 +1347,15 @@ const DOC_TYPE_LABELS: Record<string, string> = {
   X: '調撥',
 };
 
-const QUICK_PANEL_META = {
+// F2 下鑽（交接 §7、執行長 2026-07-11 拍板）：F8 銷貨比價加入同一面板系統
+type QuickPanelKind = 'alt' | 'turnover' | 'history' | 'sales';
+
+const QUICK_PANEL_META: Record<QuickPanelKind, { title: string; kbd: string; wide?: boolean }> = {
   alt: { title: '可替代零件', kbd: 'F3' },
   turnover: { title: '周轉率分析', kbd: 'F5' },
   history: { title: '出入庫紀錄', kbd: 'F6' },
-} as const;
+  sales: { title: '銷貨比價', kbd: 'F8', wide: true },
+};
 
 function QuickPanelOverlay({
   kind,
@@ -1322,9 +1366,11 @@ function QuickPanelOverlay({
   historyFetchedAt,
   historyLoading,
   companyOnHand,
+  salesData,
+  salesLoading,
   onClose,
 }: {
-  kind: 'alt' | 'turnover' | 'history';
+  kind: QuickPanelKind;
   partCode: string;
   compatRows: PartCompatMemberDto[];
   mainPartId: string;
@@ -1332,6 +1378,8 @@ function QuickPanelOverlay({
   historyFetchedAt: number;
   historyLoading: boolean;
   companyOnHand: number;
+  salesData: PartSalesHistoryDto | null;
+  salesLoading: boolean;
   onClose: () => void;
 }) {
   const meta = QUICK_PANEL_META[kind];
@@ -1342,7 +1390,12 @@ function QuickPanelOverlay({
       ariaLabel={meta.title}
       backdropClassName="bg-black/55 backdrop-blur-[2px] animate-in fade-in duration-150"
       dialogClassName="flex flex-col rounded-xl border border-border/60 bg-popover text-foreground shadow-[0_18px_50px_rgba(0,0,0,0.5),0_0_36px_-14px_rgba(232,160,32,0.25)] animate-in fade-in zoom-in-95 duration-150"
-      dialogStyle={{ width: 'min(680px, 90vw)', height: 'min(560px, 85vh)' }}
+      // 比價表欄位多 → 寬殼（避免客戶名/單號擠壓換行）
+      dialogStyle={
+        meta.wide
+          ? { width: 'min(960px, 94vw)', height: 'min(640px, 88vh)' }
+          : { width: 'min(680px, 90vw)', height: 'min(560px, 85vh)' }
+      }
     >
       <>
         <div className="flex items-center gap-2.5 border-b border-border/40 px-5 py-2.5">
@@ -1373,6 +1426,7 @@ function QuickPanelOverlay({
             />
           )}
           {kind === 'history' && <StockHistoryPanel rows={historyRows} loading={historyLoading} />}
+          {kind === 'sales' && <SalesComparePanel data={salesData} loading={salesLoading} />}
         </div>
 
         <div className="border-t border-border/35 bg-background/35 px-5 py-1.5 text-right text-[11px] text-muted-foreground/65">
@@ -1574,6 +1628,227 @@ function StockHistoryPanel({
         })}
       </tbody>
     </table>
+  );
+}
+
+// ─── F8 銷貨比價（F2 下鑽、交接 §7、執行長 2026-07-11 拍板）─────
+// 銷售電話報價場景：建議售價列（成本+A~D、成本照露）→ 歷史銷貨 → 歷史報價。
+// 狀態字面對齊 @data/types/nx04 的 SO_STATUS_LABEL / QUOTE_STATUS_LABEL、
+// 比價表取精簡版（design 層不 import nx04、沿用本檔 DOC_TYPE_LABELS 局部映射前例）。
+const SO_STATUS_LABELS: Record<string, string> = {
+  DRAFT: '草稿',
+  CONFIRMED: '已確認',
+  PICKING: '撿貨中',
+  SHIPPED: '已出貨',
+  INVOICED: '已開立',
+  COMPLETED: '已完成',
+  CANCELLED: '已取消',
+};
+
+const QUOTE_STATUS_LABELS: Record<string, string> = {
+  DRAFT: '草稿',
+  SENT: '已寄出',
+  ACCEPTED: '已接受',
+  REJECTED: '客戶拒絕',
+  EXPIRED: '已過期',
+  CANCELLED: '已取消',
+};
+
+const fmtMoney = (n: string | number | null | undefined) =>
+  n === null || n === undefined || n === ''
+    ? '—'
+    : Number(n).toLocaleString('en-US', { maximumFractionDigits: 2 });
+
+const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('zh-TW');
+
+function SalesComparePanel({
+  data,
+  loading,
+}: {
+  data: PartSalesHistoryDto | null;
+  loading: boolean;
+}) {
+  if (loading || !data) return <PanelEmpty msg="載入中…" loading />;
+  const { suggestedPrices: sp, sales, quotes } = data;
+  return (
+    <div className="flex flex-col gap-4">
+      {/* 建議售價列：成本 + A~D 價（成本照露、權限分權題執行長指示擱置）*/}
+      <div className="grid shrink-0 grid-cols-5 gap-2">
+        <PriceTile label="成本" value={sp.cost} color={STOCK_COLORS.reserved} />
+        <PriceTile label="A 價" value={sp.priceA} color={STOCK_COLORS.available} />
+        <PriceTile label="B 價" value={sp.priceB} color={STOCK_COLORS.available} />
+        <PriceTile label="C 價" value={sp.priceC} color={STOCK_COLORS.available} />
+        <PriceTile label="D 價" value={sp.priceD} color={STOCK_COLORS.available} />
+      </div>
+
+      {/* 歷史銷貨（成交事實、比價主依據 → 在上）*/}
+      <PanelSection title="歷史銷貨" count={sales.length} capped={sales.length >= 50}>
+        {sales.length === 0 ? (
+          <PanelSectionEmpty msg="本料件無銷貨紀錄" />
+        ) : (
+          <table className="w-full border-collapse text-[12.5px]">
+            <thead className="sticky top-0 bg-popover">
+              <tr className="border-b border-border/40 text-left text-[11px] uppercase tracking-[0.12em] text-muted-foreground/70">
+                <th className="py-1.5 pr-2 font-medium">日期</th>
+                <th className="py-1.5 pr-2 font-medium">單號</th>
+                <th className="py-1.5 pr-2 font-medium">客戶</th>
+                <th className="py-1.5 pr-2 text-right font-medium">數量</th>
+                <th className="py-1.5 pr-2 text-right font-medium">單價</th>
+                <th className="py-1.5 pr-2 text-right font-medium">金額</th>
+                <th className="py-1.5 font-medium">狀態</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sales.map((r) => (
+                <tr key={r.soItemId} className="border-b border-border/15 last:border-b-0">
+                  <td className="py-1.5 pr-2 font-mono text-[12px] text-foreground/85">
+                    {fmtDate(r.soDate)}
+                  </td>
+                  <td className="py-1.5 pr-2 font-mono text-[12px] text-primary/90">{r.docNo}</td>
+                  <td className="max-w-[180px] truncate py-1.5 pr-2 text-foreground/90" title={`${r.customerCode} ${r.customerName}`}>
+                    {r.customerName}
+                  </td>
+                  <td className="py-1.5 pr-2 text-right font-mono tabular-nums text-foreground/85">
+                    {Number(r.qty).toFixed(0)}
+                  </td>
+                  <td className="py-1.5 pr-2 text-right font-mono font-semibold tabular-nums" style={{ color: STOCK_COLORS.available }}>
+                    {fmtMoney(r.unitPrice)}
+                  </td>
+                  <td className="py-1.5 pr-2 text-right font-mono tabular-nums text-foreground/85">
+                    {fmtMoney(r.lineAmount)}
+                  </td>
+                  <td className="py-1.5">
+                    <StatusBadge label={SO_STATUS_LABELS[r.status] ?? r.status} muted={r.status === 'CANCELLED'} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </PanelSection>
+
+      {/* 歷史報價（含未成交、看得出客戶談過什麼價）*/}
+      <PanelSection title="歷史報價" count={quotes.length} capped={quotes.length >= 50}>
+        {quotes.length === 0 ? (
+          <PanelSectionEmpty msg="本料件無報價紀錄" />
+        ) : (
+          <table className="w-full border-collapse text-[12.5px]">
+            <thead className="sticky top-0 bg-popover">
+              <tr className="border-b border-border/40 text-left text-[11px] uppercase tracking-[0.12em] text-muted-foreground/70">
+                <th className="py-1.5 pr-2 font-medium">日期</th>
+                <th className="py-1.5 pr-2 font-medium">單號</th>
+                <th className="py-1.5 pr-2 font-medium">客戶</th>
+                <th className="py-1.5 pr-2 text-right font-medium">數量</th>
+                <th className="py-1.5 pr-2 text-right font-medium">報價</th>
+                <th className="py-1.5 pr-2 text-right font-medium">最低價</th>
+                <th className="py-1.5 pr-2 font-medium">狀態</th>
+                <th className="py-1.5 text-right font-medium">成交</th>
+              </tr>
+            </thead>
+            <tbody>
+              {quotes.map((r) => (
+                <tr key={r.quoteItemId} className="border-b border-border/15 last:border-b-0">
+                  <td className="py-1.5 pr-2 font-mono text-[12px] text-foreground/85">
+                    {fmtDate(r.quoteDate)}
+                  </td>
+                  <td className="py-1.5 pr-2 font-mono text-[12px] text-primary/90">{r.docNo}</td>
+                  <td className="max-w-[180px] truncate py-1.5 pr-2 text-foreground/90" title={`${r.customerCode} ${r.customerName}`}>
+                    {r.customerName}
+                  </td>
+                  <td className="py-1.5 pr-2 text-right font-mono tabular-nums text-foreground/85">
+                    {Number(r.qty).toFixed(0)}
+                  </td>
+                  <td className="py-1.5 pr-2 text-right font-mono font-semibold tabular-nums text-foreground/90">
+                    {fmtMoney(r.unitPrice)}
+                  </td>
+                  <td className="py-1.5 pr-2 text-right font-mono tabular-nums text-muted-foreground/80">
+                    {fmtMoney(r.minPrice)}
+                  </td>
+                  <td className="py-1.5 pr-2">
+                    <StatusBadge label={QUOTE_STATUS_LABELS[r.status] ?? r.status} muted={r.status === 'CANCELLED'} />
+                  </td>
+                  <td className="py-1.5 text-right">
+                    {r.isSelected ? (
+                      <span
+                        className="rounded border border-[#22D88F]/50 bg-[#22D88F]/10 px-1.5 py-px font-mono text-[11px] font-bold text-[#22D88F]"
+                        title={`已轉銷貨 ${r.transferredQty}`}
+                      >
+                        ✓ {Number(r.transferredQty).toFixed(0)}
+                      </span>
+                    ) : (
+                      <span className="text-[11px] text-muted-foreground/45">—</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </PanelSection>
+    </div>
+  );
+}
+
+/** 建議售價磚（金額原樣顯示、null = 未設定）*/
+function PriceTile({ label, value, color }: { label: string; value: string | null; color: string }) {
+  const empty = value === null || value === '' || Number(value) === 0;
+  return (
+    <div className="flex flex-col gap-0.5 rounded-md border border-border/55 bg-secondary px-3 py-2 shadow-sm">
+      <span className="text-[12px] font-medium uppercase tracking-[0.1em] text-foreground/60">
+        {label}
+      </span>
+      <span className="font-mono text-[18px] font-semibold tabular-nums" style={{ color: empty ? ZERO_GREY : color }}>
+        {empty ? '—' : fmtMoney(value)}
+      </span>
+    </div>
+  );
+}
+
+function StatusBadge({ label, muted }: { label: string; muted?: boolean }) {
+  return (
+    <span
+      className={cn(
+        'rounded border border-border/50 bg-secondary/40 px-1.5 py-px text-[11px] text-foreground/85',
+        muted && 'text-muted-foreground/55 line-through',
+      )}
+    >
+      {label}
+    </span>
+  );
+}
+
+function PanelSection({
+  title,
+  count,
+  capped,
+  children,
+}: {
+  title: string;
+  count: number;
+  capped?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="flex flex-col gap-1.5">
+      <h4 className="flex items-baseline gap-2 text-[10px] uppercase tracking-[0.22em] text-muted-foreground/70">
+        {title}
+        <span className="font-mono normal-case tracking-normal">({count} 筆)</span>
+        {capped && (
+          <span className="normal-case tracking-normal text-muted-foreground/55">
+            ⚠ 已達 50 筆上限、更早紀錄未列
+          </span>
+        )}
+      </h4>
+      {children}
+    </section>
+  );
+}
+
+function PanelSectionEmpty({ msg }: { msg: string }) {
+  return (
+    <div className="rounded-md border border-border/30 bg-background/25 py-3 text-center text-[12px] text-muted-foreground/55">
+      {msg}
+    </div>
   );
 }
 
