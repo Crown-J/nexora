@@ -19,6 +19,9 @@ import { PartPhotoService } from './part-photo/part-photo.service';
 // 偉盟 P2 2.6 2026-07-11：零件條碼對照（維護 + 掃碼 resolve）
 import { PartBarcodeController, PartBarcodeResolveController } from './part-barcode/part-barcode.controller';
 import { PartBarcodeService } from './part-barcode/part-barcode.service';
+// 偉盟 P2 2.8 2026-07-11：批次調價工具
+import { PartBatchPriceController } from './part-batch-price/part-batch-price.controller';
+import { PartBatchPriceService } from './part-batch-price/part-batch-price.service';
 import { BulletinController } from './bulletin/bulletin.controller';
 import { BulletinService } from './bulletin/bulletin.service';
 import { CalendarEventController } from './calendar-event/calendar-event.controller';
@@ -128,6 +131,7 @@ import { UserTeamService } from './user-team/user-team.service';
     PartPhotoController,
     PartBarcodeController,
     PartBarcodeResolveController,
+    PartBatchPriceController,
     UserPhotoController,
     DepartmentController,
     TeamController,
@@ -171,6 +175,7 @@ import { UserTeamService } from './user-team/user-team.service';
     PartnerContactService,
     PartPhotoService,
     PartBarcodeService,
+    PartBatchPriceService,
     UserPhotoService,
     DepartmentService,
     TeamService,
