@@ -78,6 +78,9 @@ const PO_SEL = {
   createdBy: true,
   updatedAt: true,
   updatedBy: true,
+  // NX02-PO-SHELL 2026-07-10：單據模板 enrich——關聯名稱由 flattenPoRefs 攤平（比照 RrService）
+  supplier: { select: { code: true, name: true } },
+  rfq: { select: { docNo: true } },
 } as const;
 
 const PO_ITEM_SEL = {
@@ -103,6 +106,21 @@ const PO_ITEM_SEL = {
   // T8 進貨對齊批次 2026-06-08：runtime JOIN 廠牌料號（mapPoDetail 平鋪為 secCode）
   part: { select: { secCode: true } },
 } as const;
+
+// NX02-PO-SHELL 2026-07-10：把 PO_SEL 帶的 supplier/rfq 關聯攤平成 supplierCode/supplierName/rfqDocNo
+//   （比照 RrService）。剝掉關聯物件本身、避免回傳巢狀重複。createdByName 由呼叫端另補（需查 user）。
+function flattenPoRefs<T extends Record<string, unknown>>(rest: T) {
+  const { supplier, rfq, ...plain } = rest as Record<string, unknown> & {
+    supplier?: { code?: string; name?: string } | null;
+    rfq?: { docNo?: string } | null;
+  };
+  return {
+    ...plain,
+    supplierCode: supplier?.code ?? null,
+    supplierName: supplier?.name ?? null,
+    rfqDocNo: rfq?.docNo ?? null,
+  };
+}
 
 @Injectable()
 export class PoService {
@@ -169,7 +187,13 @@ export class PoService {
     if (q.purchaseType) where.purchaseType = q.purchaseType;
     if (q.search?.trim()) {
       const s = q.search.trim();
-      where.OR = [{ docNo: { contains: s, mode: 'insensitive' } }, { remark: { contains: s, mode: 'insensitive' } }];
+      // NX02-PO-SHELL：搜尋含 單號/備註/供應商編號/供應商名稱（比照 RrService 加關聯搜尋）
+      where.OR = [
+        { docNo: { contains: s, mode: 'insensitive' } },
+        { remark: { contains: s, mode: 'insensitive' } },
+        { supplier: { code: { contains: s, mode: 'insensitive' } } },
+        { supplier: { name: { contains: s, mode: 'insensitive' } } },
+      ];
     }
     return where;
   }
@@ -242,10 +266,26 @@ export class PoService {
         orderBy: [{ poDate: 'desc' }, { docNo: 'desc' }],
         skip,
         take: pageSize,
-        select: PO_SEL,
+        // NX02-PO-SHELL：單據模板列表需 建單人員名 + 項目數
+        select: { ...PO_SEL, _count: { select: { rev_Nx02PoItem_poId: true } } },
       }),
     ]);
-    return { page, pageSize, total, rows };
+    // 建單人員名（批次查 user）
+    const creatorIds = [...new Set(rows.map((r) => r.createdBy).filter(Boolean))];
+    const creators = creatorIds.length
+      ? await this.prisma.nx01User.findMany({ where: { id: { in: creatorIds } }, select: { id: true, userName: true } })
+      : [];
+    const creatorMap = new Map(creators.map((c) => [c.id, c.userName]));
+    const items = rows.map((r) => {
+      const { _count, ...rest } = r;
+      return {
+        ...flattenPoRefs(rest),
+        itemCount: _count?.rev_Nx02PoItem_poId ?? 0,
+        createdByName: creatorMap.get(r.createdBy) ?? null,
+      };
+    });
+    // NX02-PO-SHELL：回傳鍵 rows→items（對齊範式；舊 PoListView 讀 .data 本就錯位、隨舊視圖退場）
+    return { page, pageSize, total, items };
   }
 
   async getById(user: RequestUser, id: string) {
@@ -255,7 +295,11 @@ export class PoService {
       select: { ...PO_SEL, rev_Nx02PoItem_poId: { orderBy: { lineNo: 'asc' }, select: PO_ITEM_SEL } },
     });
     if (!row) throw new NotFoundException('PO not found');
-    return this.mapPoDetail(row);
+    // NX02-PO-SHELL：建單人員名（詳情顯示）
+    const creator = row.createdBy
+      ? await this.prisma.nx01User.findFirst({ where: { id: row.createdBy }, select: { userName: true } })
+      : null;
+    return { ...this.mapPoDetail(row), createdByName: creator?.userName ?? null };
   }
 
   private mapPoDetail(
@@ -265,7 +309,8 @@ export class PoService {
   ) {
     const { rev_Nx02PoItem_poId, ...rest } = row;
     return {
-      ...rest,
+      // NX02-PO-SHELL：關聯攤平（供應商/來源詢價單號）
+      ...flattenPoRefs(rest),
       items: rev_Nx02PoItem_poId.map((it) => {
         // T8 進貨對齊批次 2026-06-08：平鋪 part.secCode 為 secCode、刪去 nested part 物件
         const { part, ...itemRest } = it;
