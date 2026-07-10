@@ -37,6 +37,7 @@ import {
   getPartCompatGroup,
   getPartDetail,
   getPartPurchaseHistory,
+  getPartRelated,
   getPartSalesHistory,
   getPartStockHistory,
   getPartStockSettings,
@@ -49,6 +50,7 @@ import type {
   PartCompatMemberDto,
   PartDetailDto,
   PartPurchaseHistoryRow,
+  PartRelatedRow,
   PartSalesHistoryDto,
   PartStockHistoryRow,
   PartStockSettingRow,
@@ -122,6 +124,10 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
   const [purchaseRows, setPurchaseRows] = useState<PartPurchaseHistoryRow[] | null>(null);
   const [purchaseLoading, setPurchaseLoading] = useState(false);
   const purchaseReqRef = useRef(0);
+  // 相關零件 lazy 載（F10、換料件清空重抓）
+  const [relatedRows, setRelatedRows] = useState<PartRelatedRow[] | null>(null);
+  const [relatedLoading, setRelatedLoading] = useState(false);
+  const relatedReqRef = useRef(0);
 
   // race 防護
   const leftReqRef = useRef(0);
@@ -162,6 +168,7 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
     setHistoryRows(null);
     setSalesData(null);
     setPurchaseRows(null);
+    setRelatedRows(null);
     setQuickPanel(null);
   }, [effectivePartId]);
 
@@ -229,6 +236,26 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
       }
     })();
   }, [quickPanel, purchaseRows, effectivePartId]);
+
+  // F10 面板開啟時 lazy 載相關零件（同料件共用快取）
+  useEffect(() => {
+    if (quickPanel !== 'related') return;
+    if (relatedRows !== null) return;
+    const myReq = ++relatedReqRef.current;
+    setRelatedLoading(true);
+    void (async () => {
+      try {
+        const r = await getPartRelated(effectivePartId);
+        if (relatedReqRef.current !== myReq) return;
+        setRelatedRows(r.rows);
+      } catch {
+        if (relatedReqRef.current !== myReq) return;
+        setRelatedRows([]);
+      } finally {
+        if (relatedReqRef.current === myReq) setRelatedLoading(false);
+      }
+    })();
+  }, [quickPanel, relatedRows, effectivePartId]);
 
   // 載 compat group（mainPartId、預覽不重抓）
   useEffect(() => {
@@ -407,6 +434,10 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
       } else if (e.key === 'F9') {
         e.preventDefault();
         togglePanel('purchase');
+      } else if (e.key === 'F10') {
+        // ⚠ F10 瀏覽器預設聚焦選單列；capture 階段 preventDefault 攔（同 F3/F5 手法、瀏覽器實測）
+        e.preventDefault();
+        togglePanel('related');
       }
     };
     // capture 階段：搶在焦點鎖定對話框冒泡攔截 + 瀏覽器默認（F3=找下一個/F5=重整）之前 preventDefault
@@ -565,6 +596,8 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
             <span className="text-muted-foreground/35">·</span>
             <Kbd>F9</Kbd> 進貨比價
             <span className="text-muted-foreground/35">·</span>
+            <Kbd>F10</Kbd> 相關零件
+            <span className="text-muted-foreground/35">·</span>
             <Kbd>↑↓</Kbd> 選通用件
             <span className="text-muted-foreground/35">·</span>
             <Kbd>Enter</Kbd> 預覽（留主件）
@@ -605,6 +638,8 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
             salesLoading={salesLoading}
             purchaseRows={purchaseRows}
             purchaseLoading={purchaseLoading}
+            relatedRows={relatedRows}
+            relatedLoading={relatedLoading}
             onClose={() => setQuickPanel(null)}
           />
         )}
@@ -1381,8 +1416,8 @@ const DOC_TYPE_LABELS: Record<string, string> = {
   X: '調撥',
 };
 
-// F2 下鑽（交接 §7、執行長 2026-07-11 拍板）：F8 銷貨比價 / F9 進貨比價加入同一面板系統
-type QuickPanelKind = 'alt' | 'turnover' | 'history' | 'sales' | 'purchase';
+// F2 下鑽（交接 §7、執行長 2026-07-11 拍板）：F8 銷貨比價 / F9 進貨比價 / F10 相關零件
+type QuickPanelKind = 'alt' | 'turnover' | 'history' | 'sales' | 'purchase' | 'related';
 
 const QUICK_PANEL_META: Record<QuickPanelKind, { title: string; kbd: string; wide?: boolean }> = {
   alt: { title: '可替代零件', kbd: 'F3' },
@@ -1390,6 +1425,7 @@ const QUICK_PANEL_META: Record<QuickPanelKind, { title: string; kbd: string; wid
   history: { title: '出入庫紀錄', kbd: 'F6' },
   sales: { title: '銷貨比價', kbd: 'F8', wide: true },
   purchase: { title: '進貨比價', kbd: 'F9', wide: true },
+  related: { title: '相關零件', kbd: 'F10' },
 };
 
 function QuickPanelOverlay({
@@ -1405,6 +1441,8 @@ function QuickPanelOverlay({
   salesLoading,
   purchaseRows,
   purchaseLoading,
+  relatedRows,
+  relatedLoading,
   onClose,
 }: {
   kind: QuickPanelKind;
@@ -1419,6 +1457,8 @@ function QuickPanelOverlay({
   salesLoading: boolean;
   purchaseRows: PartPurchaseHistoryRow[] | null;
   purchaseLoading: boolean;
+  relatedRows: PartRelatedRow[] | null;
+  relatedLoading: boolean;
   onClose: () => void;
 }) {
   const meta = QUICK_PANEL_META[kind];
@@ -1469,6 +1509,7 @@ function QuickPanelOverlay({
           {kind === 'purchase' && (
             <PurchaseComparePanel rows={purchaseRows} loading={purchaseLoading} />
           )}
+          {kind === 'related' && <RelatedPartsPanel rows={relatedRows} loading={relatedLoading} />}
         </div>
 
         <div className="border-t border-border/35 bg-background/35 px-5 py-1.5 text-right text-[11px] text-muted-foreground/65">
@@ -1900,6 +1941,66 @@ function PurchaseComparePanel({
         </tbody>
       </table>
     </PanelSection>
+  );
+}
+
+// ─── F10 相關零件（F2 下鑽、交接 §7 第三優先：對應料）──────────
+// 執行長既拍板（見後端 getRelatedParts 註解）：relationType 1~5 不分子類型、UI 全部歸一區。
+function RelatedPartsPanel({
+  rows,
+  loading,
+}: {
+  rows: PartRelatedRow[] | null;
+  loading: boolean;
+}) {
+  if (loading || !rows) return <PanelEmpty msg="載入中…" loading />;
+  if (rows.length === 0) return <PanelEmpty msg="本料件無相關零件" />;
+  return (
+    <table className="w-full border-collapse text-[13px]">
+      <thead className="sticky top-0 bg-popover">
+        <tr className="border-b border-border/40 text-left text-[11px] uppercase tracking-[0.12em] text-muted-foreground/70">
+          <th className="py-1.5 pr-3 font-medium">料號</th>
+          <th className="py-1.5 pr-3 font-medium">品名</th>
+          <th className="py-1.5 pr-3 font-medium">廠牌</th>
+          <th className="py-1.5 pr-3 text-right font-medium">庫存</th>
+          <th className="py-1.5 font-medium">備註</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((r) => {
+          const onHand = Number(r.onHandTotal);
+          return (
+            <tr
+              key={r.relationId}
+              className={cn('border-b border-border/15 last:border-b-0', !r.isActive && 'opacity-55')}
+            >
+              <td className="py-2 pr-3">
+                <span className="font-mono font-medium text-foreground/90">{r.code}</span>
+                {!r.isActive && (
+                  <span className="ml-2 rounded border border-destructive/40 bg-destructive/10 px-1.5 py-px text-[10px] text-destructive">
+                    停用
+                  </span>
+                )}
+              </td>
+              <td className="max-w-[220px] truncate py-2 pr-3 text-foreground/90" title={r.name}>
+                {r.name}
+              </td>
+              <td className="py-2 pr-3 text-foreground/85">{r.brandCode ?? r.brandName ?? '—'}</td>
+              <td
+                className="py-2 pr-3 text-right font-mono tabular-nums"
+                style={{ color: onHand > 0 ? STOCK_COLORS.available : STOCK_COLORS.reserved }}
+                title={`可出 ${r.availableTotal}`}
+              >
+                {onHand.toFixed(0)}
+              </td>
+              <td className="max-w-[160px] truncate py-2 text-[12px] text-muted-foreground/75" title={r.remark ?? undefined}>
+                {r.remark ?? '—'}
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
   );
 }
 
