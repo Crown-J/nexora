@@ -1,7 +1,9 @@
+// apps/nx-ui/src/app/dashboard/purchase/rr/page.tsx
+// NX02-RR-SHELL：進貨單列表 → 單據外殼 RrWorkbench
 'use client';
 
-import { RrListView } from '@/features/nx02/rr/ui/RrListView';
+import { RrWorkbench } from '@/features/nx02/rr/ui/RrWorkbench';
 
-export default function Nx01RrListPage() {
-  return <RrListView />;
+export default function RrListPage() {
+  return <RrWorkbench />;
 }

@@ -41,8 +41,8 @@ export function CustomerPicker({
   /** 已選後再按 Enter → 跳下一欄 */
   onCommit: () => void;
   autoFocus?: boolean;
-  /** partner 類型過濾（預設 C 客戶；即時詢價傳 O 挑同行）*/
-  partnerType?: 'C' | 'O';
+  /** partner 類型過濾（預設 C 客戶；即時詢價傳 O 挑同行；進貨單傳 S 挑供應商）*/
+  partnerType?: 'C' | 'O' | 'S';
 }) {
   const [text, setText] = useState('');
   const [rows, setRows] = useState<PickedCustomer[]>([]);
