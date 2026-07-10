@@ -36,6 +36,7 @@ import {
   buildPartSearchPhotoUrl,
   getPartCompatGroup,
   getPartDetail,
+  getPartPurchaseHistory,
   getPartSalesHistory,
   getPartStockHistory,
   getPartStockSettings,
@@ -47,6 +48,7 @@ import type {
   PartCompatGroupDto,
   PartCompatMemberDto,
   PartDetailDto,
+  PartPurchaseHistoryRow,
   PartSalesHistoryDto,
   PartStockHistoryRow,
   PartStockSettingRow,
@@ -116,6 +118,10 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
   const [salesData, setSalesData] = useState<PartSalesHistoryDto | null>(null);
   const [salesLoading, setSalesLoading] = useState(false);
   const salesReqRef = useRef(0);
+  // 進貨比價 lazy 載（F9、換料件清空重抓）
+  const [purchaseRows, setPurchaseRows] = useState<PartPurchaseHistoryRow[] | null>(null);
+  const [purchaseLoading, setPurchaseLoading] = useState(false);
+  const purchaseReqRef = useRef(0);
 
   // race 防護
   const leftReqRef = useRef(0);
@@ -151,10 +157,11 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
     })();
   }, [effectivePartId]);
 
-  // 換料件：出入庫/銷貨比價快取失效、面板收起（避免顯示上一件的資料）
+  // 換料件：出入庫/銷貨比價/進貨比價快取失效、面板收起（避免顯示上一件的資料）
   useEffect(() => {
     setHistoryRows(null);
     setSalesData(null);
+    setPurchaseRows(null);
     setQuickPanel(null);
   }, [effectivePartId]);
 
@@ -202,6 +209,26 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
       }
     })();
   }, [quickPanel, salesData, effectivePartId]);
+
+  // F9 面板開啟時 lazy 載進貨比價（同料件共用快取）
+  useEffect(() => {
+    if (quickPanel !== 'purchase') return;
+    if (purchaseRows !== null) return;
+    const myReq = ++purchaseReqRef.current;
+    setPurchaseLoading(true);
+    void (async () => {
+      try {
+        const r = await getPartPurchaseHistory(effectivePartId);
+        if (purchaseReqRef.current !== myReq) return;
+        setPurchaseRows(r.rows);
+      } catch {
+        if (purchaseReqRef.current !== myReq) return;
+        setPurchaseRows([]);
+      } finally {
+        if (purchaseReqRef.current === myReq) setPurchaseLoading(false);
+      }
+    })();
+  }, [quickPanel, purchaseRows, effectivePartId]);
 
   // 載 compat group（mainPartId、預覽不重抓）
   useEffect(() => {
@@ -377,6 +404,9 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
       } else if (e.key === 'F8') {
         e.preventDefault();
         togglePanel('sales');
+      } else if (e.key === 'F9') {
+        e.preventDefault();
+        togglePanel('purchase');
       }
     };
     // capture 階段：搶在焦點鎖定對話框冒泡攔截 + 瀏覽器默認（F3=找下一個/F5=重整）之前 preventDefault
@@ -533,6 +563,8 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
             <span className="text-muted-foreground/35">·</span>
             <Kbd>F8</Kbd> 銷貨比價
             <span className="text-muted-foreground/35">·</span>
+            <Kbd>F9</Kbd> 進貨比價
+            <span className="text-muted-foreground/35">·</span>
             <Kbd>↑↓</Kbd> 選通用件
             <span className="text-muted-foreground/35">·</span>
             <Kbd>Enter</Kbd> 預覽（留主件）
@@ -571,6 +603,8 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
             companyOnHand={Number(stock?.company.onHand ?? 0)}
             salesData={salesData}
             salesLoading={salesLoading}
+            purchaseRows={purchaseRows}
+            purchaseLoading={purchaseLoading}
             onClose={() => setQuickPanel(null)}
           />
         )}
@@ -1347,14 +1381,15 @@ const DOC_TYPE_LABELS: Record<string, string> = {
   X: '調撥',
 };
 
-// F2 下鑽（交接 §7、執行長 2026-07-11 拍板）：F8 銷貨比價加入同一面板系統
-type QuickPanelKind = 'alt' | 'turnover' | 'history' | 'sales';
+// F2 下鑽（交接 §7、執行長 2026-07-11 拍板）：F8 銷貨比價 / F9 進貨比價加入同一面板系統
+type QuickPanelKind = 'alt' | 'turnover' | 'history' | 'sales' | 'purchase';
 
 const QUICK_PANEL_META: Record<QuickPanelKind, { title: string; kbd: string; wide?: boolean }> = {
   alt: { title: '可替代零件', kbd: 'F3' },
   turnover: { title: '周轉率分析', kbd: 'F5' },
   history: { title: '出入庫紀錄', kbd: 'F6' },
   sales: { title: '銷貨比價', kbd: 'F8', wide: true },
+  purchase: { title: '進貨比價', kbd: 'F9', wide: true },
 };
 
 function QuickPanelOverlay({
@@ -1368,6 +1403,8 @@ function QuickPanelOverlay({
   companyOnHand,
   salesData,
   salesLoading,
+  purchaseRows,
+  purchaseLoading,
   onClose,
 }: {
   kind: QuickPanelKind;
@@ -1380,6 +1417,8 @@ function QuickPanelOverlay({
   companyOnHand: number;
   salesData: PartSalesHistoryDto | null;
   salesLoading: boolean;
+  purchaseRows: PartPurchaseHistoryRow[] | null;
+  purchaseLoading: boolean;
   onClose: () => void;
 }) {
   const meta = QUICK_PANEL_META[kind];
@@ -1427,6 +1466,9 @@ function QuickPanelOverlay({
           )}
           {kind === 'history' && <StockHistoryPanel rows={historyRows} loading={historyLoading} />}
           {kind === 'sales' && <SalesComparePanel data={salesData} loading={salesLoading} />}
+          {kind === 'purchase' && (
+            <PurchaseComparePanel rows={purchaseRows} loading={purchaseLoading} />
+          )}
         </div>
 
         <div className="border-t border-border/35 bg-background/35 px-5 py-1.5 text-right text-[11px] text-muted-foreground/65">
@@ -1786,6 +1828,78 @@ function SalesComparePanel({
         )}
       </PanelSection>
     </div>
+  );
+}
+
+// ─── F9 進貨比價（F2 下鑽、交接 §7 第二優先）─────────────────
+// 採購比價場景：同一顆料歷次進貨的供應商/成本一表看。
+// 狀態字面對齊 @data/types/nx02/rr 的 RR_STATUS_LABEL（局部映射、同上）。
+const RR_STATUS_LABELS: Record<string, string> = {
+  DRAFT: '草稿',
+  INSPECTING: '驗收中',
+  POSTED: '已過帳',
+  REJECTED: '已駁回',
+  CANCELLED: '已取消',
+};
+
+function PurchaseComparePanel({
+  rows,
+  loading,
+}: {
+  rows: PartPurchaseHistoryRow[] | null;
+  loading: boolean;
+}) {
+  if (loading || !rows) return <PanelEmpty msg="載入中…" loading />;
+  if (rows.length === 0) return <PanelEmpty msg="本料件無進貨紀錄" />;
+  return (
+    <PanelSection title="歷史進貨" count={rows.length} capped={rows.length >= 50}>
+      <table className="w-full border-collapse text-[12.5px]">
+        <thead className="sticky top-0 bg-popover">
+          <tr className="border-b border-border/40 text-left text-[11px] uppercase tracking-[0.12em] text-muted-foreground/70">
+            <th className="py-1.5 pr-2 font-medium">日期</th>
+            <th className="py-1.5 pr-2 font-medium">單號</th>
+            <th className="py-1.5 pr-2 font-medium">供應商</th>
+            <th className="py-1.5 pr-2 text-right font-medium">數量</th>
+            <th className="py-1.5 pr-2 text-right font-medium">單位成本</th>
+            <th className="py-1.5 pr-2 text-right font-medium">實際成本</th>
+            <th className="py-1.5 pr-2 text-right font-medium">金額</th>
+            <th className="py-1.5 pr-2 font-medium">批號</th>
+            <th className="py-1.5 font-medium">狀態</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr key={r.rrItemId} className="border-b border-border/15 last:border-b-0">
+              <td className="py-1.5 pr-2 font-mono text-[12px] text-foreground/85">
+                {fmtDate(r.rrDate)}
+              </td>
+              <td className="py-1.5 pr-2 font-mono text-[12px] text-primary/90">{r.docNo}</td>
+              <td className="max-w-[170px] truncate py-1.5 pr-2 text-foreground/90" title={`${r.supplierCode} ${r.supplierName}`}>
+                {r.supplierName}
+              </td>
+              <td className="py-1.5 pr-2 text-right font-mono tabular-nums text-foreground/85">
+                {Number(r.qty).toFixed(0)}
+              </td>
+              <td className="py-1.5 pr-2 text-right font-mono tabular-nums text-muted-foreground/80">
+                {fmtMoney(r.unitCost)}
+              </td>
+              <td className="py-1.5 pr-2 text-right font-mono font-semibold tabular-nums" style={{ color: STOCK_COLORS.inTransit }}>
+                {fmtMoney(r.actualUnitCost)}
+              </td>
+              <td className="py-1.5 pr-2 text-right font-mono tabular-nums text-foreground/85">
+                {fmtMoney(r.lineAmount)}
+              </td>
+              <td className="py-1.5 pr-2 font-mono text-[11px] text-muted-foreground/70">
+                {r.batchNo ?? '—'}
+              </td>
+              <td className="py-1.5">
+                <StatusBadge label={RR_STATUS_LABELS[r.status] ?? r.status} muted={r.status === 'CANCELLED'} />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </PanelSection>
   );
 }
 
