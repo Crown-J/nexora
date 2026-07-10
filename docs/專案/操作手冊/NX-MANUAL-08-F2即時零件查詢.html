@@ -1,0 +1,213 @@
+<!-- 檔案位置：docs/專案/操作手冊/NX-MANUAL-08-F2即時零件查詢.html -->
+<!-- 檔案版本：Ver 1.0 -->
+<!-- 檔案說明：NEXORA GRID 操作手冊 08 — F2 即時零件查詢（搜尋窗/主視窗/F3~F10 快捷面板/三入口情境）；由 Hank 依實作撰寫維護。 -->
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>NX-MANUAL-08 F2 即時零件查詢</title>
+<style>
+:root{--navy:#1F3A5F;--navy2:#2d4f7c;--ink:#1c2530;--sub:#5d6675;--line:#e6eaf0;--amber:#c8881f;--shell:#0e1622;
+--star-bg:#fbf3e2;--star-tx:#7a4e09;--warn-bg:#fcecec;--warn-bd:#e09a9a;--warn-tx:#962d2d;
+--note-bg:#eef1f5;--note-bd:#c3ccd8;--note-tx:#4a5563;--info-bg:#e6f1fb;--info-tx:#0c447c;--green-bg:#eaf3de;--green-tx:#3b6d11;}
+*{box-sizing:border-box;} html{scroll-behavior:smooth;}
+body{margin:0;background:#f4f6f9;color:var(--ink);font-family:"PingFang TC","Microsoft JhengHei","Noto Sans TC",sans-serif;line-height:1.78;font-size:16px;}
+a{color:inherit;}
+.topbar{position:sticky;top:0;z-index:20;background:var(--shell);display:flex;align-items:center;gap:4px;padding:0 16px;height:54px;overflow-x:auto;box-shadow:0 2px 10px rgba(0,0,0,.15);}
+.topbar .mk{display:flex;align-items:center;gap:9px;margin-right:10px;flex:none;}
+.topbar .mk .logo{width:30px;height:30px;border-radius:7px;background:#0a0c10;border:1.5px solid var(--amber);color:#f0b94e;display:flex;align-items:center;justify-content:center;font-weight:700;}
+.topbar .mk .nm{color:#eef3f8;font-size:14px;font-weight:600;letter-spacing:.05em;white-space:nowrap;}
+.topbar nav{display:flex;gap:2px;}
+.topbar nav a{color:#9fb0c4;font-size:13px;padding:7px 13px;border-radius:6px;text-decoration:none;white-space:nowrap;border-bottom:2px solid transparent;transition:.15s;}
+.topbar nav a:hover{color:#fff;background:rgba(255,255,255,.06);}
+.wrap{max-width:900px;margin:0 auto;padding:0 32px 120px;}
+.cover{padding:46px 0 8px;border-bottom:1px solid var(--line);margin-bottom:8px;}
+.cover-tag{display:inline-block;font-size:13px;letter-spacing:.14em;color:var(--amber);border:1px solid var(--amber);border-radius:20px;padding:4px 14px;margin-bottom:18px;}
+.cover-title{font-size:38px;color:var(--navy);margin:0;font-weight:700;}
+.cover-name{font-size:23px;color:var(--navy2);margin:2px 0 14px;font-weight:600;}
+.ver{border-collapse:collapse;font-size:13px;margin:6px 0 16px;}
+.ver td{border:1px solid var(--line);padding:5px 12px;}
+.ver .vk{background:#f3f6fa;color:var(--navy);font-weight:600;}
+.cover-sub{color:var(--sub);font-size:15px;line-height:1.9;margin:0;}
+.clog{margin:18px 0 6px;}
+.clog-h{font-size:15px;font-weight:700;color:var(--navy);margin-bottom:6px;}
+h1.chap{font-size:25px;color:var(--navy);margin:54px 0 16px;padding-bottom:10px;border-bottom:2px solid var(--navy);font-weight:700;scroll-margin-top:66px;}
+h2{font-size:18px;color:var(--navy);margin:30px 0 12px;padding-left:11px;border-left:4px solid var(--amber);font-weight:600;scroll-margin-top:66px;}
+h3{font-size:15.5px;color:var(--navy2);margin:22px 0 8px;font-weight:600;}
+p{margin:11px 0;} ul{margin:11px 0;padding-left:22px;} li{margin:5px 0;}
+.panel{background:#fff;border:0.5px solid var(--line);border-radius:12px;overflow:hidden;margin:12px 0;}
+.p-head{background:var(--navy);color:#fff;font-size:14px;font-weight:600;padding:9px 16px;}
+.frow{display:flex;gap:16px;padding:11px 16px;border-bottom:0.5px solid var(--line);}
+.frow.last{border-bottom:0;}
+.fn{flex:none;width:150px;}
+.fnm{font-size:14px;font-weight:600;color:var(--navy);display:inline;}
+.tag{font-size:10.5px;padding:1px 7px;border-radius:9px;margin-left:5px;white-space:nowrap;display:inline-block;}
+.fd{flex:1;font-size:13.5px;color:var(--sub);line-height:1.62;}
+.steps{background:#f7f9fc;border:0.5px solid var(--line);border-radius:10px;padding:10px 16px 10px;margin:12px 0;}
+.steps .s-head{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:2px;}
+.steps ol{margin:4px 0;padding-left:20px;}
+.steps li{margin:3px 0;font-size:14px;}
+table.data{width:100%;border-collapse:collapse;font-size:14px;margin:14px 0;border:0.5px solid var(--line);border-radius:8px;overflow:hidden;}
+table.data th{background:var(--navy);color:#fff;padding:9px 12px;text-align:left;font-weight:600;}
+table.data td{border-top:0.5px solid var(--line);padding:8px 12px;}
+table.data tr:nth-child(even) td{background:#f8fafc;}
+.badge{border-radius:8px;padding:12px 15px;margin:14px 0;font-size:14.5px;border-left:5px solid;line-height:1.66;}
+.badge .lb{font-weight:700;margin-right:5px;}
+.badge.star{background:var(--star-bg);border-color:var(--amber);} .badge.star .lb{color:var(--star-tx);}
+.badge.warn{background:var(--warn-bg);border-color:var(--warn-bd);} .badge.warn .lb{color:var(--warn-tx);}
+.badge.note{background:var(--note-bg);border-color:var(--note-bd);} .badge.note .lb{color:var(--note-tx);}
+kbd{display:inline-block;border:1px solid #c3ccd8;border-bottom-width:2px;border-radius:5px;background:#f3f6fa;color:var(--navy);font-family:Consolas,monospace;font-size:12.5px;font-weight:600;padding:0 7px;line-height:1.7;margin:0 1px;}
+.totop{position:fixed;right:24px;bottom:24px;width:42px;height:42px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:19px;box-shadow:0 3px 12px rgba(0,0,0,.25);}
+@media(max-width:680px){.wrap{padding:0 14px 80px;}.frow{flex-direction:column;gap:3px;}.fn{width:auto;}}
+</style></head>
+<body>
+<div class="topbar"><span class="mk"><span class="logo">N</span><span class="nm">NX-MANUAL-08</span></span><nav id="nav"><a href="#c-0">概觀</a><a href="#c-1">搜尋窗</a><a href="#c-2">主視窗</a><a href="#c-3">快捷面板 F3~F10</a><a href="#c-4">三入口情境</a><a href="#c-5">快捷鍵總表</a><a href="#c-6">限制與注意</a></nav></div>
+<a class="totop" href="#top" aria-label="回到頂端">&uarr;</a>
+<div class="wrap">
+
+<header class="cover" id="top">
+<div class="cover-tag">NEXORA GRID · 操作手冊</div>
+<h1 class="cover-title">NX-MANUAL-08</h1>
+<div class="cover-name">F2 即時零件查詢</div>
+<table class="ver"><tr><td class="vk">版本</td><td>Ver 1.0</td><td class="vk">日期</td><td>2026-07-11</td><td class="vk">維護</td><td>Hank（全端）</td></tr></table>
+<p class="cover-sub">電話進來就查——任何畫面按 <kbd>F2</kbd> 開零件查詢，兩步到貨況：搜尋窗找料 → 主視窗看「公司到底有沒有貨」，再用 F3~F10 快捷鍵下鑽比價、看歷史、找替代。<br>全程鍵盤可完成、不需碰滑鼠。</p>
+</header>
+
+<div class="clog"><div class="clog-h">文件修訂紀錄</div><table class="data"><thead><tr><th>版本</th><th>日期</th><th>修改人</th><th>變更說明</th></tr></thead><tbody>
+<tr><td>1.0</td><td>2026-07-11</td><td>Hank</td><td>首版：依 2026-07-11 實作逐欄核對撰寫。涵蓋搜尋窗三查法／主視窗三欄／F3~F10 八個快捷功能（含本日新增的 F8 銷貨比價、F9 進貨比價、F10 相關零件）／三入口情境。</td></tr>
+</tbody></table></div>
+
+<h1 class="chap" id="c-0">概觀</h1>
+<p>F2 即時零件查詢是一組疊層視窗：<strong>視窗 1（搜尋窗）</strong>負責找到料件、<strong>視窗 2（主視窗）</strong>負責回答「這顆料公司有沒有貨、賣多少、跟誰買過」。設計原則是「一個模板、三種入口、銷售為錨」——同一套畫面，銷售、採購、倉管從不同地方進來，看到的重點各自貼合情境（見第 4 章）。</p>
+<h2>開啟與關閉</h2>
+<table class="data"><thead><tr><th>操作</th><th>行為</th></tr></thead><tbody>
+<tr><td>任何畫面按 <kbd>F2</kbd></td><td>開搜尋窗（銷售入口、預設）</td></tr>
+<tr><td>搜尋窗開著按 <kbd>F2</kbd></td><td>全部關閉</td></tr>
+<tr><td>主視窗開著按 <kbd>F2</kbd> 或 <kbd>Esc</kbd></td><td>退回搜尋窗（<strong>搜尋條件與結果保留</strong>、可直接選下一筆）</td></tr>
+<tr><td>主視窗右上 <strong>X</strong></td><td>兩窗全關</td></tr>
+</tbody></table>
+<div class="badge note"><span class="lb">【說明】</span>視窗開著時，背景畫面的鍵盤操作全部隔離，不會誤觸底下的頁面。</div>
+
+<h1 class="chap" id="c-1">視窗 1：搜尋窗</h1>
+<p>左邊輸入條件、右邊即時出結果。三種查法用頁籤切換（<kbd>Alt+1</kbd>~<kbd>Alt+3</kbd>），切查法時輸入欄自動清空重來。</p>
+<h2>三種查法</h2>
+<table class="data"><thead><tr><th>查法</th><th>快捷鍵</th><th>欄位</th><th>用途</th></tr></thead><tbody>
+<tr><td><strong>料號</strong>（預設）</td><td><kbd>Alt+1</kbd></td><td>料號單欄</td><td>最常用：知道公司料號直接打</td></tr>
+<tr><td><strong>品名+車型</strong></td><td><kbd>Alt+2</kbd></td><td>品名（主）＋車型（縮小範圍）</td><td>只知道是什麼零件、裝什麼車</td></tr>
+<tr><td><strong>進階</strong></td><td><kbd>Alt+3</kbd></td><td>料號／品名／廠牌／族群／車型／系統別／用途別 七欄＋「含停用品」勾選</td><td>多條件 AND 交集；查停用料也在這裡</td></tr>
+</tbody></table>
+<div class="badge note"><span class="lb">【說明】</span>進階的「系統別」九選（引擎／傳動／制動…）與「用途別」五選（保養件／維修件…）下拉，選項開頭帶數字——焦點在下拉時直接按數字鍵 <kbd>1</kbd>~<kbd>9</kbd> 即可選中。</div>
+<h2>鍵盤流（左輸入區 ⇄ 右結果區）</h2>
+<div class="steps"><div class="s-head">標準操作</div><ol>
+<li>打條件——欄位間 <kbd>Enter</kbd> 跳下一欄；最後一欄 <kbd>Enter</kbd> 或任意處 <kbd>Alt+F</kbd> 觸發搜尋。</li>
+<li>觸發後焦點自動鎖到右邊結果區（左邊變灰、顯示「已鎖定 · Alt+F 回此區」）。</li>
+<li><kbd>↑</kbd><kbd>↓</kbd> 逐筆選、<kbd>PageUp</kbd><kbd>PageDown</kbd> 整頁跳（一頁 8 筆）。</li>
+<li><kbd>Enter</kbd> 選定 → 進主視窗。</li>
+<li><kbd>Esc</kbd> 或 <kbd>Alt+F</kbd> 退回左邊改條件。</li>
+</ol></div>
+<h2>結果區怎麼看</h2>
+<p>每筆四項資訊：<strong>料號｜副廠料號｜廠牌｜品名</strong>，加「正廠」（金）／「副廠」（灰）徽章。屬於同一通用件群組的料會<strong>縮排分群</strong>——群組頭是主件、替代品縮排掛在底下，一眼看出誰跟誰互通。</p>
+<ul>
+<li>結果一次最多 500 筆，達上限會標紅字「⚠ 已達上限 500」——請加條件縮小。</li>
+<li>查無資料時提示「換個關鍵字、或勾『含停用品』（進階）」。</li>
+</ul>
+
+<h1 class="chap" id="c-2">視窗 2：主視窗</h1>
+<p>選定料件後開啟，三欄一屏答完「這是什麼、有沒有貨、有什麼可替代」。</p>
+<h2>左欄：基本資料</h2>
+<div class="panel"><div class="p-head">基本資料欄位</div><div class="p-body">
+<div class="frow"><div class="fn"><span class="fnm">產品圖</span></div><div class="fd">縮圖；按 <kbd>Space</kbd> 全螢幕放大，多張圖用 <kbd>←</kbd><kbd>→</kbd> 切、再按 <kbd>Space</kbd> 或 <kbd>Esc</kbd> 關。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">基準料號</span></div><div class="fd">公司主碼（金色強調）。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">廠牌料號</span></div><div class="fd">該廠牌對此料的料號。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">品名 / 廠牌 / 族群</span></div><div class="fd">名稱、零件品牌、所屬自訂群組。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">正/副廠</span></div><div class="fd">正廠金徽章／副廠灰徽章。</div></div>
+<div class="frow last"><div class="fn"><span class="fnm">規格備註 / 狀態</span></div><div class="fd">規格說明；停用料標紅「停用」。</div></div>
+</div></div>
+<h2>中欄：公司總存貨</h2>
+<p>預設<strong>不分倉</strong>、只回答「公司到底有沒有貨」：</p>
+<div class="panel"><div class="p-head">公司總存貨區塊</div><div class="p-body">
+<div class="frow"><div class="fn"><span class="fnm">大狀態</span></div><div class="fd">三態：<strong style="color:#1f8a5f">有貨可出</strong>（可出 ≥ 安全量）／<strong style="color:#b06f1e">低於安全</strong>／<strong style="color:#a33">缺貨</strong>（可出 ≤ 0）。未設安全量時可出 &gt; 0 即視為有貨。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">三指標</span></div><div class="fd">總可出（主角、綠）／總庫存（白）／在途（橘、採購已下單未入庫）。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">水位條</span></div><div class="fd">一條看懂：安全量刻線 ─ 現量填色 ─ 最高量刻度（安全/最高 = 各倉庫存設定加總；未設定則只畫現量並註記）。</div></div>
+<div class="frow last"><div class="fn"><span class="fnm">各倉分布</span></div><div class="fd">預設收合、點「各倉分布」展開：每倉一條橫向長條（長度 ∝ 現有量、可出綠＋不可出紅分段、在途數字附註）；<strong>本倉</strong>（我的主要倉）pin 頂＋徽章；空倉折疊成「其他 N 倉無庫存」；超過 8 倉清單內捲動、資料不砍。</div></div>
+</div></div>
+<h2>右欄：通用零件（焦點預設在這）</h2>
+<p>同群組的主件＋替代品清單，每筆顯示料號／品名／副廠料號／廠牌／即時庫存（缺貨標紅）。開窗後焦點直接落在第一筆，馬上可鍵盤操作：</p>
+<table class="data"><thead><tr><th>按鍵</th><th>行為</th></tr></thead><tbody>
+<tr><td><kbd>↑</kbd><kbd>↓</kbd></td><td>選通用件</td></tr>
+<tr><td><kbd>Enter</kbd></td><td><strong>預覽</strong>：左欄、中欄切到該替代品的資料，但主件保留置頂高亮（比完價切回主件按 Enter 即可）</td></tr>
+<tr><td><kbd>Alt+F</kbd></td><td><strong>跳搜</strong>：以該件為新主件整個重查（原主件不保留）</td></tr>
+</tbody></table>
+<div class="badge star"><span class="lb">【重點】</span>「預覽」跟「跳搜」的差別是靈魂：電話中客戶問替代品價格 → 用 <kbd>Enter</kbd> 預覽、看完切回；確定改賣那顆 → 用 <kbd>Alt+F</kbd> 換主件。</div>
+
+<h1 class="chap" id="c-3">快捷面板 F3~F10</h1>
+<p>主視窗開著時按 F3~F10 下鑽。面板類（F3/F5/F6/F8/F9/F10）疊在主視窗上、<strong>同鍵再按或 <kbd>Esc</kbd> 關閉</strong>；換料件（預覽/跳搜）時面板自動收、資料重抓。F4/F7 是動作鍵、直接開報價/詢價視窗。</p>
+<h2>F3 可替代零件</h2>
+<p>通用件精簡表——只露<strong>料號／廠牌／庫存數量</strong>三欄（主件標「主」、庫存有貨綠/缺貨紅），電話中快速報「有沒有替代品」。</p>
+<h2>F4 即時報價</h2>
+<p>帶當前料件開「即時報價」（選客戶 → 報價）。選定客戶後主視窗會帶出該客戶的預設出貨倉（見第 4 章銷售情境）。</p>
+<h2>F5 周轉率分析</h2>
+<div class="panel"><div class="p-head">周轉率面板（六格指標）</div><div class="p-body">
+<div class="frow"><div class="fn"><span class="fnm">近 30 / 90 天出庫、近 90 天入庫</span></div><div class="fd">出入量統計。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">日均出庫（30天）</span></div><div class="fd">近 30 天出庫 ÷ 30。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">現量可售天數</span></div><div class="fd">公司現量 ÷ 日均出庫。</div></div>
+<div class="frow last"><div class="fn"><span class="fnm">年化周轉率（估）</span></div><div class="fd">近 90 天出庫年化 ÷ 現量。</div></div>
+</div></div>
+<div class="badge warn"><span class="lb">【注意】</span>F5 是<strong>估算值</strong>：以近 100 筆出入庫紀錄前端統計，面板底部標注估算基礎；紀錄達 100 筆上限時會警示「更早異動未計入」。</div>
+<h2>F6 出入庫紀錄</h2>
+<p>近 100 筆異動表：日期／類型（進貨、退貨、銷貨、開帳、盤點、調撥）／入／出／結存／倉位。</p>
+<h2>F8 銷貨比價</h2>
+<p>銷售報價的主力下鑽（寬版面板）：</p>
+<div class="panel"><div class="p-head">銷貨比價三段</div><div class="p-body">
+<div class="frow"><div class="fn"><span class="fnm">建議售價列</span></div><div class="fd">成本＋A／B／C／D 四級售價五格並排（未設定顯示 —）。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">歷史銷貨</span></div><div class="fd">近 50 筆成交事實：日期／單號／客戶／數量／單價／金額／狀態。</div></div>
+<div class="frow last"><div class="fn"><span class="fnm">歷史報價</span></div><div class="fd">近 50 筆含未成交：日期／單號／客戶／數量／報價／最低價／狀態／成交欄（✓＋已轉銷貨數量）——看得出這客戶談過什麼價。</div></div>
+</div></div>
+<h2>F9 進貨比價</h2>
+<p>近 50 筆進貨明細（寬版面板）：日期／單號／供應商／數量／單位成本／<strong>實際成本</strong>（橘色強調、比價主看點）／金額／批號／狀態。</p>
+<h2>F10 相關零件</h2>
+<p>兩個頁籤（點按切換、各帶筆數）：</p>
+<ul>
+<li><strong>對應料</strong>：改號、同款、改版周邊、組合包、拆解包等關聯料一表列出（不分子類型）：料號／品名／廠牌／庫存／備註。</li>
+<li><strong>適用車型</strong>：這顆料裝什麼車：車型（代碼＋名稱）／品牌／年份（起–迄、現役顯示「現役」）／引擎（代碼＋排氣量）／適配等級（原廠／副廠等效／通用替代）／備註。</li>
+</ul>
+<h2>F7 即時詢價</h2>
+<p>帶當前料件開「即時詢價」（調貨側、挑同行問貨）。</p>
+
+<h1 class="chap" id="c-4">三入口情境</h1>
+<p>同一套視窗、三種進法。差別在「倉別」——不做全域選倉，<strong>倉別由情境決定</strong>：</p>
+<table class="data"><thead><tr><th>入口</th><th>怎麼進</th><th>情境行為</th></tr></thead><tbody>
+<tr><td><strong>銷售</strong>（主入口、高頻）</td><td>任何畫面 <kbd>F2</kbd></td><td>報價選定客戶後，主視窗頂部出現「<strong>客戶倉</strong>」徽章、各倉分布自動展開、該客戶的預設出貨倉 pin 到最頂（優先於本倉）——先看出貨倉有沒有貨。</td></tr>
+<tr><td><strong>採購</strong>（低頻）</td><td>採購需求單工具列「料號查詢 F2」</td><td>嵌在採購作業旁查料。</td></tr>
+<tr><td><strong>倉管</strong>（低頻）</td><td>庫存查詢工具列「料號查詢 F2」</td><td>主視窗各倉分布<strong>自動展開</strong>、本倉（自己的主要倉）pin 頂＋徽章。</td></tr>
+</tbody></table>
+<div class="badge note"><span class="lb">【說明】</span>情境記在外層：主視窗退回搜尋窗再進下一顆料，客戶倉等情境不會丟；整組關閉（X 或搜尋窗按 F2）才清除。</div>
+
+<h1 class="chap" id="c-5">快捷鍵總表</h1>
+<table class="data"><thead><tr><th>按鍵</th><th>作用範圍</th><th>功能</th></tr></thead><tbody>
+<tr><td><kbd>F2</kbd></td><td>全域</td><td>開查詢／主視窗退回搜尋窗／搜尋窗全關</td></tr>
+<tr><td><kbd>Alt+1</kbd>~<kbd>3</kbd></td><td>搜尋窗</td><td>切查法：料號／品名+車型／進階</td></tr>
+<tr><td><kbd>Alt+F</kbd></td><td>搜尋窗</td><td>觸發搜尋／左右區切換</td></tr>
+<tr><td><kbd>↑</kbd><kbd>↓</kbd>／<kbd>PgUp</kbd><kbd>PgDn</kbd></td><td>結果區</td><td>逐筆選／整頁跳（8 筆）</td></tr>
+<tr><td><kbd>Enter</kbd></td><td>搜尋窗</td><td>欄間跳格／觸發搜尋／選定進主視窗</td></tr>
+<tr><td><kbd>F3</kbd></td><td>主視窗</td><td>可替代零件面板</td></tr>
+<tr><td><kbd>F4</kbd></td><td>主視窗</td><td>即時報價</td></tr>
+<tr><td><kbd>F5</kbd></td><td>主視窗</td><td>周轉率分析面板</td></tr>
+<tr><td><kbd>F6</kbd></td><td>主視窗</td><td>出入庫紀錄面板</td></tr>
+<tr><td><kbd>F7</kbd></td><td>主視窗</td><td>即時詢價（調貨）</td></tr>
+<tr><td><kbd>F8</kbd></td><td>主視窗</td><td>銷貨比價面板</td></tr>
+<tr><td><kbd>F9</kbd></td><td>主視窗</td><td>進貨比價面板</td></tr>
+<tr><td><kbd>F10</kbd></td><td>主視窗</td><td>相關零件面板（對應料／適用車型）</td></tr>
+<tr><td><kbd>Enter</kbd>／<kbd>Alt+F</kbd></td><td>主視窗右欄</td><td>預覽（留主件）／跳搜（換主件）</td></tr>
+<tr><td><kbd>Space</kbd></td><td>主視窗</td><td>產品圖放大／關閉</td></tr>
+<tr><td><kbd>Esc</kbd></td><td>逐層</td><td>面板 → 主視窗 → 搜尋窗 → 關，一層一層退</td></tr>
+</tbody></table>
+
+<h1 class="chap" id="c-6">限制與注意</h1>
+<ul>
+<li><strong>筆數上限</strong>：搜尋結果 500 筆；F8 歷史銷貨/報價各近 50 筆、F9 近 50 筆、F6 近 100 筆——達上限面板會標警示、更早的紀錄不列。</li>
+<li><strong>F5 是估算</strong>：基礎為近 100 筆出入庫，低頻料可信、高頻料建議看報表模組的正式周轉分析。</li>
+<li><strong>成本露出</strong>：F8 建議售價列含進貨成本，可見性走現有權限目錄（能開主視窗即能看）。</li>
+<li><strong>水位條要有設定才完整</strong>：安全量／最高量來自「產品庫存設定」（見 NX-MANUAL-04）；沒設定只畫現量。</li>
+<li><strong>本倉 pin 要有歸倉</strong>：倉管情境的本倉標記依「使用者隸屬倉」的主要倉設定；沒設定就不 pin。</li>
+</ul>
+
+</div>
+</body></html>
