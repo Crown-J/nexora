@@ -136,7 +136,14 @@ export class IssueReportService {
         },
       }),
     ]);
-    return { page, pageSize, total, items: rows };
+    // W5 異常鏈 Step 4：單據外殼列表需建單人員名（批次查 user、對齊 RrService.list 範式）
+    const creatorIds = [...new Set(rows.map((r) => r.createdBy).filter(Boolean))];
+    const creators = creatorIds.length
+      ? await this.prisma.nx01User.findMany({ where: { id: { in: creatorIds } }, select: { id: true, userName: true } })
+      : [];
+    const creatorMap = new Map(creators.map((c) => [c.id, c.userName]));
+    const items = rows.map((r) => ({ ...r, createdByName: creatorMap.get(r.createdBy) ?? null }));
+    return { page, pageSize, total, items };
   }
 
   async getById(user: RequestUser, id: string) {
