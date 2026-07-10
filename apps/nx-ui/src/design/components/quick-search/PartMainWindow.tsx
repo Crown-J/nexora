@@ -36,6 +36,10 @@ import {
   buildPartSearchPhotoUrl,
   getPartCompatGroup,
   getPartDetail,
+  getPartModels,
+  getPartPurchaseHistory,
+  getPartRelated,
+  getPartSalesHistory,
   getPartStockHistory,
   getPartStockSettings,
   getPartStockSummary,
@@ -46,6 +50,10 @@ import type {
   PartCompatGroupDto,
   PartCompatMemberDto,
   PartDetailDto,
+  PartModelRow,
+  PartPurchaseHistoryRow,
+  PartRelatedRow,
+  PartSalesHistoryDto,
   PartStockHistoryRow,
   PartStockSettingRow,
   PartStockSummaryDto,
@@ -103,12 +111,26 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
   const [photoZoom, setPhotoZoom] = useState(false);
 
   // F2 改版 Step 4（交接 §5）：4 快捷鍵面板（F3 可替代 / F5 周轉率 / F6 出入庫；F4 報價走全域事件）
-  const [quickPanel, setQuickPanel] = useState<'alt' | 'turnover' | 'history' | null>(null);
+  // F2 下鑽（交接 §7 缺口、執行長 2026-07-11 拍板）：F8 銷貨比價
+  const [quickPanel, setQuickPanel] = useState<QuickPanelKind | null>(null);
   // 出入庫紀錄 lazy 載（F5/F6 共用、換料件清空重抓）
   const [historyRows, setHistoryRows] = useState<PartStockHistoryRow[] | null>(null);
   const [historyFetchedAt, setHistoryFetchedAt] = useState(0); // F5 統計基準時點（render 不可呼叫 Date.now）
   const [historyLoading, setHistoryLoading] = useState(false);
   const historyReqRef = useRef(0);
+  // 銷貨比價 lazy 載（F8、換料件清空重抓）
+  const [salesData, setSalesData] = useState<PartSalesHistoryDto | null>(null);
+  const [salesLoading, setSalesLoading] = useState(false);
+  const salesReqRef = useRef(0);
+  // 進貨比價 lazy 載（F9、換料件清空重抓）
+  const [purchaseRows, setPurchaseRows] = useState<PartPurchaseHistoryRow[] | null>(null);
+  const [purchaseLoading, setPurchaseLoading] = useState(false);
+  const purchaseReqRef = useRef(0);
+  // 相關零件 + 適用車型 lazy 載（F10 兩頁籤、開面板一次載齊、換料件清空重抓）
+  const [relatedRows, setRelatedRows] = useState<PartRelatedRow[] | null>(null);
+  const [modelRows, setModelRows] = useState<PartModelRow[] | null>(null);
+  const [relatedLoading, setRelatedLoading] = useState(false);
+  const relatedReqRef = useRef(0);
 
   // race 防護
   const leftReqRef = useRef(0);
@@ -144,9 +166,13 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
     })();
   }, [effectivePartId]);
 
-  // 換料件：出入庫快取失效、面板收起（避免顯示上一件的資料）
+  // 換料件：出入庫/銷貨比價/進貨比價快取失效、面板收起（避免顯示上一件的資料）
   useEffect(() => {
     setHistoryRows(null);
+    setSalesData(null);
+    setPurchaseRows(null);
+    setRelatedRows(null);
+    setModelRows(null);
     setQuickPanel(null);
   }, [effectivePartId]);
 
@@ -170,6 +196,68 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
       }
     })();
   }, [quickPanel, historyRows, effectivePartId]);
+
+  // F8 面板開啟時 lazy 載銷貨比價（同料件共用快取）
+  useEffect(() => {
+    if (quickPanel !== 'sales') return;
+    if (salesData !== null) return;
+    const myReq = ++salesReqRef.current;
+    setSalesLoading(true);
+    void (async () => {
+      try {
+        const r = await getPartSalesHistory(effectivePartId);
+        if (salesReqRef.current !== myReq) return;
+        setSalesData(r);
+      } catch {
+        if (salesReqRef.current !== myReq) return;
+        setSalesData({
+          suggestedPrices: { cost: null, priceA: null, priceB: null, priceC: null, priceD: null },
+          sales: [],
+          quotes: [],
+        });
+      } finally {
+        if (salesReqRef.current === myReq) setSalesLoading(false);
+      }
+    })();
+  }, [quickPanel, salesData, effectivePartId]);
+
+  // F9 面板開啟時 lazy 載進貨比價（同料件共用快取）
+  useEffect(() => {
+    if (quickPanel !== 'purchase') return;
+    if (purchaseRows !== null) return;
+    const myReq = ++purchaseReqRef.current;
+    setPurchaseLoading(true);
+    void (async () => {
+      try {
+        const r = await getPartPurchaseHistory(effectivePartId);
+        if (purchaseReqRef.current !== myReq) return;
+        setPurchaseRows(r.rows);
+      } catch {
+        if (purchaseReqRef.current !== myReq) return;
+        setPurchaseRows([]);
+      } finally {
+        if (purchaseReqRef.current === myReq) setPurchaseLoading(false);
+      }
+    })();
+  }, [quickPanel, purchaseRows, effectivePartId]);
+
+  // F10 面板開啟時 lazy 載相關零件 + 適用車型（兩頁籤一次載齊、同料件共用快取）
+  useEffect(() => {
+    if (quickPanel !== 'related') return;
+    if (relatedRows !== null && modelRows !== null) return;
+    const myReq = ++relatedReqRef.current;
+    setRelatedLoading(true);
+    void (async () => {
+      const [rel, mod] = await Promise.all([
+        getPartRelated(effectivePartId).catch(() => ({ rows: [] as PartRelatedRow[] })),
+        getPartModels(effectivePartId).catch(() => ({ rows: [] as PartModelRow[] })),
+      ]);
+      if (relatedReqRef.current !== myReq) return;
+      setRelatedRows(rel.rows);
+      setModelRows(mod.rows);
+      setRelatedLoading(false);
+    })();
+  }, [quickPanel, relatedRows, modelRows, effectivePartId]);
 
   // 載 compat group（mainPartId、預覽不重抓）
   useEffect(() => {
@@ -322,7 +410,7 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
         tgt instanceof HTMLTextAreaElement ||
         (tgt instanceof HTMLElement && tgt.isContentEditable);
       if (isEditable) return;
-      const togglePanel = (p: 'alt' | 'turnover' | 'history') =>
+      const togglePanel = (p: QuickPanelKind) =>
         setQuickPanel((cur) => (cur === p ? null : p));
       if (e.key === ' ' || e.code === 'Space') {
         e.preventDefault();
@@ -342,6 +430,16 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
       } else if (e.key === 'F7') {
         e.preventDefault();
         fireInstantInquiry();
+      } else if (e.key === 'F8') {
+        e.preventDefault();
+        togglePanel('sales');
+      } else if (e.key === 'F9') {
+        e.preventDefault();
+        togglePanel('purchase');
+      } else if (e.key === 'F10') {
+        // ⚠ F10 瀏覽器預設聚焦選單列；capture 階段 preventDefault 攔（同 F3/F5 手法、瀏覽器實測）
+        e.preventDefault();
+        togglePanel('related');
       }
     };
     // capture 階段：搶在焦點鎖定對話框冒泡攔截 + 瀏覽器默認（F3=找下一個/F5=重整）之前 preventDefault
@@ -496,6 +594,12 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
             <span className="text-muted-foreground/35">·</span>
             <Kbd>F7</Kbd> 詢價
             <span className="text-muted-foreground/35">·</span>
+            <Kbd>F8</Kbd> 銷貨比價
+            <span className="text-muted-foreground/35">·</span>
+            <Kbd>F9</Kbd> 進貨比價
+            <span className="text-muted-foreground/35">·</span>
+            <Kbd>F10</Kbd> 相關零件
+            <span className="text-muted-foreground/35">·</span>
             <Kbd>↑↓</Kbd> 選通用件
             <span className="text-muted-foreground/35">·</span>
             <Kbd>Enter</Kbd> 預覽（留主件）
@@ -520,7 +624,8 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
           />
         )}
 
-        {/* Step 4：快捷鍵面板（F3/F5/F6、疊在視窗 2 上、Esc 或同鍵關）*/}
+        {/* Step 4：快捷鍵面板（F3/F5/F6、疊在視窗 2 上、Esc 或同鍵關）
+            F2 下鑽：F8 銷貨比價 */}
         {quickPanel && (
           <QuickPanelOverlay
             kind={quickPanel}
@@ -531,6 +636,13 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
             historyFetchedAt={historyFetchedAt}
             historyLoading={historyLoading}
             companyOnHand={Number(stock?.company.onHand ?? 0)}
+            salesData={salesData}
+            salesLoading={salesLoading}
+            purchaseRows={purchaseRows}
+            purchaseLoading={purchaseLoading}
+            relatedRows={relatedRows}
+            modelRows={modelRows}
+            relatedLoading={relatedLoading}
             onClose={() => setQuickPanel(null)}
           />
         )}
@@ -1307,11 +1419,17 @@ const DOC_TYPE_LABELS: Record<string, string> = {
   X: '調撥',
 };
 
-const QUICK_PANEL_META = {
+// F2 下鑽（交接 §7、執行長 2026-07-11 拍板）：F8 銷貨比價 / F9 進貨比價 / F10 相關零件
+type QuickPanelKind = 'alt' | 'turnover' | 'history' | 'sales' | 'purchase' | 'related';
+
+const QUICK_PANEL_META: Record<QuickPanelKind, { title: string; kbd: string; wide?: boolean }> = {
   alt: { title: '可替代零件', kbd: 'F3' },
   turnover: { title: '周轉率分析', kbd: 'F5' },
   history: { title: '出入庫紀錄', kbd: 'F6' },
-} as const;
+  sales: { title: '銷貨比價', kbd: 'F8', wide: true },
+  purchase: { title: '進貨比價', kbd: 'F9', wide: true },
+  related: { title: '相關零件', kbd: 'F10' },
+};
 
 function QuickPanelOverlay({
   kind,
@@ -1322,9 +1440,16 @@ function QuickPanelOverlay({
   historyFetchedAt,
   historyLoading,
   companyOnHand,
+  salesData,
+  salesLoading,
+  purchaseRows,
+  purchaseLoading,
+  relatedRows,
+  modelRows,
+  relatedLoading,
   onClose,
 }: {
-  kind: 'alt' | 'turnover' | 'history';
+  kind: QuickPanelKind;
   partCode: string;
   compatRows: PartCompatMemberDto[];
   mainPartId: string;
@@ -1332,6 +1457,13 @@ function QuickPanelOverlay({
   historyFetchedAt: number;
   historyLoading: boolean;
   companyOnHand: number;
+  salesData: PartSalesHistoryDto | null;
+  salesLoading: boolean;
+  purchaseRows: PartPurchaseHistoryRow[] | null;
+  purchaseLoading: boolean;
+  relatedRows: PartRelatedRow[] | null;
+  modelRows: PartModelRow[] | null;
+  relatedLoading: boolean;
   onClose: () => void;
 }) {
   const meta = QUICK_PANEL_META[kind];
@@ -1342,7 +1474,12 @@ function QuickPanelOverlay({
       ariaLabel={meta.title}
       backdropClassName="bg-black/55 backdrop-blur-[2px] animate-in fade-in duration-150"
       dialogClassName="flex flex-col rounded-xl border border-border/60 bg-popover text-foreground shadow-[0_18px_50px_rgba(0,0,0,0.5),0_0_36px_-14px_rgba(232,160,32,0.25)] animate-in fade-in zoom-in-95 duration-150"
-      dialogStyle={{ width: 'min(680px, 90vw)', height: 'min(560px, 85vh)' }}
+      // 比價表欄位多 → 寬殼（避免客戶名/單號擠壓換行）
+      dialogStyle={
+        meta.wide
+          ? { width: 'min(960px, 94vw)', height: 'min(640px, 88vh)' }
+          : { width: 'min(680px, 90vw)', height: 'min(560px, 85vh)' }
+      }
     >
       <>
         <div className="flex items-center gap-2.5 border-b border-border/40 px-5 py-2.5">
@@ -1373,6 +1510,13 @@ function QuickPanelOverlay({
             />
           )}
           {kind === 'history' && <StockHistoryPanel rows={historyRows} loading={historyLoading} />}
+          {kind === 'sales' && <SalesComparePanel data={salesData} loading={salesLoading} />}
+          {kind === 'purchase' && (
+            <PurchaseComparePanel rows={purchaseRows} loading={purchaseLoading} />
+          )}
+          {kind === 'related' && (
+            <RelatedPartsPanel rows={relatedRows} modelRows={modelRows} loading={relatedLoading} />
+          )}
         </div>
 
         <div className="border-t border-border/35 bg-background/35 px-5 py-1.5 text-right text-[11px] text-muted-foreground/65">
@@ -1574,6 +1718,471 @@ function StockHistoryPanel({
         })}
       </tbody>
     </table>
+  );
+}
+
+// ─── F8 銷貨比價（F2 下鑽、交接 §7、執行長 2026-07-11 拍板）─────
+// 銷售電話報價場景：建議售價列（成本+A~D、成本照露）→ 歷史銷貨 → 歷史報價。
+// 狀態字面對齊 @data/types/nx04 的 SO_STATUS_LABEL / QUOTE_STATUS_LABEL、
+// 比價表取精簡版（design 層不 import nx04、沿用本檔 DOC_TYPE_LABELS 局部映射前例）。
+const SO_STATUS_LABELS: Record<string, string> = {
+  DRAFT: '草稿',
+  CONFIRMED: '已確認',
+  PICKING: '撿貨中',
+  SHIPPED: '已出貨',
+  INVOICED: '已開立',
+  COMPLETED: '已完成',
+  CANCELLED: '已取消',
+};
+
+const QUOTE_STATUS_LABELS: Record<string, string> = {
+  DRAFT: '草稿',
+  SENT: '已寄出',
+  ACCEPTED: '已接受',
+  REJECTED: '客戶拒絕',
+  EXPIRED: '已過期',
+  CANCELLED: '已取消',
+};
+
+const fmtMoney = (n: string | number | null | undefined) =>
+  n === null || n === undefined || n === ''
+    ? '—'
+    : Number(n).toLocaleString('en-US', { maximumFractionDigits: 2 });
+
+const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('zh-TW');
+
+function SalesComparePanel({
+  data,
+  loading,
+}: {
+  data: PartSalesHistoryDto | null;
+  loading: boolean;
+}) {
+  if (loading || !data) return <PanelEmpty msg="載入中…" loading />;
+  const { suggestedPrices: sp, sales, quotes } = data;
+  return (
+    <div className="flex flex-col gap-4">
+      {/* 建議售價列：成本 + A~D 價（成本照露、權限分權題執行長指示擱置）*/}
+      <div className="grid shrink-0 grid-cols-5 gap-2">
+        <PriceTile label="成本" value={sp.cost} color={STOCK_COLORS.reserved} />
+        <PriceTile label="A 價" value={sp.priceA} color={STOCK_COLORS.available} />
+        <PriceTile label="B 價" value={sp.priceB} color={STOCK_COLORS.available} />
+        <PriceTile label="C 價" value={sp.priceC} color={STOCK_COLORS.available} />
+        <PriceTile label="D 價" value={sp.priceD} color={STOCK_COLORS.available} />
+      </div>
+
+      {/* 歷史銷貨（成交事實、比價主依據 → 在上）*/}
+      <PanelSection title="歷史銷貨" count={sales.length} capped={sales.length >= 50}>
+        {sales.length === 0 ? (
+          <PanelSectionEmpty msg="本料件無銷貨紀錄" />
+        ) : (
+          <table className="w-full border-collapse text-[12.5px]">
+            <thead className="sticky top-0 bg-popover">
+              <tr className="border-b border-border/40 text-left text-[11px] uppercase tracking-[0.12em] text-muted-foreground/70">
+                <th className="py-1.5 pr-2 font-medium">日期</th>
+                <th className="py-1.5 pr-2 font-medium">單號</th>
+                <th className="py-1.5 pr-2 font-medium">客戶</th>
+                <th className="py-1.5 pr-2 text-right font-medium">數量</th>
+                <th className="py-1.5 pr-2 text-right font-medium">單價</th>
+                <th className="py-1.5 pr-2 text-right font-medium">金額</th>
+                <th className="py-1.5 font-medium">狀態</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sales.map((r) => (
+                <tr key={r.soItemId} className="border-b border-border/15 last:border-b-0">
+                  <td className="py-1.5 pr-2 font-mono text-[12px] text-foreground/85">
+                    {fmtDate(r.soDate)}
+                  </td>
+                  <td className="py-1.5 pr-2 font-mono text-[12px] text-primary/90">{r.docNo}</td>
+                  <td className="max-w-[180px] truncate py-1.5 pr-2 text-foreground/90" title={`${r.customerCode} ${r.customerName}`}>
+                    {r.customerName}
+                  </td>
+                  <td className="py-1.5 pr-2 text-right font-mono tabular-nums text-foreground/85">
+                    {Number(r.qty).toFixed(0)}
+                  </td>
+                  <td className="py-1.5 pr-2 text-right font-mono font-semibold tabular-nums" style={{ color: STOCK_COLORS.available }}>
+                    {fmtMoney(r.unitPrice)}
+                  </td>
+                  <td className="py-1.5 pr-2 text-right font-mono tabular-nums text-foreground/85">
+                    {fmtMoney(r.lineAmount)}
+                  </td>
+                  <td className="py-1.5">
+                    <StatusBadge label={SO_STATUS_LABELS[r.status] ?? r.status} muted={r.status === 'CANCELLED'} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </PanelSection>
+
+      {/* 歷史報價（含未成交、看得出客戶談過什麼價）*/}
+      <PanelSection title="歷史報價" count={quotes.length} capped={quotes.length >= 50}>
+        {quotes.length === 0 ? (
+          <PanelSectionEmpty msg="本料件無報價紀錄" />
+        ) : (
+          <table className="w-full border-collapse text-[12.5px]">
+            <thead className="sticky top-0 bg-popover">
+              <tr className="border-b border-border/40 text-left text-[11px] uppercase tracking-[0.12em] text-muted-foreground/70">
+                <th className="py-1.5 pr-2 font-medium">日期</th>
+                <th className="py-1.5 pr-2 font-medium">單號</th>
+                <th className="py-1.5 pr-2 font-medium">客戶</th>
+                <th className="py-1.5 pr-2 text-right font-medium">數量</th>
+                <th className="py-1.5 pr-2 text-right font-medium">報價</th>
+                <th className="py-1.5 pr-2 text-right font-medium">最低價</th>
+                <th className="py-1.5 pr-2 font-medium">狀態</th>
+                <th className="py-1.5 text-right font-medium">成交</th>
+              </tr>
+            </thead>
+            <tbody>
+              {quotes.map((r) => (
+                <tr key={r.quoteItemId} className="border-b border-border/15 last:border-b-0">
+                  <td className="py-1.5 pr-2 font-mono text-[12px] text-foreground/85">
+                    {fmtDate(r.quoteDate)}
+                  </td>
+                  <td className="py-1.5 pr-2 font-mono text-[12px] text-primary/90">{r.docNo}</td>
+                  <td className="max-w-[180px] truncate py-1.5 pr-2 text-foreground/90" title={`${r.customerCode} ${r.customerName}`}>
+                    {r.customerName}
+                  </td>
+                  <td className="py-1.5 pr-2 text-right font-mono tabular-nums text-foreground/85">
+                    {Number(r.qty).toFixed(0)}
+                  </td>
+                  <td className="py-1.5 pr-2 text-right font-mono font-semibold tabular-nums text-foreground/90">
+                    {fmtMoney(r.unitPrice)}
+                  </td>
+                  <td className="py-1.5 pr-2 text-right font-mono tabular-nums text-muted-foreground/80">
+                    {fmtMoney(r.minPrice)}
+                  </td>
+                  <td className="py-1.5 pr-2">
+                    <StatusBadge label={QUOTE_STATUS_LABELS[r.status] ?? r.status} muted={r.status === 'CANCELLED'} />
+                  </td>
+                  <td className="py-1.5 text-right">
+                    {r.isSelected ? (
+                      <span
+                        className="rounded border border-[#22D88F]/50 bg-[#22D88F]/10 px-1.5 py-px font-mono text-[11px] font-bold text-[#22D88F]"
+                        title={`已轉銷貨 ${r.transferredQty}`}
+                      >
+                        ✓ {Number(r.transferredQty).toFixed(0)}
+                      </span>
+                    ) : (
+                      <span className="text-[11px] text-muted-foreground/45">—</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </PanelSection>
+    </div>
+  );
+}
+
+// ─── F9 進貨比價（F2 下鑽、交接 §7 第二優先）─────────────────
+// 採購比價場景：同一顆料歷次進貨的供應商/成本一表看。
+// 狀態字面對齊 @data/types/nx02/rr 的 RR_STATUS_LABEL（局部映射、同上）。
+const RR_STATUS_LABELS: Record<string, string> = {
+  DRAFT: '草稿',
+  INSPECTING: '驗收中',
+  POSTED: '已過帳',
+  REJECTED: '已駁回',
+  CANCELLED: '已取消',
+};
+
+function PurchaseComparePanel({
+  rows,
+  loading,
+}: {
+  rows: PartPurchaseHistoryRow[] | null;
+  loading: boolean;
+}) {
+  if (loading || !rows) return <PanelEmpty msg="載入中…" loading />;
+  if (rows.length === 0) return <PanelEmpty msg="本料件無進貨紀錄" />;
+  return (
+    <PanelSection title="歷史進貨" count={rows.length} capped={rows.length >= 50}>
+      <table className="w-full border-collapse text-[12.5px]">
+        <thead className="sticky top-0 bg-popover">
+          <tr className="border-b border-border/40 text-left text-[11px] uppercase tracking-[0.12em] text-muted-foreground/70">
+            <th className="py-1.5 pr-2 font-medium">日期</th>
+            <th className="py-1.5 pr-2 font-medium">單號</th>
+            <th className="py-1.5 pr-2 font-medium">供應商</th>
+            <th className="py-1.5 pr-2 text-right font-medium">數量</th>
+            <th className="py-1.5 pr-2 text-right font-medium">單位成本</th>
+            <th className="py-1.5 pr-2 text-right font-medium">實際成本</th>
+            <th className="py-1.5 pr-2 text-right font-medium">金額</th>
+            <th className="py-1.5 pr-2 font-medium">批號</th>
+            <th className="py-1.5 font-medium">狀態</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr key={r.rrItemId} className="border-b border-border/15 last:border-b-0">
+              <td className="py-1.5 pr-2 font-mono text-[12px] text-foreground/85">
+                {fmtDate(r.rrDate)}
+              </td>
+              <td className="py-1.5 pr-2 font-mono text-[12px] text-primary/90">{r.docNo}</td>
+              <td className="max-w-[170px] truncate py-1.5 pr-2 text-foreground/90" title={`${r.supplierCode} ${r.supplierName}`}>
+                {r.supplierName}
+              </td>
+              <td className="py-1.5 pr-2 text-right font-mono tabular-nums text-foreground/85">
+                {Number(r.qty).toFixed(0)}
+              </td>
+              <td className="py-1.5 pr-2 text-right font-mono tabular-nums text-muted-foreground/80">
+                {fmtMoney(r.unitCost)}
+              </td>
+              <td className="py-1.5 pr-2 text-right font-mono font-semibold tabular-nums" style={{ color: STOCK_COLORS.inTransit }}>
+                {fmtMoney(r.actualUnitCost)}
+              </td>
+              <td className="py-1.5 pr-2 text-right font-mono tabular-nums text-foreground/85">
+                {fmtMoney(r.lineAmount)}
+              </td>
+              <td className="py-1.5 pr-2 font-mono text-[11px] text-muted-foreground/70">
+                {r.batchNo ?? '—'}
+              </td>
+              <td className="py-1.5">
+                <StatusBadge label={RR_STATUS_LABELS[r.status] ?? r.status} muted={r.status === 'CANCELLED'} />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </PanelSection>
+  );
+}
+
+// ─── F10 相關零件（F2 下鑽、交接 §7 第三優先：對應料 + 適用車型兩頁籤）──
+// 對應料：執行長既拍板（見後端 getRelatedParts 註解）relationType 1~5 不分子類型、全部歸一區。
+// 適用車型：唯讀端點 :id/models（執行長 2026-07-11 拍板本線加）。
+function RelatedPartsPanel({
+  rows,
+  modelRows,
+  loading,
+}: {
+  rows: PartRelatedRow[] | null;
+  modelRows: PartModelRow[] | null;
+  loading: boolean;
+}) {
+  const [tab, setTab] = useState<'related' | 'models'>('related');
+  if (loading || !rows || !modelRows) return <PanelEmpty msg="載入中…" loading />;
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex shrink-0 gap-1.5">
+        <PanelTab
+          active={tab === 'related'}
+          label="對應料"
+          count={rows.length}
+          onClick={() => setTab('related')}
+        />
+        <PanelTab
+          active={tab === 'models'}
+          label="適用車型"
+          count={modelRows.length}
+          onClick={() => setTab('models')}
+        />
+      </div>
+      {tab === 'related' ? <RelatedPartsTable rows={rows} /> : <PartModelsTable rows={modelRows} />}
+    </div>
+  );
+}
+
+function PanelTab({
+  active,
+  label,
+  count,
+  onClick,
+}: {
+  active: boolean;
+  label: string;
+  count: number;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[12px] font-medium transition-colors',
+        active
+          ? 'border-primary/55 bg-primary/15 text-primary'
+          : 'border-border/45 bg-background/40 text-muted-foreground hover:border-primary/40 hover:text-foreground',
+      )}
+    >
+      {label}
+      <span className="font-mono text-[11px] tabular-nums opacity-75">{count}</span>
+    </button>
+  );
+}
+
+function RelatedPartsTable({ rows }: { rows: PartRelatedRow[] }) {
+  if (rows.length === 0) return <PanelEmpty msg="本料件無相關零件" />;
+  return (
+    <table className="w-full border-collapse text-[13px]">
+      <thead className="sticky top-0 bg-popover">
+        <tr className="border-b border-border/40 text-left text-[11px] uppercase tracking-[0.12em] text-muted-foreground/70">
+          <th className="py-1.5 pr-3 font-medium">料號</th>
+          <th className="py-1.5 pr-3 font-medium">品名</th>
+          <th className="py-1.5 pr-3 font-medium">廠牌</th>
+          <th className="py-1.5 pr-3 text-right font-medium">庫存</th>
+          <th className="py-1.5 font-medium">備註</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((r) => {
+          const onHand = Number(r.onHandTotal);
+          return (
+            <tr
+              key={r.relationId}
+              className={cn('border-b border-border/15 last:border-b-0', !r.isActive && 'opacity-55')}
+            >
+              <td className="py-2 pr-3">
+                <span className="font-mono font-medium text-foreground/90">{r.code}</span>
+                {!r.isActive && (
+                  <span className="ml-2 rounded border border-destructive/40 bg-destructive/10 px-1.5 py-px text-[10px] text-destructive">
+                    停用
+                  </span>
+                )}
+              </td>
+              <td className="max-w-[220px] truncate py-2 pr-3 text-foreground/90" title={r.name}>
+                {r.name}
+              </td>
+              <td className="py-2 pr-3 text-foreground/85">{r.brandCode ?? r.brandName ?? '—'}</td>
+              <td
+                className="py-2 pr-3 text-right font-mono tabular-nums"
+                style={{ color: onHand > 0 ? STOCK_COLORS.available : STOCK_COLORS.reserved }}
+                title={`可出 ${r.availableTotal}`}
+              >
+                {onHand.toFixed(0)}
+              </td>
+              <td className="max-w-[160px] truncate py-2 text-[12px] text-muted-foreground/75" title={r.remark ?? undefined}>
+                {r.remark ?? '—'}
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
+}
+
+/** 適配等級（schema Q3=B）：1=原廠 / 2=副廠等效 / 3=通用替代 */
+const FIT_LEVEL_LABELS: Record<number, string> = {
+  1: '原廠',
+  2: '副廠等效',
+  3: '通用替代',
+};
+
+function PartModelsTable({ rows }: { rows: PartModelRow[] }) {
+  if (rows.length === 0) return <PanelEmpty msg="本料件未設定適用車型" />;
+  const yearRange = (r: PartModelRow) => {
+    if (r.modelYearFrom === null && r.modelYearTo === null) return '—';
+    return `${r.modelYearFrom ?? '…'}–${r.modelYearTo ?? '現役'}`;
+  };
+  return (
+    <table className="w-full border-collapse text-[13px]">
+      <thead className="sticky top-0 bg-popover">
+        <tr className="border-b border-border/40 text-left text-[11px] uppercase tracking-[0.12em] text-muted-foreground/70">
+          <th className="py-1.5 pr-3 font-medium">車型</th>
+          <th className="py-1.5 pr-3 font-medium">品牌</th>
+          <th className="py-1.5 pr-3 font-medium">年份</th>
+          <th className="py-1.5 pr-3 font-medium">引擎</th>
+          <th className="py-1.5 pr-3 font-medium">適配</th>
+          <th className="py-1.5 font-medium">備註</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((r) => (
+          <tr
+            key={r.partModelId}
+            className={cn('border-b border-border/15 last:border-b-0', !r.isActive && 'opacity-55')}
+          >
+            <td className="py-2 pr-3">
+              <span className="font-mono font-medium text-primary/90">{r.modelCode}</span>
+              <span className="ml-2 text-foreground/85">{r.modelName}</span>
+            </td>
+            <td className="py-2 pr-3 text-foreground/85">{r.brandName}</td>
+            <td className="py-2 pr-3 font-mono text-[12px] tabular-nums text-foreground/80">
+              {yearRange(r)}
+            </td>
+            <td className="py-2 pr-3 font-mono text-[12px] text-muted-foreground/80">
+              {r.engineCode ?? '—'}
+              {r.displacementCc !== null && (
+                <span className="ml-1 text-muted-foreground/60">{r.displacementCc}cc</span>
+              )}
+            </td>
+            <td className="py-2 pr-3">
+              <StatusBadge label={FIT_LEVEL_LABELS[r.fitLevel] ?? String(r.fitLevel)} />
+            </td>
+            <td className="max-w-[150px] truncate py-2 text-[12px] text-muted-foreground/75" title={r.remark ?? undefined}>
+              {r.remark ?? '—'}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+/** 建議售價磚（金額原樣顯示、null = 未設定）*/
+function PriceTile({ label, value, color }: { label: string; value: string | null; color: string }) {
+  const empty = value === null || value === '' || Number(value) === 0;
+  return (
+    <div className="flex flex-col gap-0.5 rounded-md border border-border/55 bg-secondary px-3 py-2 shadow-sm">
+      <span className="text-[12px] font-medium uppercase tracking-[0.1em] text-foreground/60">
+        {label}
+      </span>
+      <span className="font-mono text-[18px] font-semibold tabular-nums" style={{ color: empty ? ZERO_GREY : color }}>
+        {empty ? '—' : fmtMoney(value)}
+      </span>
+    </div>
+  );
+}
+
+function StatusBadge({ label, muted }: { label: string; muted?: boolean }) {
+  return (
+    <span
+      className={cn(
+        'rounded border border-border/50 bg-secondary/40 px-1.5 py-px text-[11px] text-foreground/85',
+        muted && 'text-muted-foreground/55 line-through',
+      )}
+    >
+      {label}
+    </span>
+  );
+}
+
+function PanelSection({
+  title,
+  count,
+  capped,
+  children,
+}: {
+  title: string;
+  count: number;
+  capped?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="flex flex-col gap-1.5">
+      <h4 className="flex items-baseline gap-2 text-[10px] uppercase tracking-[0.22em] text-muted-foreground/70">
+        {title}
+        <span className="font-mono normal-case tracking-normal">({count} 筆)</span>
+        {capped && (
+          <span className="normal-case tracking-normal text-muted-foreground/55">
+            ⚠ 已達 50 筆上限、更早紀錄未列
+          </span>
+        )}
+      </h4>
+      {children}
+    </section>
+  );
+}
+
+function PanelSectionEmpty({ msg }: { msg: string }) {
+  return (
+    <div className="rounded-md border border-border/30 bg-background/25 py-3 text-center text-[12px] text-muted-foreground/55">
+      {msg}
+    </div>
   );
 }
 

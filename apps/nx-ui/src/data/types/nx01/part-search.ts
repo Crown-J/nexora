@@ -221,6 +221,23 @@ export type PartRelatedRow = {
   availableTotal: string;
 };
 
+/** F2 下鑽 F10 頁籤：適用車型（fitLevel：1=原廠 / 2=副廠等效 / 3=通用替代）*/
+export type PartModelRow = {
+  partModelId: string;
+  fitLevel: number;
+  remark: string | null;
+  modelId: string;
+  modelCode: string;
+  modelName: string;
+  brandCode: string;
+  brandName: string;
+  modelYearFrom: number | null;
+  modelYearTo: number | null;
+  engineCode: string | null;
+  displacementCc: number | null;
+  isActive: boolean;
+};
+
 /** F2 視窗 2 主視窗右欄通用件群組成員 */
 export type PartCompatMemberDto = {
   id: string;

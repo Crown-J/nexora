@@ -935,4 +935,52 @@ export class PartSearchService {
       })),
     };
   }
+
+  /**
+   * 適用車型（Nx01PartModel → Nx01Model、唯讀）。
+   * F2 下鑽（交接 §7、執行長 2026-07-11 拍板）：併入 F10 相關零件面板「適用車型」頁籤。
+   * fitLevel：1=原廠 / 2=副廠等效 / 3=通用替代（schema Q3=B）。
+   */
+  async getApplicableModels(user: RequestUser, partId: string) {
+    const tenantId = requireTenantId(user);
+    const rows = await this.prisma.nx01PartModel.findMany({
+      where: { tenantId, partId, isActive: true },
+      orderBy: { sortNo: 'asc' },
+      select: {
+        id: true,
+        fitLevel: true,
+        remark: true,
+        model: {
+          select: {
+            id: true,
+            code: true,
+            name: true,
+            modelYearFrom: true,
+            modelYearTo: true,
+            engineCode: true,
+            displacementCc: true,
+            isActive: true,
+            brand: { select: { code: true, name: true } },
+          },
+        },
+      },
+    });
+    return {
+      rows: rows.map((r) => ({
+        partModelId: r.id,
+        fitLevel: r.fitLevel,
+        remark: r.remark,
+        modelId: r.model.id,
+        modelCode: r.model.code,
+        modelName: r.model.name,
+        brandCode: r.model.brand.code,
+        brandName: r.model.brand.name,
+        modelYearFrom: r.model.modelYearFrom,
+        modelYearTo: r.model.modelYearTo,
+        engineCode: r.model.engineCode,
+        displacementCc: r.model.displacementCc,
+        isActive: r.model.isActive,
+      })),
+    };
+  }
 }
