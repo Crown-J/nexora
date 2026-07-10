@@ -41,8 +41,8 @@ import {
   voidRr,
 } from '@data/endpoints/nx02/rr/api/rr';
 import { getPo, poToRr } from '@data/endpoints/nx02/po/api/po';
-import { getRfq } from '@data/endpoints/nx02/api/rfq';
-import type { RfqDetailDto } from '@data/types/nx02';
+import { getRfq } from '@data/endpoints/nx02/rfq/api/rfq';
+import type { Rfq } from '@data/types/nx02/rfq';
 import { apiFetch } from '@data/api/client';
 import { buildQueryString } from '@data/api/query';
 import { assertOk } from '@data/api/http';
@@ -571,7 +571,7 @@ export function RrCreatePanel({
   const [lineLocs, setLineLocs] = useState<Record<string, string>>({});
 
   // C：詢價單路徑（入口驅動）
-  const [rfq, setRfq] = useState<RfqDetailDto | null>(null);
+  const [rfq, setRfq] = useState<Rfq | null>(null);
   const [rfqChecked, setRfqChecked] = useState<Set<string>>(new Set());
   const [rfqQtys, setRfqQtys] = useState<Record<string, string>>({});
   const [rfqLocs, setRfqLocs] = useState<Record<string, string>>({});
