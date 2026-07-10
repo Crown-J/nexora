@@ -871,7 +871,16 @@ function RrLineAddDialog({
  * 新增進貨退回面板（內嵌）：挑「已過帳」進貨單 → 倉庫/供應商自動帶 → 退貨類型/處置 → 勾行+退量+原因 → createPr
  * 🔎 修舊 PrNewForm bug：來源進貨單下拉用舊狀態碼 'P' + 讀 .data 錯位、清單永遠是空的
  */
-export function PrCreatePanel({ onCreated, onCancel }: { onCreated: (id: string) => void; onCancel: () => void }) {
+export function PrCreatePanel({
+  onCreated,
+  onCancel,
+  initialRrId,
+}: {
+  onCreated: (id: string) => void;
+  onCancel: () => void;
+  /** ?rr= 入口：預載來源進貨單（沿舊 PrNewForm 參數） */
+  initialRrId?: string;
+}) {
   const [rr, setRr] = useState<Rr | null>(null);
   const [prDate, setPrDate] = useState(new Date().toISOString().slice(0, 10));
   const [returnMode, setReturnMode] = useState<'F' | 'P' | 'A'>('P');
@@ -882,6 +891,14 @@ export function PrCreatePanel({ onCreated, onCancel }: { onCreated: (id: string)
   const [reasons, setReasons] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+
+  // ?rr= 入口：自動預載該進貨單
+  const initLoadedRef = useRef(false);
+  useEffect(() => {
+    if (!initialRrId || initLoadedRef.current) return;
+    initLoadedRef.current = true;
+    void pickRr({ id: initialRrId } as Rr);
+  }, [initialRrId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function pickRr(row: Rr) {
     setErr(null);

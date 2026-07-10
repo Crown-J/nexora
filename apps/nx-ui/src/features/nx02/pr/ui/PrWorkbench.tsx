@@ -3,7 +3,7 @@
 //   本檔只留進貨退回差異：欄位 / 查詢(狀態+關鍵字) / 作廢守衛(僅草稿) / CSV / 三面板接線
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import type { MasterTableColumn } from '@/features/nx01/shell/ui/MasterTable';
 import type { MasterTab } from '@/features/nx01/shell/entity-master/MasterTabs';
@@ -121,12 +121,22 @@ export function PrWorkbench({
   initialId,
   initialTab = 'list',
   initialCreate = false,
+  initialRrId,
 }: {
   initialId?: string;
   initialTab?: MasterTab;
   initialCreate?: boolean;
+  /** ?rr= 入口：新增面板預載來源進貨單（沿舊 PrNewForm 參數） */
+  initialRrId?: string;
 }) {
-  return <DocWorkbench config={CONFIG} initialId={initialId} initialTab={initialTab} initialCreate={initialCreate} />;
+  const config = useMemo<DocWorkbenchConfig<Pr, PrCriteria>>(() => {
+    if (!initialRrId) return CONFIG;
+    const CreateWithRr = (props: { onCreated: (id: string) => void; onCancel: () => void }) => (
+      <PrCreatePanel {...props} initialRrId={initialRrId} />
+    );
+    return { ...CONFIG, CreatePanel: CreateWithRr };
+  }, [initialRrId]);
+  return <DocWorkbench config={config} initialId={initialId} initialTab={initialTab} initialCreate={initialCreate} />;
 }
 
 function PrSearchDialog({ initial, onApply, onClose }: DocSearchDialogProps<PrCriteria>) {
