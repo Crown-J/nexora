@@ -13,6 +13,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useModalLayer } from '@design/primitives/modal-stack';
 import { createTiFromSo, listPendingTransferLines } from '@data/endpoints/nx04/so/api/so';
 import type { CreateTiFromSoResponse, SoItem } from '@data/types/nx04/so';
+// NX02-TI-SHELL 2026-07-11：同行對象 純文字 ID 輸入 → 搜尋 picker（收 FU-sales-lite-11）
+import { CustomerPicker } from '../../quote/ui/CustomerPicker';
 
 export function CreateTiFromSoModal({
   soId,
@@ -110,16 +112,10 @@ export function CreateTiFromSoModal({
         </div>
 
         <div className="grid gap-3 md:grid-cols-2">
-          <label className="text-sm">
-            <span className="block mb-1">🟢 同行對象 partnerId *</span>
-            <input
-              value={partnerId}
-              onChange={(e) => setPartnerId(e.target.value)}
-              placeholder="NX01PTNR... (O 同行 / canTransferStock=true)"
-              className="w-full rounded border bg-background px-2 py-1 font-mono"
-              required
-            />
-          </label>
+          <div className="text-sm">
+            <span className="mb-1 block">🟢 同行對象 *</span>
+            <CustomerPicker partnerType="O" onPick={(p) => setPartnerId(p.id)} onCommit={() => {}} autoFocus />
+          </div>
           <label className="text-sm">
             <span className="block mb-1">⚪ 備註</span>
             <input
