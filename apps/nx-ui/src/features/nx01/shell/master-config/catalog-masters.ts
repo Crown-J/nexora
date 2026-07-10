@@ -22,13 +22,14 @@ export const ROLE_MASTER: EntityMasterConfig = {
   pageId: 'roles',
   errorCodePrefix: 'nxui_base_role',
   deleteMode: SOFT,
+  // 詳細頁排版 2026-07-11：識別 / 組織 / 其他；description 移組織後（inList:false、列表不受影響）
   fields: [
-    { key: 'code', label: '職務代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[120px]' },
-    { key: 'name', label: '職務名稱', required: true, minWidthClass: 'min-w-[140px]' },
-    { key: 'description', label: '說明', inList: false },
+    { key: 'code', label: '職務代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[120px]', detailGroup: '識別', emphasis: true },
+    { key: 'name', label: '職務名稱', required: true, minWidthClass: 'min-w-[140px]', emphasis: true },
     // 02 第三批 T1 2026-06-07：職務層級 + 隸屬部門
-    { key: 'level', label: '層級', minWidthClass: 'min-w-[100px]' },
+    { key: 'level', label: '層級', minWidthClass: 'min-w-[100px]', detailGroup: '組織' },
     { key: 'departmentId', label: '隸屬部門', type: 'ref', refBasePath: 'nx01/departments', minWidthClass: 'min-w-[140px]' },
+    { key: 'description', label: '說明', inList: false, detailGroup: '其他', detailSpan: 2 },
     { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
   ],
 };
@@ -43,9 +44,9 @@ export const PERMISSION_LEVEL_MASTER: EntityMasterConfig = {
   errorCodePrefix: 'nxui_base_permission_level',
   deleteMode: SOFT,
   fields: [
-    { key: 'code', label: '權限代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[120px]' },
-    { key: 'name', label: '名稱', required: true, minWidthClass: 'min-w-[140px]' },
-    { key: 'description', label: '說明', inList: false },
+    { key: 'code', label: '權限代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[120px]', emphasis: true },
+    { key: 'name', label: '名稱', required: true, minWidthClass: 'min-w-[140px]', emphasis: true },
+    { key: 'description', label: '說明', inList: false, detailSpan: 2 },
     { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
   ],
 };
@@ -60,8 +61,8 @@ export const DEPARTMENT_MASTER: EntityMasterConfig = {
   errorCodePrefix: 'nxui_base_department',
   deleteMode: SOFT,
   fields: [
-    { key: 'code', label: '部門代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[120px]' },
-    { key: 'name', label: '部門名稱', required: true, minWidthClass: 'min-w-[160px]' },
+    { key: 'code', label: '部門代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[120px]', emphasis: true },
+    { key: 'name', label: '部門名稱', required: true, minWidthClass: 'min-w-[160px]', emphasis: true },
     { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
   ],
 };
@@ -76,12 +77,12 @@ export const TEAM_MASTER: EntityMasterConfig = {
   errorCodePrefix: 'nxui_base_team',
   deleteMode: SOFT,
   fields: [
-    { key: 'code', label: '組代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[120px]' },
-    { key: 'name', label: '組名', required: true, minWidthClass: 'min-w-[160px]' },
-    { key: 'departmentId', label: '隸屬部門', type: 'ref', refBasePath: 'nx01/departments', required: true, minWidthClass: 'min-w-[140px]' },
+    { key: 'code', label: '組代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[120px]', detailGroup: '識別', emphasis: true },
+    { key: 'name', label: '組名', required: true, minWidthClass: 'min-w-[160px]', emphasis: true },
+    { key: 'departmentId', label: '隸屬部門', type: 'ref', refBasePath: 'nx01/departments', required: true, minWidthClass: 'min-w-[140px]', detailGroup: '組織' },
     // 上層組（選填、支援子組；服務端會驗「子組與上層組同部門」+「不可自己當自己父」）
     { key: 'parentTeamId', label: '上層組', type: 'ref', refBasePath: 'nx01/teams', minWidthClass: 'min-w-[140px]' },
-    { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
+    { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false, detailGroup: '其他' },
   ],
 };
 
@@ -94,11 +95,11 @@ export const CAR_BRAND_MASTER: EntityMasterConfig = {
   errorCodePrefix: 'nxui_base_car_brand',
   deleteMode: SOFT,
   fields: [
-    { key: 'code', label: '品牌代碼', required: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]' },
-    { key: 'name', label: '品牌名稱', required: true, minWidthClass: 'min-w-[140px]' },
+    { key: 'code', label: '品牌代碼', required: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]', detailGroup: '識別', emphasis: true },
+    { key: 'name', label: '品牌名稱', required: true, minWidthClass: 'min-w-[140px]', emphasis: true },
     { key: 'nameEn', label: '英文名稱', inList: false },
-    { key: 'countryId', label: '國別', type: 'ref', refBasePath: 'nx01/countries', minWidthClass: 'min-w-[120px]' },
-    { key: 'logoUrl', label: 'Logo 網址', inList: false },
+    { key: 'countryId', label: '國別', type: 'ref', refBasePath: 'nx01/countries', minWidthClass: 'min-w-[120px]', detailGroup: '屬性' },
+    { key: 'logoUrl', label: 'Logo 網址', inList: false, detailGroup: '其他', detailSpan: 2 },
     { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
   ],
 };
@@ -135,14 +136,14 @@ export const BRAND_MASTER: EntityMasterConfig = {
   deleteMode: SOFT,
   fields: [
     // 2026-06-29 放寬（總經理改拍板）：拿掉固定 3 碼 + 解鎖編輯。代碼 1-30 大寫英數+連字號、可編輯。
-    { key: 'code', label: '品牌代碼', required: true, uppercase: true, mono: true, maxLength: 30, placeholder: 'BOSCH', minWidthClass: 'min-w-[100px]' },
-    { key: 'name', label: '品牌名稱', required: true, minWidthClass: 'min-w-[140px]' },
+    { key: 'code', label: '品牌代碼', required: true, uppercase: true, mono: true, maxLength: 30, placeholder: 'BOSCH', minWidthClass: 'min-w-[100px]', detailGroup: '識別', emphasis: true },
+    { key: 'name', label: '品牌名稱', required: true, minWidthClass: 'min-w-[140px]', emphasis: true },
     { key: 'nameEn', label: '英文名稱', inList: false },
-    { key: 'countryId', label: '國別', type: 'ref', refBasePath: 'nx01/countries', minWidthClass: 'min-w-[120px]' },
+    { key: 'countryId', label: '國別', type: 'ref', refBasePath: 'nx01/countries', minWidthClass: 'min-w-[120px]', detailGroup: '屬性' },
     { key: 'isCar', label: '汽車品牌', type: 'toggle', defaultValue: false, minWidthClass: 'min-w-[90px]' },
     { key: 'isPart', label: '零件品牌', type: 'toggle', defaultValue: false, minWidthClass: 'min-w-[90px]' },
-    { key: 'logoUrl', label: 'Logo 網址', inList: false },
-    { key: 'remark', label: '備註', inList: false },
+    { key: 'logoUrl', label: 'Logo 網址', inList: false, detailGroup: '其他', detailSpan: 2 },
+    { key: 'remark', label: '備註', inList: false, detailSpan: 2 },
     { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
   ],
 };
@@ -160,8 +161,8 @@ export const REGION_MASTER: EntityMasterConfig = {
   errorCodePrefix: 'nxui_base_region',
   deleteMode: SOFT,
   fields: [
-    { key: 'code', label: '地區代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]' },
-    { key: 'name', label: '地區名稱', required: true, minWidthClass: 'min-w-[140px]' },
+    { key: 'code', label: '地區代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]', emphasis: true },
+    { key: 'name', label: '地區名稱', required: true, minWidthClass: 'min-w-[140px]', emphasis: true },
     { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
   ],
 };
@@ -199,8 +200,8 @@ export const PART_RELATION_MASTER: EntityMasterConfig = {
   // 2026-06-26：定位為「單向替代」（副廠一件替代多個不互通正廠）；
   //   全互換改用通用件群組、組合/拆解改用組件關係。
   fields: [
-    { key: 'partIdFrom', label: '原件（被替代）', type: 'ref', refBasePath: 'nx01/parts', required: true, minWidthClass: 'min-w-[160px]' },
-    { key: 'partIdTo', label: '替代品', type: 'ref', refBasePath: 'nx01/parts', required: true, minWidthClass: 'min-w-[160px]' },
+    { key: 'partIdFrom', label: '原件（被替代）', type: 'ref', refBasePath: 'nx01/parts', required: true, minWidthClass: 'min-w-[160px]', detailSpan: 2 },
+    { key: 'partIdTo', label: '替代品', type: 'ref', refBasePath: 'nx01/parts', required: true, minWidthClass: 'min-w-[160px]', detailSpan: 2 },
     {
       key: 'relationType', label: '類型', type: 'select', numeric: true, required: true, defaultValue: '2', minWidthClass: 'min-w-[100px]',
       options: [{ value: 2, label: '替代（單向）' }],
@@ -218,8 +219,8 @@ export const PART_MODEL_MASTER: EntityMasterConfig = {
   deleteMode: SOFT,
   minPlan: 'PLUS',
   fields: [
-    { key: 'partId', label: '零件', type: 'ref', refBasePath: 'nx01/parts', required: true, minWidthClass: 'min-w-[160px]' },
-    { key: 'modelId', label: '車型', type: 'ref', refBasePath: 'nx01/models', required: true, minWidthClass: 'min-w-[160px]' },
+    { key: 'partId', label: '零件', type: 'ref', refBasePath: 'nx01/parts', required: true, minWidthClass: 'min-w-[160px]', detailSpan: 2 },
+    { key: 'modelId', label: '車型', type: 'ref', refBasePath: 'nx01/models', required: true, minWidthClass: 'min-w-[160px]', detailSpan: 2 },
     {
       key: 'fitLevel', label: '適配等級', type: 'select', numeric: true, required: true, minWidthClass: 'min-w-[110px]',
       options: [{ value: 1, label: '原廠' }, { value: 2, label: '副廠等效' }, { value: 3, label: '通用' }],
@@ -238,11 +239,11 @@ export const WAREHOUSE_MASTER: EntityMasterConfig = {
   errorCodePrefix: 'nxui_base_warehouse',
   deleteMode: SOFT,
   fields: [
-    { key: 'code', label: '倉庫代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]' },
-    { key: 'name', label: '倉庫名稱', required: true, minWidthClass: 'min-w-[140px]' },
-    { key: 'siteId', label: '所屬據點', type: 'ref', refBasePath: 'nx01/sites', required: true, minWidthClass: 'min-w-[140px]' },
+    { key: 'code', label: '倉庫代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]', detailGroup: '識別', emphasis: true },
+    { key: 'name', label: '倉庫名稱', required: true, minWidthClass: 'min-w-[140px]', emphasis: true },
+    { key: 'siteId', label: '所屬據點', type: 'ref', refBasePath: 'nx01/sites', required: true, minWidthClass: 'min-w-[140px]', detailGroup: '歸屬' },
     { key: 'warehouseTypeId', label: '倉別', type: 'ref', refBasePath: 'nx01/warehouse-types', inList: false },
-    { key: 'remark', label: '備註', inList: false },
+    { key: 'remark', label: '備註', inList: false, detailGroup: '其他', detailSpan: 2 },
     { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
   ],
 };
@@ -256,8 +257,8 @@ export const WAREHOUSE_TYPE_MASTER: EntityMasterConfig = {
   readOnly: true,
   canCreate: false,
   fields: [
-    { key: 'code', label: '倉別代碼', mono: true, minWidthClass: 'min-w-[100px]' },
-    { key: 'name', label: '倉別名稱', minWidthClass: 'min-w-[140px]' },
+    { key: 'code', label: '倉別代碼', mono: true, minWidthClass: 'min-w-[100px]', emphasis: true },
+    { key: 'name', label: '倉別名稱', minWidthClass: 'min-w-[140px]', emphasis: true },
     { key: 'flowMode', label: '流向模式', inList: false },
     { key: 'sortNo', label: '排序', type: 'number', inList: false },
   ],
@@ -274,9 +275,9 @@ export const WAREHOUSE_ZONE_MASTER: EntityMasterConfig = {
   errorCodePrefix: 'nxui_base_warehouse_zone',
   deleteMode: SOFT,
   fields: [
-    { key: 'warehouseId', label: '所屬倉庫', type: 'ref', refBasePath: 'nx01/warehouses', required: true, lockedOnEdit: true, minWidthClass: 'min-w-[140px]' },
-    { key: 'code', label: '區域代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]' },
-    { key: 'name', label: '區域名稱', required: true, minWidthClass: 'min-w-[140px]' },
+    { key: 'warehouseId', label: '所屬倉庫', type: 'ref', refBasePath: 'nx01/warehouses', required: true, lockedOnEdit: true, minWidthClass: 'min-w-[140px]', detailSpan: 2 },
+    { key: 'code', label: '區域代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]', emphasis: true },
+    { key: 'name', label: '區域名稱', required: true, minWidthClass: 'min-w-[140px]', emphasis: true },
     { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
   ],
 };
@@ -291,9 +292,9 @@ export const WAREHOUSE_RACK_MASTER: EntityMasterConfig = {
   errorCodePrefix: 'nxui_base_warehouse_rack',
   deleteMode: SOFT,
   fields: [
-    { key: 'zoneId', label: '所屬區域', type: 'ref', refBasePath: 'nx01/warehouse-zones', required: true, lockedOnEdit: true, minWidthClass: 'min-w-[140px]' },
-    { key: 'code', label: '貨架代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]' },
-    { key: 'name', label: '貨架名稱', required: true, minWidthClass: 'min-w-[140px]' },
+    { key: 'zoneId', label: '所屬區域', type: 'ref', refBasePath: 'nx01/warehouse-zones', required: true, lockedOnEdit: true, minWidthClass: 'min-w-[140px]', detailSpan: 2 },
+    { key: 'code', label: '貨架代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]', emphasis: true },
+    { key: 'name', label: '貨架名稱', required: true, minWidthClass: 'min-w-[140px]', emphasis: true },
     { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
   ],
 };
@@ -309,8 +310,8 @@ export const CUSTOMER_GRADE_MASTER: EntityMasterConfig = {
   deleteMode: 'update-active',
   canCreate: false,
   fields: [
-    { key: 'code', label: '分級代碼', lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]' },
-    { key: 'name', label: '分級名稱', required: true, minWidthClass: 'min-w-[140px]' },
+    { key: 'code', label: '分級代碼', lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]', emphasis: true },
+    { key: 'name', label: '分級名稱', required: true, minWidthClass: 'min-w-[140px]', emphasis: true },
     { key: 'marginPct', label: '加成率(%)', minWidthClass: 'min-w-[100px]' },
     { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
   ],
@@ -328,9 +329,9 @@ export const SUPPLIER_GRADE_MASTER: EntityMasterConfig = {
   errorCodePrefix: 'nxui_base_supplier_grade',
   deleteMode: 'soft-delete-rest',
   fields: [
-    { key: 'code', label: '分級代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]', placeholder: 'VIP' },
-    { key: 'name', label: '分級名稱', required: true, minWidthClass: 'min-w-[140px]', placeholder: '優質供應商' },
-    { key: 'description', label: '說明', minWidthClass: 'min-w-[200px]' },
+    { key: 'code', label: '分級代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]', placeholder: 'VIP', emphasis: true },
+    { key: 'name', label: '分級名稱', required: true, minWidthClass: 'min-w-[140px]', placeholder: '優質供應商', emphasis: true },
+    { key: 'description', label: '說明', minWidthClass: 'min-w-[200px]', detailSpan: 2 },
     { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
   ],
 };
@@ -342,9 +343,10 @@ export const PARTNER_MASTER: EntityMasterConfig = {
   entityNoun: '往來對象',
   errorCodePrefix: 'nxui_base_partner',
   deleteMode: SOFT,
+  // 詳細頁排版 2026-07-11：識別 / 聯絡 / 公司與稅務 / 分級與信用 / 付款條件 / 其他（欄位序未動）
   fields: [
-    { key: 'code', label: '對象代碼', required: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[110px]' },
-    { key: 'name', label: '對象名稱', required: true, minWidthClass: 'min-w-[160px]' },
+    { key: 'code', label: '對象代碼', required: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[110px]', detailGroup: '識別', emphasis: true },
+    { key: 'name', label: '對象名稱', required: true, minWidthClass: 'min-w-[160px]', emphasis: true },
     {
       key: 'partnerType', label: '對象類型', type: 'select', required: true, minWidthClass: 'min-w-[120px]',
       // partner 改制六分類（Crown 2026-05-28）：C=保養廠 / O=同行 / S=供應商 / T=外包物流 / B=銀行 / V=一般廠商
@@ -357,20 +359,20 @@ export const PARTNER_MASTER: EntityMasterConfig = {
         { value: 'B', label: '銀行' },
       ],
     },
-    { key: 'contactName', label: '聯絡人', minWidthClass: 'min-w-[100px]' },
+    { key: 'contactName', label: '聯絡人', minWidthClass: 'min-w-[100px]', detailGroup: '聯絡' },
     { key: 'phone', label: '電話', minWidthClass: 'min-w-[110px]' },
     { key: 'mobile', label: '手機', inList: false },
     { key: 'email', label: 'Email', inList: false },
-    { key: 'taxId', label: '統一編號', inList: false },
-    { key: 'address', label: '地址', inList: false },
-    { key: 'customerGradeId', label: '客戶分級', type: 'ref', refBasePath: 'nx01/customer-grades', inList: false },
+    { key: 'taxId', label: '統一編號', inList: false, detailGroup: '公司與稅務' },
+    { key: 'address', label: '地址', inList: false, detailSpan: 2 },
+    { key: 'customerGradeId', label: '客戶分級', type: 'ref', refBasePath: 'nx01/customer-grades', inList: false, detailGroup: '分級與信用' },
     {
       key: 'creditStatus', label: '信用狀態', type: 'select', inList: false,
       options: [{ value: 'N', label: '正常' }, { value: 'W', label: '警示' }, { value: 'F', label: '凍結' }],
     },
     { key: 'creditLimit', label: '信用額度', type: 'number', inList: false },
     {
-      key: 'paymentTermDomestic', label: '國內付款條件', type: 'select', inList: false,
+      key: 'paymentTermDomestic', label: '國內付款條件', type: 'select', inList: false, detailGroup: '付款條件',
       options: [
         { value: 'PREPAY', label: '預付' }, { value: 'NET30', label: '月結 30 天' },
         { value: 'NET60', label: '月結 60 天' }, { value: 'NET90', label: '月結 90 天' },
@@ -384,7 +386,7 @@ export const PARTNER_MASTER: EntityMasterConfig = {
       ],
     },
     { key: 'incoterm', label: '貿易條件', inList: false },
-    { key: 'remark', label: '備註', inList: false },
+    { key: 'remark', label: '備註', inList: false, detailGroup: '其他', detailSpan: 'full' },
   ],
 };
 
@@ -403,7 +405,7 @@ export const PHONETIC_DICTIONARY_MASTER: EntityMasterConfig = {
   errorCodePrefix: 'nxui_base_phonetic',
   deleteMode: SOFT,
   fields: [
-    { key: 'character', label: '字', required: true, mono: true, minWidthClass: 'min-w-[80px]' },
+    { key: 'character', label: '字', required: true, mono: true, minWidthClass: 'min-w-[80px]', emphasis: true },
     { key: 'primaryPhonetic', label: '主注音', required: true, minWidthClass: 'min-w-[120px]' },
     { key: 'primaryInitial', label: '主聲母', required: true, minWidthClass: 'min-w-[100px]' },
     { key: 'usageFreq', label: '使用頻率', type: 'number', inList: false },
@@ -421,13 +423,13 @@ export const SITE_MASTER: EntityMasterConfig = {
   errorCodePrefix: 'nxui_base_site',
   deleteMode: SOFT,
   fields: [
-    { key: 'code', label: '據點代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]' },
-    { key: 'name', label: '據點名稱', required: true, minWidthClass: 'min-w-[140px]' },
+    { key: 'code', label: '據點代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]', detailGroup: '識別', emphasis: true },
+    { key: 'name', label: '據點名稱', required: true, minWidthClass: 'min-w-[140px]', emphasis: true },
     { key: 'isMain', label: '設為主據點', type: 'toggle', defaultValue: false, minWidthClass: 'min-w-[90px]' },
-    { key: 'address', label: '地址（舊版自由文字）', inList: false },
+    { key: 'address', label: '地址（舊版自由文字）', inList: false, detailGroup: '聯絡', detailSpan: 2 },
     // ⚠️ 結構化地址 city/district/street 欄位已在 schema 對齊倉庫範式（並存），但 NX01-04 地址端點 / picker 尚未接（倉庫亦同）、暫不於 UI 暴露
     { key: 'phone', label: '聯絡電話', minWidthClass: 'min-w-[120px]' },
-    { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
+    { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false, detailGroup: '其他' },
   ],
 };
 
@@ -440,18 +442,19 @@ export const LOCATION_MASTER: EntityMasterConfig = {
   pageId: 'location',
   errorCodePrefix: 'nxui_base_location',
   deleteMode: SOFT,
+  // 詳細頁排版 2026-07-11：歸屬 / 識別 / 位置細節 / 其他
   fields: [
-    { key: 'siteId', label: '所屬據點', type: 'ref', refBasePath: 'nx01/sites', minWidthClass: 'min-w-[140px]' },
+    { key: 'siteId', label: '所屬據點', type: 'ref', refBasePath: 'nx01/sites', minWidthClass: 'min-w-[140px]', detailGroup: '歸屬' },
     { key: 'warehouseId', label: '所屬倉庫', type: 'ref', refBasePath: 'nx01/warehouses', required: true, minWidthClass: 'min-w-[140px]' },
     // 2026-06-22 執行長拍板：新四層架構 site→warehouse→zone→location、zoneId 主、舊 zone 字串保留相容
     { key: 'zoneId', label: '所屬分區', type: 'ref', refBasePath: 'nx01/warehouse-zones', minWidthClass: 'min-w-[140px]' },
-    { key: 'code', label: '庫位代碼', required: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[110px]' },
-    { key: 'name', label: '名稱', minWidthClass: 'min-w-[120px]' },
-    { key: 'zone', label: '區（舊欄、棄用）', inList: false },
+    { key: 'code', label: '庫位代碼', required: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[110px]', detailGroup: '識別', emphasis: true },
+    { key: 'name', label: '名稱', minWidthClass: 'min-w-[120px]', emphasis: true },
+    { key: 'zone', label: '區（舊欄、棄用）', inList: false, detailGroup: '位置細節' },
     { key: 'rack', label: '架號', inList: false },
     { key: 'levelNo', label: '層', type: 'number', inList: false },
     { key: 'binNo', label: '格', inList: false },
-    { key: 'remark', label: '備註', inList: false },
+    { key: 'remark', label: '備註', inList: false, detailGroup: '其他', detailSpan: 2 },
     { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
   ],
 };
@@ -464,14 +467,15 @@ export const PART_MASTER: EntityMasterConfig = {
   entityNoun: '零件',
   errorCodePrefix: 'nxui_base_part',
   deleteMode: SOFT,
+  // 詳細頁排版 2026-07-11：識別 / 分類 / 規格與保固 / 售價
   fields: [
     // 2026-06-26：基準料號開放修改（取消 lockedOnEdit）、純手動輸入
-    { key: 'code', label: '基準料號', required: true, mono: true, minWidthClass: 'min-w-[140px]' },
-    { key: 'name', label: '品名', required: true, minWidthClass: 'min-w-[160px]' },
+    { key: 'code', label: '基準料號', required: true, mono: true, minWidthClass: 'min-w-[140px]', detailGroup: '識別', emphasis: true },
+    { key: 'name', label: '品名', required: true, minWidthClass: 'min-w-[160px]', emphasis: true },
     // 2026-06-26：廠牌料號必填
     { key: 'secCode', label: '廠牌料號', required: true, mono: true, minWidthClass: 'min-w-[140px]' },
     { key: 'partBrandId', label: '零件廠牌', type: 'ref', refBasePath: 'nx01/brands', refExtraFilters: { isPart: 'true' }, minWidthClass: 'min-w-[120px]' },
-    { key: 'partGroupId', label: '自訂群組', type: 'ref', refBasePath: 'nx01/part-groups', inList: false },
+    { key: 'partGroupId', label: '自訂群組', type: 'ref', refBasePath: 'nx01/part-groups', inList: false, detailGroup: '分類' },
     // 用途別・採購角度（寫死、不可改）
     {
       key: 'purchaseCategory', label: '用途別', type: 'select', numeric: true, inList: false,
@@ -492,10 +496,10 @@ export const PART_MASTER: EntityMasterConfig = {
       options: [{ value: 1, label: '專用件' }, { value: 2, label: '通用件' }, { value: 3, label: '組合件' }, { value: 4, label: '拆解件' }],
     },
     { key: 'isOem', label: '原廠件', type: 'toggle', inList: false },
-    { key: 'spec', label: '規格', inList: false },
+    { key: 'spec', label: '規格', inList: false, detailGroup: '規格與保固', detailSpan: 2 },
     { key: 'uom', label: '單位', inList: false },
     { key: 'warrantyMonths', label: '保固月數', type: 'number', inList: false },
-    { key: 'priceA', label: '售價 A', type: 'number', inList: false },
+    { key: 'priceA', label: '售價 A', type: 'number', inList: false, detailGroup: '售價' },
     { key: 'priceB', label: '售價 B', type: 'number', inList: false },
     { key: 'priceC', label: '售價 C', type: 'number', inList: false },
     { key: 'priceD', label: '售價 D', type: 'number', inList: false },
@@ -511,8 +515,8 @@ export const BULLETIN_MASTER: EntityMasterConfig = {
   errorCodePrefix: 'nxui_base_bulletin',
   deleteMode: SOFT,
   fields: [
-    { key: 'title', label: '標題', required: true, minWidthClass: 'min-w-[200px]' },
-    { key: 'content', label: '內容', type: 'textarea', inList: false },
+    { key: 'title', label: '標題', required: true, minWidthClass: 'min-w-[200px]', detailSpan: 2, emphasis: true },
+    { key: 'content', label: '內容', type: 'textarea', inList: false, detailSpan: 'full' },
     {
       key: 'importance', label: '重要性', type: 'select', minWidthClass: 'min-w-[100px]',
       options: [{ value: 'normal', label: '一般' }, { value: 'important', label: '重要' }, { value: 'urgent', label: '緊急' }],
@@ -531,9 +535,9 @@ export const ROLE_VIEW_MASTER: EntityMasterConfig = {
   errorCodePrefix: 'nxui_base_role_view',
   deleteMode: SOFT,
   fields: [
-    { key: 'roleId', label: '職務', type: 'ref', refBasePath: 'nx01/roles', required: true, minWidthClass: 'min-w-[140px]' },
-    { key: 'viewId', label: '畫面', type: 'ref', refBasePath: 'nx01/views', required: true, minWidthClass: 'min-w-[160px]' },
-    { key: 'canRead', label: '可讀取', type: 'toggle', defaultValue: true },
+    { key: 'roleId', label: '職務', type: 'ref', refBasePath: 'nx01/roles', required: true, minWidthClass: 'min-w-[140px]', detailGroup: '對象', detailSpan: 2 },
+    { key: 'viewId', label: '畫面', type: 'ref', refBasePath: 'nx01/views', required: true, minWidthClass: 'min-w-[160px]', detailSpan: 2 },
+    { key: 'canRead', label: '可讀取', type: 'toggle', defaultValue: true, detailGroup: '權限' },
     { key: 'canCreate', label: '可新增', type: 'toggle', defaultValue: false },
     { key: 'canUpdate', label: '可編輯', type: 'toggle', defaultValue: false },
     { key: 'canDelete', label: '可刪除', type: 'toggle', defaultValue: false },
@@ -557,15 +561,17 @@ export const DISCOUNT_CODE_MASTER: EntityMasterConfig = {
       mono: true, maxLength: 20,
       placeholder: '例：DEFECT / USED / VIP / BULK',
       minWidthClass: 'min-w-[100px]',
+      detailGroup: '識別', emphasis: true,
     },
     {
       key: 'name', label: '名稱', required: true, maxLength: 50,
       placeholder: '例：瑕疵品折扣、中古件折扣',
       minWidthClass: 'min-w-[160px]',
+      emphasis: true,
     },
     {
       key: 'discountType', label: '折扣方式', type: 'select', required: true, defaultValue: 'P',
-      minWidthClass: 'min-w-[100px]',
+      minWidthClass: 'min-w-[100px]', detailGroup: '折扣設定',
       options: [
         { value: 'P', label: 'P 率%' },
         { value: 'A', label: 'A 金額' },
@@ -584,7 +590,7 @@ export const DISCOUNT_CODE_MASTER: EntityMasterConfig = {
         { value: 'S', label: 'S 銷售組長' },
       ],
     },
-    { key: 'remark', label: '備註', inList: false, maxLength: 200 },
+    { key: 'remark', label: '備註', inList: false, maxLength: 200, detailGroup: '其他', detailSpan: 2 },
   ],
 };
 
