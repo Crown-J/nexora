@@ -1,7 +1,7 @@
 // apps/nx-api/src/nx01/part-barcode/dto/part-barcode.dto.ts
 // 偉盟 P2 2.6 2026-07-11：零件條碼對照 DTO
 
-import { IsBoolean, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { ArrayMaxSize, IsArray, IsBoolean, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 
 export class CreatePartBarcodeDto {
   @IsString()
@@ -17,6 +17,13 @@ export class CreatePartBarcodeDto {
   @IsString()
   @MaxLength(100)
   remark?: string;
+}
+
+export class DefaultsPartBarcodeDto {
+  @IsArray()
+  @ArrayMaxSize(500)
+  @IsString({ each: true })
+  partIds!: string[];
 }
 
 export class UpdatePartBarcodeDto {

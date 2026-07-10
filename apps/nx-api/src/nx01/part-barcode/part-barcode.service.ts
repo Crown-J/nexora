@@ -28,20 +28,22 @@ export class PartBarcodeService {
   private async assertPart(tenantId: string, partId: string) {
     const p = await this.prisma.nx01Part.findFirst({
       where: { id: partId, tenantId },
-      select: { id: true },
+      select: { id: true, code: true, name: true },
     });
     if (!p) throw new NotFoundException(`Part ${partId} not found`);
+    return p;
   }
 
   async list(user: RequestUser, partId: string) {
     const tenantId = requireTenantId(user);
-    await this.assertPart(tenantId, partId);
+    const part = await this.assertPart(tenantId, partId);
     const rows = await this.prisma.nx01PartBarcode.findMany({
       where: { tenantId, partId },
       orderBy: [{ isDefault: 'desc' }, { createdAt: 'asc' }],
       select: SEL,
     });
-    return { rows };
+    // Step 2 標籤列印：附料號品名快照（標籤內容用、省前端再查一次 part）
+    return { part: { partNo: part.code, partName: part.name }, rows };
   }
 
   async create(user: RequestUser, partId: string, dto: CreatePartBarcodeDto) {
@@ -134,5 +136,20 @@ export class PartBarcodeService {
       partNo: row.part.code,
       partName: row.part.name,
     };
+  }
+
+  /**
+   * Step 2 標籤列印：批量取預設條碼（例：進貨單全明細印標）。
+   * 無對照的料不回列、前端 fallback 用料號當條碼內容（掃回來料號直比本來就通）。
+   */
+  async defaults(user: RequestUser, partIds: string[]) {
+    const tenantId = requireTenantId(user);
+    const ids = [...new Set(partIds.map((s) => s.trim()).filter(Boolean))].slice(0, 500);
+    if (!ids.length) return { rows: [] };
+    const rows = await this.prisma.nx01PartBarcode.findMany({
+      where: { tenantId, partId: { in: ids }, isDefault: true },
+      select: { partId: true, barcode: true },
+    });
+    return { rows };
   }
 }

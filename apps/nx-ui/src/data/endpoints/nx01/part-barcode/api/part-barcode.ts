@@ -30,8 +30,14 @@ export type ResolveBarcodeResult =
   | { found: false }
   | { found: true; partId: string; partNo: string; partName: string };
 
-export function listPartBarcodes(partId: string): Promise<PartBarcodeRow[]> {
-  return apiJson<{ rows: PartBarcodeRow[] }>(`/nx01/parts/${encodeURIComponent(partId)}/barcodes`).then((r) => r.rows);
+/** Step 2：list 附料號品名快照（標籤列印內容用） */
+export interface PartBarcodeListResult {
+  part: { partNo: string; partName: string };
+  rows: PartBarcodeRow[];
+}
+
+export function listPartBarcodes(partId: string): Promise<PartBarcodeListResult> {
+  return apiJson(`/nx01/parts/${encodeURIComponent(partId)}/barcodes`);
 }
 
 export function createPartBarcode(partId: string, payload: CreatePartBarcodePayload): Promise<PartBarcodeRow> {
@@ -60,4 +66,12 @@ export function deletePartBarcode(partId: string, barcodeId: string): Promise<{ 
 
 export function resolveBarcode(code: string): Promise<ResolveBarcodeResult> {
   return apiJson(`/nx01/part-barcode/resolve?code=${encodeURIComponent(code)}`);
+}
+
+/** Step 2 標籤列印：批量取預設條碼（無對照的料不回列、前端 fallback 料號） */
+export function fetchDefaultBarcodes(partIds: string[]): Promise<{ rows: { partId: string; barcode: string }[] }> {
+  return apiJson(`/nx01/part-barcode/defaults`, {
+    method: 'POST',
+    body: JSON.stringify({ partIds }),
+  });
 }

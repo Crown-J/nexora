@@ -11,7 +11,7 @@ import { Roles } from '../../shared/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../shared/guards/jwt-auth.guard';
 import { RolesGuard } from '../../shared/guards/roles.guard';
 
-import { CreatePartBarcodeDto, UpdatePartBarcodeDto } from './dto/part-barcode.dto';
+import { CreatePartBarcodeDto, DefaultsPartBarcodeDto, UpdatePartBarcodeDto } from './dto/part-barcode.dto';
 import { PartBarcodeService } from './part-barcode.service';
 
 @Controller('nx01/parts/:partId/barcodes')
@@ -63,5 +63,11 @@ export class PartBarcodeResolveController {
   @Get('resolve')
   resolve(@CurrentUser() user: RequestUser, @Query('code') code: string) {
     return this.svc.resolve(user, code ?? '');
+  }
+
+  /** Step 2 標籤列印：批量取預設條碼（進貨單全明細印標用、倉管可呼） */
+  @Post('defaults')
+  defaults(@CurrentUser() user: RequestUser, @Body() dto: DefaultsPartBarcodeDto) {
+    return this.svc.defaults(user, dto.partIds ?? []);
   }
 }

@@ -20,6 +20,7 @@ import {
   Save,
   Search,
   Send,
+  Tags,
   Trash2,
   X,
   XCircle,
@@ -29,6 +30,9 @@ import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { NavButton, ToolbarButton, ToolbarSeparator } from '@/features/nx01/shell/ui/ErpToolbar';
 import { ToolbarPortal } from '@design/layout/workbench/WorkbenchToolbarSlot';
 import { DocPrintView, printMoney } from '@/features/shared/doc-shell/DocPrintView';
+// 偉盟 P2 2.6 Step 2 2026-07-11：進貨明細條碼標籤批次列印（收貨貼標場景）
+import { LabelPrintSheet, type LabelData } from '@/features/shared/part-barcode/LabelPrintSheet';
+import { fetchDefaultBarcodes } from '@data/endpoints/nx01/part-barcode/api/part-barcode';
 import { CustomerPicker, type PickedCustomer } from '@/features/nx04/quote/ui/CustomerPicker';
 import { PartPicker, type PickedPart } from '@/features/nx04/quote/ui/PartPicker';
 
@@ -124,6 +128,34 @@ export function RrDetailPanel({
 }) {
   const [rr, setRr] = useState<Rr | null>(null);
   const [printOpen, setPrintOpen] = useState(false);
+  // 偉盟 P2 2.6 Step 2：明細條碼標籤批次列印（每料 × 實收量、預設條碼 fallback 料號）
+  const [labelData, setLabelData] = useState<LabelData[] | null>(null);
+  const [labelBusy, setLabelBusy] = useState(false);
+
+  async function openLabelPrint() {
+    const items = rr?.items ?? [];
+    if (!items.length) return;
+    setLabelBusy(true);
+    try {
+      const res = await fetchDefaultBarcodes([...new Set(items.map((it) => it.partId))]);
+      const map = new Map(res.rows.map((r) => [r.partId, r.barcode]));
+      const MAX_LABELS = 500;
+      const labels: LabelData[] = [];
+      for (const it of items) {
+        const qty = Math.max(1, Math.round(Number(it.actualQty ?? it.qty) || 1));
+        for (let i = 0; i < qty && labels.length < MAX_LABELS; i++) {
+          labels.push({ barcode: map.get(it.partId) ?? it.partNo, partNo: it.partNo, partName: it.partName });
+        }
+        if (labels.length >= MAX_LABELS) break;
+      }
+      if (labels.length >= MAX_LABELS) alert(`標籤已達單次上限 ${MAX_LABELS} 張、超出部分請分批印`);
+      setLabelData(labels);
+    } catch (e) {
+      alert(e instanceof Error ? e.message : '取條碼對照失敗');
+    } finally {
+      setLabelBusy(false);
+    }
+  }
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -411,6 +443,8 @@ export function RrDetailPanel({
               <ToolbarButton icon={RefreshCcw} letter="R" label="重新整理" enabled onClick={() => void reload()} />
               <ToolbarButton icon={Printer} letter="P" label="列印" enabled onClick={() => setPrintOpen(true)} />
               <ToolbarButton icon={Download} letter="O" label="匯出" enabled onClick={() => setPrintOpen(true)} />
+              {/* 偉盟 P2 2.6 Step 2：收貨貼標——全明細 × 實收量 一鍵印條碼標籤 */}
+              <ToolbarButton icon={Tags} label="印標籤" enabled={!labelBusy && (rr.items?.length ?? 0) > 0} onClick={() => void openLabelPrint()} />
             </>
           ) : mode === 'editHeader' ? (
             <>
@@ -435,6 +469,10 @@ export function RrDetailPanel({
       </ToolbarPortal>
 
       {printOpen && rr ? <RrPrintSheet doc={rr} locs={locs} onClose={() => setPrintOpen(false)} /> : null}
+
+      {labelData && rr ? (
+        <LabelPrintSheet title={`進貨單 ${rr.docNo} 標籤`} labels={labelData} onClose={() => setLabelData(null)} />
+      ) : null}
 
       {error ? <div className="mx-4 mt-3 rounded border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm">{error}</div> : null}
 
