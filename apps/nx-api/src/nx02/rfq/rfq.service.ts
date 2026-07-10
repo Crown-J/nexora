@@ -44,6 +44,9 @@ const RFQ_SEL = {
   createdBy: true,
   updatedAt: true,
   updatedBy: true,
+  // NX02-RFQ-SHELL 2026-07-10：單據模板 enrich——關聯名稱由 flattenRfqRefs 攤平（比照 Po/RrService）
+  supplier: { select: { code: true, name: true } },
+  warehouse: { select: { code: true, name: true } },
 } as const;
 
 const ITEM_SEL = {
@@ -78,6 +81,22 @@ function flattenItems(items: ItemRow[]) {
   });
 }
 
+// NX02-RFQ-SHELL 2026-07-10：把 RFQ_SEL 帶的 supplier/warehouse 關聯攤平成
+//   supplierCode/supplierName/warehouseCode/warehouseName（比照 Po/RrService）。
+function flattenRfqRefs<T extends Record<string, unknown>>(rest: T) {
+  const { supplier, warehouse, ...plain } = rest as Record<string, unknown> & {
+    supplier?: { code?: string; name?: string } | null;
+    warehouse?: { code?: string; name?: string } | null;
+  };
+  return {
+    ...plain,
+    supplierCode: supplier?.code ?? null,
+    supplierName: supplier?.name ?? null,
+    warehouseCode: warehouse?.code ?? null,
+    warehouseName: warehouse?.name ?? null,
+  };
+}
+
 @Injectable()
 export class RfqService {
   constructor(
@@ -90,7 +109,13 @@ export class RfqService {
     if (q.status?.trim()) where.status = q.status.trim();
     if (q.search?.trim()) {
       const s = q.search.trim();
-      where.OR = [{ docNo: { contains: s, mode: 'insensitive' } }, { remark: { contains: s, mode: 'insensitive' } }];
+      // NX02-RFQ-SHELL：搜尋含 單號/備註/供應商編號/供應商名稱（比照 Po/RrService 加關聯搜尋）
+      where.OR = [
+        { docNo: { contains: s, mode: 'insensitive' } },
+        { remark: { contains: s, mode: 'insensitive' } },
+        { supplier: { code: { contains: s, mode: 'insensitive' } } },
+        { supplier: { name: { contains: s, mode: 'insensitive' } } },
+      ];
     }
     return where;
   }
@@ -123,10 +148,26 @@ export class RfqService {
         orderBy: [{ rfqDate: 'desc' }, { docNo: 'desc' }],
         skip,
         take: pageSize,
-        select: RFQ_SEL,
+        // NX02-RFQ-SHELL：單據模板列表需 建單人員名 + 項目數
+        select: { ...RFQ_SEL, _count: { select: { rev_Nx02RfqItem_rfqId: true } } },
       }),
     ]);
-    return { page, pageSize, total, rows };
+    // 建單人員名（批次查 user）
+    const creatorIds = [...new Set(rows.map((r) => r.createdBy).filter(Boolean))];
+    const creators = creatorIds.length
+      ? await this.prisma.nx01User.findMany({ where: { id: { in: creatorIds } }, select: { id: true, userName: true } })
+      : [];
+    const creatorMap = new Map(creators.map((c) => [c.id, c.userName]));
+    const items = rows.map((r) => {
+      const { _count, ...rest } = r;
+      return {
+        ...flattenRfqRefs(rest),
+        itemCount: _count?.rev_Nx02RfqItem_rfqId ?? 0,
+        createdByName: creatorMap.get(r.createdBy) ?? null,
+      };
+    });
+    // NX02-RFQ-SHELL：回傳鍵 rows→items（對齊範式；舊 RfqListView 讀 .data 本就錯位、隨舊視圖退場）
+    return { page, pageSize, total, items };
   }
 
   async getById(user: RequestUser, id: string) {
@@ -137,7 +178,11 @@ export class RfqService {
     });
     if (!row) throw new NotFoundException('RFQ not found');
     const { rev_Nx02RfqItem_rfqId, ...rest } = row;
-    return { ...rest, items: flattenItems(rev_Nx02RfqItem_rfqId) };
+    // NX02-RFQ-SHELL：關聯攤平 + 建單人員名（詳情顯示）
+    const creator = row.createdBy
+      ? await this.prisma.nx01User.findFirst({ where: { id: row.createdBy }, select: { userName: true } })
+      : null;
+    return { ...flattenRfqRefs(rest), items: flattenItems(rev_Nx02RfqItem_rfqId), createdByName: creator?.userName ?? null };
   }
 
   /**
@@ -346,7 +391,7 @@ export class RfqService {
         afterData: full as object,
       });
       const { rev_Nx02RfqItem_rfqId, ...r } = full!;
-      return { ...r, items: flattenItems(rev_Nx02RfqItem_rfqId) };
+      return { ...flattenRfqRefs(r), items: flattenItems(rev_Nx02RfqItem_rfqId) };
     });
   }
 
@@ -399,7 +444,7 @@ export class RfqService {
       afterData: full as object,
     });
     const { rev_Nx02RfqItem_rfqId, ...r } = full!;
-    return { ...r, items: flattenItems(rev_Nx02RfqItem_rfqId) };
+    return { ...flattenRfqRefs(r), items: flattenItems(rev_Nx02RfqItem_rfqId) };
   }
 
   async softDelete(user: RequestUser, id: string) {
@@ -435,7 +480,7 @@ export class RfqService {
       afterData: full as object,
     });
     const { rev_Nx02RfqItem_rfqId, ...r } = full!;
-    return { ...r, items: flattenItems(rev_Nx02RfqItem_rfqId) };
+    return { ...flattenRfqRefs(r), items: flattenItems(rev_Nx02RfqItem_rfqId) };
   }
 
   async addItem(user: RequestUser, rfqId: string, dto: CreateRfqItemDto) {
