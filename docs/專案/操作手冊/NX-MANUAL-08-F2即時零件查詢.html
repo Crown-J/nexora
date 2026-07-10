@@ -66,12 +66,13 @@ kbd{display:inline-block;border:1px solid #c3ccd8;border-bottom-width:2px;border
 <div class="cover-tag">NEXORA GRID · 操作手冊</div>
 <h1 class="cover-title">NX-MANUAL-08</h1>
 <div class="cover-name">F2 即時零件查詢</div>
-<table class="ver"><tr><td class="vk">版本</td><td>Ver 1.0</td><td class="vk">日期</td><td>2026-07-11</td><td class="vk">維護</td><td>Hank（全端）</td></tr></table>
+<table class="ver"><tr><td class="vk">版本</td><td>Ver 1.1</td><td class="vk">日期</td><td>2026-07-11</td><td class="vk">維護</td><td>Hank（全端）</td></tr></table>
 <p class="cover-sub">電話進來就查——任何畫面按 <kbd>F2</kbd> 開零件查詢，兩步到貨況：搜尋窗找料 → 主視窗看「公司到底有沒有貨」，再用 F3~F10 快捷鍵下鑽比價、看歷史、找替代。<br>全程鍵盤可完成、不需碰滑鼠。</p>
 </header>
 
 <div class="clog"><div class="clog-h">文件修訂紀錄</div><table class="data"><thead><tr><th>版本</th><th>日期</th><th>修改人</th><th>變更說明</th></tr></thead><tbody>
 <tr><td>1.0</td><td>2026-07-11</td><td>Hank</td><td>首版：依 2026-07-11 實作逐欄核對撰寫。涵蓋搜尋窗三查法／主視窗三欄／F3~F10 八個快捷功能（含本日新增的 F8 銷貨比價、F9 進貨比價、F10 相關零件）／三入口情境。</td></tr>
+<tr><td>1.1</td><td>2026-07-11</td><td>Hank</td><td>F5 周轉率轉正：估算（近 100 筆前端統計）改後端全量聚合、拿掉估算警示；新增「近 12 個月進銷」逐月長條與進銷口徑說明。</td></tr>
 </tbody></table></div>
 
 <h1 class="chap" id="c-0">概觀</h1>
@@ -144,13 +145,14 @@ kbd{display:inline-block;border:1px solid #c3ccd8;border-bottom-width:2px;border
 <h2>F4 即時報價</h2>
 <p>帶當前料件開「即時報價」（選客戶 → 報價）。選定客戶後主視窗會帶出該客戶的預設出貨倉（見第 4 章銷售情境）。</p>
 <h2>F5 周轉率分析</h2>
-<div class="panel"><div class="p-head">周轉率面板（六格指標）</div><div class="p-body">
-<div class="frow"><div class="fn"><span class="fnm">近 30 / 90 天出庫、近 90 天入庫</span></div><div class="fd">出入量統計。</div></div>
+<div class="panel"><div class="p-head">周轉率面板（六格指標 + 進銷長條）</div><div class="p-body">
+<div class="frow"><div class="fn"><span class="fnm">近 30 / 90 天出庫、近 90 天入庫</span></div><div class="fd">出入量統計（全量流水後端計算、無筆數截斷）。</div></div>
 <div class="frow"><div class="fn"><span class="fnm">日均出庫（30天）</span></div><div class="fd">近 30 天出庫 ÷ 30。</div></div>
 <div class="frow"><div class="fn"><span class="fnm">現量可售天數</span></div><div class="fd">公司現量 ÷ 日均出庫。</div></div>
-<div class="frow last"><div class="fn"><span class="fnm">年化周轉率（估）</span></div><div class="fd">近 90 天出庫年化 ÷ 現量。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">年化周轉率</span></div><div class="fd">近 90 天出庫年化 ÷ 現量。</div></div>
+<div class="frow last"><div class="fn"><span class="fnm">近 12 個月進銷</span></div><div class="fd">逐月雙長條：<strong style="color:#b06f1e">進</strong>（橘、進貨入庫）／<strong style="color:#1f8a5f">銷</strong>（綠、銷貨出庫），右側附數字「進 / 銷」；沒資料的月份顯示 0。</div></div>
 </div></div>
-<div class="badge warn"><span class="lb">【注意】</span>F5 是<strong>估算值</strong>：以近 100 筆出入庫紀錄前端統計，面板底部標注估算基礎；紀錄達 100 筆上限時會警示「更早異動未計入」。</div>
+<div class="badge note"><span class="lb">【說明】</span>進銷長條只計<strong>進貨入庫</strong>與<strong>銷貨出庫</strong>；調撥、盤點調整等其他異動不計入（要看全部異動用 F6）。</div>
 <h2>F6 出入庫紀錄</h2>
 <p>近 100 筆異動表：日期／類型（進貨、退貨、銷貨、開帳、盤點、調撥）／入／出／結存／倉位。</p>
 <h2>F8 銷貨比價</h2>
@@ -203,7 +205,7 @@ kbd{display:inline-block;border:1px solid #c3ccd8;border-bottom-width:2px;border
 <h1 class="chap" id="c-6">限制與注意</h1>
 <ul>
 <li><strong>筆數上限</strong>：搜尋結果 500 筆；F8 歷史銷貨/報價各近 50 筆、F9 近 50 筆、F6 近 100 筆——達上限面板會標警示、更早的紀錄不列。</li>
-<li><strong>F5 是估算</strong>：基礎為近 100 筆出入庫，低頻料可信、高頻料建議看報表模組的正式周轉分析。</li>
+<li><strong>F5 進銷口徑</strong>：長條只計進貨入庫與銷貨出庫；調撥／盤點等其他異動看 F6。統計為全量流水後端計算、無筆數截斷。</li>
 <li><strong>成本露出</strong>：F8 建議售價列含進貨成本，可見性走現有權限目錄（能開主視窗即能看）。</li>
 <li><strong>水位條要有設定才完整</strong>：安全量／最高量來自「產品庫存設定」（見 NX-MANUAL-04）；沒設定只畫現量。</li>
 <li><strong>本倉 pin 要有歸倉</strong>：倉管情境的本倉標記依「使用者隸屬倉」的主要倉設定；沒設定就不 pin。</li>

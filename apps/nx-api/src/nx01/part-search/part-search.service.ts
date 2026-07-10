@@ -983,4 +983,68 @@ export class PartSearchService {
       })),
     };
   }
+
+  /**
+   * 進銷月統計 + 出入庫窗口聚合（F5 周轉率轉正、執行長 2026-07-11 拍板）。
+   * 全量流水 SQL 聚合（取代前端近 100 筆估算、不受截斷影響）：
+   * - months：近 12 個月逐月 進貨入庫(P) / 銷貨出庫(S) / 其他入 / 其他出（缺月補 0）
+   * - window：近 30/90 天出庫量、近 90 天入庫量、近 90 天出庫筆數
+   */
+  async getMonthlyStats(user: RequestUser, partId: string) {
+    const tenantId = requireTenantId(user);
+    const [monthRows, winRows] = await Promise.all([
+      this.prisma.$queryRaw<
+        Array<{ month: string; purchase_in: string; sales_out: string; other_in: string; other_out: string }>
+      >`
+        SELECT to_char(date_trunc('month', movement_date), 'YYYY-MM') AS month,
+               COALESCE(SUM(qty_in)  FILTER (WHERE source_doc_type = 'P'), 0)::text  AS purchase_in,
+               COALESCE(SUM(qty_out) FILTER (WHERE source_doc_type = 'S'), 0)::text  AS sales_out,
+               COALESCE(SUM(qty_in)  FILTER (WHERE source_doc_type <> 'P'), 0)::text AS other_in,
+               COALESCE(SUM(qty_out) FILTER (WHERE source_doc_type <> 'S'), 0)::text AS other_out
+        FROM nx03_stock_ledger
+        WHERE tenant_id = ${tenantId} AND part_id = ${partId}
+          AND movement_date >= date_trunc('month', now()) - interval '11 months'
+        GROUP BY 1
+        ORDER BY 1
+      `,
+      this.prisma.$queryRaw<
+        Array<{ out30: string; out90: string; in90: string; out_moves90: string }>
+      >`
+        SELECT COALESCE(SUM(qty_out) FILTER (WHERE movement_date >= now() - interval '30 days'), 0)::text AS out30,
+               COALESCE(SUM(qty_out), 0)::text AS out90,
+               COALESCE(SUM(qty_in), 0)::text  AS in90,
+               COUNT(*) FILTER (WHERE qty_out > 0)::text AS out_moves90
+        FROM nx03_stock_ledger
+        WHERE tenant_id = ${tenantId} AND part_id = ${partId}
+          AND movement_date >= now() - interval '90 days'
+      `,
+    ]);
+
+    // 缺月補 0：固定回 12 格（近 11 個月前起算到本月）、前端長條圖不用自己補洞
+    const byMonth = new Map(monthRows.map((m) => [m.month, m]));
+    const now = new Date();
+    const months = Array.from({ length: 12 }, (_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - 11 + i, 1);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const m = byMonth.get(key);
+      return {
+        month: key,
+        purchaseIn: m?.purchase_in ?? '0',
+        salesOut: m?.sales_out ?? '0',
+        otherIn: m?.other_in ?? '0',
+        otherOut: m?.other_out ?? '0',
+      };
+    });
+
+    const win = winRows[0];
+    return {
+      months,
+      window: {
+        out30: win?.out30 ?? '0',
+        out90: win?.out90 ?? '0',
+        in90: win?.in90 ?? '0',
+        outMoves90: win?.out_moves90 ?? '0',
+      },
+    };
+  }
 }

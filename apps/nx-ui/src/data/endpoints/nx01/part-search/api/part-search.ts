@@ -8,6 +8,7 @@ import type {
   PartCompatGroupResult,
   PartDetailDto,
   PartModelRow,
+  PartMonthlyStatsDto,
   PartPurchaseHistoryRow,
   PartRelatedRow,
   PartSalesHistoryDto,
@@ -107,6 +108,13 @@ export async function getPartModels(id: string): Promise<{ rows: PartModelRow[] 
   const res = await apiFetch(`${BASE}/${encodeURIComponent(id)}/models`, { method: 'GET' });
   await assertOk(res, 'nxui_part_quick_search_models');
   return (await res.json()) as { rows: PartModelRow[] };
+}
+
+/** F5 周轉率轉正：進銷月統計 + 30/90 天窗口聚合（唯讀）*/
+export async function getPartMonthlyStats(id: string): Promise<PartMonthlyStatsDto> {
+  const res = await apiFetch(`${BASE}/${encodeURIComponent(id)}/monthly-stats`, { method: 'GET' });
+  await assertOk(res, 'nxui_part_quick_search_monthly_stats');
+  return (await res.json()) as PartMonthlyStatsDto;
 }
 
 /** F2 視窗 2 右欄通用件群組（含主件 + 替代品 + 各 member 庫存）*/
