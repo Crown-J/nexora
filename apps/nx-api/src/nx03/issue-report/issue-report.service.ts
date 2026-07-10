@@ -21,11 +21,15 @@ import type { Prisma } from 'db-core';
 import { Prisma as PrismaNs } from 'db-core';
 
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
+import { PurchaseReturnService } from '../../nx02/purchase-return/purchase-return.service';
+import { WarrantyClaimService } from '../../nx02/warranty-claim/warranty-claim.service';
 import { SoService } from '../../nx04/so/so.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
 import { allocNx03DocNo } from '../../shared/nx03/nx03-doc-no';
+import { requireDefaultLocationId } from '../../shared/nx04/nx04-location';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
+import { DisposalService } from '../disposal/disposal.service';
 
 import type {
   CloseIssueReportDto,
@@ -87,6 +91,10 @@ export class IssueReportService {
     private readonly audit: Nx01AuditLogWriterService,
     // F1 特價售出 2026-06-08：dispose('X') 自動建特價 SO 用、走 SoService 完整 create flow
     private readonly so: SoService,
+    // W5 異常鏈 Step 3 2026-07-11：dispose 一鍵開單（R 退貨 / W 保固 / D 報廢）、走各 service 完整 create flow
+    private readonly purchaseReturn: PurchaseReturnService,
+    private readonly warrantyClaim: WarrantyClaimService,
+    private readonly disposal: DisposalService,
   ) {}
 
   private whereList(tenantId: string, q: ListIssueReportQueryDto): Prisma.Nx03IssueReportWhereInput {
@@ -328,6 +336,18 @@ export class IssueReportService {
       related = soId;
     }
 
+    // W5 異常鏈 Step 3 2026-07-11：一鍵開單（autoCreate=true 且未帶 relatedDocId、R/W/C/D）
+    // 各 service create 自帶 $transaction；建單失敗直接 throw、IR 停留 REPORTED 不進 PROCESSING
+    if (!related && dto.autoCreate && (disp === 'R' || disp === 'W' || disp === 'C' || disp === 'D')) {
+      related = await this.autoCreateDispositionDoc(user, tenantId, existing, disp);
+    }
+
+    // W5 異常鏈 Step 3：處置單回填 sourceIssueReportId（一鍵開單與手動連結同路、供處置完成回寫 IR 結案）
+    // X 特價 SO 無此欄跳過；手動連結查無單據 throw（防手滑亂填、dispose 僅發生一次無歷史相容問題）
+    if (related && (disp === 'R' || disp === 'W' || disp === 'C' || disp === 'D')) {
+      await this.stampDispositionDoc(user, tenantId, disp, related, existing.id);
+    }
+
     const row = await this.prisma.nx03IssueReport.update({
       where: { id },
       data: {
@@ -429,6 +449,136 @@ export class IssueReportService {
       afterData: row as object,
     });
     return row;
+  }
+
+  /**
+   * W5 異常鏈 Step 3 2026-07-11：dispose 一鍵開單。
+   * - D 報廢：IR 資料直建 Disposal DRAFT（issueType D 損毀→A 損壞 / E 過期→B 過期 / 其他→D 其他）
+   *   庫位：IR.locationId、沒有就取該倉預設庫位（報廢明細庫位必填）
+   * - R 退貨 / W 保固：僅支援進貨驗收來源（sourceModule=NX02 + sourceDocType=RR、relatedDocId 存原 rrItem id）、
+   *   供應商 / 成本 / 退貨原因都從原進貨明細帶；其他來源缺這些資料 → 提示手動建單後連結（拍板 2026-07-11 設計點 3）
+   * - C 重組分解：outputs 需人工定義、不支援一鍵開單
+   * 回傳新單 id（呼叫端回填 relatedDocId + 蓋 sourceIssueReportId）
+   */
+  private async autoCreateDispositionDoc(
+    user: RequestUser,
+    tenantId: string,
+    ir: Prisma.Nx03IssueReportGetPayload<{ select: typeof IR_SEL }>,
+    disp: 'R' | 'W' | 'C' | 'D',
+  ): Promise<string> {
+    const today = new Date().toISOString().slice(0, 10);
+    if (disp === 'C') {
+      throw new BadRequestException(
+        '重組分解單的產出明細需人工定義、不支援一鍵開單；請先建重組分解單、再以 relatedDocId 連結',
+      );
+    }
+    if (disp === 'D') {
+      const locationId =
+        ir.locationId ?? (await requireDefaultLocationId(this.prisma, tenantId, ir.warehouseId));
+      const disposalReason: 'A' | 'B' | 'D' =
+        ir.issueType === 'D' ? 'A' : ir.issueType === 'E' ? 'B' : 'D';
+      const ds = await this.disposal.create(user, {
+        warehouseId: ir.warehouseId,
+        disposalDate: today,
+        remark: `來自異常回報 ${ir.docNo}`,
+        items: [
+          {
+            partId: ir.partId,
+            locationId,
+            qty: Number(ir.qty),
+            disposalReason,
+            ...(disposalReason === 'D' ? { disposalRemark: `異常回報 ${ir.docNo} 轉報廢` } : {}),
+          },
+        ],
+      });
+      return (ds as unknown as { id: string }).id;
+    }
+    // R / W：需原進貨明細（供應商 / 成本 / 退貨原因來源）
+    if (ir.sourceModule !== 'NX02' || ir.sourceDocType !== 'RR' || !ir.relatedDocId) {
+      throw new BadRequestException(
+        `一鍵開${disp === 'R' ? '退貨' : '保固'}單僅支援進貨驗收來源的異常單（需原進貨明細）；請手動建單後以 relatedDocId 連結`,
+      );
+    }
+    const rrItem = await this.prisma.nx02RrItem.findFirst({
+      where: { id: ir.relatedDocId, rr: { tenantId } },
+      select: {
+        id: true,
+        partId: true,
+        locationId: true,
+        unitCost: true,
+        actualUnitCost: true,
+        defectType: true,
+        rr: { select: { id: true, supplierId: true, warehouseId: true } },
+      },
+    });
+    if (!rrItem || rrItem.partId !== ir.partId) {
+      throw new BadRequestException('異常單連結的原進貨明細不存在或料號不符、無法一鍵開單');
+    }
+    if (disp === 'R') {
+      const actualUnitCost = Number(rrItem.actualUnitCost);
+      const pr = await this.purchaseReturn.create(user, {
+        prDate: today,
+        warehouseId: rrItem.rr.warehouseId,
+        supplierId: rrItem.rr.supplierId,
+        rrId: rrItem.rr.id,
+        returnMode: 'P',
+        dispositionFlag: 'B',
+        remark: `來自異常回報 ${ir.docNo}`,
+        items: [
+          {
+            rrItemId: rrItem.id,
+            partId: ir.partId,
+            qty: Number(ir.qty),
+            unitPriceSnapshot: actualUnitCost > 0 ? actualUnitCost : Number(rrItem.unitCost),
+            locationId: rrItem.locationId,
+            returnReason: ['D', 'F', 'W', 'O'].includes(rrItem.defectType ?? '')
+              ? (rrItem.defectType as string)
+              : 'O',
+          },
+        ],
+      });
+      return (pr as unknown as { id: string }).id;
+    }
+    // disp === 'W'
+    const wc = await this.warrantyClaim.create(user, {
+      claimType: 'SELF',
+      supplierId: rrItem.rr.supplierId,
+      partId: ir.partId,
+      qty: Number(ir.qty),
+      claimDate: today,
+      issueDescription: ir.description?.trim() || `異常回報 ${ir.docNo}`,
+      remark: `來自異常回報 ${ir.docNo}`,
+    });
+    return (wc as unknown as { id: string }).id;
+  }
+
+  /**
+   * W5 異常鏈 Step 3：把 IR id 回填到處置單 sourceIssueReportId（一鍵開單 / 手動連結同路）。
+   * 查無單據 throw（tenant 隔離下防手滑亂填；一鍵開單產物必存在、只有手動連結會踩到）。
+   */
+  private async stampDispositionDoc(
+    user: RequestUser,
+    tenantId: string,
+    disp: 'R' | 'W' | 'C' | 'D',
+    docId: string,
+    issueReportId: string,
+  ): Promise<void> {
+    const data = { sourceIssueReportId: issueReportId, updatedBy: user.sub };
+    let count = 0;
+    if (disp === 'R') {
+      count = (await this.prisma.nx02Pr.updateMany({ where: { id: docId, tenantId }, data })).count;
+    } else if (disp === 'W') {
+      count = (await this.prisma.nx02WarrantyClaim.updateMany({ where: { id: docId, tenantId }, data })).count;
+    } else if (disp === 'C') {
+      count = (await this.prisma.nx03Conversion.updateMany({ where: { id: docId, tenantId }, data })).count;
+    } else {
+      count = (await this.prisma.nx03Disposal.updateMany({ where: { id: docId, tenantId }, data })).count;
+    }
+    if (!count) {
+      throw new BadRequestException(
+        `relatedDocId ${docId} 不存在於對應處置單（${this.describeDisposition(disp)}）`,
+      );
+    }
   }
 
   private describeDisposition(d: DispositionType): string {
