@@ -110,16 +110,17 @@ export const MODEL_MASTER: EntityMasterConfig = {
   entityNoun: '車型',
   errorCodePrefix: 'nxui_base_model',
   deleteMode: SOFT,
+  // 詳細頁排版打樣（2026-07-11 執行長拍板「每檔個別調」首例）：識別 / 年式與規格 / 其他 三組
   fields: [
-    { key: 'code', label: '車型代碼', required: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]' },
-    { key: 'name', label: '車型名稱', required: true, minWidthClass: 'min-w-[140px]' },
+    { key: 'code', label: '車型代碼', required: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]', detailGroup: '識別', emphasis: true },
+    { key: 'name', label: '車型名稱', required: true, minWidthClass: 'min-w-[140px]', emphasis: true },
     { key: 'carBrandId', label: '車廠品牌', type: 'ref', refBasePath: 'nx01/brands', refExtraFilters: { isCar: 'true' }, required: true, minWidthClass: 'min-w-[120px]' },
-    { key: 'modelYearFrom', label: '年式(起)', type: 'number' },
+    { key: 'modelYearFrom', label: '年式(起)', type: 'number', detailGroup: '年式與規格' },
     { key: 'modelYearTo', label: '年式(迄)', type: 'number', inList: false },
     // 2026-06-26：引擎等外鍵取消、改自由輸入
     { key: 'engineCode', label: '引擎代碼', inList: false },
     { key: 'displacementCc', label: '排氣量(cc)', type: 'number', inList: false },
-    { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
+    { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false, detailGroup: '其他' },
   ],
 };
 
