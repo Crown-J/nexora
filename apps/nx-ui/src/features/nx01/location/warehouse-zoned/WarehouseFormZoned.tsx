@@ -200,33 +200,36 @@ export function WarehouseFormZoned({
             );
           }
 
-          // 一般文字 / 數字輸入
+          // 一般文字 / 數字輸入（備註長文 → 跨 2 欄、詳細頁排版 2026-07-11 執行長拍板）
           if (fieldEditable) {
             return (
-              <FormInput
-                key={f.key}
-                label={f.label + (f.required ? ' *' : '')}
-                value={String(draft[f.key] ?? '')}
-                onChange={(v) => setDraft({ ...draft, [f.key]: v })}
-              />
+              <div key={f.key} className={f.key === 'remark' ? 'sm:col-span-2' : undefined}>
+                <FormInput
+                  label={f.label + (f.required ? ' *' : '')}
+                  value={String(draft[f.key] ?? '')}
+                  onChange={(v) => setDraft({ ...draft, [f.key]: v })}
+                />
+              </div>
             );
           }
 
-          // 瀏覽 / locked / delivery view / 非 editable
+          // 瀏覽 / locked / delivery view / 非 editable（code/name 主識別 emphasis）
           const raw = draft[f.key];
           const display = renderBrowseValue(f.key, raw, refOptions);
           return (
-            <FormField
-              key={f.key}
-              label={f.label}
-              value={display}
-              mono={f.key === 'code'}
-              tone={
-                f.key === 'isMain'
-                  ? (raw ? 'amber' : 'muted')
-                  : undefined
-              }
-            />
+            <div key={f.key} className={f.key === 'remark' ? 'sm:col-span-2' : undefined}>
+              <FormField
+                label={f.label}
+                value={display}
+                mono={f.key === 'code'}
+                emphasis={f.key === 'code' || f.key === 'name'}
+                tone={
+                  f.key === 'isMain'
+                    ? (raw ? 'amber' : 'muted')
+                    : undefined
+                }
+              />
+            </div>
           );
         })}
       </div>

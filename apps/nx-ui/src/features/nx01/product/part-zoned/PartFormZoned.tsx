@@ -290,33 +290,36 @@ export function PartFormZoned({
             );
           }
 
-          // 文字輸入
+          // 文字輸入（規格/備註長文 → 跨 2 欄、詳細頁排版 2026-07-11 執行長拍板）
           if (fieldEditable) {
             return (
-              <FormInput
-                key={f.key}
-                label={f.label + (f.required ? ' *' : '')}
-                value={String(draft[f.key] ?? '')}
-                onChange={(v) => setDraft({ ...draft, [f.key]: v })}
-              />
+              <div key={f.key} className={f.key === 'spec' ? 'sm:col-span-2' : undefined}>
+                <FormInput
+                  label={f.label + (f.required ? ' *' : '')}
+                  value={String(draft[f.key] ?? '')}
+                  onChange={(v) => setDraft({ ...draft, [f.key]: v })}
+                />
+              </div>
             );
           }
 
-          // 瀏覽 / locked / 非 editable
+          // 瀏覽 / locked / 非 editable（code/name 主識別 emphasis、詳細頁排版 2026-07-11）
           const raw = draft[f.key];
           const display = renderBrowseValue(f.key, raw, refOptions);
           return (
-            <FormField
-              key={f.key}
-              label={f.label}
-              value={display}
-              mono={f.key === 'code' || f.key === 'secCode'}
-              tone={
-                f.key === 'isOem'
-                  ? (raw ? 'green' : 'muted')
-                  : undefined
-              }
-            />
+            <div key={f.key} className={f.key === 'spec' ? 'sm:col-span-2' : undefined}>
+              <FormField
+                label={f.label}
+                value={display}
+                mono={f.key === 'code' || f.key === 'secCode'}
+                emphasis={f.key === 'code' || f.key === 'name'}
+                tone={
+                  f.key === 'isOem'
+                    ? (raw ? 'green' : 'muted')
+                    : undefined
+                }
+              />
+            </div>
           );
         })}
       </div>
