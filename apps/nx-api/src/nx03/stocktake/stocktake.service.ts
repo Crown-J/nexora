@@ -80,6 +80,14 @@ const ST_ITEM_SEL = {
   updatedBy: true,
 } as const;
 
+// W5 異常鏈 Step 2 2026-07-11：varianceReasonCode 短碼 → 中文標籤（IR description 用）
+const VARIANCE_REASON_LABEL: Record<string, string> = {
+  S: '被偷',
+  M: '算錯',
+  B: '破損',
+  U: '不明',
+};
+
 @Injectable()
 export class StockTakeService {
   constructor(
@@ -218,6 +226,14 @@ export class StockTakeService {
     });
     if (!items.length) throw new BadRequestException('Stock take has no items to post');
 
+    // W5 異常鏈 Step 2：IR docNo 需倉別 code、批次查一次（items 可能跨倉、依 item.warehouseId）
+    const whIds = [...new Set(items.map((i) => i.warehouseId))];
+    const whs = await tx.nx01Warehouse.findMany({
+      where: { id: { in: whIds }, tenantId: st.tenantId },
+      select: { id: true, code: true },
+    });
+    const whCodeMap = new Map(whs.map((w) => [w.id, w.code]));
+
     for (const item of items) {
       const counted = new PrismaNs.Decimal(item.countedQty);
       const systemQty = new PrismaNs.Decimal(item.systemQty);
@@ -272,6 +288,61 @@ export class StockTakeService {
             sourceDocId: st.id,
             sourceItemId: item.id,
             partVersionId: item.partVersionId,
+          });
+        }
+
+        // === W5 異常鏈 Step 2 2026-07-11：盤點異常自動進統一登記簿（Nx03IssueReport）===
+        // 拍板分流（2026-07-10 W5 + 2026-07-11 核可）：
+        // - 破損（B）→ 品質異常 issueType='D'、REPORTED 待分流採購處置四分支
+        //   ⚠️ 盤點已就地調帳（上方 ledger source=T 已沖）、後續處置單不可再扣庫存帳
+        //     （description 明示；Step 3 一鍵開單串接時要帶 skip-ledger 設計、屆時再報告）
+        // - 被偷/算錯/不明（S/M/U、null 視為 U）→ 數量異常、已就地調帳 → 直接 CLOSED 留痕
+        //   （盤差率等管理報表的料、不需人工再處理）
+        // - relatedDocId 暫存盤點明細 id（對齊 RR/SR 範式、供回溯）
+        const whCode = whCodeMap.get(item.warehouseId);
+        if (!whCode) throw new BadRequestException('Stock take item warehouse invalid for issue report');
+        const reason = item.varianceReasonCode ?? 'U';
+        const reasonLabel = VARIANCE_REASON_LABEL[reason] ?? reason;
+        const irDocNo = await allocNx03DocNo(tx, st.tenantId, 'IR', whCode);
+        const irBase = {
+          tenantId: st.tenantId,
+          docNo: irDocNo,
+          reportDate: new Date(),
+          warehouseId: item.warehouseId,
+          locationId: item.locationId,
+          partId: item.partId,
+          partNo: item.partNo,
+          partName: item.partName,
+          partVersionId: item.partVersionId,
+          qty: realDiffQty.abs(),
+          dispositionType: 'N',
+          relatedDocId: item.id,
+          sourceModule: 'NX03',
+          sourceDocType: 'STOCKTAKE',
+          sourceDocId: st.id,
+          createdBy: userId,
+          updatedBy: userId,
+        };
+        if (reason === 'B') {
+          await tx.nx03IssueReport.create({
+            data: {
+              ...irBase,
+              issueType: 'D',
+              status: 'REPORTED',
+              description: `盤點破損 ${item.partNo} qty=${realDiffQty.abs().toString()}（盤點單 ${st.docNo} 已就地調帳、處置單勿重複扣帳）`,
+            },
+          });
+        } else {
+          const now = new Date();
+          await tx.nx03IssueReport.create({
+            data: {
+              ...irBase,
+              issueType: realDiffQty.gt(0) ? 'O' : 'S',
+              status: 'CLOSED',
+              closedAt: now,
+              closedBy: userId,
+              description: `盤點盤${realDiffQty.gt(0) ? '盈' : '虧'} ${item.partNo} 應有 ${formulaExpectedQty.toString()} 實盤 ${counted.toString()} 差 ${realDiffQty.toString()}（原因=${reasonLabel}、盤點單 ${st.docNo} 已就地調帳、結案留痕）`,
+            },
           });
         }
       }
