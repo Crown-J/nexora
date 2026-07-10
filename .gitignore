@@ -35,6 +35,7 @@ Thumbs.db
 
 # Dev DB 備份（pg_dump 本地檔、勿入 repo）
 dev-backups/
+packages/db-core/snapshots/
 
 
 # 測試資料含 PII、絕不入庫
