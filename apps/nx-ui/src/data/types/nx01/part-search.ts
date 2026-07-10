@@ -110,6 +110,10 @@ export type PartStockWarehouseRow = {
   lastInAt: string | null;
   lastOutAt: string | null;
   lastMoveAt: string | null;
+  /** F2 Step 3：目前使用者隸屬此倉（nx01_user_warehouse isActive）*/
+  isMine: boolean;
+  /** F2 Step 3：此倉為使用者主要倉（isPrimary、本倉 pin 頂用）*/
+  isPrimary: boolean;
 };
 
 export type PartStockSummaryDto = {

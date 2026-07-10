@@ -22,9 +22,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowLeft,
+  ChevronDown,
+  ChevronRight,
   Image as ImageIcon,
   Loader2,
   Package,
+  Pin,
   Warehouse,
   X,
 } from 'lucide-react';
@@ -44,6 +47,7 @@ import type {
   PartDetailDto,
   PartStockSettingRow,
   PartStockSummaryDto,
+  PartStockWarehouseRow,
 } from '@data/types/nx01/part-search';
 import { FocusLockedDialog } from '@design/primitives/focus-locked-dialog';
 import { FocusZone } from '@design/primitives/focus-zone';
@@ -614,8 +618,139 @@ function CompanyStockColumn({
             另有 <span className="font-mono" style={{ color: STOCK_COLORS.inTransit }}>{inTransit.toFixed(0)}</span> 件在途（採購已下單未入庫）
           </p>
         )}
+
+        {/* Step 3：各倉分布橫向長條（預設收合、遵守 §3 不攤在預設頁）*/}
+        <WarehouseBarsSection warehouses={stock?.warehouses ?? []} />
       </div>
     </section>
+  );
+}
+
+// ─── 各倉分布橫向長條（F2 Step 3、交接 §6）──────────────────
+// · 長條資料驅動可長可短：長度 ∝ 該倉現有量 / 各倉最大現有量
+// · 條內分段：可出（綠）+ 不可出（紅）= 現有；在途以數字附註
+// · 本倉（isPrimary）pin 頂 + 徽章；空倉折疊沿用「其他 N 倉無庫存 ▾」機制（本倉零庫存仍顯示、弱化）
+// · 一屏軟上限 8 倉：清單 max-height 內部捲動、不硬砍資料
+const WH_BARS_SOFT_CAP = 8;
+const WH_BAR_ROW_PX = 34;
+
+function WarehouseBarsSection({ warehouses }: { warehouses: PartStockWarehouseRow[] }) {
+  const [expanded, setExpanded] = useState(false);
+  const [showZeros, setShowZeros] = useState(false);
+
+  const isAllZero = (w: PartStockWarehouseRow) =>
+    Number(w.onHand) === 0 &&
+    Number(w.available) === 0 &&
+    Number(w.reserved) === 0 &&
+    Number(w.inTransit) === 0;
+
+  // 本倉 pin 頂（isPrimary 最前、其餘依 API 排序 sortNo）；本倉即使空倉也不進折疊區
+  const { pinnedRows, zeroRows, maxOnHand } = useMemo(() => {
+    const visible = warehouses.filter((w) => w.isPrimary || !isAllZero(w));
+    const zeros = warehouses.filter((w) => !w.isPrimary && isAllZero(w));
+    const sorted = [...visible].sort((a, b) => Number(b.isPrimary) - Number(a.isPrimary));
+    const max = Math.max(...warehouses.map((w) => Number(w.onHand)), 1);
+    return { pinnedRows: sorted, zeroRows: zeros, maxOnHand: max };
+  }, [warehouses]);
+
+  if (warehouses.length === 0) return null;
+
+  return (
+    <div className="flex shrink-0 flex-col gap-1.5">
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        className="flex items-center gap-1.5 text-left text-[10px] uppercase tracking-[0.22em] text-muted-foreground/70 transition-colors hover:text-foreground"
+      >
+        {expanded ? <ChevronDown className="size-3" /> : <ChevronRight className="size-3" />}
+        各倉分布
+        <span className="font-mono normal-case tracking-normal">({warehouses.length} 倉)</span>
+      </button>
+
+      {expanded && (
+        <div
+          className="flex flex-col gap-1 overflow-y-auto pr-0.5"
+          style={{ maxHeight: WH_BARS_SOFT_CAP * WH_BAR_ROW_PX }}
+        >
+          {pinnedRows.map((w) => (
+            <WarehouseBar key={w.warehouseId} w={w} maxOnHand={maxOnHand} dimmed={isAllZero(w)} />
+          ))}
+
+          {zeroRows.length > 0 && (
+            <>
+              <button
+                type="button"
+                onClick={() => setShowZeros((v) => !v)}
+                className="flex items-center gap-1.5 py-1 text-left text-[12px] text-muted-foreground/85 transition-colors hover:text-foreground"
+              >
+                {showZeros ? <ChevronDown className="size-3" /> : <ChevronRight className="size-3" />}
+                其他 <span className="font-mono">{zeroRows.length}</span> 倉無庫存
+              </button>
+              {showZeros &&
+                zeroRows.map((w) => (
+                  <WarehouseBar key={w.warehouseId} w={w} maxOnHand={maxOnHand} dimmed />
+                ))}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function WarehouseBar({
+  w,
+  maxOnHand,
+  dimmed,
+}: {
+  w: PartStockWarehouseRow;
+  maxOnHand: number;
+  dimmed?: boolean;
+}) {
+  const onHand = Number(w.onHand);
+  const available = Number(w.available);
+  const reserved = Number(w.reserved);
+  const inTransit = Number(w.inTransit);
+  const barPct = Math.min(100, (onHand / maxOnHand) * 100);
+  const availPct = onHand > 0 ? (available / onHand) * 100 : 0;
+
+  return (
+    <div className={cn('flex flex-col gap-0.5', dimmed && 'opacity-55')}>
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="flex min-w-0 items-baseline gap-1.5 truncate text-[12px]">
+          {w.isPrimary && (
+            <span
+              className="inline-flex shrink-0 items-center gap-0.5 rounded border border-primary/55 bg-primary/15 px-1 py-px font-mono text-[10px] font-bold text-primary"
+              title="本倉（我的主要倉）"
+            >
+              <Pin className="size-2.5" />本倉
+            </span>
+          )}
+          <span className="font-mono font-medium text-primary">{w.warehouseCode}</span>
+          <span className="truncate text-foreground/85">{w.warehouseName}</span>
+        </span>
+        <span className="shrink-0 font-mono text-[12px] tabular-nums">
+          <span style={{ color: available > 0 ? STOCK_COLORS.available : ZERO_GREY }}>
+            {available.toFixed(0)}
+          </span>
+          <span className="text-muted-foreground/45"> / {onHand.toFixed(0)}</span>
+          {inTransit > 0 && (
+            <span style={{ color: STOCK_COLORS.inTransit }} title="在途">
+              {' '}+{inTransit.toFixed(0)}
+            </span>
+          )}
+        </span>
+      </div>
+      {/* 長條：可出（綠）+ 不可出（紅）分段、長度資料驅動 */}
+      <div className="h-2 overflow-hidden rounded-sm bg-secondary/55">
+        <div className="flex h-full" style={{ width: `${barPct}%` }}>
+          <div style={{ width: `${availPct}%`, backgroundColor: STOCK_COLORS.available }} />
+          {reserved > 0 && (
+            <div style={{ width: `${100 - availPct}%`, backgroundColor: STOCK_COLORS.reserved }} />
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
