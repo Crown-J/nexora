@@ -49,7 +49,8 @@ export const DISPOSITION_LABEL: Record<string, string> = {
 export interface SrItem {
   id: string;
   srId: string;
-  soItemId: string;
+  /** 來源銷貨明細（DB 可空：偉盟歷史匯入無原單） */
+  soItemId: string | null;
   lineNo: number;
   partId: string;
   partNo: string;
@@ -78,7 +79,8 @@ export interface Sr {
   warehouseId: string;
   srDate: string;
   customerId: string;
-  soId: string;
+  /** 來源銷貨單（DB 可空：偉盟歷史匯入無原單；系統內建立必填） */
+  soId: string | null;
   returnMethod: string;
   /** 05 補做 C1 2026-06-09：退回方式（A=業務發起 / B=送貨員當場帶回） */
   initiationType?: 'A' | 'B' | null;
@@ -98,6 +100,14 @@ export interface Sr {
   updatedAt: string;
   updatedBy: string;
   items?: SrItem[];
+  // NX04-QT-SHELL 2026-07-10：單據模板 enriched 顯示欄（後端 SR_SEL/list 回傳）
+  customerCode?: string | null;
+  customerName?: string | null;
+  warehouseCode?: string | null;
+  warehouseName?: string | null;
+  soDocNo?: string | null;
+  createdByName?: string | null;
+  itemCount?: number;
 }
 
 export interface SrListResponse {

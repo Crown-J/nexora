@@ -1,8 +1,8 @@
 // apps/nx-ui/src/app/dashboard/sale/return/page.tsx
-// NX04-M3 C4：SR 銷退單工作台 - list route
+// NX04-QT-SHELL：SR 銷退單工作台 - list route（改用單據模板 SrWorkbench）
 
-import { SalesReturnListView } from '@/features/nx04/sales-return/ui/SalesReturnListView';
+import { SrWorkbench } from '@/features/nx04/sales-return/ui/SrWorkbench';
 
 export default function SalesReturnListPage() {
-  return <SalesReturnListView />;
+  return <SrWorkbench />;
 }
