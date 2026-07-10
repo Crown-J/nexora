@@ -36,6 +36,7 @@ import {
   buildPartSearchPhotoUrl,
   getPartCompatGroup,
   getPartDetail,
+  getPartModels,
   getPartPurchaseHistory,
   getPartRelated,
   getPartSalesHistory,
@@ -49,6 +50,7 @@ import type {
   PartCompatGroupDto,
   PartCompatMemberDto,
   PartDetailDto,
+  PartModelRow,
   PartPurchaseHistoryRow,
   PartRelatedRow,
   PartSalesHistoryDto,
@@ -124,8 +126,9 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
   const [purchaseRows, setPurchaseRows] = useState<PartPurchaseHistoryRow[] | null>(null);
   const [purchaseLoading, setPurchaseLoading] = useState(false);
   const purchaseReqRef = useRef(0);
-  // 相關零件 lazy 載（F10、換料件清空重抓）
+  // 相關零件 + 適用車型 lazy 載（F10 兩頁籤、開面板一次載齊、換料件清空重抓）
   const [relatedRows, setRelatedRows] = useState<PartRelatedRow[] | null>(null);
+  const [modelRows, setModelRows] = useState<PartModelRow[] | null>(null);
   const [relatedLoading, setRelatedLoading] = useState(false);
   const relatedReqRef = useRef(0);
 
@@ -169,6 +172,7 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
     setSalesData(null);
     setPurchaseRows(null);
     setRelatedRows(null);
+    setModelRows(null);
     setQuickPanel(null);
   }, [effectivePartId]);
 
@@ -237,25 +241,23 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
     })();
   }, [quickPanel, purchaseRows, effectivePartId]);
 
-  // F10 面板開啟時 lazy 載相關零件（同料件共用快取）
+  // F10 面板開啟時 lazy 載相關零件 + 適用車型（兩頁籤一次載齊、同料件共用快取）
   useEffect(() => {
     if (quickPanel !== 'related') return;
-    if (relatedRows !== null) return;
+    if (relatedRows !== null && modelRows !== null) return;
     const myReq = ++relatedReqRef.current;
     setRelatedLoading(true);
     void (async () => {
-      try {
-        const r = await getPartRelated(effectivePartId);
-        if (relatedReqRef.current !== myReq) return;
-        setRelatedRows(r.rows);
-      } catch {
-        if (relatedReqRef.current !== myReq) return;
-        setRelatedRows([]);
-      } finally {
-        if (relatedReqRef.current === myReq) setRelatedLoading(false);
-      }
+      const [rel, mod] = await Promise.all([
+        getPartRelated(effectivePartId).catch(() => ({ rows: [] as PartRelatedRow[] })),
+        getPartModels(effectivePartId).catch(() => ({ rows: [] as PartModelRow[] })),
+      ]);
+      if (relatedReqRef.current !== myReq) return;
+      setRelatedRows(rel.rows);
+      setModelRows(mod.rows);
+      setRelatedLoading(false);
     })();
-  }, [quickPanel, relatedRows, effectivePartId]);
+  }, [quickPanel, relatedRows, modelRows, effectivePartId]);
 
   // 載 compat group（mainPartId、預覽不重抓）
   useEffect(() => {
@@ -639,6 +641,7 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
             purchaseRows={purchaseRows}
             purchaseLoading={purchaseLoading}
             relatedRows={relatedRows}
+            modelRows={modelRows}
             relatedLoading={relatedLoading}
             onClose={() => setQuickPanel(null)}
           />
@@ -1442,6 +1445,7 @@ function QuickPanelOverlay({
   purchaseRows,
   purchaseLoading,
   relatedRows,
+  modelRows,
   relatedLoading,
   onClose,
 }: {
@@ -1458,6 +1462,7 @@ function QuickPanelOverlay({
   purchaseRows: PartPurchaseHistoryRow[] | null;
   purchaseLoading: boolean;
   relatedRows: PartRelatedRow[] | null;
+  modelRows: PartModelRow[] | null;
   relatedLoading: boolean;
   onClose: () => void;
 }) {
@@ -1509,7 +1514,9 @@ function QuickPanelOverlay({
           {kind === 'purchase' && (
             <PurchaseComparePanel rows={purchaseRows} loading={purchaseLoading} />
           )}
-          {kind === 'related' && <RelatedPartsPanel rows={relatedRows} loading={relatedLoading} />}
+          {kind === 'related' && (
+            <RelatedPartsPanel rows={relatedRows} modelRows={modelRows} loading={relatedLoading} />
+          )}
         </div>
 
         <div className="border-t border-border/35 bg-background/35 px-5 py-1.5 text-right text-[11px] text-muted-foreground/65">
@@ -1944,16 +1951,70 @@ function PurchaseComparePanel({
   );
 }
 
-// ─── F10 相關零件（F2 下鑽、交接 §7 第三優先：對應料）──────────
-// 執行長既拍板（見後端 getRelatedParts 註解）：relationType 1~5 不分子類型、UI 全部歸一區。
+// ─── F10 相關零件（F2 下鑽、交接 §7 第三優先：對應料 + 適用車型兩頁籤）──
+// 對應料：執行長既拍板（見後端 getRelatedParts 註解）relationType 1~5 不分子類型、全部歸一區。
+// 適用車型：唯讀端點 :id/models（執行長 2026-07-11 拍板本線加）。
 function RelatedPartsPanel({
   rows,
+  modelRows,
   loading,
 }: {
   rows: PartRelatedRow[] | null;
+  modelRows: PartModelRow[] | null;
   loading: boolean;
 }) {
-  if (loading || !rows) return <PanelEmpty msg="載入中…" loading />;
+  const [tab, setTab] = useState<'related' | 'models'>('related');
+  if (loading || !rows || !modelRows) return <PanelEmpty msg="載入中…" loading />;
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex shrink-0 gap-1.5">
+        <PanelTab
+          active={tab === 'related'}
+          label="對應料"
+          count={rows.length}
+          onClick={() => setTab('related')}
+        />
+        <PanelTab
+          active={tab === 'models'}
+          label="適用車型"
+          count={modelRows.length}
+          onClick={() => setTab('models')}
+        />
+      </div>
+      {tab === 'related' ? <RelatedPartsTable rows={rows} /> : <PartModelsTable rows={modelRows} />}
+    </div>
+  );
+}
+
+function PanelTab({
+  active,
+  label,
+  count,
+  onClick,
+}: {
+  active: boolean;
+  label: string;
+  count: number;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[12px] font-medium transition-colors',
+        active
+          ? 'border-primary/55 bg-primary/15 text-primary'
+          : 'border-border/45 bg-background/40 text-muted-foreground hover:border-primary/40 hover:text-foreground',
+      )}
+    >
+      {label}
+      <span className="font-mono text-[11px] tabular-nums opacity-75">{count}</span>
+    </button>
+  );
+}
+
+function RelatedPartsTable({ rows }: { rows: PartRelatedRow[] }) {
   if (rows.length === 0) return <PanelEmpty msg="本料件無相關零件" />;
   return (
     <table className="w-full border-collapse text-[13px]">
@@ -1999,6 +2060,64 @@ function RelatedPartsPanel({
             </tr>
           );
         })}
+      </tbody>
+    </table>
+  );
+}
+
+/** 適配等級（schema Q3=B）：1=原廠 / 2=副廠等效 / 3=通用替代 */
+const FIT_LEVEL_LABELS: Record<number, string> = {
+  1: '原廠',
+  2: '副廠等效',
+  3: '通用替代',
+};
+
+function PartModelsTable({ rows }: { rows: PartModelRow[] }) {
+  if (rows.length === 0) return <PanelEmpty msg="本料件未設定適用車型" />;
+  const yearRange = (r: PartModelRow) => {
+    if (r.modelYearFrom === null && r.modelYearTo === null) return '—';
+    return `${r.modelYearFrom ?? '…'}–${r.modelYearTo ?? '現役'}`;
+  };
+  return (
+    <table className="w-full border-collapse text-[13px]">
+      <thead className="sticky top-0 bg-popover">
+        <tr className="border-b border-border/40 text-left text-[11px] uppercase tracking-[0.12em] text-muted-foreground/70">
+          <th className="py-1.5 pr-3 font-medium">車型</th>
+          <th className="py-1.5 pr-3 font-medium">品牌</th>
+          <th className="py-1.5 pr-3 font-medium">年份</th>
+          <th className="py-1.5 pr-3 font-medium">引擎</th>
+          <th className="py-1.5 pr-3 font-medium">適配</th>
+          <th className="py-1.5 font-medium">備註</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((r) => (
+          <tr
+            key={r.partModelId}
+            className={cn('border-b border-border/15 last:border-b-0', !r.isActive && 'opacity-55')}
+          >
+            <td className="py-2 pr-3">
+              <span className="font-mono font-medium text-primary/90">{r.modelCode}</span>
+              <span className="ml-2 text-foreground/85">{r.modelName}</span>
+            </td>
+            <td className="py-2 pr-3 text-foreground/85">{r.brandName}</td>
+            <td className="py-2 pr-3 font-mono text-[12px] tabular-nums text-foreground/80">
+              {yearRange(r)}
+            </td>
+            <td className="py-2 pr-3 font-mono text-[12px] text-muted-foreground/80">
+              {r.engineCode ?? '—'}
+              {r.displacementCc !== null && (
+                <span className="ml-1 text-muted-foreground/60">{r.displacementCc}cc</span>
+              )}
+            </td>
+            <td className="py-2 pr-3">
+              <StatusBadge label={FIT_LEVEL_LABELS[r.fitLevel] ?? String(r.fitLevel)} />
+            </td>
+            <td className="max-w-[150px] truncate py-2 text-[12px] text-muted-foreground/75" title={r.remark ?? undefined}>
+              {r.remark ?? '—'}
+            </td>
+          </tr>
+        ))}
       </tbody>
     </table>
   );

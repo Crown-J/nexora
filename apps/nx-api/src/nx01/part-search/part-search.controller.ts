@@ -5,14 +5,19 @@
 //   - 只掛 JwtAuthGuard、不掛 RolesGuard / @Roles
 //   - 對應 RolesGuard 第 40 行：「沒設角色 → 直接放行」
 //
-// 七支 endpoint 全部 read-only：
+// endpoint 全部 read-only（13 支、含 master-options 與圖片 2 支）：
+//   GET    /nx01/part-search/master-options        — 廠牌/族群主檔下拉
 //   GET    /nx01/part-search                       — 主搜尋（四欄篩選、四欄全空拒收）
 //   GET    /nx01/part-search/:id/detail            — 基本資料 + 正廠對應料號
 //   GET    /nx01/part-search/:id/stock-summary     — 庫存概況（公司總 + 各倉位）
 //   GET    /nx01/part-search/:id/purchase-history  — 進貨紀錄+比價（近 50 筆）
 //   GET    /nx01/part-search/:id/sales-history     — 銷貨+報價（成交+未成交）+ ABCD 建議報價
 //   GET    /nx01/part-search/:id/stock-history     — 庫存出入/調撥/盤點（近 100 筆）
+//   GET    /nx01/part-search/:id/stock-settings    — 各倉安全/最高量設定（水位條用）
 //   GET    /nx01/part-search/:id/related           — 相關零件（PartRelation 雙向、Q3=A 不分子類型）
+//   GET    /nx01/part-search/:id/models            — 適用車型（F2 下鑽 F10 頁籤）
+//   GET    /nx01/part-search/:id/compat-group      — 通用件群組（視窗 2 右欄）
+//   GET    /nx01/part-search/:id/photos(+/raw)     — 產品圖片 list + binary
 import { Controller, Get, Param, Query, Res, UseGuards } from '@nestjs/common';
 import type { Response } from 'express';
 
@@ -72,6 +77,12 @@ export class PartSearchController {
   @Get(':id/related')
   getRelatedParts(@CurrentUser() user: RequestUser, @Param('id') id: string) {
     return this.svc.getRelatedParts(user, id);
+  }
+
+  /** F2 下鑽 F10 頁籤：適用車型（唯讀、執行長 2026-07-11 拍板）*/
+  @Get(':id/models')
+  getApplicableModels(@CurrentUser() user: RequestUser, @Param('id') id: string) {
+    return this.svc.getApplicableModels(user, id);
   }
 
   /** F2 視窗 2 主視窗右欄通用件群組（執行長 2026-06-25）*/
