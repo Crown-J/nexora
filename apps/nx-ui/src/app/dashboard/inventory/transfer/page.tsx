@@ -1,8 +1,8 @@
 // apps/nx-ui/src/app/dashboard/inventory/transfer/page.tsx
-// TASK-BUSINESS-RESTRUCTURE Phase 9:庫存中心 · 調撥作業入口(手機版)。
+// NX04-QT-SHELL：調撥單入口——桌面=單據模板 StWorkbench、手機=調撥工作站（響應式分流）。
 
-import { MobileTransferListPage } from '@/features/nx03/workstation/transfer/MobileTransferListPage';
+import { TransferRouteSwitch } from './TransferRouteSwitch';
 
 export default function InventoryTransferRoute() {
-  return <MobileTransferListPage />;
+  return <TransferRouteSwitch />;
 }
