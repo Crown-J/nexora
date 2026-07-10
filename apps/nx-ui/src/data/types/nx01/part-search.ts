@@ -238,6 +238,25 @@ export type PartModelRow = {
   isActive: boolean;
 };
 
+/** F5 周轉率轉正：進銷月統計（月缺補 0、固定 12 格）+ 出入庫窗口聚合 */
+export type PartMonthlyStatRow = {
+  month: string; // 'YYYY-MM'
+  purchaseIn: string; // 進貨入庫（sourceDocType=P）
+  salesOut: string; // 銷貨出庫（sourceDocType=S）
+  otherIn: string;
+  otherOut: string;
+};
+
+export type PartMonthlyStatsDto = {
+  months: PartMonthlyStatRow[];
+  window: {
+    out30: string;
+    out90: string;
+    in90: string;
+    outMoves90: string;
+  };
+};
+
 /** F2 視窗 2 主視窗右欄通用件群組成員 */
 export type PartCompatMemberDto = {
   id: string;
