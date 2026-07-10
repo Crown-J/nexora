@@ -310,9 +310,9 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
     );
   }, [effectivePartId, detail?.code, detail?.name]);
 
-  // 全域 Space 放大 / 4 快捷鍵（任何地方按、除了 input/textarea）
+  // 全域 Space 放大 / 快捷鍵（任何地方按、除了 input/textarea）
   // Step 4（交接 §5 拍板）：F3 可替代零件 / F4 即時報價 / F5 周轉率 / F6 出入庫。
-  // ⚠️ F3 原綁「即時詢價」、依交接改綁可替代零件；即時詢價保留 Header 按鈕（滑鼠）。
+  // F3 原綁「即時詢價」、依交接改綁可替代零件；詢價改綁 F7（執行長 2026-07-10 拍板）。
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if (e.isComposing) return;
@@ -339,12 +339,15 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
       } else if (e.key === 'F6') {
         e.preventDefault();
         togglePanel('history');
+      } else if (e.key === 'F7') {
+        e.preventDefault();
+        fireInstantInquiry();
       }
     };
     // capture 階段：搶在焦點鎖定對話框冒泡攔截 + 瀏覽器默認（F3=找下一個/F5=重整）之前 preventDefault
     window.addEventListener('keydown', h, true);
     return () => window.removeEventListener('keydown', h, true);
-  }, [fireInstantQuote]);
+  }, [fireInstantQuote, fireInstantInquiry]);
 
   // 執行長 2026-06-25：開窗焦點永遠在右側通用零件、不去 Header「退回搜尋」按鈕。
   // 1. initialFocusRef={compatListRef} → mount 時先 focus FocusZone 容器（即使資料還沒載完、容器可 focus）
@@ -400,14 +403,15 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
               </span>
             </span>
           )}
-          {/* Step 4：F3 改綁可替代零件（交接 §5）、即時詢價保留按鈕（滑鼠）*/}
+          {/* F3 依交接 §5 綁可替代零件；即時詢價改綁 F7（執行長 2026-07-10 拍板）*/}
           <button
             type="button"
             onClick={fireInstantInquiry}
             className="ml-auto inline-flex items-center gap-1.5 rounded-md border border-border/55 bg-background/40 px-2.5 py-1 text-xs font-medium text-foreground hover:border-primary/55 hover:bg-secondary/60"
-            title="即時詢價（調貨）"
+            title="即時詢價（調貨、F7）"
           >
             即時詢價
+            <kbd className="rounded border border-border/40 bg-muted/40 px-1 py-px font-mono text-[10px]">F7</kbd>
           </button>
           <button
             type="button"
@@ -489,6 +493,8 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
             <Kbd>F5</Kbd> 周轉
             <span className="text-muted-foreground/35">·</span>
             <Kbd>F6</Kbd> 出入庫
+            <span className="text-muted-foreground/35">·</span>
+            <Kbd>F7</Kbd> 詢價
             <span className="text-muted-foreground/35">·</span>
             <Kbd>↑↓</Kbd> 選通用件
             <span className="text-muted-foreground/35">·</span>
