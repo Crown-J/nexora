@@ -77,6 +77,9 @@ export interface SoItem {
   transferStatus: string;
   fulfillStatus: string;
   tiId: string | null;
+  /** 偉盟設計檢視 P1-5 2026-07-10：實際出貨料號（替代出貨；null=照下單料號出） */
+  actualPartId?: string | null;
+  actualPartNo?: string | null;
   createdAt: string;
   createdBy: string;
   updatedAt: string;
@@ -183,6 +186,8 @@ export interface PatchSoItemPayload {
   qty?: number;
   unitPriceSnapshot?: number;
   remark?: string;
+  /** 偉盟設計檢視 P1-5：實際出貨料號（null=清除、照下單料號出） */
+  actualPartId?: string | null;
 }
 
 /// 拉報價 picker 回傳行（GET /nx04/so/quote-lines/open）

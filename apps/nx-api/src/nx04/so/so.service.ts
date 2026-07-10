@@ -155,6 +155,9 @@ const SO_ITEM_SEL = {
   transferStatus: true,
   fulfillStatus: true,
   tiId: true,
+  // 偉盟設計檢視 P1-5 2026-07-10：實際出貨料號（替代出貨）
+  actualPartId: true,
+  actualPartNo: true,
   createdAt: true,
   createdBy: true,
   updatedAt: true,
@@ -1040,9 +1043,14 @@ export class SoService {
     // NX04-IMPL-01 Phase 3 commit 3a 接點 3：配送中部分鎖（Crown Q-C2=A 4 項鎖、備註可改）
     // SHIPPED 階段：禁改 qty / unitPrice / locationId（量/地址鎖）、允許 remark
     if (head.status === SoStatus.SHIPPED) {
-      if (dto.qty !== undefined || dto.unitPriceSnapshot !== undefined || dto.locationId !== undefined) {
+      if (
+        dto.qty !== undefined ||
+        dto.unitPriceSnapshot !== undefined ||
+        dto.locationId !== undefined ||
+        dto.actualPartId !== undefined // 偉盟設計檢視 P1-5：出貨後替代料號亦鎖
+      ) {
         throw new ForbiddenException(
-          'SO is SHIPPED (配送中)：qty / unitPrice / locationId 已鎖、只允許改 remark',
+          'SO is SHIPPED (配送中)：qty / unitPrice / locationId / actualPartId 已鎖、只允許改 remark',
         );
       }
       // 純改 remark → 跳過 assertSoItemsEditable、允許更新
@@ -1057,6 +1065,21 @@ export class SoService {
         select: { id: true },
       });
       if (!loc) throw new BadRequestException('locationId must belong to item warehouse');
+    }
+    // 偉盟設計檢視 P1-5：實際出貨料號（替代出貨）— 驗證 + code 快照；null/空字串=清除（照下單料號出）
+    let actualPartData: { actualPartId: string | null; actualPartNo: string | null } | undefined;
+    if (dto.actualPartId !== undefined) {
+      const apId = dto.actualPartId?.trim();
+      if (!apId) {
+        actualPartData = { actualPartId: null, actualPartNo: null };
+      } else {
+        const ap = await this.prisma.nx01Part.findFirst({
+          where: { id: apId, tenantId },
+          select: { id: true, code: true },
+        });
+        if (!ap) throw new BadRequestException('actualPartId invalid for tenant');
+        actualPartData = { actualPartId: ap.id, actualPartNo: ap.code };
+      }
     }
     const qty = dto.qty !== undefined ? new PrismaNs.Decimal(dto.qty) : new PrismaNs.Decimal(existing.qty);
     const unit =
@@ -1086,6 +1109,8 @@ export class SoService {
           qty,
           unitPrice: unit,
           lineAmount: this.lineAmount(qty, unit),
+          // 偉盟設計檢視 P1-5：實際出貨料號（替代出貨）
+          ...(actualPartData !== undefined ? actualPartData : {}),
           ...(dto.remark !== undefined ? { remark: dto.remark?.trim() || null } : {}),
           // F1-E 2026-06-09：改價低於 cost/minPrice 時的理由 patch
           ...(dto.belowMinReason !== undefined

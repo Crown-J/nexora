@@ -846,6 +846,7 @@ model Nx01Part {
   rev_Nx04QuoteRecord_partId      Nx04QuoteRecord[]      @relation("R_Nx04QuoteRecord_partId")
   rev_Nx04InquiryRecord_partId    Nx04InquiryRecord[]    @relation("R_Nx04InquiryRecord_partId")
   rev_Nx04SoItem_partId           Nx04SoItem[]           @relation("R_Nx04SoItem_partId")
+  rev_Nx04SoItem_actualPartId     Nx04SoItem[]           @relation("R_Nx04SoItem_actualPartId")
   rev_Nx04SrItem_partId           Nx04SrItem[]           @relation("R_Nx04SrItem_partId")
   rev_Nx06DnItem_partId           Nx06DnItem[]           @relation("R_Nx06DnItem_partId")
   rev_Nx08InventoryCache_partId   Nx08InventoryCache[]   @relation("R_Nx08InventoryCache_partId")
@@ -4511,9 +4512,16 @@ model Nx04SoItem {
   /// 引擎 assertSoLinePriceReason 偵測 bundleId 非空時 skip（避免重複折）；
   /// 報表分類用：套餐銷售追蹤 + 退貨對沖整組價。；啟用最低需求版本：LITE-CORE
   bundleId                      String?           @map("bundle_id") @db.VarChar(15)
+  /// 實際出貨料號 ID（替代出貨用；null=照下單料號 partId 出）。偉盟 RSIO 雙料號（ROPTN下單/ROPNO實出）印證。
+  /// 下單料號 partId 不動、替代出貨時本欄記實際出的料 → 保固追溯/退貨核對用。
+  /// 2026-07-10 執行長拍板（偉盟設計檢視 P1-5）；啟用最低需求版本：LITE
+  actualPartId                  String?           @map("actual_part_id") @db.VarChar(15)
+  /// 實際出貨料號快照（同 partNo 範式、歷史不隨主檔變）；啟用最低需求版本：LITE
+  actualPartNo                  String?           @map("actual_part_no") @db.VarChar(50)
   so                            Nx04So            @relation("R_Nx04SoItem_soId", fields: [soId], references: [id])
   quoteItem                     Nx04QuoteItem?    @relation("R_Nx04SoItem_quoteItemId", fields: [quoteItemId], references: [id])
   part                          Nx01Part          @relation("R_Nx04SoItem_partId", fields: [partId], references: [id])
+  actualPart                    Nx01Part?         @relation("R_Nx04SoItem_actualPartId", fields: [actualPartId], references: [id], onDelete: SetNull)
   warehouse                     Nx01Warehouse     @relation("R_Nx04SoItem_warehouseId", fields: [warehouseId], references: [id])
   location                      Nx01Location?     @relation("R_Nx04SoItem_locationId", fields: [locationId], references: [id])
   discountCode                  Nx01DiscountCode? @relation("R_Nx04SoItem_discountCodeId", fields: [discountCodeId], references: [id])

@@ -651,6 +651,9 @@ function SoInlineItemRow({
   const [price, setPrice] = useState(editItem ? String(editItem.unitPrice) : '');
   const [busy, setBusy] = useState(false);
   const [pickerKey, setPickerKey] = useState(0);
+  // 偉盟設計檢視 P1-5：替代出貨（編輯模式限定）。undefined=未動、null=清除、string=新選料 id
+  const [actualTouch, setActualTouch] = useState<string | null | undefined>(undefined);
+  const [actualKey, setActualKey] = useState(0);
   const partRef = useRef<HTMLInputElement>(null);
   const qtyRef = useRef<HTMLInputElement>(null);
   const priceRef = useRef<HTMLInputElement>(null);
@@ -690,7 +693,12 @@ function SoInlineItemRow({
     setBusy(true);
     try {
       if (isEdit && editItem) {
-        await patchSoItem(so.id, editItem.id, { qty: Number(qty), unitPriceSnapshot: Number(price) });
+        await patchSoItem(so.id, editItem.id, {
+          qty: Number(qty),
+          unitPriceSnapshot: Number(price),
+          // 偉盟設計檢視 P1-5：替代出貨有動才送（null=清除）
+          ...(actualTouch !== undefined ? { actualPartId: actualTouch } : {}),
+        });
         await onSaved();
         onExit();
       } else {
@@ -728,7 +736,32 @@ function SoInlineItemRow({
       <td className="px-3 py-1 text-xs text-primary">{isEdit ? editItem!.lineNo : nextLineNo}</td>
       <td className="px-2 py-1" colSpan={3} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); qtyRef.current?.focus(); } }}>
         {isEdit ? (
-          <span className="font-mono text-xs">{editItem!.partNo}　{editItem!.partName}</span>
+          <div className="space-y-1">
+            <div className="font-mono text-xs">{editItem!.partNo}　{editItem!.partName}</div>
+            {/* 偉盟設計檢視 P1-5：替代出貨（實際出貨料號、可空；清除=照下單料號出） */}
+            <div className="flex items-center gap-1">
+              <span className="shrink-0 text-[10px] text-muted-foreground">替代出貨：</span>
+              <div className="min-w-0 flex-1">
+                <PartPicker
+                  key={`ap_${actualKey}`}
+                  initialText={actualTouch === null ? '' : (editItem!.actualPartNo ?? '')}
+                  onPick={(p) => setActualTouch(p.id)}
+                />
+              </div>
+              {actualTouch !== null && (actualTouch || editItem!.actualPartNo) ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActualTouch(null);
+                    setActualKey((k) => k + 1);
+                  }}
+                  className="shrink-0 text-[10px] text-rose-600 hover:underline"
+                >
+                  清除
+                </button>
+              ) : null}
+            </div>
+          </div>
         ) : (
           <PartPicker key={pickerKey} inputRef={partRef} onPick={(p) => void pickPart(p)} />
         )}
@@ -847,7 +880,18 @@ function SoItemsTable({
                 }`}
               >
                 <td className="px-3 py-2 text-xs text-muted-foreground">{it.lineNo}</td>
-                <td className="px-3 py-2 font-mono text-xs">{it.partNo}</td>
+                <td className="px-3 py-2 font-mono text-xs">
+                  {it.partNo}
+                  {/* 偉盟設計檢視 P1-5：替代出貨（實際出貨料號 ≠ 下單料號）標示 */}
+                  {it.actualPartNo && it.actualPartNo !== it.partNo ? (
+                    <span
+                      className="ml-1 rounded bg-amber-100 px-1 py-0.5 text-[10px] text-amber-800"
+                      title={`替代出貨：實際出 ${it.actualPartNo}`}
+                    >
+                      ⭢ {it.actualPartNo}
+                    </span>
+                  ) : null}
+                </td>
                 <td className="px-3 py-2 text-xs">{it.brandName ?? '—'}</td>
                 <td className="px-3 py-2">{it.partName}</td>
                 <td className="px-3 py-2 text-right tabular-nums">{it.qty}</td>

@@ -198,6 +198,12 @@ export class PatchSoItemDto {
   @MaxLength(200)
   belowMinReason?: string;
 
+  /** 實際出貨料號 ID（替代出貨；null=清除、照下單料號出）。偉盟設計檢視 P1-5 2026-07-10 */
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  actualPartId?: string | null;
+
   @IsOptional()
   @IsString()
   @MaxLength(200)
