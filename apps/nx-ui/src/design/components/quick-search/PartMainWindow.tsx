@@ -37,6 +37,7 @@ import {
   getPartCompatGroup,
   getPartDetail,
   getPartModels,
+  getPartMonthlyStats,
   getPartPurchaseHistory,
   getPartRelated,
   getPartSalesHistory,
@@ -51,6 +52,7 @@ import type {
   PartCompatMemberDto,
   PartDetailDto,
   PartModelRow,
+  PartMonthlyStatsDto,
   PartPurchaseHistoryRow,
   PartRelatedRow,
   PartSalesHistoryDto,
@@ -113,11 +115,14 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
   // F2 改版 Step 4（交接 §5）：4 快捷鍵面板（F3 可替代 / F5 周轉率 / F6 出入庫；F4 報價走全域事件）
   // F2 下鑽（交接 §7 缺口、執行長 2026-07-11 拍板）：F8 銷貨比價
   const [quickPanel, setQuickPanel] = useState<QuickPanelKind | null>(null);
-  // 出入庫紀錄 lazy 載（F5/F6 共用、換料件清空重抓）
+  // 出入庫紀錄 lazy 載（F6、換料件清空重抓）
   const [historyRows, setHistoryRows] = useState<PartStockHistoryRow[] | null>(null);
-  const [historyFetchedAt, setHistoryFetchedAt] = useState(0); // F5 統計基準時點（render 不可呼叫 Date.now）
   const [historyLoading, setHistoryLoading] = useState(false);
   const historyReqRef = useRef(0);
+  // 進銷月統計 lazy 載（F5 轉正、執行長 2026-07-11 拍板：後端全量聚合取代前端近 100 筆估算）
+  const [monthlyStats, setMonthlyStats] = useState<PartMonthlyStatsDto | null>(null);
+  const [monthlyLoading, setMonthlyLoading] = useState(false);
+  const monthlyReqRef = useRef(0);
   // 銷貨比價 lazy 載（F8、換料件清空重抓）
   const [salesData, setSalesData] = useState<PartSalesHistoryDto | null>(null);
   const [salesLoading, setSalesLoading] = useState(false);
@@ -169,6 +174,7 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
   // 換料件：出入庫/銷貨比價/進貨比價快取失效、面板收起（避免顯示上一件的資料）
   useEffect(() => {
     setHistoryRows(null);
+    setMonthlyStats(null);
     setSalesData(null);
     setPurchaseRows(null);
     setRelatedRows(null);
@@ -176,9 +182,9 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
     setQuickPanel(null);
   }, [effectivePartId]);
 
-  // F5/F6 面板開啟時 lazy 載出入庫紀錄（同料件共用快取）
+  // F6 面板開啟時 lazy 載出入庫紀錄（同料件共用快取；F5 已改吃 monthly-stats）
   useEffect(() => {
-    if (quickPanel !== 'turnover' && quickPanel !== 'history') return;
+    if (quickPanel !== 'history') return;
     if (historyRows !== null) return;
     const myReq = ++historyReqRef.current;
     setHistoryLoading(true);
@@ -187,7 +193,6 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
         const r = await getPartStockHistory(effectivePartId);
         if (historyReqRef.current !== myReq) return;
         setHistoryRows(r.rows);
-        setHistoryFetchedAt(Date.now());
       } catch {
         if (historyReqRef.current !== myReq) return;
         setHistoryRows([]);
@@ -196,6 +201,29 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
       }
     })();
   }, [quickPanel, historyRows, effectivePartId]);
+
+  // F5 面板開啟時 lazy 載進銷月統計（同料件共用快取）
+  useEffect(() => {
+    if (quickPanel !== 'turnover') return;
+    if (monthlyStats !== null) return;
+    const myReq = ++monthlyReqRef.current;
+    setMonthlyLoading(true);
+    void (async () => {
+      try {
+        const r = await getPartMonthlyStats(effectivePartId);
+        if (monthlyReqRef.current !== myReq) return;
+        setMonthlyStats(r);
+      } catch {
+        if (monthlyReqRef.current !== myReq) return;
+        setMonthlyStats({
+          months: [],
+          window: { out30: '0', out90: '0', in90: '0', outMoves90: '0' },
+        });
+      } finally {
+        if (monthlyReqRef.current === myReq) setMonthlyLoading(false);
+      }
+    })();
+  }, [quickPanel, monthlyStats, effectivePartId]);
 
   // F8 面板開啟時 lazy 載銷貨比價（同料件共用快取）
   useEffect(() => {
@@ -633,8 +661,9 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
             compatRows={compatRows}
             mainPartId={mainPartId}
             historyRows={historyRows}
-            historyFetchedAt={historyFetchedAt}
             historyLoading={historyLoading}
+            monthlyStats={monthlyStats}
+            monthlyLoading={monthlyLoading}
             companyOnHand={Number(stock?.company.onHand ?? 0)}
             salesData={salesData}
             salesLoading={salesLoading}
@@ -1437,8 +1466,9 @@ function QuickPanelOverlay({
   compatRows,
   mainPartId,
   historyRows,
-  historyFetchedAt,
   historyLoading,
+  monthlyStats,
+  monthlyLoading,
   companyOnHand,
   salesData,
   salesLoading,
@@ -1454,8 +1484,9 @@ function QuickPanelOverlay({
   compatRows: PartCompatMemberDto[];
   mainPartId: string;
   historyRows: PartStockHistoryRow[] | null;
-  historyFetchedAt: number;
   historyLoading: boolean;
+  monthlyStats: PartMonthlyStatsDto | null;
+  monthlyLoading: boolean;
   companyOnHand: number;
   salesData: PartSalesHistoryDto | null;
   salesLoading: boolean;
@@ -1503,9 +1534,8 @@ function QuickPanelOverlay({
           {kind === 'alt' && <AltPartsPanel rows={compatRows} mainPartId={mainPartId} />}
           {kind === 'turnover' && (
             <TurnoverPanel
-              rows={historyRows}
-              fetchedAt={historyFetchedAt}
-              loading={historyLoading}
+              stats={monthlyStats}
+              loading={monthlyLoading}
               companyOnHand={companyOnHand}
             />
           )}
@@ -1579,81 +1609,119 @@ function AltPartsPanel({ rows, mainPartId }: { rows: PartCompatMemberDto[]; main
   );
 }
 
-/** F5 周轉率分析：以近 100 筆出入庫前端統計（無單料號周轉 API、估算值）*/
+/** F5 周轉率分析（2026-07-11 執行長拍板轉正）：後端全量聚合（monthly-stats）
+ *  上半部六格指標照舊、下半部加近 12 個月進銷長條；不再有近 100 筆截斷 */
 function TurnoverPanel({
-  rows,
-  fetchedAt,
+  stats,
   loading,
   companyOnHand,
 }: {
-  rows: PartStockHistoryRow[] | null;
-  fetchedAt: number;
+  stats: PartMonthlyStatsDto | null;
   loading: boolean;
   companyOnHand: number;
 }) {
-  const stats = useMemo(() => {
-    if (!rows || !fetchedAt) return null;
-    const now = fetchedAt; // 統計基準＝資料載入時點（render 純函式、不呼叫 Date.now）
-    const DAY = 86400000;
-    let out30 = 0, out90 = 0, in90 = 0, outMoves90 = 0;
-    let oldest = now;
-    for (const r of rows) {
-      const t = new Date(r.movementDate).getTime();
-      if (t < oldest) oldest = t;
-      const age = (now - t) / DAY;
-      const qOut = Number(r.qtyOut) || 0;
-      const qIn = Number(r.qtyIn) || 0;
-      if (age <= 30) out30 += qOut;
-      if (age <= 90) {
-        out90 += qOut;
-        in90 += qIn;
-        if (qOut > 0) outMoves90 += 1;
-      }
-    }
-    const avgDailyOut = out30 / 30;
-    const daysOfStock = avgDailyOut > 0 ? companyOnHand / avgDailyOut : null;
-    // 年化周轉率（估）＝近 90 天出庫年化 / 目前現量
-    const turnoverPerYear = companyOnHand > 0 ? (out90 / 90) * 365 / companyOnHand : null;
-    const truncated = rows.length >= 100;
-    const coverageDays = Math.ceil((now - oldest) / DAY);
-    return { out30, out90, in90, outMoves90, avgDailyOut, daysOfStock, turnoverPerYear, truncated, coverageDays };
-  }, [rows, fetchedAt, companyOnHand]);
+  if (loading || !stats) return <PanelEmpty msg="載入中…" loading />;
 
-  if (loading || !rows) return <PanelEmpty msg="載入中…" loading />;
-  if (rows.length === 0) return <PanelEmpty msg="本料件無出入庫紀錄、無法估算周轉" />;
-  if (!stats) return null;
+  const out30 = Number(stats.window.out30) || 0;
+  const out90 = Number(stats.window.out90) || 0;
+  const in90 = Number(stats.window.in90) || 0;
+  const avgDailyOut = out30 / 30;
+  const daysOfStock = avgDailyOut > 0 ? companyOnHand / avgDailyOut : null;
+  // 年化周轉率＝近 90 天出庫年化 / 目前現量
+  const turnoverPerYear = companyOnHand > 0 ? ((out90 / 90) * 365) / companyOnHand : null;
+
+  const allZero =
+    out90 === 0 &&
+    in90 === 0 &&
+    stats.months.every((m) => Number(m.purchaseIn) === 0 && Number(m.salesOut) === 0);
+  if (allZero) return <PanelEmpty msg="本料件近 12 個月無進銷、無法計算周轉" />;
 
   return (
     <div className="flex flex-col gap-4">
       <div className="grid grid-cols-3 gap-2">
-        <KpiTile label="近 30 天出庫" value={String(stats.out30)} color={STOCK_COLORS.available} />
-        <KpiTile label="近 90 天出庫" value={String(stats.out90)} color={STOCK_COLORS.available} />
-        <KpiTile label="近 90 天入庫" value={String(stats.in90)} color={STOCK_COLORS.onHand} />
+        <KpiTile label="近 30 天出庫" value={String(out30)} color={STOCK_COLORS.available} />
+        <KpiTile label="近 90 天出庫" value={String(out90)} color={STOCK_COLORS.available} />
+        <KpiTile label="近 90 天入庫" value={String(in90)} color={STOCK_COLORS.onHand} />
       </div>
       <div className="grid grid-cols-3 gap-2">
         <KpiTile
           label="日均出庫（30天）"
-          value={stats.avgDailyOut.toFixed(1)}
+          value={avgDailyOut.toFixed(1)}
           color={STOCK_COLORS.onHand}
           exact
         />
         <KpiTile
           label="現量可售天數"
-          value={stats.daysOfStock === null ? '—' : Math.round(stats.daysOfStock).toString()}
+          value={daysOfStock === null ? '—' : Math.round(daysOfStock).toString()}
           color={STOCK_COLORS.inTransit}
           exact
         />
         <KpiTile
-          label="年化周轉率（估）"
-          value={stats.turnoverPerYear === null ? '—' : stats.turnoverPerYear.toFixed(1)}
+          label="年化周轉率"
+          value={turnoverPerYear === null ? '—' : turnoverPerYear.toFixed(1)}
           color={STOCK_COLORS.available}
           exact
         />
       </div>
+
+      {/* 近 12 個月進銷長條（進=橘、對齊在途/採購側配色；銷=綠、對齊可出配色）*/}
+      <MonthlyBarsSection months={stats.months} />
+
       <p className="text-[11px] leading-relaxed text-muted-foreground/65">
-        估算基礎：近 {rows.length} 筆出入庫（涵蓋約 {stats.coverageDays} 天）與公司目前現量 {companyOnHand.toFixed(0)}。
-        {stats.truncated && ' ⚠ 紀錄已達 100 筆上限、更早異動未計入。'}
+        統計來源：全量出入庫流水後端聚合（無筆數截斷）；公司目前現量 {companyOnHand.toFixed(0)}。
+        進＝進貨入庫、銷＝銷貨出庫；調撥／盤點等其他異動不計入進銷長條。
       </p>
+    </div>
+  );
+}
+
+function MonthlyBarsSection({ months }: { months: PartMonthlyStatsDto['months'] }) {
+  if (months.length === 0) return null;
+  const max = Math.max(...months.map((m) => Math.max(Number(m.purchaseIn), Number(m.salesOut))), 1);
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="flex items-baseline justify-between">
+        <h4 className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground/70">
+          近 12 個月進銷
+        </h4>
+        <span className="flex items-center gap-3 text-[10px] text-muted-foreground/65">
+          <span className="flex items-center gap-1">
+            <span className="size-2 rounded-sm" style={{ backgroundColor: STOCK_COLORS.inTransit }} />進
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="size-2 rounded-sm" style={{ backgroundColor: STOCK_COLORS.available }} />銷
+          </span>
+        </span>
+      </div>
+      {months.map((m) => {
+        const pIn = Number(m.purchaseIn);
+        const sOut = Number(m.salesOut);
+        return (
+          <div key={m.month} className="flex items-center gap-2">
+            <span className="w-[52px] shrink-0 font-mono text-[11px] tabular-nums text-muted-foreground/75">
+              {m.month}
+            </span>
+            <div className="flex min-w-0 flex-1 flex-col gap-px">
+              <MonthlyBar value={pIn} max={max} color={STOCK_COLORS.inTransit} />
+              <MonthlyBar value={sOut} max={max} color={STOCK_COLORS.available} />
+            </div>
+            <span className="w-[90px] shrink-0 text-right font-mono text-[11px] tabular-nums">
+              <span style={{ color: pIn > 0 ? STOCK_COLORS.inTransit : ZERO_GREY }}>{pIn.toFixed(0)}</span>
+              <span className="text-muted-foreground/40"> / </span>
+              <span style={{ color: sOut > 0 ? STOCK_COLORS.available : ZERO_GREY }}>{sOut.toFixed(0)}</span>
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function MonthlyBar({ value, max, color }: { value: number; max: number; color: string }) {
+  const pct = Math.min(100, (value / max) * 100);
+  return (
+    <div className="h-[5px] overflow-hidden rounded-sm bg-secondary/50">
+      <div className="h-full rounded-sm" style={{ width: `${pct}%`, backgroundColor: color }} />
     </div>
   );
 }
