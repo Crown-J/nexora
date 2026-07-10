@@ -3,7 +3,7 @@
 //   本檔只留進貨單差異：欄位 / 查詢(狀態+關鍵字：單號/供應商/來源採購單) / 作廢守衛 / CSV 欄位 / 三面板接線
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import type { MasterTableColumn } from '@/features/nx01/shell/ui/MasterTable';
 import type { MasterTab } from '@/features/nx01/shell/entity-master/MasterTabs';
@@ -123,12 +123,22 @@ export function RrWorkbench({
   initialId,
   initialTab = 'list',
   initialCreate = false,
+  initialRfqId,
 }: {
   initialId?: string;
   initialTab?: MasterTab;
   initialCreate?: boolean;
+  /** RfqDetailView「轉進貨」?rfq= 入口：新增面板多「從詢價單」路徑並預載該單 */
+  initialRfqId?: string;
 }) {
-  return <DocWorkbench config={CONFIG} initialId={initialId} initialTab={initialTab} initialCreate={initialCreate} />;
+  const config = useMemo<DocWorkbenchConfig<Rr, RrCriteria>>(() => {
+    if (!initialRfqId) return CONFIG;
+    const CreateWithRfq = (props: { onCreated: (id: string) => void; onCancel: () => void }) => (
+      <RrCreatePanel {...props} initialRfqId={initialRfqId} />
+    );
+    return { ...CONFIG, CreatePanel: CreateWithRfq };
+  }, [initialRfqId]);
+  return <DocWorkbench config={config} initialId={initialId} initialTab={initialTab} initialCreate={initialCreate} />;
 }
 
 function RrSearchDialog({ initial, onApply, onClose }: DocSearchDialogProps<RrCriteria>) {

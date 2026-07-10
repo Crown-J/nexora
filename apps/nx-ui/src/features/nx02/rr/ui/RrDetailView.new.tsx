@@ -41,6 +41,8 @@ import {
   voidRr,
 } from '@data/endpoints/nx02/rr/api/rr';
 import { getPo, poToRr } from '@data/endpoints/nx02/api/po';
+import { getRfq } from '@data/endpoints/nx02/api/rfq';
+import type { RfqDetailDto } from '@data/types/nx02';
 import { apiFetch } from '@data/api/client';
 import { buildQueryString } from '@data/api/query';
 import { assertOk } from '@data/api/http';
@@ -541,12 +543,21 @@ function FieldRow({ label, children }: { label: string; children: React.ReactNod
 }
 
 /**
- * 新增進貨單面板（內嵌）：雙路徑
+ * 新增進貨單面板（內嵌）：雙路徑 + 詢價單入口
  *  A 從採購單建立（主路徑）：挑採購單（已核准/廠商確認/部分到貨）→ 收貨倉 → 勾行+收量+庫位 → poToRr
  *  B 手動建立：供應商 + 倉庫 + 首行明細（料號/庫位/數量/單價）→ createRr（後端要求至少 1 行）
+ *  C 從詢價單（僅由 RfqDetailView「轉進貨」?rfq= 入口進入）：帶「已回覆且有單價」的行 → createRr(rfqId)
  */
-export function RrCreatePanel({ onCreated, onCancel }: { onCreated: (id: string) => void; onCancel: () => void }) {
-  const [source, setSource] = useState<'po' | 'manual'>('po');
+export function RrCreatePanel({
+  onCreated,
+  onCancel,
+  initialRfqId,
+}: {
+  onCreated: (id: string) => void;
+  onCancel: () => void;
+  initialRfqId?: string;
+}) {
+  const [source, setSource] = useState<'po' | 'manual' | 'rfq'>(initialRfqId ? 'rfq' : 'po');
   const [warehouses, setWarehouses] = useState<{ id: string; code: string; name: string }[]>([]);
   const [warehouseId, setWarehouseId] = useState('');
   const [locs, setLocs] = useState<LocOpt[]>([]);
@@ -558,6 +569,12 @@ export function RrCreatePanel({ onCreated, onCancel }: { onCreated: (id: string)
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [qtys, setQtys] = useState<Record<string, string>>({});
   const [lineLocs, setLineLocs] = useState<Record<string, string>>({});
+
+  // C：詢價單路徑（入口驅動）
+  const [rfq, setRfq] = useState<RfqDetailDto | null>(null);
+  const [rfqChecked, setRfqChecked] = useState<Set<string>>(new Set());
+  const [rfqQtys, setRfqQtys] = useState<Record<string, string>>({});
+  const [rfqLocs, setRfqLocs] = useState<Record<string, string>>({});
 
   // B：手動路徑
   const [supplier, setSupplier] = useState<PickedCustomer | null>(null);
@@ -589,8 +606,32 @@ export function RrCreatePanel({ onCreated, onCancel }: { onCreated: (id: string)
       setLocs(ls);
       setFirstLoc((prev) => (ls.some((l) => l.id === prev) ? prev : ''));
       setLineLocs({});
+      setRfqLocs({});
     });
   }, [warehouseId]);
+
+  // C：?rfq= 入口 → 載入詢價單、帶「已回覆且有單價」的行
+  useEffect(() => {
+    if (!initialRfqId) return;
+    void (async () => {
+      try {
+        const d = await getRfq(initialRfqId);
+        setRfq(d);
+        const q: Record<string, string> = {};
+        const c = new Set<string>();
+        (d.items ?? []).forEach((it) => {
+          if (it.status !== 'R' || it.unitPrice == null) return;
+          q[it.id] = String(it.qty);
+          c.add(it.id);
+        });
+        setRfqQtys(q);
+        setRfqChecked(c);
+        if (!c.size) setErr('此詢價單無「已回覆」且有單價之明細可帶入');
+      } catch (e) {
+        setErr(e instanceof Error ? e.message : '載入詢價單失敗');
+      }
+    })();
+  }, [initialRfqId]);
 
   async function pickPo(row: PoPickRow) {
     setErr(null);
@@ -631,6 +672,30 @@ export function RrCreatePanel({ onCreated, onCancel }: { onCreated: (id: string)
         if (rows.some((r) => !r.locationId)) throw new Error('每一行都要選入庫庫位');
         const created = await poToRr(po.id, { warehouseId, items: rows });
         onCreated(created.id);
+      } else if (source === 'rfq') {
+        if (!rfq) throw new Error('詢價單載入中');
+        if (!rfq.supplierId) throw new Error('此詢價單無供應商、無法轉進貨');
+        const rows = (rfq.items ?? [])
+          .filter((it) => rfqChecked.has(it.id) && it.status === 'R' && it.unitPrice != null)
+          .map((it) => ({
+            partId: it.partId,
+            locationId: rfqLocs[it.id] || '',
+            qty: Number(rfqQtys[it.id]) || 0,
+            unitPriceSnapshot: Number(it.unitPrice) || 0,
+          }))
+          .filter((r) => r.qty > 0);
+        if (!rows.length) throw new Error('請至少勾一行且數量 > 0');
+        if (rows.some((r) => !r.locationId)) throw new Error('每一行都要選入庫庫位');
+        const created = await createRr({
+          rrDate,
+          warehouseId,
+          supplierId: rfq.supplierId,
+          rfqId: rfq.id,
+          taxRate: Number(taxRate) || 0,
+          remark: remark.trim() || undefined,
+          items: rows,
+        });
+        onCreated(created.id);
       } else {
         if (!supplier) throw new Error('請先選供應商');
         if (!part) throw new Error('請選首行明細的料號');
@@ -662,7 +727,8 @@ export function RrCreatePanel({ onCreated, onCancel }: { onCreated: (id: string)
 
   const inputCls = 'w-full rounded border bg-background px-2 py-1 text-sm';
   const roCls = 'w-full rounded border border-border/40 bg-muted/30 px-2 py-1 text-sm text-muted-foreground';
-  const canSave = source === 'po' ? !!po && !!warehouseId : !!supplier && !!warehouseId && !!part;
+  const canSave =
+    source === 'po' ? !!po && !!warehouseId : source === 'rfq' ? !!rfq && !!warehouseId : !!supplier && !!warehouseId && !!part;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -685,6 +751,9 @@ export function RrCreatePanel({ onCreated, onCancel }: { onCreated: (id: string)
             <div className="flex gap-3 text-sm">
               <label className="flex items-center gap-1"><input type="radio" checked={source === 'po'} onChange={() => setSource('po')} />從採購單</label>
               <label className="flex items-center gap-1"><input type="radio" checked={source === 'manual'} onChange={() => setSource('manual')} />手動建立</label>
+              {initialRfqId ? (
+                <label className="flex items-center gap-1"><input type="radio" checked={source === 'rfq'} onChange={() => setSource('rfq')} />從詢價單</label>
+              ) : null}
             </div>
           </FieldRow>
           <FieldRow label="收貨倉庫">
@@ -700,6 +769,15 @@ export function RrCreatePanel({ onCreated, onCancel }: { onCreated: (id: string)
               <FieldRow label="來源採購單"><PoPickerInput onPick={(r) => void pickPo(r)} /></FieldRow>
               <FieldRow label="供應商"><input readOnly value={po ? `${po.supplierCode ?? ''}　${po.supplierName ?? ''}` : ''} className={roCls} /></FieldRow>
               <p className="pt-1 text-[11px] text-muted-foreground">限「已核准 / 廠商確認 / 部分到貨」的採購單；右側勾要收的行、填收量與庫位。進貨日期＝今天（建單後可改）。</p>
+            </>
+          ) : source === 'rfq' ? (
+            <>
+              <FieldRow label="來源詢價單"><input readOnly value={rfq ? rfq.docNo : '載入中…'} className={`${roCls} font-mono`} /></FieldRow>
+              <FieldRow label="供應商"><input readOnly value={rfq ? `${rfq.supplierCode ?? ''}　${rfq.supplierName ?? rfq.supplierId ?? ''}` : ''} className={roCls} /></FieldRow>
+              <FieldRow label="進貨日期"><input type="date" value={rrDate} onChange={(e) => setRrDate(e.target.value)} className={inputCls} /></FieldRow>
+              <FieldRow label="稅率 %"><input type="number" min="0" step="0.5" value={taxRate} onChange={(e) => setTaxRate(e.target.value)} className={inputCls} /></FieldRow>
+              <FieldRow label="備註"><input value={remark} onChange={(e) => setRemark(e.target.value)} className={inputCls} /></FieldRow>
+              <p className="pt-1 text-[11px] text-muted-foreground">只帶「已回覆且有單價」的詢價明細；右側勾要進的行、填數量與庫位。</p>
             </>
           ) : (
             <>
@@ -798,9 +876,79 @@ export function RrCreatePanel({ onCreated, onCancel }: { onCreated: (id: string)
                 })}
               </tbody>
             </table>
+          ) : source === 'rfq' && rfq ? (
+            <table className="w-full border-collapse text-sm">
+              <thead className="sticky top-0 z-10 bg-muted text-xs text-muted-foreground">
+                <tr>
+                  <th className="px-2 py-2"></th>
+                  <th className="px-2 py-2 text-left">料號</th>
+                  <th className="px-2 py-2 text-left">品名</th>
+                  <th className="px-2 py-2 text-right">詢價量</th>
+                  <th className="px-2 py-2 text-right">本次進量</th>
+                  <th className="px-2 py-2 text-left">入庫庫位</th>
+                  <th className="px-2 py-2 text-right">回覆單價</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(rfq.items ?? []).map((it) => {
+                  const usable = it.status === 'R' && it.unitPrice != null;
+                  return (
+                    <tr key={it.id} className={usable ? 'hover:bg-accent/10' : 'opacity-40'}>
+                      <td className="px-2 py-1.5 text-center">
+                        <input
+                          type="checkbox"
+                          disabled={!usable}
+                          checked={rfqChecked.has(it.id)}
+                          onChange={() =>
+                            setRfqChecked((prev) => {
+                              const n = new Set(prev);
+                              if (n.has(it.id)) n.delete(it.id);
+                              else n.add(it.id);
+                              return n;
+                            })
+                          }
+                        />
+                      </td>
+                      <td className="px-2 py-1.5 font-mono text-xs">{it.partNo}</td>
+                      <td className="px-2 py-1.5">{it.partName}</td>
+                      <td className="px-2 py-1.5 text-right tabular-nums">{it.qty}</td>
+                      <td className="px-2 py-1.5 text-right">
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          disabled={!usable}
+                          value={rfqQtys[it.id] ?? ''}
+                          onChange={(e) => setRfqQtys((p) => ({ ...p, [it.id]: e.target.value }))}
+                          className="w-20 rounded border bg-background px-2 py-0.5 text-right text-sm tabular-nums"
+                        />
+                      </td>
+                      <td className="px-2 py-1.5">
+                        <select
+                          disabled={!usable || !warehouseId}
+                          value={rfqLocs[it.id] ?? ''}
+                          onChange={(e) => setRfqLocs((p) => ({ ...p, [it.id]: e.target.value }))}
+                          className="rounded border bg-background px-1 py-0.5 text-xs"
+                        >
+                          <option value="">— 庫位 —</option>
+                          {locs.map((l) => (
+                            <option key={l.id} value={l.id}>{l.code}</option>
+                          ))}
+                        </select>
+                      </td>
+                      <td className="px-2 py-1.5 text-right tabular-nums">{it.unitPrice != null ? fmt(it.unitPrice) : '—'}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           ) : (
             <div className="p-6 text-sm text-muted-foreground">
-              {source === 'po' ? '先選收貨倉庫與來源採購單，這裡會列出可收的採購明細。' : '手動建立：左側填供應商與首行明細，存檔後進入明細編輯可繼續加行。'}
+              {source === 'po'
+                ? '先選收貨倉庫與來源採購單，這裡會列出可收的採購明細。'
+                : source === 'rfq'
+                  ? '詢價單載入中…'
+                  : '手動建立：左側填供應商與首行明細，存檔後進入明細編輯可繼續加行。'}
             </div>
           )}
         </section>
