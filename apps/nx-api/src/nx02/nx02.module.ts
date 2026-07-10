@@ -67,5 +67,7 @@ import { WarrantyClaimService } from './warranty-claim/warranty-claim.service';
     RfqGreetingTemplateService,
     { provide: APP_FILTER, useClass: Nx02ErrorFilter },
   ],
+  // W5 異常鏈 Step 3 2026-07-11：export 給 Nx03Module IssueReportService.dispose 一鍵開單用
+  exports: [PurchaseReturnService, WarrantyClaimService],
 })
 export class Nx02Module {}

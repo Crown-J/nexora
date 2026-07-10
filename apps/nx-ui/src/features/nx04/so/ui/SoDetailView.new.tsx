@@ -6,6 +6,7 @@
 'use client';
 
 import {
+  AlertTriangle,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
@@ -47,6 +48,8 @@ import { CustomerPicker, type PickedCustomer } from '../../quote/ui/CustomerPick
 import { PartPicker, type PickedPart } from '../../quote/ui/PartPicker';
 // NX02-TI-SHELL 2026-07-11：同行調貨入口接回新殼（缺貨行群組建 TI、建完跳 TI 詳情）
 import { CreateTiFromSoModal } from './CreateTiFromSoModal';
+// W5-ISSUE-CHAIN Step 5 2026-07-11：問題回報孤兒按鈕復活（單據外殼改版時掉的掛載點）
+import { IssueReportModal } from '@/features/shared/issue-report-trigger';
 
 const DELIVERY_LABEL: Record<string, string> = { P: '自取', D: '配送', S: '寄送' };
 const EDITABLE_STATUS: SoStatus[] = ['DRAFT'];
@@ -87,6 +90,8 @@ export function SoDetailPanel({
   const [printOpen, setPrintOpen] = useState(false);
   // NX02-TI-SHELL：同行調貨 modal（缺貨行 → 建 TI）
   const [tiModalOpen, setTiModalOpen] = useState(false);
+  // W5-ISSUE-CHAIN Step 5：問題回報 modal
+  const [irModalOpen, setIrModalOpen] = useState(false);
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -332,6 +337,8 @@ export function SoDetailPanel({
               <ToolbarSeparator />
               {/* NX02-TI-SHELL：缺貨行 → 同行調貨（modal 內列 transferSourceType=G 待補行） */}
               <ToolbarButton icon={Handshake} label="同行調貨" enabled={!busy} onClick={() => setTiModalOpen(true)} />
+              {/* W5-ISSUE-CHAIN Step 5：問題回報 → 統一異常登記簿 */}
+              <ToolbarButton icon={AlertTriangle} label="問題回報" enabled={!busy} onClick={() => setIrModalOpen(true)} />
               <ToolbarSeparator />
               <ToolbarButton icon={Search} letter="F" label="查詢" enabled={!!onSearch} onClick={onSearch} />
               <ToolbarButton icon={RefreshCcw} letter="R" label="重新整理" enabled onClick={() => void reload()} />
@@ -368,6 +375,17 @@ export function SoDetailPanel({
             setTiModalOpen(false);
             router.push(`/dashboard/purchase/ti/${encodeURIComponent(resp.tiId)}`);
           }}
+        />
+      ) : null}
+
+      {irModalOpen && so ? (
+        <IssueReportModal
+          sourceDocType="SO"
+          sourceDocId={so.id}
+          sourceDocNo={so.docNo}
+          warehouseId={so.warehouseId}
+          partOptions={(so.items ?? []).map((it) => ({ partId: it.partId, partNo: it.partNo, partName: it.partName }))}
+          onClose={() => setIrModalOpen(false)}
         />
       ) : null}
 

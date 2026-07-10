@@ -1,8 +1,8 @@
 // apps/nx-ui/src/app/dashboard/inventory/issue-report/page.tsx
-// NX03-STOCK-LITE M3-3a：異常回報入口
+// W5-ISSUE-CHAIN Step 4：異常回報列表 → 單據外殼 IrWorkbench（第十張單）
 
-import { IssueReportListView } from '@/features/nx03/issue-report/ui/IssueReportListView';
+import { IrWorkbench } from '@/features/nx03/issue-report/ui/IrWorkbench';
 
 export default function InventoryIssueReportRoute() {
-  return <IssueReportListView />;
+  return <IrWorkbench />;
 }

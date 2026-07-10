@@ -13,6 +13,7 @@ import { resolveCurrencyId } from '../../shared/nx02/nx02-currency';
 import { allocDocNo } from '../../shared/nx02/nx02-doc-no';
 import { Nx02ListQueryDto } from '../../shared/nx02/nx02-list-query.dto';
 import { assertRrStatusTransition, RrStatus } from '../../shared/nx02/nx02-state-machine';
+import { allocNx03DocNo } from '../../shared/nx03/nx03-doc-no';
 import { applyQtyInWithLedger } from '../../shared/nx03/nx03-inventory';
 import { createApFromPostedRr } from '../../shared/nx05/nx05-create-ap-from-rr';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
@@ -85,6 +86,14 @@ const RR_ITEM_SEL = {
   // T8 進貨對齊批次 2026-06-08：runtime JOIN 廠牌料號（mapRrDetail 平鋪為 secCode）
   part: { select: { secCode: true } },
 } as const;
+
+// W5 異常鏈 Step 1 2026-07-11：RrItem.defectType 短碼 → 中文標籤（IR description 用）
+const DEFECT_TYPE_LABEL: Record<string, string> = {
+  D: '外觀損壞',
+  F: '功能異常',
+  W: '規格不符',
+  O: '其他',
+};
 
 // NX02-RR-SHELL 2026-07-10：把 RR_SEL 帶的 supplier/warehouse/po/ti/rfq 關聯攤平成
 //   supplierCode/supplierName/warehouseCode/warehouseName/poDocNo/tiDocNo/rfqDocNo（比照 SoService）。
@@ -360,6 +369,67 @@ export class RrService {
             data: { receivedQty: prev.add(effectiveQty), updatedBy: userId },
           });
         }
+      }
+    }
+
+    // === W5 異常鏈 Step 1 2026-07-11：驗收異常自動進統一登記簿（Nx03IssueReport）===
+    // - 瑕疵（defectQty>0）→ 品質異常 IR（issueType='D'、對齊 SR 壞品既有範式）
+    //   瑕疵品照常入庫（帳跟實物走、執行長 2026-07-11 拍板）、處置單過帳才扣帳
+    // - 短交（expectedQty>0 且 actualQty<expectedQty）→ 數量短缺 IR（issueType='S'、留痕待追補/折讓）
+    //   溢收（actual>expected）本輪不建 IR、遇到再補
+    // - relatedDocId 暫存 rrItem.id（對齊 SR 範式、供處置串接回溯原進貨明細；dispose 時會被處置單 ID 覆蓋）
+    // - 過帳僅發生一次（INSPECTING→POSTED、POSTED 不可作廢）、無重複建單問題
+    for (const item of items) {
+      const defectQty = new PrismaNs.Decimal(item.defectQty ?? 0);
+      const expectedQty = new PrismaNs.Decimal(item.expectedQty ?? 0);
+      const shortQty =
+        item.actualQty != null && expectedQty.gt(0)
+          ? expectedQty.sub(new PrismaNs.Decimal(item.actualQty))
+          : new PrismaNs.Decimal(0);
+      if (defectQty.lte(0) && shortQty.lte(0)) continue;
+
+      const partVersionId = await this.loadActivePartVersionId(tx, rr.tenantId, item.partId);
+      const irBase = {
+        tenantId: rr.tenantId,
+        reportDate: new Date(),
+        warehouseId: rr.warehouseId,
+        locationId: item.locationId,
+        partId: item.partId,
+        partNo: item.partNo,
+        partName: item.partName,
+        partVersionId,
+        dispositionType: 'N',
+        relatedDocId: item.id,
+        sourceModule: 'NX02',
+        sourceDocType: 'RR',
+        sourceDocId: rr.id,
+        status: 'REPORTED',
+        createdBy: userId,
+        updatedBy: userId,
+      };
+      if (defectQty.gt(0)) {
+        const docNo = await allocNx03DocNo(tx, rr.tenantId, 'IR', rr.warehouse.code);
+        await tx.nx03IssueReport.create({
+          data: {
+            ...irBase,
+            docNo,
+            qty: defectQty,
+            issueType: 'D',
+            description: `進貨驗收瑕疵 ${item.partNo} qty=${defectQty.toString()}（${DEFECT_TYPE_LABEL[item.defectType ?? 'O'] ?? item.defectType}：${item.defectDesc ?? ''}）`,
+          },
+        });
+      }
+      if (shortQty.gt(0)) {
+        const docNo = await allocNx03DocNo(tx, rr.tenantId, 'IR', rr.warehouse.code);
+        await tx.nx03IssueReport.create({
+          data: {
+            ...irBase,
+            docNo,
+            qty: shortQty,
+            issueType: 'S',
+            description: `進貨短交 ${item.partNo} 應收 ${expectedQty.toString()} 實收 ${item.actualQty != null ? new PrismaNs.Decimal(item.actualQty).toString() : '0'}（待向廠商追補貨/折讓、結果請記結案備註）`,
+          },
+        });
       }
     }
 

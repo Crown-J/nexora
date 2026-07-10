@@ -7,6 +7,7 @@
 
 import { Type } from 'class-transformer';
 import {
+  IsBoolean,
   IsDateString,
   IsIn,
   IsInt,
@@ -187,6 +188,14 @@ export class DisposeIssueReportDto {
   @IsNumber()
   @Min(0)
   unitPrice?: number;
+
+  // W5 異常鏈 Step 3 2026-07-11：一鍵開單。true 且 relatedDocId 為空時：
+  // - D 報廢：IR 資料直建 Disposal DRAFT
+  // - R 退貨 / W 保固：僅進貨驗收來源（IR 存有原 rrItem）可自動建、其他來源提示手動
+  // - C 重組分解：outputs 需人工定義、不支援（提示手動建單後連結）
+  @IsOptional()
+  @IsBoolean()
+  autoCreate?: boolean;
 }
 
 /** 結案 DTO：可帶 remark */
