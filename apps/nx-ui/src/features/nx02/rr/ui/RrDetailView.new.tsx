@@ -40,7 +40,7 @@ import {
   updateRr,
   voidRr,
 } from '@data/endpoints/nx02/rr/api/rr';
-import { getPo, poToRr } from '@data/endpoints/nx02/api/po';
+import { getPo, poToRr } from '@data/endpoints/nx02/po/api/po';
 import { getRfq } from '@data/endpoints/nx02/api/rfq';
 import type { RfqDetailDto } from '@data/types/nx02';
 import { apiFetch } from '@data/api/client';
@@ -48,7 +48,7 @@ import { buildQueryString } from '@data/api/query';
 import { assertOk } from '@data/api/http';
 import { listLocation } from '@data/endpoints/shared/master/location/api/location';
 import { listWarehouses } from '@data/endpoints/nx01/api/warehouse';
-import type { PoDetailDto } from '@data/types/nx02';
+import type { Po } from '@data/types/nx02/po';
 import type { Rr, RrItem } from '@data/types/nx02/rr';
 import { DEFECT_TYPE_LABEL, RR_STATUS_LABEL } from '@data/types/nx02/rr';
 
@@ -565,7 +565,7 @@ export function RrCreatePanel({
   const [err, setErr] = useState<string | null>(null);
 
   // A：採購單路徑
-  const [po, setPo] = useState<PoDetailDto | null>(null);
+  const [po, setPo] = useState<Po | null>(null);
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [qtys, setQtys] = useState<Record<string, string>>({});
   const [lineLocs, setLineLocs] = useState<Record<string, string>>({});
@@ -1371,7 +1371,7 @@ function PoLineAddDialog({
   onClose: () => void;
   onConfirm: (rows: { partId: string; qty: number; locationId: string; unitCost: number }[]) => void | Promise<void>;
 }) {
-  const [po, setPo] = useState<PoDetailDto | null>(null);
+  const [po, setPo] = useState<Po | null>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [checked, setChecked] = useState<Set<string>>(new Set());

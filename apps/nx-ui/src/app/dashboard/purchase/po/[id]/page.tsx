@@ -1,13 +1,16 @@
 // apps/nx-ui/src/app/dashboard/purchase/po/[id]/page.tsx
-// T1-fix-c 進貨對齊批次 2026-06-07：拿掉 PoLiteAware 版本守、採購單三版本一致。
+// NX02-PO-SHELL：採購單詳情 → 單據外殼 PoWorkbench（同頁詳細分頁）
 'use client';
 
 import { useParams } from 'next/navigation';
 
-import { PoDetailView } from '@/features/nx02/po/ui/PoDetailView';
+import { PoWorkbench } from '@/features/nx02/po/ui/PoWorkbench';
 
-export default function Nx01PoDetailPage() {
+export default function PoDetailPage() {
   const params = useParams();
   const id = typeof params.id === 'string' ? params.id : '';
-  return id ? <PoDetailView id={id} /> : <p className="text-sm text-muted-foreground">無效單據</p>;
+  if (!id) {
+    return <p className="text-sm text-muted-foreground">無效單據</p>;
+  }
+  return <PoWorkbench initialId={id} />;
 }
