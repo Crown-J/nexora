@@ -4,11 +4,15 @@
 // 範圍：只做視窗 1（搜尋窗）。Enter 選定後印 partId + 觸發 window event
 // `nx-part-selected`、給未來視窗 2 hook、本次不做視窗 2~6。
 //
-// 軌 C 規格（執行長 2026-06-25）：
-//   · 五查法（Alt 切換、預設料號）：
-//       Alt1 料號 / Alt2 品名 / Alt3 廠牌 / Alt4 族群 / Alt5 綜合
-//       · Alt1~4 = 單條件查、左側只顯示該一欄
-//       · Alt5 綜合 = 多欄組合（AND 交集）、左側全欄顯示
+// F2 改版 Step 2（docs/_team/f2-redesign-handoff.md §2、執行長 2026-06-25 拍板）：
+//   · 搜尋入口收斂：2 主力 + 進階（不做 7 個平權按鈕）
+//       Alt1 料號（預設、公司料號最常用）/ Alt2 品名+車型 / Alt3 進階
+//       · 料號 = 單欄查；品名+車型 = 品名主欄 + 車型縮小（與「車型+品名」重複 → 已併）
+//       · 進階 = 多欄組合（AND 交集）：料號/品名/廠牌/族群/車型/系統類型/零件類型/含停用品
+//         （原五查法的 廠牌、族群 單欄查與 綜合 全收進這裡）
+//   · 鍵盤流保留：Enter 命中 / Alt+F 搜尋切區 / ↑↓ 選筆
+//
+// 軌 C 規格（執行長 2026-06-25、Step 2 前身）：
 //   · 左右兩塊 + 焦點流轉：
 //       左（輸入區）：欄位由上至下、最下搜尋按鈕
 //         - 最後一欄 Enter 或任意處 Alt+F → 觸發搜尋
@@ -50,7 +54,7 @@ type Props = {
 type BrandOpt = { id: string; code: string; name: string };
 type PartGroupOpt = { id: string; code: string; name: string };
 
-type Method = 'partNo' | 'name' | 'brand' | 'group' | 'all';
+type Method = 'partNo' | 'name' | 'advanced';
 type FocusedSide = 'input' | 'result';
 
 const PAGE_SIZE = 100;
@@ -60,10 +64,8 @@ const RESULT_PAGE_SIZE = 8;
 
 const METHOD_TABS: Array<{ key: Method; label: string; alt: string }> = [
   { key: 'partNo', label: '料號', alt: '1' },
-  { key: 'name', label: '品名', alt: '2' },
-  { key: 'brand', label: '廠牌', alt: '3' },
-  { key: 'group', label: '族群', alt: '4' },
-  { key: 'all', label: '綜合', alt: '5' },
+  { key: 'name', label: '品名+車型', alt: '2' },
+  { key: 'advanced', label: '進階', alt: '3' },
 ];
 
 // 零件分類（寫死、對齊 features/nx01/product/part-zoned/helpers.ts；design 層不跨 features、就地複製）
@@ -131,42 +133,35 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
   // 各 method 下「左區第一個 input ref」
   const firstInputRef = useMemo<React.RefObject<HTMLInputElement | null>>(() => {
     switch (method) {
-      case 'partNo':
-        return partNoInputRef;
       case 'name':
         return keywordInputRef;
-      case 'brand':
-        return brandInputRef;
-      case 'group':
-        return partGroupInputRef;
-      case 'all':
+      case 'partNo':
+      case 'advanced':
       default:
         return partNoInputRef;
     }
   }, [method]);
 
   // 各 method 的「欄位順序」（Enter/Tab 導航；末欄 Enter=查詢、末欄 Tab=回首欄）
-  // 族群查法 4 欄：族群類型→車型→系統類型(select)→零件類型(select)
+  // 進階 7 欄：料號→品名→廠牌→族群→車型→系統類型(select)→零件類型(select)
   const fieldOrder = useMemo<React.RefObject<HTMLElement | null>[]>(() => {
-    let arr: any[];
     switch (method) {
       case 'partNo':
-        arr = [partNoInputRef];
-        break;
+        return [partNoInputRef];
       case 'name':
-        arr = [keywordInputRef, modelInputRef];
-        break;
-      case 'brand':
-        arr = [brandInputRef, modelInputRef];
-        break;
-      case 'group':
-        arr = [partGroupInputRef, modelInputRef, techCategoryRef, purchaseCategoryRef];
-        break;
-      case 'all':
+        return [keywordInputRef, modelInputRef];
+      case 'advanced':
       default:
-        arr = [partNoInputRef, keywordInputRef, brandInputRef, partGroupInputRef, modelInputRef];
+        return [
+          partNoInputRef,
+          keywordInputRef,
+          brandInputRef,
+          partGroupInputRef,
+          modelInputRef,
+          techCategoryRef,
+          purchaseCategoryRef,
+        ];
     }
-    return arr as React.RefObject<HTMLElement | null>[];
   }, [method]);
   const focusFieldAt = useCallback(
     (i: number) => {
@@ -260,19 +255,18 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
     }
   }, [flatRows, focusedSide]);
 
-  // 主搜尋（依 method 帶條件、Alt5 帶所有欄）
+  // 主搜尋（依 method 帶條件、進階帶所有欄）
   const runSearch = useCallback(async (force = false) => {
     const q: PartSearchQuery = { groupByCompat: true, page: 1, pageSize: PAGE_SIZE };
-    if (method === 'partNo' || method === 'all') q.partNo = partNo.trim() || undefined;
-    if (method === 'name' || method === 'all') q.keyword = keyword.trim() || undefined;
-    if (method === 'brand' || method === 'all') q.brandQuery = brandQuery.trim() || undefined;
-    if (method === 'group' || method === 'all') q.partGroupQuery = partGroupQuery.trim() || undefined;
-    if (method === 'name' || method === 'brand' || method === 'group' || method === 'all')
-      q.modelQuery = modelQuery.trim() || undefined;
-    if (method === 'group') {
+    if (method === 'partNo' || method === 'advanced') q.partNo = partNo.trim() || undefined;
+    if (method === 'name' || method === 'advanced') q.keyword = keyword.trim() || undefined;
+    if (method === 'advanced') {
+      q.brandQuery = brandQuery.trim() || undefined;
+      q.partGroupQuery = partGroupQuery.trim() || undefined;
       if (techCategory) q.techCategory = Number(techCategory);
       if (purchaseCategory) q.purchaseCategory = Number(purchaseCategory);
     }
+    if (method === 'name' || method === 'advanced') q.modelQuery = modelQuery.trim() || undefined;
     q.includeInactive = includeInactive;
     const hasAny = Boolean(
       q.partNo || q.keyword || q.brandQuery || q.partGroupQuery || q.modelQuery || q.techCategory || q.purchaseCategory,
@@ -379,13 +373,7 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
           switchMethod('name');
         } else if (k === '3') {
           e.preventDefault();
-          switchMethod('brand');
-        } else if (k === '4') {
-          e.preventDefault();
-          switchMethod('group');
-        } else if (k === '5') {
-          e.preventDefault();
-          switchMethod('all');
+          switchMethod('advanced');
         }
       }
     };
@@ -591,7 +579,7 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
           <PackageSearch className="size-[18px] text-primary" />
           <h2 className="text-[15px] font-semibold tracking-wide text-foreground">料號即時搜尋</h2>
           <span className="ml-3 text-[11px] uppercase tracking-[0.18em] text-muted-foreground/60">
-            五查法 · Alt+1~5 切換
+            2 主力 + 進階 · Alt+1~3 切換
           </span>
           <span className="ml-auto text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground/65">
             F2 · QUICK SEARCH
@@ -650,12 +638,12 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
               )}
             </div>
             <div
-              className="flex flex-1 flex-col gap-3 px-5 py-4"
+              className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-5 py-4"
               style={{ pointerEvents: inputDisabled ? 'none' : 'auto' }}
               aria-hidden={inputDisabled || undefined}
               onKeyDown={handleFieldsKeyDown}
             >
-              {(method === 'partNo' || method === 'all') && (
+              {(method === 'partNo' || method === 'advanced') && (
                 <PlainInputBlock
                   label="料號"
                   primary
@@ -666,7 +654,7 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
                   onKeyDown={handlePlainInputKey}
                 />
               )}
-              {(method === 'name' || method === 'all') && (
+              {(method === 'name' || method === 'advanced') && (
                 <PhoneticPicker
                   label="品名（F4 注音）"
                   value={keyword}
@@ -678,7 +666,7 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
                   onArrowDownEmpty={handleInputArrowDown}
                 />
               )}
-              {(method === 'brand' || method === 'all') && (
+              {method === 'advanced' && (
                 <Combobox<BrandOpt>
                   label="廠牌"
                   value={brandQuery}
@@ -693,9 +681,9 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
                   onArrowDownEmpty={handleInputArrowDown}
                 />
               )}
-              {(method === 'group' || method === 'all') && (
+              {method === 'advanced' && (
                 <Combobox<PartGroupOpt>
-                  label={method === 'group' ? '族群類型' : '族群'}
+                  label="族群"
                   value={partGroupQuery}
                   onChange={setPartGroupQuery}
                   placeholder="空白=展開、或打字篩選"
@@ -708,9 +696,9 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
                   onArrowDownEmpty={handleInputArrowDown}
                 />
               )}
-              {(method === 'name' || method === 'brand' || method === 'group' || method === 'all') && (
+              {(method === 'name' || method === 'advanced') && (
                 <PlainInputBlock
-                  label={method === 'group' ? '車型' : '車型（縮小範圍）'}
+                  label="車型（縮小範圍）"
                   value={modelQuery}
                   onChange={setModelQuery}
                   inputRef={modelInputRef}
@@ -718,7 +706,7 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
                   onKeyDown={handlePlainInputKey}
                 />
               )}
-              {method === 'group' && (
+              {method === 'advanced' && (
                 <>
                   <SelectBlock
                     label="系統類型"
@@ -738,18 +726,17 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
                     placeholder="全部用途別"
                     onKeyDown={handleSelectKey}
                   />
+                  {/* 顯示停用資料開關（對齊恆迎 Z 開關、交接 §2）*/}
+                  <label className="flex cursor-pointer items-center gap-2 text-[13px] text-foreground/90">
+                    <input
+                      type="checkbox"
+                      checked={includeInactive}
+                      onChange={(e) => setIncludeInactive(e.target.checked)}
+                      className="size-4 accent-primary"
+                    />
+                    含停用品
+                  </label>
                 </>
-              )}
-              {method === 'all' && (
-                <label className="flex cursor-pointer items-center gap-2 text-[13px] text-foreground/90">
-                  <input
-                    type="checkbox"
-                    checked={includeInactive}
-                    onChange={(e) => setIncludeInactive(e.target.checked)}
-                    className="size-4 accent-primary"
-                  />
-                  含停用品
-                </label>
               )}
 
               <div className="mt-auto pt-3">
@@ -760,9 +747,9 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
                 >
                   搜尋 <kbd className="rounded border border-primary/40 bg-primary/10 px-1.5 py-px font-mono text-[11px]">Alt+F</kbd>
                 </button>
-                {method !== 'all' && (
+                {method !== 'advanced' && (
                   <p className="mt-2 text-center text-[11px] text-muted-foreground/55">
-                    Alt+5 切「綜合」可組合多欄查
+                    Alt+3 進階：廠牌／族群／分類多欄組合查
                   </p>
                 )}
               </div>
@@ -831,7 +818,7 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
         {/* Footer */}
         <div className="flex items-center justify-between border-t border-border/30 bg-background/30 px-6 py-2 text-[11px] text-muted-foreground/70">
           <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <Kbd>Alt+1~5</Kbd> 切查法
+            <Kbd>Alt+1~3</Kbd> 切查法
             <span className="text-muted-foreground/30">·</span>
             <Kbd>Enter</Kbd> 命中 / 選定
             <span className="text-muted-foreground/30">·</span>
@@ -1008,7 +995,7 @@ function EmptyState({
   const msg = !hasAnyInput
     ? '輸入條件開始搜尋'
     : resultIsZero
-      ? '查無符合料號 — 換個關鍵字、或勾「含停用品」（綜合模式）'
+      ? '查無符合料號 — 換個關鍵字、或勾「含停用品」（進階）'
       : '搜尋中…';
   return (
     <div className="flex h-full min-h-[220px] items-center justify-center px-6 text-center text-[14px] text-muted-foreground/65">
