@@ -36,6 +36,7 @@ import {
   buildPartSearchPhotoUrl,
   getPartCompatGroup,
   getPartDetail,
+  getPartStockHistory,
   getPartStockSettings,
   getPartStockSummary,
   listPartSearchPhotos,
@@ -45,6 +46,7 @@ import type {
   PartCompatGroupDto,
   PartCompatMemberDto,
   PartDetailDto,
+  PartStockHistoryRow,
   PartStockSettingRow,
   PartStockSummaryDto,
   PartStockWarehouseRow,
@@ -96,6 +98,14 @@ export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props
   // 圖片放大
   const [photoZoom, setPhotoZoom] = useState(false);
 
+  // F2 改版 Step 4（交接 §5）：4 快捷鍵面板（F3 可替代 / F5 周轉率 / F6 出入庫；F4 報價走全域事件）
+  const [quickPanel, setQuickPanel] = useState<'alt' | 'turnover' | 'history' | null>(null);
+  // 出入庫紀錄 lazy 載（F5/F6 共用、換料件清空重抓）
+  const [historyRows, setHistoryRows] = useState<PartStockHistoryRow[] | null>(null);
+  const [historyFetchedAt, setHistoryFetchedAt] = useState(0); // F5 統計基準時點（render 不可呼叫 Date.now）
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const historyReqRef = useRef(0);
+
   // race 防護
   const leftReqRef = useRef(0);
   const rightReqRef = useRef(0);
@@ -129,6 +139,33 @@ export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props
       }
     })();
   }, [effectivePartId]);
+
+  // 換料件：出入庫快取失效、面板收起（避免顯示上一件的資料）
+  useEffect(() => {
+    setHistoryRows(null);
+    setQuickPanel(null);
+  }, [effectivePartId]);
+
+  // F5/F6 面板開啟時 lazy 載出入庫紀錄（同料件共用快取）
+  useEffect(() => {
+    if (quickPanel !== 'turnover' && quickPanel !== 'history') return;
+    if (historyRows !== null) return;
+    const myReq = ++historyReqRef.current;
+    setHistoryLoading(true);
+    void (async () => {
+      try {
+        const r = await getPartStockHistory(effectivePartId);
+        if (historyReqRef.current !== myReq) return;
+        setHistoryRows(r.rows);
+        setHistoryFetchedAt(Date.now());
+      } catch {
+        if (historyReqRef.current !== myReq) return;
+        setHistoryRows([]);
+      } finally {
+        if (historyReqRef.current === myReq) setHistoryLoading(false);
+      }
+    })();
+  }, [quickPanel, historyRows, effectivePartId]);
 
   // 載 compat group（mainPartId、預覽不重抓）
   useEffect(() => {
@@ -269,7 +306,9 @@ export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props
     );
   }, [effectivePartId, detail?.code, detail?.name]);
 
-  // 全域 Space 放大 / F4 即時報價（任何地方按、除了 input/textarea）
+  // 全域 Space 放大 / 4 快捷鍵（任何地方按、除了 input/textarea）
+  // Step 4（交接 §5 拍板）：F3 可替代零件 / F4 即時報價 / F5 周轉率 / F6 出入庫。
+  // ⚠️ F3 原綁「即時詢價」、依交接改綁可替代零件；即時詢價保留 Header 按鈕（滑鼠）。
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if (e.isComposing) return;
@@ -279,6 +318,8 @@ export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props
         tgt instanceof HTMLTextAreaElement ||
         (tgt instanceof HTMLElement && tgt.isContentEditable);
       if (isEditable) return;
+      const togglePanel = (p: 'alt' | 'turnover' | 'history') =>
+        setQuickPanel((cur) => (cur === p ? null : p));
       if (e.key === ' ' || e.code === 'Space') {
         e.preventDefault();
         setPhotoZoom((z) => !z);
@@ -287,13 +328,19 @@ export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props
         fireInstantQuote();
       } else if (e.key === 'F3') {
         e.preventDefault();
-        fireInstantInquiry();
+        togglePanel('alt');
+      } else if (e.key === 'F5') {
+        e.preventDefault(); // 攔掉瀏覽器整頁重新整理
+        togglePanel('turnover');
+      } else if (e.key === 'F6') {
+        e.preventDefault();
+        togglePanel('history');
       }
     };
-    // capture 階段：搶在焦點鎖定對話框冒泡攔截 + 瀏覽器默認（F3=找下一個）之前 preventDefault
+    // capture 階段：搶在焦點鎖定對話框冒泡攔截 + 瀏覽器默認（F3=找下一個/F5=重整）之前 preventDefault
     window.addEventListener('keydown', h, true);
     return () => window.removeEventListener('keydown', h, true);
-  }, [fireInstantQuote, fireInstantInquiry]);
+  }, [fireInstantQuote]);
 
   // 執行長 2026-06-25：開窗焦點永遠在右側通用零件、不去 Header「退回搜尋」按鈕。
   // 1. initialFocusRef={compatListRef} → mount 時先 focus FocusZone 容器（即使資料還沒載完、容器可 focus）
@@ -336,14 +383,14 @@ export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props
               預覽中
             </span>
           ) : null}
+          {/* Step 4：F3 改綁可替代零件（交接 §5）、即時詢價保留按鈕（滑鼠）*/}
           <button
             type="button"
             onClick={fireInstantInquiry}
             className="ml-auto inline-flex items-center gap-1.5 rounded-md border border-border/55 bg-background/40 px-2.5 py-1 text-xs font-medium text-foreground hover:border-primary/55 hover:bg-secondary/60"
-            title="即時詢價（調貨、F3）"
+            title="即時詢價（調貨）"
           >
             即時詢價
-            <kbd className="rounded border border-border/40 bg-muted/40 px-1 py-px font-mono text-[10px]">F3</kbd>
           </button>
           <button
             type="button"
@@ -408,10 +455,16 @@ export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props
           />
         </div>
 
-        {/* Footer 鍵盤提示 */}
+        {/* Footer 鍵盤提示（Step 4：4 快捷鍵）*/}
         <div className="flex items-center justify-between border-t border-border/35 bg-background/35 px-6 py-2 text-[12px] text-muted-foreground/85">
           <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <Kbd>Tab</Kbd> 切欄
+            <Kbd>F3</Kbd> 可替代
+            <span className="text-muted-foreground/35">·</span>
+            <Kbd>F4</Kbd> 報價
+            <span className="text-muted-foreground/35">·</span>
+            <Kbd>F5</Kbd> 周轉
+            <span className="text-muted-foreground/35">·</span>
+            <Kbd>F6</Kbd> 出入庫
             <span className="text-muted-foreground/35">·</span>
             <Kbd>↑↓</Kbd> 選通用件
             <span className="text-muted-foreground/35">·</span>
@@ -434,6 +487,21 @@ export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props
             partId={effectivePartId}
             photos={photos}
             onClose={() => setPhotoZoom(false)}
+          />
+        )}
+
+        {/* Step 4：快捷鍵面板（F3/F5/F6、疊在視窗 2 上、Esc 或同鍵關）*/}
+        {quickPanel && (
+          <QuickPanelOverlay
+            kind={quickPanel}
+            partCode={detail?.code ?? ''}
+            compatRows={compatRows}
+            mainPartId={mainPartId}
+            historyRows={historyRows}
+            historyFetchedAt={historyFetchedAt}
+            historyLoading={historyLoading}
+            companyOnHand={Number(stock?.company.onHand ?? 0)}
+            onClose={() => setQuickPanel(null)}
           />
         )}
       </>
@@ -1059,16 +1127,27 @@ function SectionHeader({
   );
 }
 
-function KpiTile({ label, value, color }: { label: string; value: string | undefined; color: string }) {
+function KpiTile({
+  label,
+  value,
+  color,
+  exact,
+}: {
+  label: string;
+  value: string | undefined;
+  color: string;
+  /** true = 值原樣顯示（含小數／'—'、F5 周轉率用）；預設取整 */
+  exact?: boolean;
+}) {
   const n = value ? Number(value) : 0;
-  const isZero = n === 0;
+  const isZero = !value || value === '—' || n === 0;
   return (
     <div className="flex flex-col gap-0.5 rounded-md border border-border/55 bg-secondary px-3 py-2 shadow-sm">
       <span className="text-[12px] font-medium uppercase tracking-[0.1em] text-foreground/60">
         {label}
       </span>
       <span className="font-mono text-[20px] font-semibold" style={{ color: isZero ? ZERO_GREY : color }}>
-        {n.toFixed(0)}
+        {exact ? (value ?? '—') : n.toFixed(0)}
       </span>
     </div>
   );
@@ -1128,6 +1207,298 @@ function Kbd({ children }: { children: React.ReactNode }) {
     <kbd className="rounded border border-border/45 bg-background/45 px-1.5 py-px font-mono text-[11px] text-muted-foreground/90">
       {children}
     </kbd>
+  );
+}
+
+// ─── Step 4：快捷鍵面板（F3 可替代 / F5 周轉率 / F6 出入庫）──────
+// 交接 §5：取代偉盟 11 彈窗的常用集。F3 只露 料號/廠牌/庫存數量。
+// F5 周轉率：無單料號 API（nx08 僅 top-10 聚合）→ 依交接「視 API 而定」
+// 先以既有 stock-history（近 100 筆）前端統計、面板標注估算基礎。
+const DOC_TYPE_LABELS: Record<string, string> = {
+  P: '進貨',
+  R: '退貨',
+  S: '銷貨',
+  I: '開帳',
+  T: '盤點',
+  X: '調撥',
+};
+
+const QUICK_PANEL_META = {
+  alt: { title: '可替代零件', kbd: 'F3' },
+  turnover: { title: '周轉率分析', kbd: 'F5' },
+  history: { title: '出入庫紀錄', kbd: 'F6' },
+} as const;
+
+function QuickPanelOverlay({
+  kind,
+  partCode,
+  compatRows,
+  mainPartId,
+  historyRows,
+  historyFetchedAt,
+  historyLoading,
+  companyOnHand,
+  onClose,
+}: {
+  kind: 'alt' | 'turnover' | 'history';
+  partCode: string;
+  compatRows: PartCompatMemberDto[];
+  mainPartId: string;
+  historyRows: PartStockHistoryRow[] | null;
+  historyFetchedAt: number;
+  historyLoading: boolean;
+  companyOnHand: number;
+  onClose: () => void;
+}) {
+  const meta = QUICK_PANEL_META[kind];
+  return (
+    <FocusLockedDialog
+      open
+      onClose={onClose}
+      ariaLabel={meta.title}
+      backdropClassName="bg-black/55 backdrop-blur-[2px] animate-in fade-in duration-150"
+      dialogClassName="flex flex-col rounded-xl border border-border/60 bg-popover text-foreground shadow-[0_18px_50px_rgba(0,0,0,0.5),0_0_36px_-14px_rgba(232,160,32,0.25)] animate-in fade-in zoom-in-95 duration-150"
+      dialogStyle={{ width: 'min(680px, 90vw)', height: 'min(560px, 85vh)' }}
+    >
+      <>
+        <div className="flex items-center gap-2.5 border-b border-border/40 px-5 py-2.5">
+          <kbd className="rounded border border-primary/50 bg-primary/12 px-1.5 py-px font-mono text-[11px] font-bold text-primary">
+            {meta.kbd}
+          </kbd>
+          <h3 className="text-sm font-bold tracking-wide">{meta.title}</h3>
+          <span className="font-mono text-[12px] text-muted-foreground/75">{partCode}</span>
+          <button
+            type="button"
+            onClick={onClose}
+            className="ml-auto rounded-md border border-border/40 bg-background/40 p-1 text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
+            aria-label="關閉"
+            title="關閉（Esc）"
+          >
+            <X className="size-3.5" />
+          </button>
+        </div>
+
+        <div className="min-h-0 flex-1 overflow-auto px-5 py-3">
+          {kind === 'alt' && <AltPartsPanel rows={compatRows} mainPartId={mainPartId} />}
+          {kind === 'turnover' && (
+            <TurnoverPanel
+              rows={historyRows}
+              fetchedAt={historyFetchedAt}
+              loading={historyLoading}
+              companyOnHand={companyOnHand}
+            />
+          )}
+          {kind === 'history' && <StockHistoryPanel rows={historyRows} loading={historyLoading} />}
+        </div>
+
+        <div className="border-t border-border/35 bg-background/35 px-5 py-1.5 text-right text-[11px] text-muted-foreground/65">
+          <Kbd>Esc</Kbd> 或再按 <Kbd>{meta.kbd}</Kbd> 關閉
+        </div>
+      </>
+    </FocusLockedDialog>
+  );
+}
+
+/** F3 可替代零件：只露 料號 / 廠牌 / 庫存數量（交接 §5 拍板）*/
+function AltPartsPanel({ rows, mainPartId }: { rows: PartCompatMemberDto[]; mainPartId: string }) {
+  if (rows.length === 0) {
+    return <PanelEmpty msg="本料件未屬於任何通用件群組" />;
+  }
+  return (
+    <table className="w-full border-collapse text-[13px]">
+      <thead>
+        <tr className="border-b border-border/40 text-left text-[11px] uppercase tracking-[0.12em] text-muted-foreground/70">
+          <th className="py-1.5 pr-3 font-medium">料號</th>
+          <th className="py-1.5 pr-3 font-medium">廠牌</th>
+          <th className="py-1.5 text-right font-medium">庫存數量</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((r) => {
+          const onHand = Number(r.onHandTotal);
+          const isMain = r.id === mainPartId;
+          return (
+            <tr
+              key={r.id}
+              className={cn(
+                'border-b border-border/15 last:border-b-0',
+                isMain && 'bg-primary/8',
+                !r.isActive && 'opacity-55',
+              )}
+            >
+              <td className="py-2 pr-3">
+                <span className={cn('font-mono font-medium', isMain ? 'text-primary' : 'text-foreground/90')}>
+                  {r.code}
+                </span>
+                {isMain && (
+                  <span className="ml-2 rounded border border-primary/55 bg-primary/15 px-1.5 py-px font-mono text-[10px] font-bold text-primary">
+                    主
+                  </span>
+                )}
+              </td>
+              <td className="py-2 pr-3 text-foreground/85">{r.brandCode ?? r.brandName ?? '—'}</td>
+              <td
+                className="py-2 text-right font-mono tabular-nums"
+                style={{ color: onHand > 0 ? STOCK_COLORS.available : STOCK_COLORS.reserved }}
+              >
+                {onHand.toFixed(0)}
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
+}
+
+/** F5 周轉率分析：以近 100 筆出入庫前端統計（無單料號周轉 API、估算值）*/
+function TurnoverPanel({
+  rows,
+  fetchedAt,
+  loading,
+  companyOnHand,
+}: {
+  rows: PartStockHistoryRow[] | null;
+  fetchedAt: number;
+  loading: boolean;
+  companyOnHand: number;
+}) {
+  const stats = useMemo(() => {
+    if (!rows || !fetchedAt) return null;
+    const now = fetchedAt; // 統計基準＝資料載入時點（render 純函式、不呼叫 Date.now）
+    const DAY = 86400000;
+    let out30 = 0, out90 = 0, in90 = 0, outMoves90 = 0;
+    let oldest = now;
+    for (const r of rows) {
+      const t = new Date(r.movementDate).getTime();
+      if (t < oldest) oldest = t;
+      const age = (now - t) / DAY;
+      const qOut = Number(r.qtyOut) || 0;
+      const qIn = Number(r.qtyIn) || 0;
+      if (age <= 30) out30 += qOut;
+      if (age <= 90) {
+        out90 += qOut;
+        in90 += qIn;
+        if (qOut > 0) outMoves90 += 1;
+      }
+    }
+    const avgDailyOut = out30 / 30;
+    const daysOfStock = avgDailyOut > 0 ? companyOnHand / avgDailyOut : null;
+    // 年化周轉率（估）＝近 90 天出庫年化 / 目前現量
+    const turnoverPerYear = companyOnHand > 0 ? (out90 / 90) * 365 / companyOnHand : null;
+    const truncated = rows.length >= 100;
+    const coverageDays = Math.ceil((now - oldest) / DAY);
+    return { out30, out90, in90, outMoves90, avgDailyOut, daysOfStock, turnoverPerYear, truncated, coverageDays };
+  }, [rows, fetchedAt, companyOnHand]);
+
+  if (loading || !rows) return <PanelEmpty msg="載入中…" loading />;
+  if (rows.length === 0) return <PanelEmpty msg="本料件無出入庫紀錄、無法估算周轉" />;
+  if (!stats) return null;
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="grid grid-cols-3 gap-2">
+        <KpiTile label="近 30 天出庫" value={String(stats.out30)} color={STOCK_COLORS.available} />
+        <KpiTile label="近 90 天出庫" value={String(stats.out90)} color={STOCK_COLORS.available} />
+        <KpiTile label="近 90 天入庫" value={String(stats.in90)} color={STOCK_COLORS.onHand} />
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        <KpiTile
+          label="日均出庫（30天）"
+          value={stats.avgDailyOut.toFixed(1)}
+          color={STOCK_COLORS.onHand}
+          exact
+        />
+        <KpiTile
+          label="現量可售天數"
+          value={stats.daysOfStock === null ? '—' : Math.round(stats.daysOfStock).toString()}
+          color={STOCK_COLORS.inTransit}
+          exact
+        />
+        <KpiTile
+          label="年化周轉率（估）"
+          value={stats.turnoverPerYear === null ? '—' : stats.turnoverPerYear.toFixed(1)}
+          color={STOCK_COLORS.available}
+          exact
+        />
+      </div>
+      <p className="text-[11px] leading-relaxed text-muted-foreground/65">
+        估算基礎：近 {rows.length} 筆出入庫（涵蓋約 {stats.coverageDays} 天）與公司目前現量 {companyOnHand.toFixed(0)}。
+        {stats.truncated && ' ⚠ 紀錄已達 100 筆上限、更早異動未計入。'}
+      </p>
+    </div>
+  );
+}
+
+/** F6 出入庫紀錄：近 100 筆異動表 */
+function StockHistoryPanel({
+  rows,
+  loading,
+}: {
+  rows: PartStockHistoryRow[] | null;
+  loading: boolean;
+}) {
+  if (loading || !rows) return <PanelEmpty msg="載入中…" loading />;
+  if (rows.length === 0) return <PanelEmpty msg="本料件無出入庫紀錄" />;
+  return (
+    <table className="w-full border-collapse text-[12.5px]">
+      <thead className="sticky top-0 bg-popover">
+        <tr className="border-b border-border/40 text-left text-[11px] uppercase tracking-[0.12em] text-muted-foreground/70">
+          <th className="py-1.5 pr-2 font-medium">日期</th>
+          <th className="py-1.5 pr-2 font-medium">類型</th>
+          <th className="py-1.5 pr-2 text-right font-medium">入</th>
+          <th className="py-1.5 pr-2 text-right font-medium">出</th>
+          <th className="py-1.5 pr-2 text-right font-medium">結存</th>
+          <th className="py-1.5 font-medium">倉位</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((r) => {
+          const qIn = Number(r.qtyIn) || 0;
+          const qOut = Number(r.qtyOut) || 0;
+          return (
+            <tr key={r.id} className="border-b border-border/15 last:border-b-0">
+              <td className="py-1.5 pr-2 font-mono text-[12px] text-foreground/85">
+                {new Date(r.movementDate).toLocaleDateString('zh-TW')}
+              </td>
+              <td className="py-1.5 pr-2">
+                <span className="rounded border border-border/50 bg-secondary/40 px-1.5 py-px text-[11px] text-foreground/85">
+                  {DOC_TYPE_LABELS[r.sourceDocType] ?? r.sourceDocType}
+                </span>
+              </td>
+              <td
+                className="py-1.5 pr-2 text-right font-mono tabular-nums"
+                style={{ color: qIn > 0 ? STOCK_COLORS.available : ZERO_GREY }}
+              >
+                {qIn > 0 ? qIn.toFixed(0) : '—'}
+              </td>
+              <td
+                className="py-1.5 pr-2 text-right font-mono tabular-nums"
+                style={{ color: qOut > 0 ? STOCK_COLORS.reserved : ZERO_GREY }}
+              >
+                {qOut > 0 ? qOut.toFixed(0) : '—'}
+              </td>
+              <td className="py-1.5 pr-2 text-right font-mono tabular-nums text-foreground/85">
+                {Number(r.balanceQty).toFixed(0)}
+              </td>
+              <td className="py-1.5">
+                <span className="font-mono text-primary">{r.warehouseCode}</span>
+                <span className="ml-1 text-[11px] text-muted-foreground/70">{r.locationCode}</span>
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
+}
+
+function PanelEmpty({ msg, loading }: { msg: string; loading?: boolean }) {
+  return (
+    <div className="flex h-full min-h-[160px] items-center justify-center gap-2 text-[13px] text-muted-foreground/65">
+      {loading && <Loader2 className="size-4 animate-spin text-primary" />}
+      <span>{msg}</span>
+    </div>
   );
 }
 
