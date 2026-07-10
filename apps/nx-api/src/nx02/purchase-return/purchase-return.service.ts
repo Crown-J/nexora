@@ -22,6 +22,7 @@ import { createAllowanceFromPurchaseReturn } from '../../shared/nx05/nx05-create
 import { createArFromPostedPr } from '../../shared/nx05/nx05-create-ar-from-pr';
 import { createWarrantyClaimsFromPr } from '../../shared/nx02/nx02-create-warranty-from-pr';
 import { applyQtyOutWithLedger } from '../../shared/nx03/nx03-inventory';
+import { closeIssueReportFromDisposition } from '../../shared/nx03/nx03-issue-report-close';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 
 import type {
@@ -48,6 +49,8 @@ const PR_SEL = {
   remark: true,
   returnMode: true,
   dispositionFlag: true,
+  // W5 異常鏈 Step 3 2026-07-11：來源異常回報單（過帳回寫結案用）
+  sourceIssueReportId: true,
   voidedAt: true,
   voidedBy: true,
   postedAt: true,
@@ -456,6 +459,15 @@ export class PurchaseReturnService {
         const head = await tx.nx02Pr.findFirst({ where: { id, tenantId }, select: PR_SEL });
         if (!head) throw new NotFoundException('Purchase return not found');
         await this.applyPrPosting(tx, head, user.sub);
+        // W5 異常鏈 Step 3 2026-07-11：過帳完成 → 來源異常單回寫自動結案（同交易）
+        if (head.sourceIssueReportId) {
+          await closeIssueReportFromDisposition(tx, {
+            tenantId,
+            issueReportId: head.sourceIssueReportId,
+            dispositionDocNo: head.docNo,
+            userId: user.sub,
+          });
+        }
       }
       await tx.nx02Pr.update({
         where: { id },

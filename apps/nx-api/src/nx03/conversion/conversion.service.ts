@@ -29,6 +29,7 @@ import {
   assertConversionStatusTransition,
   ConversionStatus,
 } from '../../shared/nx03/nx03-state-machine';
+import { closeIssueReportFromDisposition } from '../../shared/nx03/nx03-issue-report-close';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 
 import type {
@@ -55,6 +56,8 @@ const CV_SEL = {
   postedBy: true,
   voidedAt: true,
   voidedBy: true,
+  // W5 異常鏈 Step 3 2026-07-11：來源異常回報單（過帳回寫結案用、dispose 手動連結時回填）
+  sourceIssueReportId: true,
 } as const;
 
 const CV_INPUT_SEL = {
@@ -614,6 +617,15 @@ export class ConversionService {
         const head = await tx.nx03Conversion.findFirst({ where: { id, tenantId }, select: CV_SEL });
         if (!head) throw new NotFoundException('Conversion not found');
         await this.applyConversionPosting(tx, head, user.sub);
+        // W5 異常鏈 Step 3 2026-07-11：過帳完成 → 來源異常單回寫自動結案（同交易）
+        if (head.sourceIssueReportId) {
+          await closeIssueReportFromDisposition(tx, {
+            tenantId,
+            issueReportId: head.sourceIssueReportId,
+            dispositionDocNo: head.docNo,
+            userId: user.sub,
+          });
+        }
         await tx.nx03Conversion.update({
           where: { id },
           data: {

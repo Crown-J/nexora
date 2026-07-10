@@ -19,6 +19,7 @@ import { Prisma as PrismaNs } from 'db-core';
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { PrismaService } from '../../prisma/prisma.service';
 import { allocDocNo } from '../../shared/nx02/nx02-doc-no';
+import { closeIssueReportFromDisposition } from '../../shared/nx03/nx03-issue-report-close';
 import { allocNx05DocNo } from '../../shared/nx05/nx05-doc-no';
 import { Nx02ListQueryDto } from '../../shared/nx02/nx02-list-query.dto';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
@@ -50,6 +51,8 @@ const SEL = {
   resultRemark: true,
   resultedAt: true,
   resultedBy: true,
+  // W5 異常鏈 Step 3 2026-07-11：來源異常回報單（審核完成回寫結案用）
+  sourceIssueReportId: true,
   remark: true,
   createdAt: true,
   createdBy: true,
@@ -348,6 +351,17 @@ export class WarrantyClaimService {
           createdBy: user.sub,
           updatedBy: user.sub,
         },
+      });
+    }
+
+    // W5 異常鏈 Step 3 2026-07-11：保固審核完成（status=C、含 REJ 駁回 = 處置結果確定）
+    // → 來源異常單回寫自動結案（結果細節留在保固單、IR 結案備註記單號）
+    if (existing.sourceIssueReportId) {
+      await closeIssueReportFromDisposition(this.prisma, {
+        tenantId,
+        issueReportId: existing.sourceIssueReportId,
+        dispositionDocNo: existing.docNo,
+        userId: user.sub,
       });
     }
 

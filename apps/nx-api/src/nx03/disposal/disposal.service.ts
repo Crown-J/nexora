@@ -16,6 +16,10 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
 import { allocNx03DocNo } from '../../shared/nx03/nx03-doc-no';
 import { applyQtyOutWithLedger } from '../../shared/nx03/nx03-inventory';
+import {
+  closeIssueReportFromDisposition,
+  isOffBookIssueReport,
+} from '../../shared/nx03/nx03-issue-report-close';
 import { Nx03ListQueryDto } from '../../shared/nx03/nx03-list-query.dto';
 import {
   assertDisposalStatusTransition,
@@ -46,6 +50,8 @@ const DS_SEL = {
   postedBy: true,
   voidedAt: true,
   voidedBy: true,
+  // W5 異常鏈 Step 3 2026-07-11：來源異常回報單（過帳回寫結案 + 帳已調來源免扣帳判斷用）
+  sourceIssueReportId: true,
 } as const;
 
 const DS_ITEM_SEL = {
@@ -266,17 +272,21 @@ export class DisposalService {
   /**
    * 過帳：每明細走 applyQtyOutWithLedger（source=W、helper 內部用 stock_balance.avgCost）
    * Crown Q-B1=a 不簽核、D → P 一步到位
+   * W5 異常鏈 Step 3：skipLedger=true（來源異常單帳已調：盤點就地調帳 / 銷退壞品不入庫）
+   *   → 只驗明細、不寫 ledger（報廢單純記錄實物處理、防重複扣帳）
    */
   private async applyDisposalPosting(
     tx: Prisma.TransactionClient,
     ds: Prisma.Nx03DisposalGetPayload<{ select: typeof DS_SEL }>,
     userId: string,
+    skipLedger = false,
   ) {
     const items = await tx.nx03DisposalItem.findMany({
       where: { disposalId: ds.id },
       select: { ...DS_ITEM_SEL },
     });
     if (!items.length) throw new BadRequestException('Disposal has no items to post');
+    if (skipLedger) return;
 
     for (const item of items) {
       const qtyOut = new PrismaNs.Decimal(item.qty);
@@ -307,11 +317,25 @@ export class DisposalService {
       assertDisposalStatusTransition(existing.status, dto.status);
     }
 
+    let skippedLedger = false;
     return this.prisma.$transaction(async (tx) => {
       if (dto.status === DisposalStatus.POSTED && existing.status === DisposalStatus.DRAFT) {
         const head = await tx.nx03Disposal.findFirst({ where: { id, tenantId }, select: DS_SEL });
         if (!head) throw new NotFoundException('Disposal not found');
-        await this.applyDisposalPosting(tx, head, user.sub);
+        // W5 異常鏈 Step 3：來源異常單帳已調（盤點 / 銷退壞品）→ 免扣帳、防重複扣
+        skippedLedger = head.sourceIssueReportId
+          ? await isOffBookIssueReport(tx, tenantId, head.sourceIssueReportId)
+          : false;
+        await this.applyDisposalPosting(tx, head, user.sub, skippedLedger);
+        // W5 異常鏈 Step 3：過帳完成 → 來源異常單回寫自動結案（同交易）
+        if (head.sourceIssueReportId) {
+          await closeIssueReportFromDisposition(tx, {
+            tenantId,
+            issueReportId: head.sourceIssueReportId,
+            dispositionDocNo: head.docNo,
+            userId: user.sub,
+          });
+        }
         await tx.nx03Disposal.update({
           where: { id },
           data: {
@@ -346,7 +370,12 @@ export class DisposalService {
         entityTable: 'nx03_disposal',
         entityId: id,
         entityCode: existing.docNo,
-        summary: dto.status === DisposalStatus.POSTED ? '報廢過帳' : '修改報廢單',
+        summary:
+          dto.status === DisposalStatus.POSTED
+            ? skippedLedger
+              ? '報廢過帳（來源異常帳已調、免扣帳）'
+              : '報廢過帳'
+            : '修改報廢單',
         beforeData: existing as object,
         afterData: full as object,
       });
