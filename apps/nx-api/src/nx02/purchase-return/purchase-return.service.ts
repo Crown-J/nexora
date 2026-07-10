@@ -56,6 +56,10 @@ const PR_SEL = {
   createdBy: true,
   updatedAt: true,
   updatedBy: true,
+  // NX02-PR-SHELL 2026-07-11：單據模板 enrich——關聯名稱由 flattenPrRefs 攤平（比照 Po/RrService）
+  supplier: { select: { code: true, name: true } },
+  warehouse: { select: { code: true, name: true } },
+  rr: { select: { docNo: true } },
 } as const;
 
 const PR_ITEM_SEL = {
@@ -80,6 +84,24 @@ const PR_ITEM_SEL = {
 
 type PrHead = Prisma.Nx02PrGetPayload<{ select: typeof PR_SEL }>;
 
+// NX02-PR-SHELL 2026-07-11：把 PR_SEL 帶的 supplier/warehouse/rr 關聯攤平成
+//   supplierCode/supplierName/warehouseCode/warehouseName/rrDocNo（比照 Po/RrService）。
+function flattenPrRefs<T extends Record<string, unknown>>(rest: T) {
+  const { supplier, warehouse, rr, ...plain } = rest as Record<string, unknown> & {
+    supplier?: { code?: string; name?: string } | null;
+    warehouse?: { code?: string; name?: string } | null;
+    rr?: { docNo?: string } | null;
+  };
+  return {
+    ...plain,
+    supplierCode: supplier?.code ?? null,
+    supplierName: supplier?.name ?? null,
+    warehouseCode: warehouse?.code ?? null,
+    warehouseName: warehouse?.name ?? null,
+    rrDocNo: rr?.docNo ?? null,
+  };
+}
+
 @Injectable()
 export class PurchaseReturnService {
   constructor(
@@ -103,7 +125,14 @@ export class PurchaseReturnService {
     }
     if (q.search?.trim()) {
       const s = q.search.trim();
-      where.OR = [{ docNo: { contains: s, mode: 'insensitive' } }, { remark: { contains: s, mode: 'insensitive' } }];
+      // NX02-PR-SHELL：搜尋含 單號/備註/供應商編號/供應商名稱/來源進貨單號
+      where.OR = [
+        { docNo: { contains: s, mode: 'insensitive' } },
+        { remark: { contains: s, mode: 'insensitive' } },
+        { supplier: { code: { contains: s, mode: 'insensitive' } } },
+        { supplier: { name: { contains: s, mode: 'insensitive' } } },
+        { rr: { docNo: { contains: s, mode: 'insensitive' } } },
+      ];
     }
     return where;
   }
@@ -256,10 +285,26 @@ export class PurchaseReturnService {
         orderBy: [{ prDate: 'desc' }, { docNo: 'desc' }],
         skip,
         take: pageSize,
-        select: PR_SEL,
+        // NX02-PR-SHELL：單據模板列表需 建單人員名 + 項目數
+        select: { ...PR_SEL, _count: { select: { rev_Nx02PrItem_prId: true } } },
       }),
     ]);
-    return { page, pageSize, total, rows: rows.map((r) => this.mapPrHead(r)) };
+    // 建單人員名（批次查 user）
+    const creatorIds = [...new Set(rows.map((r) => r.createdBy).filter(Boolean))];
+    const creators = creatorIds.length
+      ? await this.prisma.nx01User.findMany({ where: { id: { in: creatorIds } }, select: { id: true, userName: true } })
+      : [];
+    const creatorMap = new Map(creators.map((c) => [c.id, c.userName]));
+    const items = rows.map((r) => {
+      const { _count, ...rest } = r;
+      return {
+        ...flattenPrRefs(this.mapPrHead(rest)),
+        itemCount: _count?.rev_Nx02PrItem_prId ?? 0,
+        createdByName: creatorMap.get(r.createdBy) ?? null,
+      };
+    });
+    // NX02-PR-SHELL：回傳鍵 rows→items（對齊範式；舊 client 已自行 adapt、隨舊視圖退場）
+    return { page, pageSize, total, items };
   }
 
   async getById(user: RequestUser, id: string) {
@@ -270,9 +315,14 @@ export class PurchaseReturnService {
     });
     if (!row) throw new NotFoundException('Purchase return not found');
     const { rev_Nx02PrItem_prId, ...rest } = row;
+    // NX02-PR-SHELL：關聯攤平 + 建單人員名（詳情顯示）
+    const creator = row.createdBy
+      ? await this.prisma.nx01User.findFirst({ where: { id: row.createdBy }, select: { userName: true } })
+      : null;
     return {
-      ...this.mapPrHead(rest),
+      ...flattenPrRefs(this.mapPrHead(rest)),
       items: rev_Nx02PrItem_prId.map((it) => ({ ...it, unitPriceSnapshot: it.unitCost })),
+      createdByName: creator?.userName ?? null,
     };
   }
 
@@ -335,7 +385,7 @@ export class PurchaseReturnService {
       });
       const { rev_Nx02PrItem_prId, ...rest } = full!;
       return {
-        ...this.mapPrHead(rest),
+        ...flattenPrRefs(this.mapPrHead(rest)),
         items: rev_Nx02PrItem_prId.map((i) => ({ ...i, unitPriceSnapshot: i.unitCost })),
       };
     });
@@ -444,7 +494,7 @@ export class PurchaseReturnService {
     });
     const { rev_Nx02PrItem_prId, ...rest } = full!;
     return {
-      ...this.mapPrHead(rest),
+      ...flattenPrRefs(this.mapPrHead(rest)),
       items: rev_Nx02PrItem_prId.map((i) => ({ ...i, unitPriceSnapshot: i.unitCost })),
     };
   }
@@ -478,7 +528,7 @@ export class PurchaseReturnService {
     });
     const { rev_Nx02PrItem_prId, ...rest } = full!;
     return {
-      ...this.mapPrHead(rest),
+      ...flattenPrRefs(this.mapPrHead(rest)),
       items: rev_Nx02PrItem_prId.map((i) => ({ ...i, unitPriceSnapshot: i.unitCost })),
     };
   }
