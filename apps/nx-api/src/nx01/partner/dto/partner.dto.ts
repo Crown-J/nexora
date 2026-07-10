@@ -6,6 +6,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  Max,
   MaxLength,
   Min,
   MinLength,
@@ -161,8 +162,14 @@ export class CreatePartnerDto {
   // ── v1.2 階段 E P2：finance 區補欄 ──
   @IsOptional() @IsString() @MaxLength(15) defaultCurrencyId?: string;
 
-  /** W4 [3-6] 預設發票聯式（2=二聯 / 3=三聯）。散客 L 強制 2、service 端覆寫不可改 */
+  /** W4 [3-6] 預設發票聯式（0=不開 / 2=二聯 / 3=三聯）。散客 L 強制 2、service 端覆寫不可改 */
   @IsOptional() @Type(() => Number) @IsInt() @IsIn(INVOICE_COPIES) defaultInvoiceCopies?: number;
+
+  /** 發票抬頭（可異於客戶名稱；空=用 name）。偉盟設計檢視 P1-2 2026-07-10 */
+  @IsOptional() @IsString() @MaxLength(120) invoiceTitle?: string;
+
+  /** 每月結帳日（1~31、31=月底慣例）。偉盟設計檢視 P1-4 2026-07-10 */
+  @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(31) statementDay?: number;
 
   // ── 02 對齊第二批 C 軌 CP1：地區 / 總公司 / 個別毛利率 ──
   /** 地區 ID（FK nx01_region、不入 partner code 編號） */
@@ -286,8 +293,14 @@ export class UpdatePartnerDto {
   /** W3 [3-2] 舊系統往來對象代號 */
   @IsOptional() @IsString() @MaxLength(50) legacyCode?: string | null;
 
-  /** W4 [3-6] 預設發票聯式（2/3）。散客 L 強制 2 */
+  /** W4 [3-6] 預設發票聯式（0/2/3）。散客 L 強制 2 */
   @IsOptional() @Type(() => Number) @IsInt() @IsIn(INVOICE_COPIES) defaultInvoiceCopies?: number;
+
+  /** 發票抬頭（可異於客戶名稱；空=用 name）。偉盟設計檢視 P1-2 2026-07-10 */
+  @IsOptional() @IsString() @MaxLength(120) invoiceTitle?: string | null;
+
+  /** 每月結帳日（1~31；null=清除）。偉盟設計檢視 P1-4 2026-07-10 */
+  @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(31) statementDay?: number | null;
 
   // ── 02 對齊第二批 C 軌 CP1：地區 / 總公司 / 個別毛利率 ──
   @IsOptional() @IsString() @MaxLength(15) regionId?: string | null;

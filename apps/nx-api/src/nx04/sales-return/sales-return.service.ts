@@ -56,6 +56,10 @@ const SR_SEL = {
   createdBy: true,
   updatedAt: true,
   updatedBy: true,
+  // NX04-QT-SHELL 2026-07-10：單據模板需顯示名稱欄（比照 SoService enrich）
+  customer: { select: { code: true, name: true } },
+  warehouse: { select: { code: true, name: true } },
+  so: { select: { docNo: true } },
 } as const;
 
 const SR_ITEM_SEL = {
@@ -87,6 +91,23 @@ function mapSrItemApi<T extends { unitPrice: PrismaNs.Decimal | unknown }>(row: 
   return { ...row, unitPriceSnapshot: u };
 }
 
+// NX04-QT-SHELL 2026-07-10：把 SR_SEL 帶的 customer/warehouse/so 關聯攤平（比照 SoService.flattenSoRefs）
+function flattenSrRefs<T extends Record<string, unknown>>(rest: T) {
+  const { customer, warehouse, so, ...plain } = rest as Record<string, unknown> & {
+    customer?: { code?: string; name?: string } | null;
+    warehouse?: { code?: string; name?: string } | null;
+    so?: { docNo?: string } | null;
+  };
+  return {
+    ...plain,
+    customerCode: customer?.code ?? null,
+    customerName: customer?.name ?? null,
+    warehouseCode: warehouse?.code ?? null,
+    warehouseName: warehouse?.name ?? null,
+    soDocNo: so?.docNo ?? null,
+  };
+}
+
 @Injectable()
 export class SalesReturnService {
   constructor(
@@ -99,7 +120,14 @@ export class SalesReturnService {
     if (q.status?.trim()) where.status = q.status.trim();
     if (q.search?.trim()) {
       const s = q.search.trim();
-      where.OR = [{ docNo: { contains: s, mode: 'insensitive' } }, { remark: { contains: s, mode: 'insensitive' } }];
+      // NX04-QT-SHELL：搜尋含 單號/備註/客戶編號/客戶名稱/來源銷貨單號（比照 SoService）
+      where.OR = [
+        { docNo: { contains: s, mode: 'insensitive' } },
+        { remark: { contains: s, mode: 'insensitive' } },
+        { customer: { code: { contains: s, mode: 'insensitive' } } },
+        { customer: { name: { contains: s, mode: 'insensitive' } } },
+        { so: { docNo: { contains: s, mode: 'insensitive' } } },
+      ];
     }
     return where;
   }
@@ -107,7 +135,7 @@ export class SalesReturnService {
   private mapDetail(row: { rev_Nx04SrItem_srId: unknown[] } & Record<string, unknown>) {
     const { rev_Nx04SrItem_srId: items, ...rest } = row;
     return {
-      ...rest,
+      ...flattenSrRefs(rest),
       items: (items as object[]).map((it) => mapSrItemApi(it as never)),
     };
   }
@@ -200,6 +228,8 @@ export class SalesReturnService {
     });
     if (!items.length) throw new BadRequestException('Sales return has no items to post');
     for (const item of items) {
+      // 歷史匯入銷退（soItemId=null、無來源明細）不可過帳；系統內建立的銷退必掛來源明細
+      if (!item.soItemId) throw new BadRequestException('歷史匯入銷退（無來源明細）不可過帳');
       const soItem = await tx.nx04SoItem.findFirst({
         where: { id: item.soItemId, so: { tenantId } },
         select: { warehouseId: true, unitPrice: true },
@@ -310,10 +340,25 @@ export class SalesReturnService {
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * pageSize,
         take: pageSize,
-        select: SR_SEL,
+        // NX04-QT-SHELL：單據模板列表需 建單人員名 + 項目數
+        select: { ...SR_SEL, _count: { select: { rev_Nx04SrItem_srId: true } } },
       }),
     ]);
-    return { page, pageSize, total, items: rows };
+    // 建單人員名（批次查 user、比照 SoService）
+    const creatorIds = [...new Set(rows.map((r) => r.createdBy).filter(Boolean))];
+    const creators = creatorIds.length
+      ? await this.prisma.nx01User.findMany({ where: { id: { in: creatorIds } }, select: { id: true, userName: true } })
+      : [];
+    const creatorMap = new Map(creators.map((c) => [c.id, c.userName]));
+    const items = rows.map((r) => {
+      const { _count, ...rest } = r as typeof r & { _count: { rev_Nx04SrItem_srId: number } };
+      return {
+        ...flattenSrRefs(rest as never),
+        itemCount: _count?.rev_Nx04SrItem_srId ?? 0,
+        createdByName: creatorMap.get(r.createdBy) ?? null,
+      };
+    });
+    return { page, pageSize, total, items };
   }
 
   async getById(user: RequestUser, id: string) {
@@ -326,7 +371,12 @@ export class SalesReturnService {
       },
     });
     if (!row) throw new NotFoundException('Sales return not found');
-    return this.mapDetail(row as never);
+    const mapped = this.mapDetail(row as never);
+    // NX04-QT-SHELL：建單人員名（詳情顯示）
+    const creator = row.createdBy
+      ? await this.prisma.nx01User.findFirst({ where: { id: row.createdBy }, select: { userName: true } })
+      : null;
+    return { ...mapped, createdByName: creator?.userName ?? null };
   }
 
   private async assertSoReturnable(tx: Prisma.TransactionClient, tenantId: string, soId: string) {
@@ -597,11 +647,14 @@ export class SalesReturnService {
     const head = await this.prisma.nx04Sr.findFirst({ where: { id: srId, tenantId }, select: SR_SEL });
     if (!head) throw new NotFoundException('Sales return not found');
     this.assertSrItemsEditable(head.status);
+    // 歷史匯入銷退（soId=null、無來源單）不可新增明細；系統內建立的銷退必掛來源單
+    if (!head.soId) throw new BadRequestException('歷史匯入銷退（無來源單）不可新增明細');
+    const headSoId = head.soId;
     const maxLine = await this.prisma.nx04SrItem.aggregate({ where: { srId }, _max: { lineNo: true } });
     const lineNo = (maxLine._max.lineNo ?? 0) + 1;
     await this.prisma.$transaction(async (tx) => {
       const batchAccum = new Map<string, PrismaNs.Decimal>();
-      await this.createSrItemTx(tx, user, srId, lineNo, dto, head.soId, batchAccum);
+      await this.createSrItemTx(tx, user, srId, lineNo, dto, headSoId, batchAccum);
       await this.recalcSrTotals(tx, srId, new PrismaNs.Decimal(String(head.taxRate)));
     });
     const row = await this.prisma.nx04SrItem.findFirst({
@@ -629,9 +682,12 @@ export class SalesReturnService {
     this.assertSrItemsEditable(head.status);
     const existing = await this.prisma.nx04SrItem.findFirst({ where: { id: itemId, srId }, select: SR_ITEM_SEL });
     if (!existing) throw new NotFoundException('Sales return item not found');
+    // 歷史匯入銷退明細（soItemId=null、無來源明細）不可編輯；系統內建立的必掛來源明細
+    if (!existing.soItemId) throw new BadRequestException('歷史匯入銷退明細（無來源明細）不可編輯');
+    const existingSoItemId = existing.soItemId;
     if (dto.locationId !== undefined) {
       const soItem = await this.prisma.nx04SoItem.findFirst({
-        where: { id: existing.soItemId },
+        where: { id: existingSoItemId },
         select: { warehouseId: true },
       });
       const loc = await this.prisma.nx01Location.findFirst({
@@ -644,7 +700,7 @@ export class SalesReturnService {
     const unit = new PrismaNs.Decimal(existing.unitPrice);
     await this.prisma.$transaction(async (tx) => {
       if (dto.qty !== undefined) {
-        await this.validateReturnQty(tx, tenantId, existing.soItemId, qty, itemId);
+        await this.validateReturnQty(tx, tenantId, existingSoItemId, qty, itemId);
       }
       await tx.nx04SrItem.update({
         where: { id: itemId },

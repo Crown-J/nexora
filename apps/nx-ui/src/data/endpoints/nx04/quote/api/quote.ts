@@ -9,6 +9,8 @@ import type {
   CreateQuotePayload,
   PatchQuoteItemPayload,
   Quote,
+  QuoteCandidatesResult,
+  QuotePriceIntel,
   QuoteHistoricalPrice,
   QuoteItem,
   QuoteListResponse,
@@ -20,6 +22,19 @@ export interface ListQuoteParams {
   pageSize?: number;
   status?: string;
   search?: string;
+  // 彈窗查詢欄位
+  docNoFrom?: string;
+  docNoTo?: string;
+  createdFrom?: string;
+  createdTo?: string;
+  quoteFrom?: string;
+  quoteTo?: string;
+  validity?: 'valid' | 'expired' | 'void';
+  customerCode?: string;
+  customerName?: string;
+  creator?: string;
+  partNo?: string;
+  source?: 'FORMAL' | 'INSTANT';
 }
 
 export function listQuote(params: ListQuoteParams = {}): Promise<QuoteListResponse> {
@@ -28,6 +43,18 @@ export function listQuote(params: ListQuoteParams = {}): Promise<QuoteListRespon
     pageSize: params.pageSize ? String(params.pageSize) : undefined,
     status: params.status,
     search: params.search,
+    docNoFrom: params.docNoFrom,
+    docNoTo: params.docNoTo,
+    createdFrom: params.createdFrom,
+    createdTo: params.createdTo,
+    quoteFrom: params.quoteFrom,
+    quoteTo: params.quoteTo,
+    validity: params.validity,
+    customerCode: params.customerCode,
+    customerName: params.customerName,
+    creator: params.creator,
+    partNo: params.partNo,
+    source: params.source,
   });
   return apiJson(`/nx04/quote${qs}`);
 }
@@ -92,4 +119,20 @@ export function getQuoteHistoricalPrices(
     limit: limit ? String(limit) : undefined,
   });
   return apiJson(`/nx04/quote/history${qs}`);
+}
+
+/// 報價比價面板（5 格）：建議售價 + 同客戶/同級距 × 報價/成交（近一個月）
+export function getQuotePriceIntel(customerId: string, partId: string): Promise<QuotePriceIntel> {
+  const qs = buildQueryString({ customerId, partId });
+  return apiJson(`/nx04/quote/price-intel${qs}`);
+}
+
+/// 批次報價 picker：整組替代料候選 + 各列可出量/歷史價/建議價
+export function getQuoteCandidates(
+  customerId: string,
+  partId: string,
+  warehouseId?: string,
+): Promise<QuoteCandidatesResult> {
+  const qs = buildQueryString({ customerId, partId, warehouseId: warehouseId || undefined });
+  return apiJson(`/nx04/quote/candidates${qs}`);
 }

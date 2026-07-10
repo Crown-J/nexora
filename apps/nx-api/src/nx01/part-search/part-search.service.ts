@@ -3,7 +3,7 @@
 //
 // 七支查詢全部 read-only、不寫任何資料、不會觸發 audit log。
 // 全公司任何登入使用者可呼叫（controller 不掛 @Roles、RolesGuard 看到沒設角色直接放行）。
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import type { Prisma } from 'db-core';
 
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
@@ -109,14 +109,15 @@ export class PartSearchService {
     const partNo = q.partNo?.trim();
     const modelQuery = q.modelQuery?.trim();
 
-    if (!brandId && !brandQuery && !partGroupId && !partGroupQuery && !keyword && !partNo && !modelQuery) {
-      throw new BadRequestException('至少需提供一個篩選條件（廠牌 / 品名 / 族群 / 料號 / 車型）');
-    }
+    // 執行長 2026-07-01 F2 規格：Alt+F / 末欄 Enter 空欄視同 All（不再擋全空、回傳全部、
+    // 由 HARD_RESULT_LIMIT 上限保護）。前端僅在明確觸發時才送全空條件（打字 debounce 空值不送）。
 
     const where: Prisma.Nx01PartWhereInput = { tenantId };
     if (!q.includeInactive) where.isActive = true;
     if (brandId) where.brandId = brandId;
     if (partGroupId) where.partGroupId = partGroupId;
+    if (q.techCategory) where.techCategory = q.techCategory; // 系統別（族群查法）
+    if (q.purchaseCategory) where.purchaseCategory = q.purchaseCategory; // 用途別（族群查法）
 
     // 廠牌關鍵字（執行長 2026-06-17 拍板四欄都 input）：brand.code/name contains
     if (brandQuery) {

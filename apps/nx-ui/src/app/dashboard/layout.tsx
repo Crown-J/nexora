@@ -19,6 +19,8 @@ import { Suspense } from 'react';
 // 2026-06-27 大改版：太空風 DashboardShell 封存、改傳統 ERP 外殼 WorkbenchShell
 import { WorkbenchShell } from '@design/layout/workbench/WorkbenchShell';
 import { GlobalPartQuickSearch } from '@design/components/quick-search/GlobalPartQuickSearch';
+import { GlobalInstantQuote } from '@/features/nx04/quote/ui/GlobalInstantQuote';
+import { GlobalInstantInquiry } from '@/features/nx04/quote/ui/GlobalInstantInquiry';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
@@ -26,6 +28,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">載入中...</div>}>{children}</Suspense>
       {/* F2 全域料號即時搜尋（執行長 2026-06-17 拍板、純查詢、所有登入使用者可用）*/}
       <GlobalPartQuickSearch />
+      {/* 即時報價：聽 F2 主視窗發的 nx-instant-quote 事件（Step5B）*/}
+      <GlobalInstantQuote />
+      {/* 即時詢價：聽 F2 主視窗發的 nx-instant-inquiry 事件（調貨側 B1）*/}
+      <GlobalInstantInquiry />
     </WorkbenchShell>
   );
 }

@@ -1,7 +1,7 @@
 // apps/nx-ui/src/app/dashboard/sale/qt/[id]/page.tsx
-// NX04-M3 C1：QT 報價單詳情
+// NX04-QT-SHELL：報價單深連結 → 工作區開在「詳細資料」分頁（保留舊書籤可用）
 
-import { QuoteDetailView } from '@/features/nx04/quote/ui/QuoteDetailView';
+import { QuoteWorkbench } from '@/features/nx04/quote/ui/QuoteWorkbench';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -9,5 +9,5 @@ interface RouteParams {
 
 export default async function Nx04QuoteDetailRoute({ params }: RouteParams) {
   const { id } = await params;
-  return <QuoteDetailView id={id} />;
+  return <QuoteWorkbench initialId={id} initialTab="detail" />;
 }

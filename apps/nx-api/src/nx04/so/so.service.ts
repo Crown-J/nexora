@@ -99,7 +99,7 @@ const SO_SEL = {
   totalAmount: true,
   status: true,
   paymentTerm: true,
-  // W4 [3-6] 發票聯式（2/3、建單時從 partner.defaultInvoiceCopies 帶入、可逐筆改）
+  // W4 [3-6] 發票聯式（0=不開/2/3、建單時從 partner.defaultInvoiceCopies 帶入、可逐筆改）
   invoiceCopies: true,
   // F1 特價售出 2026-06-08：標記此 SO 來自異常處置 X 處置
   specialPriceFlag: true,
@@ -115,6 +115,11 @@ const SO_SEL = {
   createdBy: true,
   updatedAt: true,
   updatedBy: true,
+  // NX04-QT-SHELL 2026-07-07：單據模板需顯示名稱欄（比照 QuoteService enrich）
+  customer: { select: { code: true, name: true } },
+  warehouse: { select: { code: true, name: true } },
+  currency: { select: { code: true } },
+  salesPerson: { select: { userName: true } },
 } as const;
 
 // W4 [3-5] 散客 L 強制二聯（service 端守門、不允許 SO 對散客客戶改 invoiceCopies）
@@ -150,6 +155,9 @@ const SO_ITEM_SEL = {
   transferStatus: true,
   fulfillStatus: true,
   tiId: true,
+  // 偉盟設計檢視 P1-5 2026-07-10：實際出貨料號（替代出貨）
+  actualPartId: true,
+  actualPartNo: true,
   createdAt: true,
   createdBy: true,
   updatedAt: true,
@@ -172,6 +180,27 @@ const Q_ITEM_MIN = {
 function mapSoItemApi<T extends { unitPrice: PrismaNs.Decimal | unknown }>(row: T) {
   const u = row.unitPrice as PrismaNs.Decimal;
   return { ...row, unitPriceSnapshot: u };
+}
+
+// NX04-QT-SHELL 2026-07-07：把 SO_SEL 帶的 customer/warehouse/currency/salesPerson 關聯攤平成
+//   customerCode/customerName/warehouseCode/warehouseName/currencyCode/salesPersonName（比照 QuoteService）。
+//   剝掉關聯物件本身、避免回傳巢狀重複。createdByName 由呼叫端另補（需查 user）。
+function flattenSoRefs<T extends Record<string, unknown>>(rest: T) {
+  const { customer, warehouse, currency, salesPerson, ...plain } = rest as Record<string, unknown> & {
+    customer?: { code?: string; name?: string } | null;
+    warehouse?: { code?: string; name?: string } | null;
+    currency?: { code?: string } | null;
+    salesPerson?: { userName?: string } | null;
+  };
+  return {
+    ...plain,
+    customerCode: customer?.code ?? null,
+    customerName: customer?.name ?? null,
+    warehouseCode: warehouse?.code ?? null,
+    warehouseName: warehouse?.name ?? null,
+    currencyCode: currency?.code ?? null,
+    salesPersonName: salesPerson?.userName ?? null,
+  };
 }
 
 @Injectable()
@@ -226,7 +255,13 @@ export class SoService {
     if (q.status?.trim()) where.status = q.status.trim();
     if (q.search?.trim()) {
       const s = q.search.trim();
-      where.OR = [{ docNo: { contains: s, mode: 'insensitive' } }, { remark: { contains: s, mode: 'insensitive' } }];
+      // NX04-QT-SHELL：搜尋含 單號/備註/客戶編號/客戶名稱（比照 QuoteService）
+      where.OR = [
+        { docNo: { contains: s, mode: 'insensitive' } },
+        { remark: { contains: s, mode: 'insensitive' } },
+        { customer: { code: { contains: s, mode: 'insensitive' } } },
+        { customer: { name: { contains: s, mode: 'insensitive' } } },
+      ];
     }
     return where;
   }
@@ -310,7 +345,7 @@ export class SoService {
     const { rev_Nx04SoItem_soId: items, ...rest } = row;
     const mappedItems = (items as object[]).map((it) => mapSoItemApi(it as never));
     return {
-      ...rest,
+      ...flattenSoRefs(rest),
       // 05 補做 D1 2026-06-09：揀貨/出貨整體進度 = lines 中最落後的 fulfillStatus
       // 值序：W(等貨) < PK(撿貨中) < PL(包貨中) < D(配送中) < F(已送達)
       // null=無 lines；UI 直接拿這欄顯示「header 揀貨狀態」
@@ -369,10 +404,26 @@ export class SoService {
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * pageSize,
         take: pageSize,
-        select: SO_SEL,
+        // NX04-QT-SHELL：單據模板列表需 建單人員名 + 項目數
+        select: { ...SO_SEL, _count: { select: { rev_Nx04SoItem_soId: true } } },
       }),
     ]);
-    return { page, pageSize, total, items: rows };
+    // 建單人員名（批次查 user）
+    const creatorIds = [...new Set(rows.map((r) => r.createdBy).filter(Boolean))];
+    const creators = creatorIds.length
+      ? await this.prisma.nx01User.findMany({ where: { id: { in: creatorIds } }, select: { id: true, userName: true } })
+      : [];
+    const creatorMap = new Map(creators.map((c) => [c.id, c.userName]));
+    const items = rows.map((r) => {
+      const { _count, ...rest } = r as typeof r & { _count: { rev_Nx04SoItem_soId: number } };
+      const flat = flattenSoRefs(rest as never);
+      return {
+        ...flat,
+        itemCount: _count?.rev_Nx04SoItem_soId ?? 0,
+        createdByName: creatorMap.get(r.createdBy) ?? null,
+      };
+    });
+    return { page, pageSize, total, items };
   }
 
   async getById(user: RequestUser, id: string) {
@@ -385,7 +436,12 @@ export class SoService {
       },
     });
     if (!row) throw new NotFoundException('SO not found');
-    return this.mapDetail(row as never);
+    const mapped = this.mapDetail(row as never);
+    // NX04-QT-SHELL：建單人員名（詳情顯示）
+    const creator = row.createdBy
+      ? await this.prisma.nx01User.findFirst({ where: { id: row.createdBy }, select: { userName: true } })
+      : null;
+    return { ...mapped, createdByName: creator?.userName ?? null };
   }
 
   async create(user: RequestUser, dto: CreateSoDto) {
@@ -987,9 +1043,14 @@ export class SoService {
     // NX04-IMPL-01 Phase 3 commit 3a 接點 3：配送中部分鎖（Crown Q-C2=A 4 項鎖、備註可改）
     // SHIPPED 階段：禁改 qty / unitPrice / locationId（量/地址鎖）、允許 remark
     if (head.status === SoStatus.SHIPPED) {
-      if (dto.qty !== undefined || dto.unitPriceSnapshot !== undefined || dto.locationId !== undefined) {
+      if (
+        dto.qty !== undefined ||
+        dto.unitPriceSnapshot !== undefined ||
+        dto.locationId !== undefined ||
+        dto.actualPartId !== undefined // 偉盟設計檢視 P1-5：出貨後替代料號亦鎖
+      ) {
         throw new ForbiddenException(
-          'SO is SHIPPED (配送中)：qty / unitPrice / locationId 已鎖、只允許改 remark',
+          'SO is SHIPPED (配送中)：qty / unitPrice / locationId / actualPartId 已鎖、只允許改 remark',
         );
       }
       // 純改 remark → 跳過 assertSoItemsEditable、允許更新
@@ -1004,6 +1065,21 @@ export class SoService {
         select: { id: true },
       });
       if (!loc) throw new BadRequestException('locationId must belong to item warehouse');
+    }
+    // 偉盟設計檢視 P1-5：實際出貨料號（替代出貨）— 驗證 + code 快照；null/空字串=清除（照下單料號出）
+    let actualPartData: { actualPartId: string | null; actualPartNo: string | null } | undefined;
+    if (dto.actualPartId !== undefined) {
+      const apId = dto.actualPartId?.trim();
+      if (!apId) {
+        actualPartData = { actualPartId: null, actualPartNo: null };
+      } else {
+        const ap = await this.prisma.nx01Part.findFirst({
+          where: { id: apId, tenantId },
+          select: { id: true, code: true },
+        });
+        if (!ap) throw new BadRequestException('actualPartId invalid for tenant');
+        actualPartData = { actualPartId: ap.id, actualPartNo: ap.code };
+      }
     }
     const qty = dto.qty !== undefined ? new PrismaNs.Decimal(dto.qty) : new PrismaNs.Decimal(existing.qty);
     const unit =
@@ -1033,6 +1109,8 @@ export class SoService {
           qty,
           unitPrice: unit,
           lineAmount: this.lineAmount(qty, unit),
+          // 偉盟設計檢視 P1-5：實際出貨料號（替代出貨）
+          ...(actualPartData !== undefined ? actualPartData : {}),
           ...(dto.remark !== undefined ? { remark: dto.remark?.trim() || null } : {}),
           // F1-E 2026-06-09：改價低於 cost/minPrice 時的理由 patch
           ...(dto.belowMinReason !== undefined
@@ -1259,8 +1337,8 @@ export class SoService {
       const tiDocNo = await allocNx02DocNo(tx, tenantId, 'TI', wh.code);
       const taxRate = new PrismaNs.Decimal('5.00');
 
-      // 計算 subtotal（M2 階段 unitCost=0 待同行報價、subtotal=0）
-      // 業務上 SO unitPrice 是賣價、不是進貨成本、TI unitCost 不能直接 = SO.unitPrice
+      // subtotal 先建 0、明細帶入同行報價後於迴圈末重算（NX04 紀錄表 B3）。
+      // 業務上 SO unitPrice 是賣價、不是進貨成本、TI unitCost 不能直接 = SO.unitPrice；成本改取自詢價紀錄。
       const subtotal = new PrismaNs.Decimal(0);
       const taxAmount = new PrismaNs.Decimal(0);
       const totalAmount = new PrismaNs.Decimal(0);
@@ -1285,9 +1363,24 @@ export class SoService {
         select: { id: true, docNo: true },
       });
 
+      // 同行報價：從詢價紀錄帶入（這個同行 × 這顆料、取最近一筆）填 unitCost（NX04 紀錄表 B3）
+      const inqRecs = await tx.nx04InquiryRecord.findMany({
+        where: { tenantId, sourcePartnerId: partner.id, partId: { in: items.map((i) => i.partId) } },
+        orderBy: [{ recordDate: 'desc' }, { createdAt: 'desc' }],
+        select: { id: true, partId: true, unitPrice: true },
+      });
+      const inqByPart = new Map<string, { id: string; unitPrice: PrismaNs.Decimal }>();
+      for (const q of inqRecs) if (!inqByPart.has(q.partId)) inqByPart.set(q.partId, { id: q.id, unitPrice: q.unitPrice });
+
       // 建 TiItem + 更新 SO line
       let line = 1;
+      let sub = new PrismaNs.Decimal(0);
       for (const it of items) {
+        const inq = inqByPart.get(it.partId);
+        const unitCost = inq ? new PrismaNs.Decimal(inq.unitPrice) : new PrismaNs.Decimal(0);
+        const qtyD = new PrismaNs.Decimal(String(it.qty));
+        const lineAmt = qtyD.mul(unitCost).toDecimalPlaces(2);
+        sub = sub.add(lineAmt);
         await tx.nx02TiItem.create({
           data: {
             tiId: ti.id,
@@ -1295,10 +1388,11 @@ export class SoService {
             partId: it.partId,
             partNo: it.partNo,
             partName: it.partName,
-            qty: new PrismaNs.Decimal(String(it.qty)),
-            unitCost: new PrismaNs.Decimal(0),
-            lineAmount: new PrismaNs.Decimal(0),
+            qty: qtyD,
+            unitCost,
+            lineAmount: lineAmt,
             sourceSoItemId: it.id,
+            sourceInquiryRecordId: inq?.id ?? null,
             createdBy: user.sub,
             updatedBy: user.sub,
           },
@@ -1312,6 +1406,13 @@ export class SoService {
           },
         });
       }
+
+      // 更新 TI 表頭金額（帶入同行報價後重算 subtotal/tax/total）
+      const tiTax = sub.mul(taxRate).div(100).toDecimalPlaces(2);
+      await tx.nx02Ti.update({
+        where: { id: ti.id },
+        data: { subtotal: sub, taxAmount: tiTax, totalAmount: sub.add(tiTax) },
+      });
 
       await this.audit.write({
         tenantId,

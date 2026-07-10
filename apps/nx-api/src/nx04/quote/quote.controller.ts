@@ -7,9 +7,7 @@ import { Roles } from '../../shared/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../shared/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../shared/guards/permissions.guard';
 import { RolesGuard } from '../../shared/guards/roles.guard';
-import { Nx04ListQueryDto } from '../../shared/nx04/nx04-list-query.dto';
-
-import { CreateQuoteDto, CreateQuoteItemDto, PatchQuoteItemDto, UpdateQuoteDto } from './dto/quote.dto';
+import { CreateQuoteDto, CreateQuoteItemDto, PatchQuoteItemDto, QuoteListQueryDto, UpdateQuoteDto } from './dto/quote.dto';
 import { QuoteService } from './quote.service';
 
 @Controller('nx04/quote')
@@ -20,7 +18,7 @@ export class QuoteController {
 
   @Get()
   @Permission('sale.quote.list')
-  list(@CurrentUser() user: RequestUser, @Query() q: Nx04ListQueryDto) {
+  list(@CurrentUser() user: RequestUser, @Query() q: QuoteListQueryDto) {
     return this.svc.list(user, q);
   }
 
@@ -35,6 +33,29 @@ export class QuoteController {
   ) {
     const n = limit ? Number(limit) : undefined;
     return this.svc.getHistoricalPrices(user, customerId, partId, Number.isFinite(n) ? n : undefined);
+  }
+
+  /// 報價比價面板（5 格）：建議售價 + 同客戶/同級距 × 報價/成交（近一個月）
+  @Get('price-intel')
+  @Permission('sale.quote.create', 'sale.quote.edit')
+  priceIntel(
+    @CurrentUser() user: RequestUser,
+    @Query('customerId') customerId: string,
+    @Query('partId') partId: string,
+  ) {
+    return this.svc.getPriceIntel(user, customerId, partId);
+  }
+
+  /// 批次報價 picker：整組替代料候選 + 各列可出量/歷史價/建議價
+  @Get('candidates')
+  @Permission('sale.quote.create', 'sale.quote.edit')
+  candidates(
+    @CurrentUser() user: RequestUser,
+    @Query('customerId') customerId: string,
+    @Query('partId') partId: string,
+    @Query('warehouseId') warehouseId?: string,
+  ) {
+    return this.svc.getQuoteCandidates(user, customerId, partId, warehouseId);
   }
 
   @Post(':id/items')

@@ -1,15 +1,13 @@
 // apps/nx-ui/src/app/dashboard/inventory/transfer/[id]/page.tsx
-// T1-fix-c 進貨對齊批次 2026-06-07：拿掉 PlanUpgradePrompt 版本守。
-'use client';
+// NX04-QT-SHELL：調撥單 - detail route（改用單據模板 StWorkbench、深連結開詳情）
 
-import { useParams } from 'next/navigation';
+import { StWorkbench } from '@/features/nx03/transfer/ui/StWorkbench';
 
-import { useTransferDoc } from '@/features/nx03/transfer/hooks/useTransfer';
-import { TransferFormView } from '@/features/nx03/transfer/ui/TransferFormView';
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
 
-export default function Nx02TransferDetailPage() {
-  const params = useParams();
-  const id = typeof params.id === 'string' ? params.id : '';
-  const vm = useTransferDoc(id || undefined);
-  return <TransferFormView vm={vm} isNew={false} />;
+export default async function TransferDetailPage({ params }: PageProps) {
+  const { id } = await params;
+  return <StWorkbench initialId={id} initialTab="detail" />;
 }

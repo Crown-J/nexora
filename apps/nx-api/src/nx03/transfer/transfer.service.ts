@@ -41,6 +41,9 @@ const TR_SEL = {
   createdBy: true,
   updatedAt: true,
   updatedBy: true,
+  // NX04-QT-SHELL 2026-07-10：單據模板需顯示倉名（比照 SoService enrich）
+  fromWarehouse: { select: { code: true, name: true } },
+  toWarehouse: { select: { code: true, name: true } },
 } as const;
 
 // W6-Phase 4b 2026-06-06：select 切 brandId（Phase 5 drop part_brand_id 欄位）
@@ -63,6 +66,21 @@ const TR_ITEM_SEL = {
   updatedAt: true,
   updatedBy: true,
 } as const;
+
+// NX04-QT-SHELL 2026-07-10：把 TR_SEL 帶的 fromWarehouse/toWarehouse 關聯攤平（比照 SoService.flattenSoRefs）
+function flattenStRefs<T extends Record<string, unknown>>(rest: T) {
+  const { fromWarehouse, toWarehouse, ...plain } = rest as Record<string, unknown> & {
+    fromWarehouse?: { code?: string; name?: string } | null;
+    toWarehouse?: { code?: string; name?: string } | null;
+  };
+  return {
+    ...plain,
+    fromWarehouseCode: fromWarehouse?.code ?? null,
+    fromWarehouseName: fromWarehouse?.name ?? null,
+    toWarehouseCode: toWarehouse?.code ?? null,
+    toWarehouseName: toWarehouse?.name ?? null,
+  };
+}
 
 @Injectable()
 export class TransferService {
@@ -172,7 +190,7 @@ export class TransferService {
 
   private mapDetail(row: { rev_Nx03StItem_stId: unknown[] } & Record<string, unknown>) {
     const { rev_Nx03StItem_stId: items, ...rest } = row;
-    return { ...rest, items };
+    return { ...flattenStRefs(rest), items };
   }
 
   async list(user: RequestUser, q: Nx03ListQueryDto) {
@@ -188,10 +206,25 @@ export class TransferService {
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * pageSize,
         take: pageSize,
-        select: TR_SEL,
+        // NX04-QT-SHELL：單據模板列表需 建單人員名 + 項目數
+        select: { ...TR_SEL, _count: { select: { rev_Nx03StItem_stId: true } } },
       }),
     ]);
-    return { page, pageSize, total, items: rows };
+    // 建單人員名（批次查 user、比照 SoService）
+    const creatorIds = [...new Set(rows.map((r) => r.createdBy).filter(Boolean))];
+    const creators = creatorIds.length
+      ? await this.prisma.nx01User.findMany({ where: { id: { in: creatorIds } }, select: { id: true, userName: true } })
+      : [];
+    const creatorMap = new Map(creators.map((c) => [c.id, c.userName]));
+    const items = rows.map((r) => {
+      const { _count, ...rest } = r as typeof r & { _count: { rev_Nx03StItem_stId: number } };
+      return {
+        ...flattenStRefs(rest as never),
+        itemCount: _count?.rev_Nx03StItem_stId ?? 0,
+        createdByName: creatorMap.get(r.createdBy) ?? null,
+      };
+    });
+    return { page, pageSize, total, items };
   }
 
   async getById(user: RequestUser, id: string) {
@@ -205,7 +238,12 @@ export class TransferService {
       },
     });
     if (!row) throw new NotFoundException('Transfer not found');
-    return this.mapDetail(row as never);
+    const mapped = this.mapDetail(row as never);
+    // NX04-QT-SHELL：建單人員名（詳情顯示）
+    const creator = row.createdBy
+      ? await this.prisma.nx01User.findFirst({ where: { id: row.createdBy }, select: { userName: true } })
+      : null;
+    return { ...mapped, createdByName: creator?.userName ?? null };
   }
 
   async create(user: RequestUser, dto: CreateTransferDto) {

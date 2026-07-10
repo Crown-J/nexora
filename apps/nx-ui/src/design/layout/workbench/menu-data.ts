@@ -145,18 +145,20 @@ export const MENU_BAR: MenuNode[] = [
     ],
   },
 
-  // ───────── 銷售作業 (W)：暫緩 ─────────
+  // ───────── 銷售作業 (W)：建置中（報價單已進新外殼、其餘為 LITE 頁待逐張改版）─────────
   {
     key: 'sales',
     label: '銷售作業',
     accel: 'W',
-    comingSoon: true,
     children: [
       { key: 'qt', label: '報價單', href: '/dashboard/sale/qt' },
+      { key: 'qt-log', label: '報價紀錄', href: '/dashboard/sale/quote-log' },
+      { key: 'iq-log', label: '詢價紀錄', href: '/dashboard/sale/inquiry-log' },
       { key: 'so', label: '銷貨單', href: '/dashboard/sale/so' },
       { key: 'sreturn', label: '銷貨退回', href: '/dashboard/sale/return' },
-      { key: 'inquiry', label: '調貨詢價', href: '/dashboard/sale/inquiry' },
-      { key: 'transfer-doc', label: '調貨單', href: '/dashboard/sale/docs/transfer' },
+      // 「調貨詢價」單據降級成清單＝上方「詢價紀錄」（即時詢價寫入）；舊 R7 mock 入口退役、路由留給內部 prototype。
+      // ⚠️ 調撥單（Nx03St 倉對倉內部調撥）2026-07-07 執行長拍板改歸「庫存管理(U) → 調撥作業」、不在銷售作業；
+      //    此處不再列（非同行調貨；同行調貨單是 Nx02Ti）。
       { key: 'promotion', label: '促銷組合', href: '/dashboard/sale/promotion' },
       { key: 'discount', label: '優惠折扣管理', href: '/dashboard/master/discount-code' },
       { key: 'sale-issue', label: '銷售異常回報', pending: true },

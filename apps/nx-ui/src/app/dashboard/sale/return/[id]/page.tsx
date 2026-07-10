@@ -1,7 +1,7 @@
 // apps/nx-ui/src/app/dashboard/sale/return/[id]/page.tsx
-// NX04-M3 C4：SR 銷退單 - detail route
+// NX04-QT-SHELL：SR 銷退單 - detail route（改用單據模板 SrWorkbench、深連結開詳情）
 
-import { SalesReturnDetailView } from '@/features/nx04/sales-return/ui/SalesReturnDetailView';
+import { SrWorkbench } from '@/features/nx04/sales-return/ui/SrWorkbench';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -9,5 +9,5 @@ interface PageProps {
 
 export default async function SalesReturnDetailPage({ params }: PageProps) {
   const { id } = await params;
-  return <SalesReturnDetailView id={id} />;
+  return <SrWorkbench initialId={id} initialTab="detail" />;
 }

@@ -16,6 +16,7 @@
  */
 'use client';
 
+import { useRef } from 'react';
 import { ChevronDown } from 'lucide-react';
 import {
   DndContext,
@@ -48,10 +49,12 @@ function DraggableTh<T>({
   col,
   sortKey,
   onSortKeyChange,
+  onColumnWidthChange,
 }: {
   col: MasterTableColumn<T>;
   sortKey?: string;
   onSortKeyChange?: (key: string) => void;
+  onColumnWidthChange?: (key: string, width: number) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: col.key,
@@ -70,7 +73,7 @@ function DraggableTh<T>({
       {...attributes}
       {...listeners}
       className={cn(
-        'whitespace-nowrap select-none px-3 py-[9px]',
+        'relative whitespace-nowrap select-none px-3 py-[9px]',
         col.minWidthClass,
         isDragging && 'bg-[var(--primary)]/10',
       )}
@@ -88,7 +91,44 @@ function DraggableTh<T>({
       ) : (
         col.label
       )}
+      {onColumnWidthChange ? <ResizeHandle colKey={col.key} onResize={onColumnWidthChange} /> : null}
     </th>
+  );
+}
+
+/** 欄寬拉桿（Excel 式、滑鼠拖右緣調寬）。stopPropagation 避免觸發欄位拖拉重排 */
+function ResizeHandle({
+  colKey,
+  onResize,
+}: {
+  colKey: string;
+  onResize: (key: string, width: number) => void;
+}) {
+  const rafRef = useRef(0);
+  return (
+    <span
+      role="separator"
+      aria-orientation="vertical"
+      onPointerDown={(e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const th = (e.currentTarget as HTMLElement).closest('th');
+        const startWidth = th?.offsetWidth ?? 140;
+        const startX = e.clientX;
+        const onMove = (ev: PointerEvent) => {
+          const w = Math.max(60, startWidth + (ev.clientX - startX));
+          if (rafRef.current) cancelAnimationFrame(rafRef.current);
+          rafRef.current = requestAnimationFrame(() => onResize(colKey, w));
+        };
+        const onUp = () => {
+          window.removeEventListener('pointermove', onMove);
+          window.removeEventListener('pointerup', onUp);
+        };
+        window.addEventListener('pointermove', onMove);
+        window.addEventListener('pointerup', onUp);
+      }}
+      className="absolute right-0 top-0 z-10 h-full w-1.5 cursor-col-resize touch-none select-none hover:bg-[var(--primary)]/40"
+    />
   );
 }
 
@@ -120,6 +160,9 @@ export function MasterTable<T>({
   sortKey,
   onSortKeyChange,
   onColumnOrderChange,
+  columnWidths,
+  onColumnWidthChange,
+  hideSerial = false,
   footerHint,
   totalCount,
 }: {
@@ -142,9 +185,15 @@ export function MasterTable<T>({
   /** 2026-06-18 表頭拖拉重排欄位順序回 callback；提供時 thead 啟用 dnd
    *  next 是新的 column key 順序、caller 應持久化（localStorage 等） */
   onColumnOrderChange?: (next: string[]) => void;
+  /** 欄寬（key→px）；提供時啟用 Excel 式拉寬 + table-fixed 版面 */
+  columnWidths?: Record<string, number>;
+  onColumnWidthChange?: (key: string, width: number) => void;
+  /** 隱藏第一欄「序號」（單據型頁面用：已有單號當首欄、序號多餘）；選取模式仍保留勾選欄 */
+  hideSerial?: boolean;
   footerHint?: string;
   totalCount?: number;
 }) {
+  const showFirstCol = selectionMode || !hideSerial;
   const total = totalCount ?? rows.length;
 
   const toggleRow = (id: string) => {
@@ -255,22 +304,32 @@ export function MasterTable<T>({
       className="flex-1 overflow-auto nx-master-scroll [scroll-padding-top:48px]"
       onKeyDown={handleTableKey}
     >
-      <table className="w-full border-collapse text-[13px]">
+      <table className={cn('w-full border-collapse text-[13px]', columnWidths && 'table-fixed')}>
+        {columnWidths ? (
+          <colgroup>
+            {showFirstCol ? <col style={{ width: 48 }} /> : null}
+            {columns.map((c) => (
+              <col key={c.key} style={{ width: columnWidths[c.key] ?? 140 }} />
+            ))}
+          </colgroup>
+        ) : null}
         <thead className="sticky top-0 z-10 border-b border-border/40 bg-card/95 backdrop-blur-md">
           <tr className="text-left text-[11.5px] font-semibold uppercase tracking-[0.02em] text-muted-foreground">
-            <th className="w-12 px-3 py-[9px]">
-              {selectionMode ? (
-                <input
-                  type="checkbox"
-                  checked={checked.size === rows.length && rows.length > 0}
-                  onChange={toggleAll}
-                  className="size-3.5 rounded border-border/60 bg-card accent-[var(--primary)]"
-                  aria-label="全選"
-                />
-              ) : (
-                <span className="font-medium">序號</span>
-              )}
-            </th>
+            {showFirstCol ? (
+              <th className="w-12 px-3 py-[9px]">
+                {selectionMode ? (
+                  <input
+                    type="checkbox"
+                    checked={checked.size === rows.length && rows.length > 0}
+                    onChange={toggleAll}
+                    className="size-3.5 rounded border-border/60 bg-card accent-[var(--primary)]"
+                    aria-label="全選"
+                  />
+                ) : (
+                  <span className="font-medium">序號</span>
+                )}
+              </th>
+            ) : null}
             {onColumnOrderChange
               ? columns.map((col) => (
                   <DraggableTh
@@ -278,12 +337,13 @@ export function MasterTable<T>({
                     col={col}
                     sortKey={sortKey}
                     onSortKeyChange={onSortKeyChange}
+                    onColumnWidthChange={onColumnWidthChange}
                   />
                 ))
               : columns.map((col) => (
                   <th
                     key={col.key}
-                    className={cn('whitespace-nowrap px-3 py-[9px]', col.minWidthClass)}
+                    className={cn('relative whitespace-nowrap px-3 py-[9px]', col.minWidthClass)}
                   >
                     {col.sortable && onSortKeyChange ? (
                       <button
@@ -299,6 +359,9 @@ export function MasterTable<T>({
                     ) : (
                       col.label
                     )}
+                    {onColumnWidthChange ? (
+                      <ResizeHandle colKey={col.key} onResize={onColumnWidthChange} />
+                    ) : null}
                   </th>
                 ))}
           </tr>
@@ -326,21 +389,23 @@ export function MasterTable<T>({
                       : cn(isEvenRow && 'bg-foreground/[0.05]', 'hover:bg-accent/10'),
                 )}
               >
-                <td className="px-3 py-[10px]" onClick={(e) => selectionMode && e.stopPropagation()}>
-                  {selectionMode ? (
-                    <input
-                      type="checkbox"
-                      checked={isChecked}
-                      onChange={() => toggleRow(id)}
-                      className="size-3.5 rounded border-border/60 bg-card accent-[var(--primary)]"
-                      aria-label={`選取 ${id}`}
-                    />
-                  ) : (
-                    <span className="font-mono text-[11px] tabular-nums text-muted-foreground/70">
-                      {String(i + 1).padStart(4, '0')}
-                    </span>
-                  )}
-                </td>
+                {showFirstCol ? (
+                  <td className="px-3 py-[10px]" onClick={(e) => selectionMode && e.stopPropagation()}>
+                    {selectionMode ? (
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => toggleRow(id)}
+                        className="size-3.5 rounded border-border/60 bg-card accent-[var(--primary)]"
+                        aria-label={`選取 ${id}`}
+                      />
+                    ) : (
+                      <span className="font-mono text-[11px] tabular-nums text-muted-foreground/70">
+                        {String(i + 1).padStart(4, '0')}
+                      </span>
+                    )}
+                  </td>
+                ) : null}
                 {columns.map((col) => (
                   <td key={col.key} className="px-3 py-[10px] text-foreground">
                     {col.render(row, i)}
@@ -361,7 +426,7 @@ export function MasterTable<T>({
                   isEvenRow && 'bg-foreground/[0.05]',
                 )}
               >
-                <td className="px-3 py-[10px]">&nbsp;</td>
+                {showFirstCol ? <td className="px-3 py-[10px]">&nbsp;</td> : null}
                 {columns.map((col) => (
                   <td key={col.key} className="px-3 py-[10px]">&nbsp;</td>
                 ))}

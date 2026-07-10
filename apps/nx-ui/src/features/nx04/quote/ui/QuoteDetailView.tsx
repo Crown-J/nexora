@@ -1,51 +1,115 @@
-// apps/nx-ui/src/features/sale/quote/ui/QuoteDetailView.tsx
-// NX04-M3 C1：QT 報價單 - 詳情 + 狀態流轉 + 加料件（含歷史價提示 + 毛利警告）
+// apps/nx-ui/src/features/nx04/quote/ui/QuoteDetailView.tsx
+// NX04-QT-SHELL：報價單詳情面板（QuoteWorkbench「詳細資料」分頁 L4 內容）
+//   左右兩塊：左＝表頭 Form（標籤:輸入框一欄一列）／右＝明細 Table（含 tfoot 金額結算）
+//   L3 工具列三狀態：
+//     · 瀏覽：⏮◀ N/M ▶⏭ ｜ A新增 E編輯 D刪除(作廢) ｜ F查詢 R重整 P列印 O匯出
+//     · 編輯表頭：S存檔 C取消（左可編、右鎖）
+//     · 編輯明細：S存檔 A新增項目 E編輯項目 D移除項目 C取消（右可編、左鎖）
+//   ⚠️ 新增 inline（最後欄 Enter 存檔產號）+ 取消視作廢 + 編輯項目 → 待 Step4 picker 一起做
 
 'use client';
 
-import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  Download,
+  FileClock,
+  Pencil,
+  Plus,
+  Printer,
+  RefreshCcw,
+  Save,
+  Search,
+  Trash2,
+  X,
+} from 'lucide-react';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 
-import { IssueReportTrigger } from '@/features/shared/issue-report-trigger';
-import { TieredFormProvider } from '@/features/shared/tiered-form/TieredFormProvider';
+import { NavButton, ToolbarButton, ToolbarSeparator } from '@/features/nx01/shell/ui/ErpToolbar';
+
+import { ToolbarPortal } from '@design/layout/workbench/WorkbenchToolbarSlot';
 
 import {
   addQuoteItem,
+  createQuote,
   getQuote,
-  getQuoteHistoricalPrices,
+  getQuotePriceIntel,
+  patchQuoteItem,
   removeQuoteItem,
   updateQuote,
   voidQuote,
 } from '@data/endpoints/nx04/quote/api/quote';
-import type {
-  CreateQuoteItemPayload,
-  Quote,
-  QuoteHistoricalPrice,
-  QuoteItem,
-  QuoteStatus,
-} from '@data/types/nx04/quote';
-import { QUOTE_STATUS_LABEL } from '@data/types/nx04/quote';
 
-export function QuoteDetailView({ id }: { id: string }) {
-  return (
-    <TieredFormProvider defaultMode="lite">
-      <QuoteDetailInner id={id} />
-    </TieredFormProvider>
-  );
-}
+import { listWarehouses } from '@data/endpoints/nx01/api/warehouse';
 
-function QuoteDetailInner({ id }: { id: string }) {
+import { CustomerPicker, type PickedCustomer } from './CustomerPicker';
+import { PartPicker, type PickedPart } from './PartPicker';
+import { QuoteRecordPickerDialog } from './QuoteRecordPickerDialog';
+import type { Quote, QuoteItem } from '@data/types/nx04/quote';
+
+export function QuoteDetailPanel({
+  id,
+  onChanged,
+  itemIndex,
+  itemTotal,
+  onPrevItem,
+  onNextItem,
+  onJumpFirst,
+  onJumpLast,
+  onCreate,
+  onSearch,
+  initialMode = 'browse',
+}: {
+  id: string;
+  onChanged?: () => void;
+  itemIndex?: number;
+  itemTotal?: number;
+  onPrevItem?: () => void;
+  onNextItem?: () => void;
+  onJumpFirst?: () => void;
+  onJumpLast?: () => void;
+  onCreate?: () => void;
+  onSearch?: () => void;
+  initialMode?: 'browse' | 'editHeader' | 'editItems'; // 建單後→編輯明細；列表編輯→編輯表頭
+}) {
   const [q, setQ] = useState<Quote | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [mode, setMode] = useState<'browse' | 'editHeader' | 'editItems'>(initialMode);
+  const [addMode, setAddMode] = useState(false); // 編輯明細時的內嵌新增（Excel 式逐列）
+  const [editingItemId, setEditingItemId] = useState<string | null>(null); // 該明細列改內嵌編輯
+  const [recordPickerOpen, setRecordPickerOpen] = useState(false);
+  const [headerConfirmOpen, setHeaderConfirmOpen] = useState(false);
+  const [selItem, setSelItem] = useState<string | null>(null); // 明細選中列（↑↓ 用）
+
+  // 表頭可編欄位（編輯模式）
+  const [quoteDate, setQuoteDate] = useState('');
+  const [validUntil, setValidUntil] = useState('');
+  const [customerRefNo, setCustomerRefNo] = useState('');
+  const [remark, setRemark] = useState('');
+  const [warehouseId, setWarehouseId] = useState('');
+  const [warehouses, setWarehouses] = useState<{ id: string; code: string; name: string }[]>([]);
+
+  // 倉庫清單（出貨倉庫下拉、編輯表頭用）
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await listWarehouses({ page: 1, pageSize: 200, isActive: true });
+        setWarehouses(res.items.map((w) => ({ id: w.id, code: w.code, name: w.name })));
+      } catch {
+        /* 撈不到不擋 */
+      }
+    })();
+  }, []);
 
   const reload = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getQuote(id);
-      setQ(data);
+      setQ(await getQuote(id));
     } catch (err) {
       setError(err instanceof Error ? err.message : '載入失敗');
     } finally {
@@ -53,16 +117,144 @@ function QuoteDetailInner({ id }: { id: string }) {
     }
   }, [id]);
 
+  const reloadAll = useCallback(async () => {
+    await reload();
+    onChanged?.();
+  }, [reload, onChanged]);
+
   useEffect(() => {
     void reload();
   }, [reload]);
+
+  // 換筆/重載時離開編輯模式、表單欄位同步自 q
+  useEffect(() => {
+    if (!q) return;
+    setQuoteDate(q.quoteDate.slice(0, 10));
+    setValidUntil(q.validUntil?.slice(0, 10) ?? '');
+    setCustomerRefNo(q.customerRefNo ?? '');
+    setRemark(q.remark ?? '');
+    setWarehouseId(q.warehouseId ?? '');
+  }, [q?.id, q?.updatedAt]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 換筆時自動回瀏覽（僅 id 真的變動才重置；初次掛載保留 initialMode，否則建單後的「編輯明細」會被洗掉）
+  const prevIdRef = useRef(id);
+  useEffect(() => {
+    if (prevIdRef.current !== id) {
+      prevIdRef.current = id;
+      setMode('browse');
+    }
+  }, [id]);
+
+  // 建單後（initialMode=editItems）q 載入即聚焦內嵌新增行料號（一次性、不再彈舊 picker）
+  const autoPickRef = useRef(false);
+  useEffect(() => {
+    if (initialMode === 'editItems' && q && !autoPickRef.current) {
+      autoPickRef.current = true;
+      setAddMode(true);
+    }
+  }, [q, initialMode]);
+
+  // 明細：預設選第一列；換單/明細變動時若選中列失效則回第一列
+  useEffect(() => {
+    const its = q?.items ?? [];
+    if (!its.length) {
+      if (selItem !== null) setSelItem(null);
+      return;
+    }
+    if (!its.some((i) => i.id === selItem)) setSelItem(its[0].id);
+  }, [q, selItem]);
+
+  // 明細：↑↓ 選列（焦點固定在明細表格、輸入框/彈窗時讓位）
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (recordPickerOpen) return;
+      const t = e.target as HTMLElement | null;
+      if (t && ['INPUT', 'SELECT', 'TEXTAREA'].includes(t.tagName)) return;
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      const its = q?.items ?? [];
+      if (!its.length) return;
+      const idx = its.findIndex((i) => i.id === selItem);
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const n = its[Math.min(its.length - 1, idx < 0 ? 0 : idx + 1)];
+        if (n) setSelItem(n.id);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        const n = its[Math.max(0, idx < 0 ? 0 : idx - 1)];
+        if (n) setSelItem(n.id);
+      }
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [q, selItem, recordPickerOpen]);
+
+  // 編輯明細 Alt 快捷（capture 搶在選單 accelerator 前 preventDefault）：A 新增 / F 從報價紀錄 / E 編輯 / D 移除 / S 存檔 / C 取消；ESC 退出新增
+  useEffect(() => {
+    if (mode !== 'editItems') return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && (addMode || editingItemId)) {
+        e.preventDefault();
+        setAddMode(false);
+        setEditingItemId(null);
+        return;
+      }
+      if (!e.altKey || e.ctrlKey || e.metaKey) return;
+      const map: Record<string, () => void> = {
+        a: () => {
+          setEditingItemId(null);
+          setAddMode(true);
+        },
+        f: () => setRecordPickerOpen(true),
+        e: () => {
+          if (selItem) {
+            setAddMode(false);
+            setEditingItemId(selItem);
+          }
+        },
+        d: () => void removeSelectedItem(),
+        s: () => {
+          setAddMode(false);
+          setEditingItemId(null);
+          setMode('browse');
+        },
+        c: () => {
+          setAddMode(false);
+          setEditingItemId(null);
+          setMode('browse');
+        },
+      };
+      const fn = map[e.key.toLowerCase()];
+      if (fn) {
+        e.preventDefault();
+        fn();
+      }
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+    // removeSelectedItem 依當前閉包；以 disable 略過 deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, addMode, editingItemId, selItem]);
+
+  // 離開編輯明細 → 關閉新增/編輯模式
+  useEffect(() => {
+    if (mode !== 'editItems') {
+      setAddMode(false);
+      setEditingItemId(null);
+    }
+  }, [mode]);
+
+  // 選中明細列捲入可視
+  useEffect(() => {
+    if (!selItem) return;
+    document.querySelector(`[data-item-id="${selItem}"]`)?.scrollIntoView({ block: 'nearest' });
+  }, [selItem]);
 
   const handle = async (fn: () => Promise<unknown>, prefix: string) => {
     setBusy(true);
     setError(null);
     try {
       await fn();
-      await reload();
+      await reloadAll();
     } catch (e) {
       setError(`${prefix}: ${e instanceof Error ? e.message : '未知錯誤'}`);
     } finally {
@@ -74,213 +266,500 @@ function QuoteDetailInner({ id }: { id: string }) {
   if (error && !q) return <div className="p-6 text-sm text-destructive">{error}</div>;
   if (!q) return null;
 
-  const editable = q.status === 'DRAFT' || q.status === 'SENT';
-  const itemsEditable = editable && !q.voidedAt;
+  const statusEditable = q.status === 'DRAFT' || q.status === 'SENT';
+  const headerEditing = mode === 'editHeader' && statusEditable && !q.voidedAt;
+  const itemsEditable = mode === 'editItems' && statusEditable && !q.voidedAt;
+  const expired = q.validUntil ? new Date(q.validUntil) < new Date(new Date().toDateString()) : false;
 
-  // 狀態流轉
-  const canSend = q.status === 'DRAFT';
-  const canReject = q.status === 'SENT';
-  const canExpire = q.status === 'SENT';
   const canVoid = q.status === 'DRAFT' || q.status === 'SENT';
 
-  return (
-    <div className="w-full min-w-0 space-y-6 p-6">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <p className="text-xs tracking-[0.35em] text-muted-foreground">SALE · QUOTE</p>
-          <h1 className="text-2xl font-mono font-semibold">{q.docNo}</h1>
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
-            <span className="rounded bg-muted px-2 py-0.5 text-xs">
-              狀態：{QUOTE_STATUS_LABEL[q.status] ?? q.status}
-            </span>
-            <span className="rounded bg-muted px-2 py-0.5 text-xs">客戶 {q.customerId}</span>
-            <span className="rounded bg-muted px-2 py-0.5 text-xs">倉庫 {q.warehouseId}</span>
-            {q.customerGradeId ? (
-              <span className="rounded bg-emerald-100 px-2 py-0.5 text-xs text-emerald-900">
-                等級 {q.customerGradeId}
-              </span>
-            ) : (
-              <span className="rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-900">
-                ⚠️ 未設客戶等級、無毛利警告
-              </span>
-            )}
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Link href="/dashboard/sale/qt" className="rounded border px-3 py-1 text-sm hover:bg-muted">
-            ← 返回列表
-          </Link>
-          <button
-            disabled={busy}
-            onClick={() => void reload()}
-            className="rounded border px-3 py-1 text-sm hover:bg-muted disabled:opacity-50"
-          >
-            重整 (R)
-          </button>
-          <IssueReportTrigger sourceDocType="QT" sourceDocId={q.id} warehouseId={q.warehouseId} />
-          {canSend ? (
-            <button
-              disabled={busy}
-              onClick={() => void handle(() => updateQuote(id, { status: 'SENT' }), '寄出')}
-              className="rounded bg-amber-500 px-3 py-1 text-sm text-white disabled:opacity-50"
-            >
-              寄出 → SENT
-            </button>
-          ) : null}
-          {canReject ? (
-            <button
-              disabled={busy}
-              onClick={() => void handle(() => updateQuote(id, { status: 'REJECTED' }), '拒絕')}
-              className="rounded border border-rose-300 px-3 py-1 text-sm text-rose-700 disabled:opacity-50"
-            >
-              客戶拒絕 → REJECTED
-            </button>
-          ) : null}
-          {canExpire ? (
-            <button
-              disabled={busy}
-              onClick={() => void handle(() => updateQuote(id, { status: 'EXPIRED' }), '過期')}
-              className="rounded border px-3 py-1 text-sm disabled:opacity-50"
-            >
-              標記過期 → EXPIRED
-            </button>
-          ) : null}
-          {canVoid ? (
-            <button
-              disabled={busy}
-              onClick={() => {
-                const reason = window.prompt('作廢原因（必填）');
-                if (!reason?.trim()) return;
-                void handle(() => voidQuote(id, reason.trim()), '作廢');
-              }}
-              className="rounded border border-zinc-300 px-3 py-1 text-sm text-zinc-700 disabled:opacity-50"
-            >
-              作廢 → CANCELLED
-            </button>
-          ) : null}
-        </div>
-      </header>
-
-      {error ? (
-        <div className="rounded border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm">{error}</div>
-      ) : null}
-
-      <HeaderEditor q={q} editable={editable} onSaved={reload} />
-
-      <ItemsSection
-        q={q}
-        items={q.items ?? []}
-        editable={itemsEditable}
-        onChanged={reload}
-      />
-
-      <footer className="flex flex-wrap gap-6 rounded border bg-muted/30 p-4 text-sm">
-        <div>
-          <div className="text-xs text-muted-foreground">未稅小計</div>
-          <div className="font-mono tabular-nums">{q.subtotal}</div>
-        </div>
-        <div>
-          <div className="text-xs text-muted-foreground">稅率 / 稅額</div>
-          <div className="font-mono tabular-nums">
-            {q.taxRate}% / {q.taxAmount}
-          </div>
-        </div>
-        <div>
-          <div className="text-xs text-muted-foreground">總額（含稅）</div>
-          <div className="font-mono tabular-nums text-lg font-semibold">{q.totalAmount}</div>
-        </div>
-        <div className="ml-auto text-xs text-muted-foreground">
-          建立 {q.createdAt.slice(0, 19).replace('T', ' ')} by {q.createdBy}
-          <br />
-          更新 {q.updatedAt.slice(0, 19).replace('T', ' ')} by {q.updatedBy}
-        </div>
-      </footer>
-    </div>
-  );
-}
-
-function HeaderEditor({
-  q,
-  editable,
-  onSaved,
-}: {
-  q: Quote;
-  editable: boolean;
-  onSaved: () => void | Promise<void>;
-}) {
-  const [quoteDate, setQuoteDate] = useState(q.quoteDate.slice(0, 10));
-  const [validUntil, setValidUntil] = useState(q.validUntil?.slice(0, 10) ?? '');
-  const [remark, setRemark] = useState(q.remark ?? '');
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-  const [savedAt, setSavedAt] = useState<string | null>(null);
-
-  async function save() {
+  async function saveHeader() {
     setBusy(true);
-    setErr(null);
+    setError(null);
     try {
-      await updateQuote(q.id, {
+      await updateQuote(id, {
         quoteDate,
         validUntil: validUntil || undefined,
+        customerRefNo: customerRefNo.trim() || undefined,
+        warehouseId: warehouseId || undefined,
         remark,
       });
-      setSavedAt(new Date().toLocaleTimeString());
-      await onSaved();
+      setMode('editItems'); // 表頭存檔後進入編輯明細（對齊 表頭→明細 流程）
+      await reloadAll();
     } catch (e) {
-      setErr(e instanceof Error ? e.message : '儲存失敗');
+      setError(`存檔: ${e instanceof Error ? e.message : '未知錯誤'}`);
     } finally {
       setBusy(false);
     }
   }
 
+  function cancelEdit() {
+    if (q) {
+      setQuoteDate(q.quoteDate.slice(0, 10));
+      setValidUntil(q.validUntil?.slice(0, 10) ?? '');
+      setCustomerRefNo(q.customerRefNo ?? '');
+      setRemark(q.remark ?? '');
+      setWarehouseId(q.warehouseId ?? '');
+    }
+    setMode('browse');
+  }
+
+  // 移除選中的明細項目（編輯明細 D）
+  async function removeSelectedItem() {
+    if (!selItem) {
+      alert('請先選一筆明細');
+      return;
+    }
+    if (!window.confirm('移除選中的明細項目？')) return;
+    try {
+      await removeQuoteItem(id, selItem);
+      await reloadAll();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : '移除失敗');
+    }
+  }
+
+  const inputCls = 'w-full rounded border bg-background px-2 py-1 text-sm disabled:opacity-60';
+  const roCls = 'w-full rounded border border-border/40 bg-muted/30 px-2 py-1 text-sm text-foreground';
+
   return (
-    <section className="rounded border p-4">
-      <h2 className="mb-3 text-sm font-semibold">基本資料 {editable ? '' : <span className="text-muted-foreground">（唯讀）</span>}</h2>
-      <div className="grid gap-3 md:grid-cols-3">
-        <label className="text-sm">
-          <span className="block mb-1">報價日</span>
-          <input
-            type="date"
-            value={quoteDate}
-            onChange={(e) => setQuoteDate(e.target.value)}
-            disabled={!editable}
-            className="w-full rounded border bg-background px-2 py-1 disabled:opacity-60"
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+      {/* L3 工具列 */}
+      <ToolbarPortal>
+        <div
+          data-nx-frame
+          className="flex items-center gap-1 border-b border-border/40 px-3 py-2"
+          style={{
+            backgroundImage:
+              'linear-gradient(180deg, var(--nx-surface-toolbar-from) 0%, var(--nx-surface-toolbar-to) 100%)',
+            boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.04), 0 1px 0 0 rgba(0,0,0,0.5)',
+          }}
+        >
+          {mode === 'browse' ? (
+            <>
+              <NavButton icon={ChevronsLeft} disabled={!onJumpFirst || (itemIndex ?? 1) <= 1} onClick={onJumpFirst} title="第一筆" />
+              <NavButton icon={ChevronLeft} disabled={!onPrevItem || (itemIndex ?? 1) <= 1} onClick={onPrevItem} title="上一筆" />
+              <span className="min-w-[3rem] px-1 text-center font-mono text-[11px] tabular-nums text-muted-foreground">
+                {itemIndex ?? '-'} / {itemTotal ?? '-'}
+              </span>
+              <NavButton
+                icon={ChevronRight}
+                disabled={!onNextItem || (itemTotal !== undefined && (itemIndex ?? 0) >= itemTotal)}
+                onClick={onNextItem}
+                title="下一筆"
+              />
+              <NavButton
+                icon={ChevronsRight}
+                disabled={!onJumpLast || (itemTotal !== undefined && (itemIndex ?? 0) >= itemTotal)}
+                onClick={onJumpLast}
+                title="最後一筆"
+              />
+              <ToolbarSeparator />
+              <ToolbarButton icon={Plus} letter="A" label="新增" enabled={!!onCreate} onClick={onCreate} />
+              <ToolbarButton icon={Pencil} letter="E" label="編輯" enabled={statusEditable && !busy} onClick={() => setMode('editHeader')} />
+              <ToolbarButton
+                icon={Trash2}
+                letter="D"
+                label="刪除"
+                enabled={canVoid && !busy}
+                variant="danger"
+                onClick={() => {
+                  const reason = window.prompt('作廢原因（必填）');
+                  if (!reason?.trim()) return;
+                  void handle(() => voidQuote(id, reason.trim()), '作廢');
+                }}
+              />
+              <ToolbarSeparator />
+              <ToolbarButton icon={Search} letter="F" label="查詢" enabled={!!onSearch} onClick={onSearch} />
+              <ToolbarButton icon={RefreshCcw} letter="R" label="重新整理" enabled onClick={() => void reload()} />
+              <ToolbarButton icon={Printer} letter="P" label="列印" enabled onClick={() => alert('列印開發中')} />
+              <ToolbarButton icon={Download} letter="O" label="匯出" enabled onClick={() => alert('匯出開發中')} />
+            </>
+          ) : mode === 'editHeader' ? (
+            <>
+              <ToolbarButton icon={Save} letter="S" label="存檔" enabled={!busy} accent onClick={() => void saveHeader()} />
+              <ToolbarButton icon={X} letter="C" label="取消" enabled={!busy} onClick={cancelEdit} />
+            </>
+          ) : (
+            <>
+              <ToolbarButton icon={Save} letter="S" label="存檔" enabled={!busy} accent onClick={() => setMode('browse')} />
+              <ToolbarButton icon={Plus} letter="A" label="新增項目" enabled={itemsEditable} pressed={addMode} onClick={() => { setEditingItemId(null); setAddMode(true); }} />
+              <ToolbarButton icon={FileClock} letter="F" label="從報價紀錄" enabled={itemsEditable} onClick={() => setRecordPickerOpen(true)} />
+              <ToolbarButton icon={Pencil} letter="E" label="編輯項目" enabled={itemsEditable && !!selItem} pressed={!!editingItemId} onClick={() => { if (selItem) { setAddMode(false); setEditingItemId(selItem); } }} />
+              <ToolbarButton icon={Trash2} letter="D" label="移除項目" enabled={itemsEditable && !!selItem} variant="danger" onClick={() => void removeSelectedItem()} />
+              <ToolbarButton icon={X} letter="C" label="取消" enabled={!busy} onClick={() => setMode('browse')} />
+            </>
+          )}
+          <div className="flex-1" />
+        </div>
+      </ToolbarPortal>
+
+      {error ? (
+        <div className="mx-4 mt-3 rounded border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm">{error}</div>
+      ) : null}
+
+      {/* 左右兩塊：左＝表頭 Form、右＝明細 Table ＋ 金額結算（高度滿版）*/}
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-4 lg:flex-row">
+        {/* 左：表頭 Form（標籤：輸入框、每欄獨立一列、滿版）；編輯明細時暗面讓位 */}
+        <section
+          className={`w-full shrink-0 space-y-2 overflow-auto rounded-lg border border-border/40 bg-card p-4 transition-opacity lg:w-[420px] ${
+            mode === 'editItems' ? 'pointer-events-none opacity-40' : ''
+          }`}
+        >
+          <FieldRow label="單號">
+            <input readOnly value={q.docNo} className={`${roCls} font-mono`} />
+          </FieldRow>
+          <FieldRow label="單據狀態">
+            <input readOnly value={q.voidedAt ? '作廢' : expired ? '失效' : '有效'} className={roCls} />
+          </FieldRow>
+          <FieldRow label="報價日期">
+            <input type="date" value={quoteDate} onChange={(e) => setQuoteDate(e.target.value)} disabled={!headerEditing} className={inputCls} />
+          </FieldRow>
+          <FieldRow label="客戶編號">
+            <input readOnly value={q.customerCode ?? q.customerId} className={`${roCls} font-mono`} />
+          </FieldRow>
+          <FieldRow label="客戶名稱">
+            <input readOnly value={q.customerName ?? ''} className={roCls} />
+          </FieldRow>
+          <FieldRow label="幣別">
+            <input readOnly value={q.currencyCode ?? q.currencyId} className={roCls} />
+          </FieldRow>
+          <FieldRow label="出貨倉庫">
+            {headerEditing ? (
+              <select
+                autoFocus
+                value={warehouseId}
+                onChange={(e) => setWarehouseId(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    setHeaderConfirmOpen(true);
+                  }
+                }}
+                className={inputCls}
+              >
+                {warehouses.map((w) => (
+                  <option key={w.id} value={w.id}>
+                    {w.code}　{w.name}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <input
+                readOnly
+                value={q.warehouseName ? `${q.warehouseCode ?? ''}　${q.warehouseName}` : (q.warehouseCode ?? q.warehouseId)}
+                className={roCls}
+              />
+            )}
+          </FieldRow>
+          <FieldRow label="建單人員">
+            <input readOnly value={q.createdByName ?? ''} className={roCls} />
+          </FieldRow>
+          <FieldRow label="建單日期">
+            <input readOnly value={q.createdAt.slice(0, 10)} className={roCls} />
+          </FieldRow>
+          <FieldRow label="有效日期" labelDanger={expired}>
+            <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} disabled={!headerEditing} className={inputCls} />
+          </FieldRow>
+          <div>
+            <div className="mb-1 text-xs text-muted-foreground">備註：</div>
+            <textarea
+              value={remark}
+              onChange={(e) => setRemark(e.target.value)}
+              disabled={!headerEditing}
+              rows={3}
+              className="w-full resize-y rounded border bg-background px-2 py-1 text-sm disabled:opacity-60"
+            />
+          </div>
+        </section>
+
+        {/* 右：明細（含 tfoot 金額結算對齊欄位）；編輯表頭時暗面讓位 */}
+        <section
+          className={`flex min-h-0 min-w-0 flex-1 flex-col transition-opacity ${
+            mode === 'editHeader' ? 'pointer-events-none opacity-40' : ''
+          }`}
+        >
+          <ItemsSection
+            q={q}
+            items={q.items ?? []}
+            editable={itemsEditable}
+            onChanged={reloadAll}
+            selectedItemId={selItem}
+            onSelectItem={setSelItem}
+            addMode={itemsEditable && addMode}
+            onExitAdd={() => setAddMode(false)}
+            editingItemId={itemsEditable ? editingItemId : null}
+            onExitEdit={() => setEditingItemId(null)}
           />
-        </label>
-        <label className="text-sm">
-          <span className="block mb-1">有效至</span>
-          <input
-            type="date"
-            value={validUntil}
-            onChange={(e) => setValidUntil(e.target.value)}
-            disabled={!editable}
-            className="w-full rounded border bg-background px-2 py-1 disabled:opacity-60"
-          />
-        </label>
-        <label className="text-sm md:col-span-3">
-          <span className="block mb-1">備註</span>
-          <input
-            value={remark}
-            onChange={(e) => setRemark(e.target.value)}
-            disabled={!editable}
-            className="w-full rounded border bg-background px-2 py-1 disabled:opacity-60"
-          />
-        </label>
+        </section>
       </div>
-      {editable ? (
-        <div className="mt-3 flex items-center gap-3">
-          <button
-            disabled={busy}
-            onClick={() => void save()}
-            className="rounded bg-primary px-3 py-1 text-sm text-primary-foreground disabled:opacity-50"
-          >
-            {busy ? '儲存中…' : '儲存基本資料'}
-          </button>
-          {savedAt ? <span className="text-xs text-emerald-700">已儲存 {savedAt}</span> : null}
-          {err ? <span className="text-xs text-destructive">{err}</span> : null}
+
+      {recordPickerOpen ? (
+        <QuoteRecordPickerDialog
+          customerId={q.customerId}
+          customerName={q.customerName}
+          onClose={() => setRecordPickerOpen(false)}
+          onConfirm={async (recs) => {
+            setRecordPickerOpen(false);
+            try {
+              for (const r of recs) {
+                // 拉入報價紀錄的料號+價（報價單每行都計入總價）
+                await addQuoteItem(q.id, {
+                  partId: r.partId,
+                  qty: Number(r.qty) || 1,
+                  unitPriceSnapshot: Number(r.unitPrice) || 0,
+                  isSelected: true,
+                });
+              }
+              await reloadAll();
+            } catch (e) {
+              alert(e instanceof Error ? e.message : '帶入失敗');
+            }
+          }}
+        />
+      ) : null}
+
+      {/* 編輯表頭 Enter → 確認 → 存檔並進入明細 */}
+      {headerConfirmOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setHeaderConfirmOpen(false)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-sm space-y-4 rounded-xl border border-border bg-card p-5 shadow-2xl">
+            <h2 className="text-sm font-semibold">確認並進入明細編輯</h2>
+            <p className="text-sm text-muted-foreground">
+              出貨倉庫：
+              {warehouses.find((w) => w.id === warehouseId)?.code ?? ''}
+              {warehouses.find((w) => w.id === warehouseId)?.name ?? ''}
+            </p>
+            <div className="flex justify-end gap-2">
+              <button type="button" onClick={() => setHeaderConfirmOpen(false)} className="rounded border px-4 py-1.5 text-sm">
+                返回
+              </button>
+              <button
+                type="button"
+                autoFocus
+                disabled={busy}
+                onClick={() => {
+                  setHeaderConfirmOpen(false);
+                  void saveHeader();
+                }}
+                className="rounded bg-primary px-4 py-1.5 text-sm text-primary-foreground disabled:opacity-50"
+              >
+                {busy ? '存檔中…' : '確認 (Enter)'}
+              </button>
+            </div>
+          </div>
         </div>
       ) : null}
-    </section>
+    </div>
+  );
+}
+
+const TOOLBAR_STYLE: React.CSSProperties = {
+  backgroundImage: 'linear-gradient(180deg, var(--nx-surface-toolbar-from) 0%, var(--nx-surface-toolbar-to) 100%)',
+  boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.04), 0 1px 0 0 rgba(0,0,0,0.5)',
+};
+
+/**
+ * 新增報價單面板（內嵌、無彈窗）：鎖右編左
+ * 單號/狀態/建單 自動；停客戶編號（picker + F4 注音）→ Enter 跳幣別 → Enter 存檔確認 → 確認建單。
+ * 出貨倉庫：選客戶時預帶該客戶預設取貨倉，可改；未指定則後端自動帶（客戶預設→使用者隸屬倉→主倉）。
+ */
+export function QuoteCreatePanel({
+  onCreated,
+  onCancel,
+}: {
+  onCreated: (id: string) => void;
+  onCancel: () => void;
+}) {
+  const [customer, setCustomer] = useState<PickedCustomer | null>(null);
+  const [quoteDate, setQuoteDate] = useState(new Date().toISOString().slice(0, 10));
+  const [currency, setCurrency] = useState('TWD');
+  const [remark, setRemark] = useState('');
+  const [warehouses, setWarehouses] = useState<{ id: string; code: string; name: string }[]>([]);
+  const [warehouseId, setWarehouseId] = useState('');
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const warehouseRef = useRef<HTMLSelectElement>(null);
+  const currencyRef = useRef<HTMLInputElement>(null);
+  const confirmRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (confirmOpen) confirmRef.current?.focus();
+  }, [confirmOpen]);
+
+  // 倉庫清單（出貨倉庫下拉）
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await listWarehouses({ page: 1, pageSize: 200, isActive: true });
+        setWarehouses(res.items.map((w) => ({ id: w.id, code: w.code, name: w.name })));
+      } catch {
+        /* 撈不到不擋建單 */
+      }
+    })();
+  }, []);
+
+  // 選客戶 → 出貨倉庫預帶該客戶預設取貨倉
+  const handlePickCustomer = (c: PickedCustomer) => {
+    setCustomer(c);
+    if (c.defaultWarehouseId) setWarehouseId(c.defaultWarehouseId);
+  };
+
+  async function doSave() {
+    if (!customer) {
+      setErr('請先選客戶');
+      return;
+    }
+    setBusy(true);
+    setErr(null);
+    try {
+      const q = await createQuote({
+        customerId: customer.id,
+        quoteDate,
+        currencyId: currency.trim() || undefined,
+        warehouseId: warehouseId || undefined,
+        taxRate: 5,
+        remark: remark.trim() || undefined,
+      });
+      onCreated(q.id);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : '建立失敗');
+      setConfirmOpen(false);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const roCls = 'w-full rounded border border-border/40 bg-muted/30 px-2 py-1 text-sm text-muted-foreground';
+  const inputCls = 'w-full rounded border bg-background px-2 py-1 text-sm';
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+      <ToolbarPortal>
+        <div data-nx-frame className="flex items-center gap-1 border-b border-border/40 px-3 py-2" style={TOOLBAR_STYLE}>
+          <ToolbarButton icon={Save} letter="S" label="存檔" enabled={!!customer && !busy} accent onClick={() => setConfirmOpen(true)} />
+          <ToolbarButton icon={X} letter="C" label="取消" enabled={!busy} onClick={onCancel} />
+          <div className="flex-1" />
+          <span className="px-1 text-[11px] text-muted-foreground">新增報價單</span>
+        </div>
+      </ToolbarPortal>
+
+      {err ? (
+        <div className="mx-4 mt-3 rounded border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm">{err}</div>
+      ) : null}
+
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-4 lg:flex-row">
+        <section className="w-full shrink-0 space-y-2 overflow-auto rounded-lg border border-border/40 bg-card p-4 lg:w-[420px]">
+          <FieldRow label="單號">
+            <input readOnly value="存檔後產生" className={roCls} />
+          </FieldRow>
+          <FieldRow label="單據狀態">
+            <input readOnly value="新建" className={roCls} />
+          </FieldRow>
+          <FieldRow label="報價日期">
+            <input type="date" value={quoteDate} onChange={(e) => setQuoteDate(e.target.value)} className={inputCls} />
+          </FieldRow>
+          <FieldRow label="客戶編號">
+            <CustomerPicker autoFocus onPick={handlePickCustomer} onCommit={() => warehouseRef.current?.focus()} />
+          </FieldRow>
+          <FieldRow label="客戶名稱">
+            <input readOnly value={customer?.name ?? ''} className={roCls} />
+          </FieldRow>
+          <FieldRow label="出貨倉庫">
+            <select
+              ref={warehouseRef}
+              value={warehouseId}
+              onChange={(e) => setWarehouseId(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  currencyRef.current?.focus();
+                }
+              }}
+              className={inputCls}
+            >
+              <option value="">（未指定，存檔自動帶）</option>
+              {warehouses.map((w) => (
+                <option key={w.id} value={w.id}>
+                  {w.code}　{w.name}
+                </option>
+              ))}
+            </select>
+          </FieldRow>
+          <FieldRow label="幣別">
+            <input
+              ref={currencyRef}
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  if (customer) setConfirmOpen(true);
+                }
+              }}
+              className={inputCls}
+            />
+          </FieldRow>
+          <FieldRow label="備註">
+            <input value={remark} onChange={(e) => setRemark(e.target.value)} className={inputCls} />
+          </FieldRow>
+        </section>
+
+        {/* 右：明細表（與詳情頁同版型、存檔前鎖定顯示空表）*/}
+        <section className="flex min-h-0 min-w-0 flex-1 flex-col">
+          <QuoteItemsTable items={[]} taxRate={5} subtotal={0} taxAmount={0} totalAmount={0} editable={false} selectedItemId={null} />
+        </section>
+      </div>
+
+      {confirmOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setConfirmOpen(false)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-sm space-y-4 rounded-xl border border-border bg-card p-5 shadow-2xl">
+            <h2 className="text-sm font-semibold">確認建立報價單</h2>
+            <p className="text-sm text-muted-foreground">
+              客戶：{customer?.code}　{customer?.name}
+              <br />
+              存檔後將產生單號，並可開始編輯明細。
+            </p>
+            <div className="flex justify-end gap-2">
+              <button type="button" onClick={() => setConfirmOpen(false)} className="rounded border px-4 py-1.5 text-sm">
+                取消
+              </button>
+              <button
+                ref={confirmRef}
+                type="button"
+                disabled={busy}
+                onClick={() => void doSave()}
+                className="rounded bg-primary px-4 py-1.5 text-sm text-primary-foreground disabled:opacity-50"
+              >
+                {busy ? '建立中…' : '確認 (Enter)'}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/** 表頭欄列：左標籤（含冒號）＋ 右輸入框，滿版一列一欄 */
+function FieldRow({
+  label,
+  children,
+  labelDanger,
+}: {
+  label: string;
+  children: React.ReactNode;
+  labelDanger?: boolean;
+}) {
+  return (
+    <label className="flex items-center gap-2">
+      <span className={`w-20 shrink-0 text-right text-xs ${labelDanger ? 'text-rose-600' : 'text-muted-foreground'}`}>
+        {label}：
+      </span>
+      <span className="min-w-0 flex-1">{children}</span>
+    </label>
   );
 }
 
@@ -289,268 +768,390 @@ function ItemsSection({
   items,
   editable,
   onChanged,
+  selectedItemId,
+  onSelectItem,
+  addMode,
+  onExitAdd,
+  editingItemId,
+  onExitEdit,
 }: {
   q: Quote;
   items: QuoteItem[];
   editable: boolean;
   onChanged: () => void | Promise<void>;
+  selectedItemId: string | null;
+  onSelectItem: (id: string) => void;
+  addMode?: boolean;
+  onExitAdd?: () => void;
+  editingItemId?: string | null;
+  onExitEdit?: () => void;
 }) {
+  const handleRemove = async (itemId: string) => {
+    try {
+      await removeQuoteItem(q.id, itemId);
+      await onChanged();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '刪除失敗');
+    }
+  };
   return (
-    <section className="space-y-3">
-      <h2 className="text-sm font-semibold">明細（{items.length} 行）</h2>
-
-      {items.length > 0 ? (
-        <div className="overflow-x-auto rounded border">
-          <table className="w-full text-sm">
-            <thead className="bg-muted text-xs uppercase text-muted-foreground">
-              <tr>
-                <th className="px-3 py-2 text-left">#</th>
-                <th className="px-3 py-2 text-left">料號 / 品名</th>
-                <th className="px-3 py-2 text-right">數量</th>
-                <th className="px-3 py-2 text-right">單價</th>
-                <th className="px-3 py-2 text-right">最低售價</th>
-                <th className="px-3 py-2 text-right">已轉量</th>
-                <th className="px-3 py-2 text-right">金額</th>
-                <th className="px-3 py-2 text-left">毛利警示</th>
-                <th className="px-3 py-2"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((it) => {
-                const below = it.minPrice && Number(it.unitPrice) < Number(it.minPrice);
-                return (
-                  <tr key={it.id} className="border-t hover:bg-muted/30">
-                    <td className="px-3 py-2 text-xs text-muted-foreground">{it.lineNo}</td>
-                    <td className="px-3 py-2 text-xs">
-                      <div className="font-mono">{it.partNo}</div>
-                      <div className="text-muted-foreground">{it.partName}</div>
-                    </td>
-                    <td className="px-3 py-2 text-right tabular-nums">{it.qty}</td>
-                    <td className={`px-3 py-2 text-right tabular-nums ${below ? 'text-rose-600 font-semibold' : ''}`}>
-                      {it.unitPrice}
-                    </td>
-                    <td className="px-3 py-2 text-right tabular-nums text-xs text-muted-foreground">
-                      {it.minPrice ?? '-'}
-                    </td>
-                    <td className="px-3 py-2 text-right tabular-nums text-xs">{it.transferredQty}</td>
-                    <td className="px-3 py-2 text-right tabular-nums">{it.lineAmount}</td>
-                    <td className="px-3 py-2 text-xs">
-                      {below ? (
-                        <span className="rounded bg-rose-100 px-2 py-0.5 text-rose-900">
-                          ⚠️ 低於最低售價：{it.belowMinReason ?? '未填理由'}
-                        </span>
-                      ) : null}
-                    </td>
-                    <td className="px-3 py-2 text-right">
-                      {editable ? (
-                        <button
-                          onClick={async () => {
-                            if (!window.confirm(`刪除明細 ${it.lineNo}？`)) return;
-                            try {
-                              await removeQuoteItem(q.id, it.id);
-                              await onChanged();
-                            } catch (e) {
-                              alert(e instanceof Error ? e.message : '刪除失敗');
-                            }
-                          }}
-                          className="text-xs text-rose-700 hover:underline"
-                        >
-                          刪除
-                        </button>
-                      ) : null}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <div className="rounded border border-dashed p-4 text-center text-xs text-muted-foreground">
-          尚無明細。{editable ? '用下方表單新增。' : ''}
-        </div>
-      )}
-
-      {editable ? (
-        <AddItemForm customerId={q.customerId} quoteId={q.id} onAdded={onChanged} />
-      ) : null}
+    <section className="flex min-h-0 min-w-0 flex-1 flex-col">
+      <QuoteItemsTable
+        items={items}
+        taxRate={Number(q.taxRate) || 0}
+        subtotal={q.subtotal}
+        taxAmount={q.taxAmount}
+        totalAmount={q.totalAmount}
+        editable={editable}
+        selectedItemId={selectedItemId}
+        onSelectItem={onSelectItem}
+        onRemoveItem={handleRemove}
+        editingItemId={editable ? editingItemId : null}
+        renderEditRow={(it) => (
+          <InlineItemRow
+            quoteId={q.id}
+            customerId={q.customerId}
+            taxRate={Number(q.taxRate) || 0}
+            nextLineNo={it.lineNo}
+            editItem={it}
+            onSaved={onChanged}
+            onExit={onExitEdit ?? (() => {})}
+          />
+        )}
+        addRow={
+          editable && addMode ? (
+            <InlineItemRow
+              quoteId={q.id}
+              customerId={q.customerId}
+              taxRate={Number(q.taxRate) || 0}
+              nextLineNo={(items[items.length - 1]?.lineNo ?? 0) + 1}
+              onSaved={onChanged}
+              onExit={onExitAdd ?? (() => {})}
+            />
+          ) : null
+        }
+      />
     </section>
   );
 }
 
-function AddItemForm({
-  customerId,
+/** 內嵌 Excel 式新增列（<tr>）：料號→數量→單價，Enter 逐格前進、末格存檔續下一列、ESC 退出。新增即計入總價。 */
+/** 內嵌 Excel 式明細列（<tr>）：新增或編輯共用。料號→數量→單價，Enter 逐格前進、末格存檔、ESC 退出。
+ *  新增：末格存檔後續下一列；編輯：存檔後退出。欄位聚焦即全選（免先 Backspace）。 */
+function InlineItemRow({
   quoteId,
-  onAdded,
+  customerId,
+  taxRate,
+  nextLineNo,
+  editItem,
+  onSaved,
+  onExit,
 }: {
-  customerId: string;
   quoteId: string;
-  onAdded: () => void | Promise<void>;
+  customerId: string;
+  taxRate: number;
+  nextLineNo: number;
+  editItem?: QuoteItem; // 提供＝編輯模式（預填、patch）
+  onSaved: () => void | Promise<void>;
+  onExit: () => void;
 }) {
-  const [partId, setPartId] = useState('');
-  const [qty, setQty] = useState('1');
-  const [unitPrice, setUnitPrice] = useState('0');
-  const [belowMinReason, setBelowMinReason] = useState('');
-  const [remark, setRemark] = useState('');
+  const isEdit = !!editItem;
+  const partFromItem = (it: QuoteItem): PickedPart => ({
+    id: it.partId,
+    code: it.baseNo ?? it.partNo,
+    name: it.partName,
+    secCode: it.brandNo ?? null,
+    brandName: it.brandName ?? null,
+    availableTotal: '0',
+    onHandTotal: '0',
+  });
+  const [part, setPart] = useState<PickedPart | null>(editItem ? partFromItem(editItem) : null);
+  const [qty, setQty] = useState(editItem ? String(editItem.qty) : '1');
+  const [price, setPrice] = useState(editItem ? String(editItem.unitPrice) : '');
   const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-  const [history, setHistory] = useState<QuoteHistoricalPrice[]>([]);
-  const [histLoading, setHistLoading] = useState(false);
+  const [pickerKey, setPickerKey] = useState(0);
+  const partRef = useRef<HTMLInputElement>(null);
+  const qtyRef = useRef<HTMLInputElement>(null);
+  const priceRef = useRef<HTMLInputElement>(null);
 
-  const fetchHistory = useCallback(async () => {
-    if (!partId.trim()) {
-      setErr('請先輸入 partId');
-      return;
-    }
-    setHistLoading(true);
-    setErr(null);
+  // 進入即聚焦料號（新增與編輯都從料號開始）
+  useEffect(() => {
+    partRef.current?.focus();
+  }, []);
+
+  const pickPart = async (p: PickedPart) => {
+    setPart(p);
+    setTimeout(() => qtyRef.current?.focus(), 0);
     try {
-      const rows = await getQuoteHistoricalPrices(customerId, partId.trim(), 5);
-      setHistory(rows);
-      if (rows.length && Number(unitPrice) === 0) {
-        // 自動帶上次報價當預設、user 可改
-        setUnitPrice(rows[0].unitPrice);
-      }
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : '查歷史價失敗');
-    } finally {
-      setHistLoading(false);
+      const intel = await getQuotePriceIntel(customerId, p.id);
+      const cq = intel.sameCustomerQuote;
+      const cs = intel.sameCustomerSale;
+      const recent = cq && cs ? (cq.date >= cs.date ? cq : cs) : (cq ?? cs);
+      setPrice(recent?.amount ?? intel.suggestedPrice ?? '');
+    } catch {
+      /* 查不到不擋 */
     }
-  }, [customerId, partId, unitPrice]);
+  };
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!partId.trim() || Number(qty) <= 0) {
-      setErr('partId / qty 必填');
+  const reset = () => {
+    setPart(null);
+    setQty('1');
+    setPrice('');
+    setPickerKey((k) => k + 1);
+    setTimeout(() => partRef.current?.focus(), 0);
+  };
+
+  const commit = async () => {
+    if (!part || Number(qty) <= 0 || Number(price) < 0) {
+      partRef.current?.focus();
       return;
     }
     setBusy(true);
-    setErr(null);
     try {
-      const payload: CreateQuoteItemPayload = {
-        partId: partId.trim(),
-        qty: Number(qty),
-        unitPriceSnapshot: Number(unitPrice),
-        belowMinReason: belowMinReason.trim() || undefined,
-        remark: remark.trim() || undefined,
-      };
-      await addQuoteItem(quoteId, payload);
-      // reset
-      setPartId('');
-      setQty('1');
-      setUnitPrice('0');
-      setBelowMinReason('');
-      setRemark('');
-      setHistory([]);
-      await onAdded();
+      if (isEdit && editItem) {
+        await patchQuoteItem(quoteId, editItem.id, {
+          partId: part.id,
+          qty: Number(qty),
+          unitPriceSnapshot: Number(price),
+        });
+        await onSaved();
+        onExit(); // 編輯單筆、存檔即退出
+      } else {
+        await addQuoteItem(quoteId, {
+          partId: part.id,
+          qty: Number(qty),
+          unitPriceSnapshot: Number(price),
+          isSelected: true, // 報價單每一行都算進總價
+        });
+        await onSaved();
+        reset(); // 續打下一列
+      }
     } catch (e) {
-      const msg = e instanceof Error ? e.message : '新增失敗';
-      setErr(
-        msg.includes('belowMinReason')
-          ? `${msg}（請補填「低於最低售價的原因」後重送）`
-          : msg,
-      );
+      alert(e instanceof Error ? e.message : isEdit ? '修改失敗' : '新增失敗');
     } finally {
       setBusy(false);
     }
-  }
+  };
+
+  const lineSub = (Number(qty) || 0) * (Number(price) || 0);
+  const lineTax = Math.round((lineSub * taxRate) / 100);
+  const fmt = (n: number) => Number(n).toLocaleString('en-US', { maximumFractionDigits: 2 });
+  const cell = 'w-full rounded border border-primary/40 bg-background px-2 py-1 text-sm tabular-nums';
+  const selectAll = (e: React.FocusEvent<HTMLInputElement>) => e.target.select();
 
   return (
-    <form onSubmit={submit} className="space-y-3 rounded border bg-muted/30 p-4">
-      <h3 className="text-sm font-semibold">新增明細</h3>
-      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-5">
-        <label className="text-sm">
-          <span className="block mb-1">🟢 料號 ID *</span>
-          <div className="flex gap-1">
-            <input
-              value={partId}
-              onChange={(e) => setPartId(e.target.value)}
-              placeholder="NX01PART..."
-              className="w-full rounded border bg-background px-2 py-1"
-              required
-            />
-            <button
-              type="button"
-              onClick={() => void fetchHistory()}
-              disabled={histLoading}
-              className="rounded border px-2 text-xs disabled:opacity-50"
-              title="查歷史價"
-            >
-              📜
-            </button>
-          </div>
-        </label>
-        <label className="text-sm">
-          <span className="block mb-1">🟢 數量 *</span>
-          <input
-            type="number"
-            step="0.0001"
-            min="0"
-            value={qty}
-            onChange={(e) => setQty(e.target.value)}
-            className="w-full rounded border bg-background px-2 py-1 tabular-nums"
-            required
-          />
-        </label>
-        <label className="text-sm">
-          <span className="block mb-1">🟢 報價單價 *</span>
-          <input
-            type="number"
-            step="0.0001"
-            min="0"
-            value={unitPrice}
-            onChange={(e) => setUnitPrice(e.target.value)}
-            className="w-full rounded border bg-background px-2 py-1 tabular-nums"
-            required
-          />
-        </label>
-        <label className="text-sm md:col-span-2">
-          <span className="block mb-1">🟡 低於最低售價原因（若被擋下、補填這欄）</span>
-          <input
-            value={belowMinReason}
-            onChange={(e) => setBelowMinReason(e.target.value)}
-            placeholder="客戶老主顧 / 量大 / ..."
-            className="w-full rounded border bg-background px-2 py-1"
-          />
-        </label>
-        <label className="text-sm md:col-span-4">
-          <span className="block mb-1">⚪ 備註</span>
-          <input
-            value={remark}
-            onChange={(e) => setRemark(e.target.value)}
-            className="w-full rounded border bg-background px-2 py-1"
-          />
-        </label>
-      </div>
-
-      {history.length > 0 ? (
-        <div className="rounded border border-emerald-200 bg-emerald-50 p-3 text-xs">
-          <div className="mb-2 font-semibold text-emerald-900">
-            📜 該客戶歷史報價（最近 {history.length} 筆）
-          </div>
-          <div className="space-y-1 font-mono">
-            {history.map((h) => (
-              <div key={h.quoteItemId} className="flex flex-wrap gap-3 text-emerald-900">
-                <span>{h.docNo}</span>
-                <span>{h.quoteDate.slice(0, 10)}</span>
-                <span>{h.status}</span>
-                <span>單價 {h.unitPrice}</span>
-                <span>數量 {h.qty}</span>
-                {h.minPrice ? <span className="opacity-60">最低 {h.minPrice}</span> : null}
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : null}
-
-      {err ? <div className="text-xs text-destructive">{err}</div> : null}
-      <button
-        type="submit"
-        disabled={busy}
-        className="rounded bg-primary px-4 py-1.5 text-sm text-primary-foreground disabled:opacity-50"
+    <tr
+      className={isEdit ? 'bg-amber-400/10' : 'bg-primary/[0.06]'}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          onExit();
+        }
+      }}
+    >
+      <td className="px-3 py-1 text-xs text-primary">{isEdit ? editItem!.lineNo : nextLineNo}</td>
+      <td
+        className="px-2 py-1"
+        colSpan={4}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            qtyRef.current?.focus();
+          }
+        }}
       >
-        {busy ? '新增中…' : '新增明細'}
-      </button>
-    </form>
+        <PartPicker
+          key={pickerKey}
+          inputRef={partRef}
+          initialText={editItem ? `${editItem.baseNo ?? editItem.partNo}　${editItem.partName}` : undefined}
+          onPick={(p) => void pickPart(p)}
+        />
+      </td>
+      <td className="px-2 py-1">
+        <input
+          ref={qtyRef}
+          type="number"
+          min="0"
+          step="1"
+          value={qty}
+          onFocus={selectAll}
+          onChange={(e) => setQty(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              priceRef.current?.focus();
+            }
+          }}
+          className={`${cell} text-right`}
+        />
+      </td>
+      <td className="px-2 py-1">
+        <input
+          ref={priceRef}
+          type="number"
+          min="0"
+          step="0.01"
+          value={price}
+          onFocus={selectAll}
+          onChange={(e) => setPrice(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              void commit();
+            }
+          }}
+          disabled={busy}
+          className={`${cell} text-right font-medium`}
+        />
+      </td>
+      <td className="px-3 py-1 text-right tabular-nums text-muted-foreground">{fmt(lineSub)}</td>
+      <td className="px-3 py-1 text-right tabular-nums text-muted-foreground">{fmt(lineTax)}</td>
+      <td className="px-3 py-1 text-right tabular-nums text-muted-foreground">{fmt(lineSub + lineTax)}</td>
+      <td className="px-2 py-1 text-center text-[11px] text-muted-foreground">Enter↵ / Esc</td>
+    </tr>
+  );
+}
+
+/** 明細表（純呈現，詳情頁與新增面板共用；新增時 items=[] + locked 顯示空表）*/
+function QuoteItemsTable({
+  items,
+  taxRate,
+  subtotal,
+  taxAmount,
+  totalAmount,
+  editable,
+  selectedItemId,
+  onSelectItem,
+  onRemoveItem,
+  addRow,
+  editingItemId,
+  renderEditRow,
+}: {
+  items: QuoteItem[];
+  taxRate: number;
+  subtotal: string | number;
+  taxAmount: string | number;
+  totalAmount: string | number;
+  editable: boolean;
+  selectedItemId: string | null;
+  onSelectItem?: (id: string) => void;
+  onRemoveItem?: (id: string) => void;
+  addRow?: React.ReactNode; // 內嵌新增列（編輯明細 + 新增模式時）
+  editingItemId?: string | null; // 該列改用內嵌編輯列
+  renderEditRow?: (it: QuoteItem) => React.ReactNode;
+}) {
+  const rate = taxRate;
+  const colCount = editable ? 11 : 10; // 序號..總價 10 欄 + 編輯時刪除欄
+  const fmt = (n: string | number) => Number(n).toLocaleString('en-US', { maximumFractionDigits: 2 });
+  // 依容器高度動態補足空白列（填滿到底）；不足則捲動
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [fitRows, setFitRows] = useState(12);
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const ROW = 37; // 每列約略高度（py-2 + 字 + 邊框）
+    const calc = () => setFitRows(Math.max(0, Math.floor((el.clientHeight - 38 - 42) / ROW)));
+    calc();
+    const ro = new ResizeObserver(calc);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const pad = Math.max(0, fitRows - items.length - (addRow ? 1 : 0));
+  return (
+    <div ref={scrollRef} className="flex-1 overflow-auto rounded-lg border border-border">
+        <table className="w-full border-collapse text-sm [&_td]:whitespace-nowrap [&_td]:border [&_td]:border-border/60 [&_th]:whitespace-nowrap [&_th]:border [&_th]:border-border/60">
+          <thead className="sticky top-0 z-10 bg-muted text-xs uppercase text-muted-foreground">
+            <tr>
+              <th className="px-3 py-2 text-left">序號</th>
+              <th className="px-3 py-2 text-left">基準料號</th>
+              <th className="px-3 py-2 text-left">廠牌料號</th>
+              <th className="px-3 py-2 text-left">廠牌</th>
+              <th className="px-3 py-2 text-left">品名</th>
+              <th className="px-3 py-2 text-right">數量</th>
+              <th className="px-3 py-2 text-right">單價</th>
+              <th className="px-3 py-2 text-right">小計</th>
+              <th className="px-3 py-2 text-right">稅額</th>
+              <th className="px-3 py-2 text-right">總價</th>
+              {editable ? <th className="px-3 py-2"></th> : null}
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((it, i) => {
+              if (editingItemId && it.id === editingItemId && renderEditRow) {
+                return <Fragment key={it.id}>{renderEditRow(it)}</Fragment>;
+              }
+              const below = it.minPrice && Number(it.unitPrice) < Number(it.minPrice);
+              const lineSub = Number(it.lineAmount);
+              const lineTax = Math.round((lineSub * rate) / 100);
+              const lineTotal = lineSub + lineTax;
+              const sel = it.id === selectedItemId;
+              return (
+                <tr
+                  key={it.id}
+                  data-item-id={it.id}
+                  onClick={() => onSelectItem?.(it.id)}
+                  className={`cursor-pointer ${
+                    sel
+                      ? 'bg-[var(--primary)]/15 shadow-[inset_3px_0_0_var(--primary)]'
+                      : `${i % 2 === 1 ? 'bg-foreground/[0.04]' : 'bg-card'} hover:bg-accent/15`
+                  }`}
+                >
+                  <td className="px-3 py-2 text-xs text-muted-foreground">{it.lineNo}</td>
+                  <td className="px-3 py-2 font-mono text-xs">{it.baseNo ?? it.partNo}</td>
+                  <td className="px-3 py-2 font-mono text-xs">{it.brandNo ?? '—'}</td>
+                  <td className="px-3 py-2 text-xs">{it.brandName ?? '—'}</td>
+                  <td className="px-3 py-2">{it.partName}</td>
+                  <td className="px-3 py-2 text-right tabular-nums">{it.qty}</td>
+                  <td
+                    className={`px-3 py-2 text-right tabular-nums ${below ? 'font-semibold text-rose-600' : ''}`}
+                    title={below ? `低於最低售價：${it.belowMinReason ?? '未填理由'}` : undefined}
+                  >
+                    {fmt(it.unitPrice)}
+                  </td>
+                  <td className="px-3 py-2 text-right tabular-nums">{fmt(lineSub)}</td>
+                  <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">{fmt(lineTax)}</td>
+                  <td className="px-3 py-2 text-right font-medium tabular-nums">{fmt(lineTotal)}</td>
+                  {editable ? (
+                    <td className="px-3 py-2 text-right">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!window.confirm(`刪除明細 ${it.lineNo}？`)) return;
+                          onRemoveItem?.(it.id);
+                        }}
+                        className="text-xs text-rose-700 hover:underline"
+                      >
+                        刪除
+                      </button>
+                    </td>
+                  ) : null}
+                </tr>
+              );
+            })}
+            {addRow}
+            {/* 動態空白列：補足填滿容器（圖二樣式、延續斑馬紋），不足則由容器捲動 */}
+            {Array.from({ length: pad }).map((_, i) => (
+              <tr key={`ph_${i}`} aria-hidden className={(items.length + i) % 2 === 1 ? 'bg-foreground/[0.04]' : 'bg-card'}>
+                {Array.from({ length: colCount }).map((__, j) => (
+                  <td key={j} className="px-3 py-2">
+                    &nbsp;
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+          <tfoot className="sticky bottom-0 z-10 border-t border-border/60 bg-muted text-sm">
+            <tr>
+              <td className="px-3 py-2 text-right text-xs text-muted-foreground" colSpan={7}>
+                合計
+              </td>
+              <td className="px-3 py-2 text-right font-medium tabular-nums">{fmt(subtotal)}</td>
+              <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">{fmt(taxAmount)}</td>
+              <td className="px-3 py-2 text-right text-base font-semibold tabular-nums">{fmt(totalAmount)}</td>
+              {editable ? <td /> : null}
+            </tr>
+          </tfoot>
+        </table>
+      </div>
   );
 }

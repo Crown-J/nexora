@@ -75,6 +75,9 @@ const ALL_PERMS: PermissionRow[] = [
   // 銷貨作業 sale
   // ────────────────────────────────────────────
   ...crudPerms('sale', 'quote', '報價單', 2010),
+  // NX04 紀錄表：報價紀錄（客戶側）/ 詢價紀錄（調貨·同行側）專屬權限（原暫借 sale.quote.*）
+  ...crudPerms('sale', 'quote-record', '報價紀錄', 2090),
+  ...crudPerms('sale', 'inquiry-record', '詢價紀錄', 2096),
   ...crudPerms('sale', 'so', '銷貨單', 2020),
   ...crudPerms('sale', 'sr', '銷退單', 2030),
   ...crudPerms('sale', 'ti', '同行調貨單', 2040),
@@ -83,6 +86,14 @@ const ALL_PERMS: PermissionRow[] = [
   // v1.2 階段 E P3：銷貨產品（售價維護角度）。對齊 v1.1 §3.2 屏障 1
   // 「售價只放銷售頁、業務不必拿主檔中心 key 也能維護售價」。Alex 2026-05-30 拍板補。
   ...crudPerms('sale', 'product', '產品（銷貨角度）', 2080),
+  {
+    code: 'sale.quote.extend-validity',
+    moduleCode: 'sale',
+    category: 'quote',
+    action: 'extend-validity',
+    name: '報價單.延長有效期（逾預設天數）',
+    sortNo: 2015,
+  },
   {
     code: 'sale.so.post',
     moduleCode: 'sale',

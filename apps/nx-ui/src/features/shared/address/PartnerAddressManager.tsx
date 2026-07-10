@@ -26,6 +26,8 @@ type EditingDraft = AddressValue & {
   isDefault?: boolean;
   recipientName?: string | null;
   recipientPhone?: string | null;
+  /** 發票抬頭（BILLING 用；空=用 partner 主檔抬頭）。偉盟設計檢視 P1-2 */
+  invoiceTitle?: string | null;
   note?: string | null;
 };
 
@@ -83,6 +85,7 @@ export function PartnerAddressManager({ partnerId }: { partnerId: string }) {
       freeformAddress: r.freeformAddress,
       recipientName: r.recipientName,
       recipientPhone: r.recipientPhone,
+      invoiceTitle: r.invoiceTitle,
       note: r.note,
     });
   };
@@ -107,6 +110,7 @@ export function PartnerAddressManager({ partnerId }: { partnerId: string }) {
       freeformAddress: editing.freeformAddress ?? null,
       recipientName: editing.recipientName ?? null,
       recipientPhone: editing.recipientPhone ?? null,
+      invoiceTitle: editing.invoiceTitle ?? null,
       note: editing.note ?? null,
     };
     try {
@@ -227,6 +231,23 @@ export function PartnerAddressManager({ partnerId }: { partnerId: string }) {
                 onChange={(next) => setEditing({ ...editing, ...next })}
               />
 
+              {/* 偉盟設計檢視 P1-2：BILLING 該筆各自開票抬頭（空=用 partner 主檔抬頭→客戶名稱） */}
+              {editing.addressType === 'BILLING' ? (
+                <div>
+                  <label className="mb-1 block text-[10px] uppercase tracking-wider text-[#888892]">
+                    發票抬頭
+                  </label>
+                  <input
+                    type="text"
+                    className="h-9 w-full rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-3 text-sm text-[#E8E8EC]"
+                    value={editing.invoiceTitle ?? ''}
+                    onChange={(e) => setEditing({ ...editing, invoiceTitle: e.target.value || null })}
+                    placeholder="空＝用主檔發票抬頭（未設則用客戶名稱）"
+                    maxLength={120}
+                  />
+                </div>
+              ) : null}
+
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="mb-1 block text-[10px] uppercase tracking-wider text-[#888892]">收件人</label>
@@ -303,6 +324,9 @@ function AddressCard({
             <div className="text-[11px] text-[#5A5A60]">
               收件：{row.recipientName ?? ''} {row.recipientPhone ? `· ${row.recipientPhone}` : ''}
             </div>
+          ) : null}
+          {row.addressType === 'BILLING' && row.invoiceTitle ? (
+            <div className="text-[11px] text-[#5A5A60]">發票抬頭：{row.invoiceTitle}</div>
           ) : null}
           {row.note ? <div className="text-[11px] text-[#5A5A60]">{row.note}</div> : null}
         </div>

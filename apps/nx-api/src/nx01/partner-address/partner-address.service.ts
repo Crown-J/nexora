@@ -29,6 +29,8 @@ const SEL = {
   freeformAddress: true,
   recipientName: true,
   recipientPhone: true,
+  // 偉盟設計檢視 P1-2 2026-07-10：發票抬頭（BILLING 各自開票）
+  invoiceTitle: true,
   note: true,
   isActive: true,
   createdAt: true,
@@ -98,6 +100,8 @@ export class PartnerAddressService {
         freeformAddress: dto.freeformAddress?.trim() || null,
         recipientName: dto.recipientName?.trim() || null,
         recipientPhone: dto.recipientPhone?.trim() || null,
+        // 偉盟設計檢視 P1-2：發票抬頭（BILLING 各自開票；空=用 partner.invoiceTitle）
+        invoiceTitle: dto.invoiceTitle?.trim() || null,
         note: dto.note?.trim() || null,
         isActive: dto.isActive ?? true,
         createdBy: user.sub,
@@ -143,6 +147,8 @@ export class PartnerAddressService {
         ...(dto.freeformAddress !== undefined ? { freeformAddress: dto.freeformAddress } : {}),
         ...(dto.recipientName !== undefined ? { recipientName: dto.recipientName } : {}),
         ...(dto.recipientPhone !== undefined ? { recipientPhone: dto.recipientPhone } : {}),
+        // 偉盟設計檢視 P1-2：發票抬頭
+        ...(dto.invoiceTitle !== undefined ? { invoiceTitle: dto.invoiceTitle?.trim() || null } : {}),
         ...(dto.note !== undefined ? { note: dto.note } : {}),
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
         updatedBy: user.sub,

@@ -77,6 +77,9 @@ export interface SoItem {
   transferStatus: string;
   fulfillStatus: string;
   tiId: string | null;
+  /** 偉盟設計檢視 P1-5 2026-07-10：實際出貨料號（替代出貨；null=照下單料號出） */
+  actualPartId?: string | null;
+  actualPartNo?: string | null;
   createdAt: string;
   createdBy: string;
   updatedAt: string;
@@ -116,6 +119,15 @@ export interface So {
   updatedAt: string;
   updatedBy: string;
   items?: SoItem[];
+  // NX04-QT-SHELL 2026-07-07：單據模板 enriched 顯示欄（後端 SO_SEL/list 回傳）
+  customerCode?: string | null;
+  customerName?: string | null;
+  warehouseCode?: string | null;
+  warehouseName?: string | null;
+  currencyCode?: string | null;
+  salesPersonName?: string | null;
+  createdByName?: string | null;
+  itemCount?: number;
 }
 
 export interface SoListResponse {
@@ -139,7 +151,8 @@ export interface CreateSoItemPayload {
 }
 
 export interface CreateSoPayload {
-  warehouseId: string;
+  // NX04-QT-SHELL：選填（後端 create 有 fallback：客戶預設倉→使用者隸屬倉→主倉）
+  warehouseId?: string;
   soDate: string;
   customerId: string;
   quoteId?: string;
@@ -173,6 +186,8 @@ export interface PatchSoItemPayload {
   qty?: number;
   unitPriceSnapshot?: number;
   remark?: string;
+  /** 偉盟設計檢視 P1-5：實際出貨料號（null=清除、照下單料號出） */
+  actualPartId?: string | null;
 }
 
 /// 拉報價 picker 回傳行（GET /nx04/so/quote-lines/open）

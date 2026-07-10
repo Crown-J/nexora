@@ -369,6 +369,8 @@ model Nx01Currency {
   rev_Nx02RrImport_currencyId       Nx02RrImport[]     @relation("R_Nx02RrImport_currencyId")
   rev_Nx02Ti_currencyId             Nx02Ti[]           @relation("R_Nx02Ti_currencyId")
   rev_Nx04Quote_currencyId          Nx04Quote[]        @relation("R_Nx04Quote_currencyId")
+  rev_Nx04QuoteRecord_currencyId    Nx04QuoteRecord[]   @relation("R_Nx04QuoteRecord_currencyId")
+  rev_Nx04InquiryRecord_currencyId  Nx04InquiryRecord[] @relation("R_Nx04InquiryRecord_currencyId")
   rev_Nx04So_currencyId             Nx04So[]           @relation("R_Nx04So_currencyId")
   rev_Nx05ApLedger_currencyId       Nx05ApLedger[]     @relation("R_Nx05ApLedger_currencyId")
   rev_Nx05ArLedger_currencyId       Nx05ArLedger[]     @relation("R_Nx05ArLedger_currencyId")
@@ -841,7 +843,10 @@ model Nx01Part {
   rev_Nx03IssueReport_partId      Nx03IssueReport[]      @relation("R_Nx03IssueReport_partId")
   rev_Nx04Co_partId               Nx04Co[]               @relation("R_Nx04Co_partId")
   rev_Nx04QuoteItem_partId        Nx04QuoteItem[]        @relation("R_Nx04QuoteItem_partId")
+  rev_Nx04QuoteRecord_partId      Nx04QuoteRecord[]      @relation("R_Nx04QuoteRecord_partId")
+  rev_Nx04InquiryRecord_partId    Nx04InquiryRecord[]    @relation("R_Nx04InquiryRecord_partId")
   rev_Nx04SoItem_partId           Nx04SoItem[]           @relation("R_Nx04SoItem_partId")
+  rev_Nx04SoItem_actualPartId     Nx04SoItem[]           @relation("R_Nx04SoItem_actualPartId")
   rev_Nx04SrItem_partId           Nx04SrItem[]           @relation("R_Nx04SrItem_partId")
   rev_Nx06DnItem_partId           Nx06DnItem[]           @relation("R_Nx06DnItem_partId")
   rev_Nx08InventoryCache_partId   Nx08InventoryCache[]   @relation("R_Nx08InventoryCache_partId")
@@ -1040,7 +1045,8 @@ model Nx01Partner {
   updatedBy                                String                       @map("updated_by") @db.VarChar(15)
   /// 舊系統往來對象代號（純對照、不綁 FK、對齊零件 oldCode 範式）；W3 [3-2] 2026-06-06 新增
   legacyCode                               String?                      @map("legacy_code") @db.VarChar(50)
-  /// 預設發票聯式（2=二聯 / 3=三聯）。SO 建單自動帶入、可逐筆改。散客 L 強制 2、不可改。；W4 [3-6] 2026-06-06 新增
+  /// 預設發票聯式（0=不開發票 / 2=二聯 / 3=三聯）。SO 建單自動帶入、可逐筆改。散客 L 強制 2、不可改。；W4 [3-6] 2026-06-06 新增
+  /// 2026-07-10 註解訂正：0=不開發票 早已實作（DTO+UI）、偉盟 BCTXP 印證過半客戶免開票（偉盟設計檢視 P1-3）
   defaultInvoiceCopies                     Int                          @default(3) @map("default_invoice_copies") @db.SmallInt
   /// 地區 ID（FK nx01_region、顯示用、不入 partner code 編號）；02 對齊第二批 C 軌 CP1 2026-06-06 新增
   regionId                                 String?                      @map("region_id") @db.VarChar(15)
@@ -1050,6 +1056,12 @@ model Nx01Partner {
   customMarginPct                          Decimal?                     @map("custom_margin_pct") @db.Decimal(5, 2)
   /// 統一編號（開立發票用，客戶與廠商均可填寫，選填）。；啟用最低需求版本：LITE-CORE
   taxId                                    String?                      @map("tax_id") @db.VarChar(20)
+  /// 發票抬頭（可異於客戶名稱、開發票用；空=用 name）。偉盟 BCINT 印證常態需求（92% 有值、常異於客戶名）。
+  /// 2026-07-10 執行長拍板（偉盟設計檢視 P1-2）；啟用最低需求版本：LITE
+  invoiceTitle                             String?                      @map("invoice_title") @db.VarChar(120)
+  /// 每月結帳日（1~31、31=月底慣例；null=未設定）。台灣月結請款文化（偉盟 BCEDT 印證）；對帳單/請款循環用。
+  /// 2026-07-10 執行長拍板（偉盟設計檢視 P1-4）；啟用最低需求版本：LITE
+  statementDay                             Int?                         @map("statement_day") @db.SmallInt
   /// 國內付款條件（PREPAY=先付款/NET30=月結30天/NET60=月結60天/NET90=月結90天）。影響國內採購AP/AR到期日計算。建立採購單時自動帶入，可手動覆蓋。；啟用最低需求版本：LITE-CORE
   paymentTermDomestic                      String                       @default("NET30") @map("payment_term_domestic") @db.VarChar(10)
   /// 客戶等級ID（FK nx01_customer_grade），供報價單定價邏輯使用。partner_type IN ('C', 'O') 通用（保養廠+同行都走 ABCD 定價、業界 muscle memory：同行看交情/量、保養廠看消費力）。；啟用最低需求版本：LITE-CORE
@@ -1100,6 +1112,8 @@ model Nx01Partner {
   rev_Nx03Parcel_toPartnerId               Nx03Parcel[]                 @relation("R_Nx03Parcel_toPartnerId")
   rev_Nx04Co_customerId                    Nx04Co[]                     @relation("R_Nx04Co_customerId")
   rev_Nx04Quote_customerId                 Nx04Quote[]                  @relation("R_Nx04Quote_customerId")
+  rev_Nx04QuoteRecord_customerId           Nx04QuoteRecord[]            @relation("R_Nx04QuoteRecord_customerId")
+  rev_Nx04InquiryRecord_sourcePartnerId    Nx04InquiryRecord[]          @relation("R_Nx04InquiryRecord_sourcePartnerId")
   rev_Nx04So_customerId                    Nx04So[]                     @relation("R_Nx04So_customerId")
   rev_Nx04Sr_customerId                    Nx04Sr[]                     @relation("R_Nx04Sr_customerId")
   rev_Nx05Allowance_partnerId              Nx05Allowance[]              @relation("R_Nx05Allowance_partnerId")
@@ -1880,6 +1894,8 @@ model Nx01Warehouse {
   rev_Nx03StockTakeItem_warehouseId     Nx03StockTakeItem[]    @relation("R_Nx03StockTakeItem_warehouseId")
   rev_Nx04Co_warehouseId                Nx04Co[]               @relation("R_Nx04Co_warehouseId")
   rev_Nx04Quote_warehouseId             Nx04Quote[]            @relation("R_Nx04Quote_warehouseId")
+  rev_Nx04QuoteRecord_warehouseId       Nx04QuoteRecord[]      @relation("R_Nx04QuoteRecord_warehouseId")
+  rev_Nx04InquiryRecord_warehouseId     Nx04InquiryRecord[]    @relation("R_Nx04InquiryRecord_warehouseId")
   rev_Nx04So_warehouseId                Nx04So[]               @relation("R_Nx04So_warehouseId")
   rev_Nx04SoItem_warehouseId            Nx04SoItem[]           @relation("R_Nx04SoItem_warehouseId")
   rev_Nx04Sr_warehouseId                Nx04Sr[]               @relation("R_Nx04Sr_warehouseId")
@@ -2778,6 +2794,8 @@ model Nx02TiItem {
   updatedBy      String        @map("updated_by") @db.VarChar(15)
   /// 來源銷貨明細 ID（必填，反向追蹤這個 TI 明細是為了哪張 SO 的哪個 line 而存在）。Phase 0 D3 新增。；啟用最低需求版本：LITE-CORE
   sourceSoItemId String        @map("source_so_item_id") @db.VarChar(15)
+  /// 來源詢價紀錄 ID（可空，建 TI 時同行報價取自此筆詢價紀錄；id 快照、不設 FK）。NX04 紀錄表 B3 2026-07-06。；啟用最低需求版本：LITE-CORE
+  sourceInquiryRecordId String? @map("source_inquiry_record_id") @db.VarChar(15)
   ti             Nx02Ti        @relation("R_Nx02TiItem_tiId", fields: [tiId], references: [id])
   rfqItem        Nx02RfqItem?  @relation("R_Nx02TiItem_rfqItemId", fields: [rfqItemId], references: [id])
   part           Nx01Part      @relation("R_Nx02TiItem_partId", fields: [partId], references: [id])
@@ -4158,6 +4176,8 @@ model Nx04Quote {
   salesPersonId             String?            @map("sales_person_id") @db.VarChar(15)
   /// 參考文號（客戶採購單號等對帳用，選填）。；啟用最低需求版本：LITE-CORE
   customerRefNo             String?            @map("customer_ref_no") @db.VarChar(50)
+  /// 來源（FORMAL 正式報價單=多行文件 / INSTANT 即時報價=單行紀錄）。NX04 報價架構 2026-07-02。；啟用最低需求版本：LITE-CORE
+  source                    String             @default("FORMAL") @db.VarChar(10)
   tenant                    Nx99Tenant         @relation("R_Nx04Quote_tenantId", fields: [tenantId], references: [id])
   warehouse                 Nx01Warehouse      @relation("R_Nx04Quote_warehouseId", fields: [warehouseId], references: [id])
   customer                  Nx01Partner        @relation("R_Nx04Quote_customerId", fields: [customerId], references: [id])
@@ -4225,6 +4245,108 @@ model Nx04QuoteItem {
   @@map("nx04_quote_item")
 }
 
+/// 報價紀錄表（客戶側原子日誌）：每次即時報價/報價單行寫一筆；餵報價單、銷貨單自動帶價 + 拉入。NX04 報價架構 2026-07-06。
+model Nx04QuoteRecord {
+  /// [NX04]+[QTRC]+[7碼流水號]，EX：NX04QTRC0000001；啟用最低需求版本：LITE-CORE
+  id              String        @id @default(dbgenerated("gen_nx04_quote_record_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵）。
+  tenantId        String        @map("tenant_id") @db.VarChar(15)
+  /// 報價日期。
+  recordDate      DateTime      @map("record_date") @db.Date
+  /// 客戶 ID（FK nx01_partner，partner_type=C/O）。
+  customerId      String        @map("customer_id") @db.VarChar(15)
+  /// 客戶等級 ID 快照（比價「同級距」用；id 快照、不設 FK）。
+  customerGradeId String?       @map("customer_grade_id") @db.VarChar(15)
+  /// 料號 ID（FK nx01_part）。
+  partId          String        @map("part_id") @db.VarChar(15)
+  /// 料號快照（基準料號 code）。
+  partNo          String        @map("part_no") @db.VarChar(50)
+  /// 品名快照。
+  partName        String        @map("part_name") @db.VarChar(200)
+  /// 出貨倉（選填，FK nx01_warehouse）。
+  warehouseId     String?       @map("warehouse_id") @db.VarChar(15)
+  /// 數量（量價條件；預設 1）。
+  qty             Decimal       @default(1) @db.Decimal(14, 4)
+  /// 報價單價。
+  unitPrice       Decimal       @map("unit_price") @db.Decimal(14, 4)
+  /// 幣別 ID（FK nx01_currency，預設 TWD）。
+  currencyId      String        @default("TWD") @map("currency_id") @db.VarChar(15)
+  /// 來源（INSTANT 即時報價 / QUOTE 由報價單行寫入）。
+  source          String        @default("INSTANT") @db.VarChar(10)
+  /// 來源單據 ID（source=QUOTE 時回指報價單；id 快照、不設 FK）。
+  sourceDocId     String?       @map("source_doc_id") @db.VarChar(15)
+  /// 業務員（id 快照、不設 FK，同 createdBy 範式）。
+  salesPersonId   String?       @map("sales_person_id") @db.VarChar(15)
+  /// 備註。
+  remark          String?       @db.VarChar(200)
+  /// 建立時間。
+  createdAt       DateTime      @default(now()) @map("created_at")
+  /// 建立人（使用者 ID）。
+  createdBy       String        @map("created_by") @db.VarChar(15)
+  /// 更新時間。
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+  /// 更新人（使用者 ID）。
+  updatedBy       String        @map("updated_by") @db.VarChar(15)
+  tenant          Nx99Tenant    @relation("R_Nx04QuoteRecord_tenantId", fields: [tenantId], references: [id])
+  customer        Nx01Partner   @relation("R_Nx04QuoteRecord_customerId", fields: [customerId], references: [id])
+  part            Nx01Part      @relation("R_Nx04QuoteRecord_partId", fields: [partId], references: [id])
+  warehouse       Nx01Warehouse? @relation("R_Nx04QuoteRecord_warehouseId", fields: [warehouseId], references: [id])
+  currency        Nx01Currency  @relation("R_Nx04QuoteRecord_currencyId", fields: [currencyId], references: [id])
+
+  @@index([tenantId, customerId, partId])
+  @@index([tenantId, partId])
+  @@index([tenantId, recordDate])
+  @@map("nx04_quote_record")
+}
+
+/// 詢價紀錄表（調貨/同行側原子日誌）：每次即時詢價寫一筆；餵調貨單拉入。NX04 報價架構 2026-07-06。
+model Nx04InquiryRecord {
+  /// [NX04]+[IQRC]+[7碼流水號]，EX：NX04IQRC0000001；啟用最低需求版本：LITE-CORE
+  id              String        @id @default(dbgenerated("gen_nx04_inquiry_record_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵）。
+  tenantId        String        @map("tenant_id") @db.VarChar(15)
+  /// 詢價日期。
+  recordDate      DateTime      @map("record_date") @db.Date
+  /// 同行/調貨來源 ID（FK nx01_partner，partner_type=O）。
+  sourcePartnerId String        @map("source_partner_id") @db.VarChar(15)
+  /// 料號 ID（FK nx01_part）。
+  partId          String        @map("part_id") @db.VarChar(15)
+  /// 料號快照（基準料號 code）。
+  partNo          String        @map("part_no") @db.VarChar(50)
+  /// 品名快照。
+  partName        String        @map("part_name") @db.VarChar(200)
+  /// 調入倉（選填，FK nx01_warehouse）。
+  warehouseId     String?       @map("warehouse_id") @db.VarChar(15)
+  /// 數量（量價條件；預設 1）。
+  qty             Decimal       @default(1) @db.Decimal(14, 4)
+  /// 同行報我的價（調貨成本）。
+  unitPrice       Decimal       @map("unit_price") @db.Decimal(14, 4)
+  /// 幣別 ID（FK nx01_currency，預設 TWD）。
+  currencyId      String        @default("TWD") @map("currency_id") @db.VarChar(15)
+  /// 業務員（id 快照、不設 FK，同 createdBy 範式）。
+  salesPersonId   String?       @map("sales_person_id") @db.VarChar(15)
+  /// 備註。
+  remark          String?       @db.VarChar(200)
+  /// 建立時間。
+  createdAt       DateTime      @default(now()) @map("created_at")
+  /// 建立人（使用者 ID）。
+  createdBy       String        @map("created_by") @db.VarChar(15)
+  /// 更新時間。
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+  /// 更新人（使用者 ID）。
+  updatedBy       String        @map("updated_by") @db.VarChar(15)
+  tenant          Nx99Tenant    @relation("R_Nx04InquiryRecord_tenantId", fields: [tenantId], references: [id])
+  sourcePartner   Nx01Partner   @relation("R_Nx04InquiryRecord_sourcePartnerId", fields: [sourcePartnerId], references: [id])
+  part            Nx01Part      @relation("R_Nx04InquiryRecord_partId", fields: [partId], references: [id])
+  warehouse       Nx01Warehouse? @relation("R_Nx04InquiryRecord_warehouseId", fields: [warehouseId], references: [id])
+  currency        Nx01Currency  @relation("R_Nx04InquiryRecord_currencyId", fields: [currencyId], references: [id])
+
+  @@index([tenantId, sourcePartnerId, partId])
+  @@index([tenantId, partId])
+  @@index([tenantId, recordDate])
+  @@map("nx04_inquiry_record")
+}
+
 /// =======================================================
 /// Nx04So — DB table `nx04_so`
 /// =======================================================
@@ -4276,7 +4398,7 @@ model Nx04So {
   status                 String         @default("DRAFT") @db.VarChar(30)
   /// 付款條件（快照自nx01_partner.payment_term）。影響AR產生時機。；啟用最低需求版本：LITE-CORE
   paymentTerm            String         @default("NET30") @map("payment_term") @db.VarChar(10)
-  /// 發票聯式（2=二聯 / 3=三聯）。建單時 service 從 partner.defaultInvoiceCopies 帶入、可逐筆改；散客 L 強制 2。；W4 [3-6] 2026-06-06 新增
+  /// 發票聯式（0=不開發票 / 2=二聯 / 3=三聯）。建單時 service 從 partner.defaultInvoiceCopies 帶入、可逐筆改；散客 L 強制 2。；W4 [3-6] 2026-06-06 新增
   invoiceCopies          Int            @default(3) @map("invoice_copies") @db.SmallInt
   /// 預計出貨日（選填）。；啟用最低需求版本：LITE-CORE
   expectedDeliveryDate   DateTime?      @map("expected_delivery_date") @db.Date
@@ -4390,9 +4512,16 @@ model Nx04SoItem {
   /// 引擎 assertSoLinePriceReason 偵測 bundleId 非空時 skip（避免重複折）；
   /// 報表分類用：套餐銷售追蹤 + 退貨對沖整組價。；啟用最低需求版本：LITE-CORE
   bundleId                      String?           @map("bundle_id") @db.VarChar(15)
+  /// 實際出貨料號 ID（替代出貨用；null=照下單料號 partId 出）。偉盟 RSIO 雙料號（ROPTN下單/ROPNO實出）印證。
+  /// 下單料號 partId 不動、替代出貨時本欄記實際出的料 → 保固追溯/退貨核對用。
+  /// 2026-07-10 執行長拍板（偉盟設計檢視 P1-5）；啟用最低需求版本：LITE
+  actualPartId                  String?           @map("actual_part_id") @db.VarChar(15)
+  /// 實際出貨料號快照（同 partNo 範式、歷史不隨主檔變）；啟用最低需求版本：LITE
+  actualPartNo                  String?           @map("actual_part_no") @db.VarChar(50)
   so                            Nx04So            @relation("R_Nx04SoItem_soId", fields: [soId], references: [id])
   quoteItem                     Nx04QuoteItem?    @relation("R_Nx04SoItem_quoteItemId", fields: [quoteItemId], references: [id])
   part                          Nx01Part          @relation("R_Nx04SoItem_partId", fields: [partId], references: [id])
+  actualPart                    Nx01Part?         @relation("R_Nx04SoItem_actualPartId", fields: [actualPartId], references: [id], onDelete: SetNull)
   warehouse                     Nx01Warehouse     @relation("R_Nx04SoItem_warehouseId", fields: [warehouseId], references: [id])
   location                      Nx01Location?     @relation("R_Nx04SoItem_locationId", fields: [locationId], references: [id])
   discountCode                  Nx01DiscountCode? @relation("R_Nx04SoItem_discountCodeId", fields: [discountCodeId], references: [id])
@@ -4432,8 +4561,10 @@ model Nx04Sr {
   srDate                DateTime      @map("sr_date") @db.Date
   /// 客戶ID（FK nx01_partner）。；啟用最低需求版本：LITE-CORE
   customerId            String        @map("customer_id") @db.VarChar(15)
-  /// 來源銷貨單ID（必填，FK nx04_so）。；啟用最低需求版本：LITE-CORE
-  soId                  String        @map("so_id") @db.VarChar(15)
+  /// 來源銷貨單ID（FK nx04_so）。；啟用最低需求版本：LITE-CORE
+  /// 2026-07-07 改可空（Crown 拍板）：DB 層可空僅供偉盟歷史銷退匯入（無原單參照）；
+  /// 系統內建立銷退仍必填（DTO soId! + service assertSoReturnable 驗證、不受此變更影響）。
+  soId                  String?       @map("so_id") @db.VarChar(15)
   /// 退貨取件方式（S=客戶自行送回/C=外務順路取回/P=客戶自行寄回）。由外務組長在 NX07 決定並更新，NX04 建立時可預填供參考。；啟用最低需求版本：LITE-CORE
   returnMethod          String        @map("return_method") @db.VarChar(1)
   /// 退回方式（A=業務發起／計畫性、B=送貨員當場帶回／臨時）。
@@ -4473,7 +4604,7 @@ model Nx04Sr {
   tenant                Nx99Tenant    @relation("R_Nx04Sr_tenantId", fields: [tenantId], references: [id])
   warehouse             Nx01Warehouse @relation("R_Nx04Sr_warehouseId", fields: [warehouseId], references: [id])
   customer              Nx01Partner   @relation("R_Nx04Sr_customerId", fields: [customerId], references: [id])
-  so                    Nx04So        @relation("R_Nx04Sr_soId", fields: [soId], references: [id])
+  so                    Nx04So?       @relation("R_Nx04Sr_soId", fields: [soId], references: [id])
   rev_Nx04SrItem_srId   Nx04SrItem[]  @relation("R_Nx04SrItem_srId")
   rev_Nx06Dn_sourceSrId Nx06Dn[]      @relation("R_Nx06Dn_sourceSrId")
 
@@ -4490,7 +4621,8 @@ model Nx04SrItem {
   /// 對應銷退單表頭ID（FK nx04_sr）。；啟用最低需求版本：LITE-CORE
   srId             String        @map("sr_id") @db.VarChar(15)
   /// 來源銷貨明細ID（FK nx04_so_item）。；啟用最低需求版本：LITE-CORE
-  soItemId         String        @map("so_item_id") @db.VarChar(15)
+  /// 2026-07-07 改可空（Crown 拍板）：DB 層可空僅供偉盟歷史銷退匯入；系統內建立仍必填（DTO soItemId! 驗證）。
+  soItemId         String?       @map("so_item_id") @db.VarChar(15)
   /// 明細行號（1,2,3…）。；啟用最低需求版本：LITE-CORE
   lineNo           Int           @map("line_no")
   /// 零件ID（FK nx01_part）。；啟用最低需求版本：LITE-CORE
@@ -4528,7 +4660,7 @@ model Nx04SrItem {
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
   updatedBy        String        @map("updated_by") @db.VarChar(15)
   sr               Nx04Sr        @relation("R_Nx04SrItem_srId", fields: [srId], references: [id])
-  soItem           Nx04SoItem    @relation("R_Nx04SrItem_soItemId", fields: [soItemId], references: [id])
+  soItem           Nx04SoItem?   @relation("R_Nx04SrItem_soItemId", fields: [soItemId], references: [id])
   part             Nx01Part      @relation("R_Nx04SrItem_partId", fields: [partId], references: [id])
   location         Nx01Location? @relation("R_Nx04SrItem_locationId", fields: [locationId], references: [id])
 
@@ -7073,6 +7205,8 @@ model Nx99Tenant {
   rev_Nx03StockTake_tenantId               Nx03StockTake[]               @relation("R_Nx03StockTake_tenantId")
   rev_Nx04Co_tenantId                      Nx04Co[]                      @relation("R_Nx04Co_tenantId")
   rev_Nx04Quote_tenantId                   Nx04Quote[]                   @relation("R_Nx04Quote_tenantId")
+  rev_Nx04QuoteRecord_tenantId             Nx04QuoteRecord[]             @relation("R_Nx04QuoteRecord_tenantId")
+  rev_Nx04InquiryRecord_tenantId           Nx04InquiryRecord[]           @relation("R_Nx04InquiryRecord_tenantId")
   rev_Nx04So_tenantId                      Nx04So[]                      @relation("R_Nx04So_tenantId")
   rev_Nx04Sr_tenantId                      Nx04Sr[]                      @relation("R_Nx04Sr_tenantId")
   rev_Nx04Promotion_tenantId               Nx04Promotion[]               @relation("R_Nx04Promotion_tenantId")
@@ -7430,6 +7564,9 @@ model Nx01PartnerAddress {
   /// 收件 / 送達聯絡
   recipientName   String?       @map("recipient_name") @db.VarChar(50)
   recipientPhone  String?       @map("recipient_phone") @db.VarChar(50)
+  /// 發票抬頭（BILLING 該筆各自開票用；空=用 partner.invoiceTitle→name）。偉盟 BCUX 印證多據點各自開票。
+  /// 2026-07-10 執行長拍板（偉盟設計檢視 P1-2）；啟用最低需求版本：LITE
+  invoiceTitle    String?       @map("invoice_title") @db.VarChar(120)
   note            String?       @db.VarChar(200)
   isActive        Boolean       @default(true) @map("is_active")
   createdAt       DateTime      @default(now()) @map("created_at")

@@ -50,8 +50,12 @@ export type PartnerDto = {
   defaultCurrencyName?: string | null;
   // W3 [3-2] 舊代號（純對照）
   legacyCode?: string | null;
-  // W4 [3-6] 預設發票聯式（2/3）
+  // W4 [3-6] 預設發票聯式（0/2/3）
   defaultInvoiceCopies?: number | null;
+  // 偉盟設計檢視 P1-2 2026-07-10：發票抬頭（空=用 name）
+  invoiceTitle?: string | null;
+  // 偉盟設計檢視 P1-4 2026-07-10：每月結帳日（1~31、31=月底慣例）
+  statementDay?: number | null;
   createdAt: string;
   createdBy: string | null;
   createdByUsername?: string | null;
@@ -101,6 +105,10 @@ export type PartnerWritableFields = {
   legacyCode?: string | null;
   // W4 [3-6] 預設發票聯式
   defaultInvoiceCopies?: number | null;
+  // 偉盟設計檢視 P1-2 2026-07-10：發票抬頭
+  invoiceTitle?: string | null;
+  // 偉盟設計檢視 P1-4 2026-07-10：每月結帳日
+  statementDay?: number | null;
 };
 
 // W3 [3-1]：code 改 optional（未填系統自動產 類型碼+4 碼、可手動覆寫）

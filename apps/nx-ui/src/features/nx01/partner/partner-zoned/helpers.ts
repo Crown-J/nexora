@@ -123,8 +123,14 @@ export function partnerDraftToBody(
         if (Number.isFinite(n)) body[f.key] = n;
         continue;
       }
-      // W4 [3-6] defaultInvoiceCopies：字串 → number（2 / 3）
+      // W4 [3-6] defaultInvoiceCopies：字串 → number（0 / 2 / 3）
       if (f.key === 'defaultInvoiceCopies') {
+        const n = Number(trimmed);
+        if (Number.isFinite(n)) body[f.key] = n;
+        continue;
+      }
+      // 偉盟設計檢視 P1-4：statementDay 字串 → number（1~31）
+      if (f.key === 'statementDay') {
         const n = Number(trimmed);
         if (Number.isFinite(n)) body[f.key] = n;
         continue;
