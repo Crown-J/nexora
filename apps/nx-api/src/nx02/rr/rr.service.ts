@@ -46,6 +46,12 @@ const RR_SEL = {
   createdBy: true,
   updatedAt: true,
   updatedBy: true,
+  // NX02-RR-SHELL 2026-07-10：單據模板 enrich——關聯名稱由 flattenRrRefs 攤平（比照 SoService）
+  supplier: { select: { code: true, name: true } },
+  warehouse: { select: { code: true, name: true } },
+  po: { select: { docNo: true } },
+  ti: { select: { docNo: true } },
+  rfq: { select: { docNo: true } },
 } as const;
 
 const RR_ITEM_SEL = {
@@ -80,6 +86,29 @@ const RR_ITEM_SEL = {
   part: { select: { secCode: true } },
 } as const;
 
+// NX02-RR-SHELL 2026-07-10：把 RR_SEL 帶的 supplier/warehouse/po/ti/rfq 關聯攤平成
+//   supplierCode/supplierName/warehouseCode/warehouseName/poDocNo/tiDocNo/rfqDocNo（比照 SoService）。
+//   剝掉關聯物件本身、避免回傳巢狀重複。createdByName 由呼叫端另補（需查 user）。
+function flattenRrRefs<T extends Record<string, unknown>>(rest: T) {
+  const { supplier, warehouse, po, ti, rfq, ...plain } = rest as Record<string, unknown> & {
+    supplier?: { code?: string; name?: string } | null;
+    warehouse?: { code?: string; name?: string } | null;
+    po?: { docNo?: string } | null;
+    ti?: { docNo?: string } | null;
+    rfq?: { docNo?: string } | null;
+  };
+  return {
+    ...plain,
+    supplierCode: supplier?.code ?? null,
+    supplierName: supplier?.name ?? null,
+    warehouseCode: warehouse?.code ?? null,
+    warehouseName: warehouse?.name ?? null,
+    poDocNo: po?.docNo ?? null,
+    tiDocNo: ti?.docNo ?? null,
+    rfqDocNo: rfq?.docNo ?? null,
+  };
+}
+
 @Injectable()
 export class RrService {
   constructor(
@@ -92,7 +121,14 @@ export class RrService {
     if (q.status?.trim()) where.status = q.status.trim();
     if (q.search?.trim()) {
       const s = q.search.trim();
-      where.OR = [{ docNo: { contains: s, mode: 'insensitive' } }, { remark: { contains: s, mode: 'insensitive' } }];
+      // NX02-RR-SHELL：搜尋含 單號/備註/供應商編號/供應商名稱/來源採購單號（比照 SoService 加關聯搜尋）
+      where.OR = [
+        { docNo: { contains: s, mode: 'insensitive' } },
+        { remark: { contains: s, mode: 'insensitive' } },
+        { supplier: { code: { contains: s, mode: 'insensitive' } } },
+        { supplier: { name: { contains: s, mode: 'insensitive' } } },
+        { po: { docNo: { contains: s, mode: 'insensitive' } } },
+      ];
     }
     return where;
   }
@@ -347,10 +383,26 @@ export class RrService {
         orderBy: [{ rrDate: 'desc' }, { docNo: 'desc' }],
         skip,
         take: pageSize,
-        select: RR_SEL,
+        // NX02-RR-SHELL：單據模板列表需 建單人員名 + 項目數
+        select: { ...RR_SEL, _count: { select: { rev_Nx02RrItem_rrId: true } } },
       }),
     ]);
-    return { page, pageSize, total, rows };
+    // 建單人員名（批次查 user）
+    const creatorIds = [...new Set(rows.map((r) => r.createdBy).filter(Boolean))];
+    const creators = creatorIds.length
+      ? await this.prisma.nx01User.findMany({ where: { id: { in: creatorIds } }, select: { id: true, userName: true } })
+      : [];
+    const creatorMap = new Map(creators.map((c) => [c.id, c.userName]));
+    const items = rows.map((r) => {
+      const { _count, ...rest } = r;
+      return {
+        ...flattenRrRefs(rest),
+        itemCount: _count?.rev_Nx02RrItem_rrId ?? 0,
+        createdByName: creatorMap.get(r.createdBy) ?? null,
+      };
+    });
+    // NX02-RR-SHELL：回傳鍵 rows→items（對齊 So/Sr/St 範式；舊 RrListView 讀 .data 本就錯位、Step 4 退場）
+    return { page, pageSize, total, items };
   }
 
   async getById(user: RequestUser, id: string) {
@@ -360,7 +412,11 @@ export class RrService {
       select: { ...RR_SEL, rev_Nx02RrItem_rrId: { orderBy: { lineNo: 'asc' }, select: RR_ITEM_SEL } },
     });
     if (!row) throw new NotFoundException('RR not found');
-    return this.mapRrDetail(row);
+    // NX02-RR-SHELL：建單人員名（詳情顯示）
+    const creator = row.createdBy
+      ? await this.prisma.nx01User.findFirst({ where: { id: row.createdBy }, select: { userName: true } })
+      : null;
+    return { ...this.mapRrDetail(row), createdByName: creator?.userName ?? null };
   }
 
   private mapRrDetail(
@@ -370,7 +426,8 @@ export class RrService {
   ) {
     const { rev_Nx02RrItem_rrId, ...rest } = row;
     return {
-      ...rest,
+      // NX02-RR-SHELL：關聯攤平（供應商/倉庫/來源單號）
+      ...flattenRrRefs(rest),
       items: rev_Nx02RrItem_rrId.map((it) => {
         // T8 進貨對齊批次 2026-06-08：平鋪 part.secCode 為 secCode
         const { part, ...itemRest } = it;
