@@ -10,8 +10,9 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { Plus, RefreshCw, XCircle } from 'lucide-react';
+import { PackageSearch, Plus, RefreshCw, XCircle } from 'lucide-react';
 
+import { openPartQuickSearch } from '@design/components/quick-search/GlobalPartQuickSearch';
 import { cn } from '@design/utils/cn';
 
 import {
@@ -156,6 +157,17 @@ export function DemandListView() {
           </p>
         </div>
         <div className="flex gap-2">
+          {/* F2 改版 Step 5（交接 §1）：採購入口＝嵌採購需求單旁 */}
+          <button
+            type="button"
+            onClick={() => openPartQuickSearch({ entry: 'purchase' })}
+            className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-background px-3 text-sm text-muted-foreground hover:border-primary/50"
+            title="料號即時搜尋（F2）"
+          >
+            <PackageSearch className="size-4" />
+            料號查詢
+            <kbd className="rounded border border-border/50 bg-muted/40 px-1 py-px font-mono text-[10px]">F2</kbd>
+          </button>
           <button
             type="button"
             onClick={() => void load()}

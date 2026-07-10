@@ -636,6 +636,13 @@ export class PartSearchService {
       },
     });
 
+    // F2 改版 Step 3（交接 §6 本倉 pin 頂）：目前使用者的隸屬倉 → 各倉列標 isMine / isPrimary
+    const myWarehouses = await this.prisma.nx01UserWarehouse.findMany({
+      where: { tenantId, userId: user.sub, isActive: true },
+      select: { warehouseId: true, isPrimary: true },
+    });
+    const myWhPrimary = new Map(myWarehouses.map((w) => [w.warehouseId, w.isPrimary]));
+
     let companyOnHand = 0;
     let companyAvailable = 0;
     let companyReserved = 0;
@@ -666,6 +673,8 @@ export class PartSearchService {
         lastInAt: b.lastInAt,
         lastOutAt: b.lastOutAt,
         lastMoveAt: b.lastMoveAt,
+        isMine: myWhPrimary.has(b.warehouse.id),
+        isPrimary: myWhPrimary.get(b.warehouse.id) === true,
       })),
     };
   }

@@ -1,7 +1,14 @@
 // apps/nx-ui/src/design/components/quick-search/PartMainWindow.tsx
 // 料號即時搜尋 視窗 2：主視窗（執行長 2026-06-25 任務單）
 //
-// 三欄式：左基本資料 / 中庫存狀態 / 右通用零件
+// 三欄式：左基本資料 / 中公司總存貨 / 右通用零件
+//
+// F2 改版 Step 1（docs/_team/f2-redesign-handoff.md §3 §6、執行長 2026-06-25 拍板）：
+//   · 預設頁不分倉、只答「公司到底有沒有貨」：
+//     大狀態（有貨可出／低於安全／缺貨）+ 總可出/總庫存/在途 + 公司庫存水位條
+//   · 水位條一條看懂：安全量 ─ 現量 ─ 最高量（安全/最高 = 各倉庫存設定加總）
+//   · 各倉分布自預設頁移除（執行長明確拿掉；倉別改由入口情境決定、見交接 §4）
+//   · 基本資訊卡加大面積
 //
 // 核心連動（視窗 2 靈魂）：
 //   · Enter（右欄）= 預覽：左中切到該件資料、但主件保留置頂高亮（供比完切回）
@@ -20,6 +27,7 @@ import {
   Image as ImageIcon,
   Loader2,
   Package,
+  Pin,
   Warehouse,
   X,
 } from 'lucide-react';
@@ -28,6 +36,8 @@ import {
   buildPartSearchPhotoUrl,
   getPartCompatGroup,
   getPartDetail,
+  getPartStockHistory,
+  getPartStockSettings,
   getPartStockSummary,
   listPartSearchPhotos,
   type PartPhotoMeta,
@@ -36,14 +46,21 @@ import type {
   PartCompatGroupDto,
   PartCompatMemberDto,
   PartDetailDto,
+  PartStockHistoryRow,
+  PartStockSettingRow,
   PartStockSummaryDto,
+  PartStockWarehouseRow,
 } from '@data/types/nx01/part-search';
 import { FocusLockedDialog } from '@design/primitives/focus-locked-dialog';
 import { FocusZone } from '@design/primitives/focus-zone';
 import { cn } from '@design/utils/cn';
 
+import type { F2EntryContext } from './GlobalPartQuickSearch';
+
 type Props = {
   partId: string;
+  /** F2 三入口情境（Step 5、交接 §1 §4：銷售為錨／採購／倉管；倉別＝情境決定）*/
+  entryContext?: F2EntryContext;
   /** 關閉主視窗、退回搜尋窗 */
   onBack: () => void;
   /** 整個關閉（搜尋窗也關）*/
@@ -59,7 +76,7 @@ const STOCK_COLORS = {
 } as const;
 const ZERO_GREY = '#5A5A60'; // 0 值弱化色
 
-export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props) {
+export function PartMainWindow({ partId: initialPartId, entryContext, onBack, onClose }: Props) {
   // 主件：Alt+F 跳搜時切換
   const [mainPartId, setMainPartId] = useState(initialPartId);
   // 預覽：Enter 暫切（null = 顯示 mainPartId 自己）
@@ -69,6 +86,7 @@ export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props
   // 左中欄資料（隨 effectivePartId 變）
   const [detail, setDetail] = useState<PartDetailDto | null>(null);
   const [stock, setStock] = useState<PartStockSummaryDto | null>(null);
+  const [stockSettings, setStockSettings] = useState<PartStockSettingRow[]>([]);
   const [photos, setPhotos] = useState<PartPhotoMeta[]>([]);
   const [leftLoading, setLeftLoading] = useState(false);
 
@@ -84,6 +102,14 @@ export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props
   // 圖片放大
   const [photoZoom, setPhotoZoom] = useState(false);
 
+  // F2 改版 Step 4（交接 §5）：4 快捷鍵面板（F3 可替代 / F5 周轉率 / F6 出入庫；F4 報價走全域事件）
+  const [quickPanel, setQuickPanel] = useState<'alt' | 'turnover' | 'history' | null>(null);
+  // 出入庫紀錄 lazy 載（F5/F6 共用、換料件清空重抓）
+  const [historyRows, setHistoryRows] = useState<PartStockHistoryRow[] | null>(null);
+  const [historyFetchedAt, setHistoryFetchedAt] = useState(0); // F5 統計基準時點（render 不可呼叫 Date.now）
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const historyReqRef = useRef(0);
+
   // race 防護
   const leftReqRef = useRef(0);
   const rightReqRef = useRef(0);
@@ -94,25 +120,56 @@ export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props
     setLeftLoading(true);
     void (async () => {
       try {
-        const [d, s, p] = await Promise.all([
+        const [d, s, g, p] = await Promise.all([
           getPartDetail(effectivePartId),
           getPartStockSummary(effectivePartId),
+          // 庫存設定（水位條安全/最高量用）；未設定或失敗 → 空陣列、水位條退化顯示
+          getPartStockSettings(effectivePartId).catch(() => ({ rows: [] as PartStockSettingRow[] })),
           listPartSearchPhotos(effectivePartId).catch(() => ({ rows: [] as PartPhotoMeta[] })),
         ]);
         if (leftReqRef.current !== myReq) return;
         setDetail(d);
         setStock(s);
+        setStockSettings(g.rows);
         setPhotos(p.rows);
       } catch {
         if (leftReqRef.current !== myReq) return;
         setDetail(null);
         setStock(null);
+        setStockSettings([]);
         setPhotos([]);
       } finally {
         if (leftReqRef.current === myReq) setLeftLoading(false);
       }
     })();
   }, [effectivePartId]);
+
+  // 換料件：出入庫快取失效、面板收起（避免顯示上一件的資料）
+  useEffect(() => {
+    setHistoryRows(null);
+    setQuickPanel(null);
+  }, [effectivePartId]);
+
+  // F5/F6 面板開啟時 lazy 載出入庫紀錄（同料件共用快取）
+  useEffect(() => {
+    if (quickPanel !== 'turnover' && quickPanel !== 'history') return;
+    if (historyRows !== null) return;
+    const myReq = ++historyReqRef.current;
+    setHistoryLoading(true);
+    void (async () => {
+      try {
+        const r = await getPartStockHistory(effectivePartId);
+        if (historyReqRef.current !== myReq) return;
+        setHistoryRows(r.rows);
+        setHistoryFetchedAt(Date.now());
+      } catch {
+        if (historyReqRef.current !== myReq) return;
+        setHistoryRows([]);
+      } finally {
+        if (historyReqRef.current === myReq) setHistoryLoading(false);
+      }
+    })();
+  }, [quickPanel, historyRows, effectivePartId]);
 
   // 載 compat group（mainPartId、預覽不重抓）
   useEffect(() => {
@@ -253,7 +310,9 @@ export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props
     );
   }, [effectivePartId, detail?.code, detail?.name]);
 
-  // 全域 Space 放大 / F4 即時報價（任何地方按、除了 input/textarea）
+  // 全域 Space 放大 / 快捷鍵（任何地方按、除了 input/textarea）
+  // Step 4（交接 §5 拍板）：F3 可替代零件 / F4 即時報價 / F5 周轉率 / F6 出入庫。
+  // F3 原綁「即時詢價」、依交接改綁可替代零件；詢價改綁 F7（執行長 2026-07-10 拍板）。
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if (e.isComposing) return;
@@ -263,6 +322,8 @@ export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props
         tgt instanceof HTMLTextAreaElement ||
         (tgt instanceof HTMLElement && tgt.isContentEditable);
       if (isEditable) return;
+      const togglePanel = (p: 'alt' | 'turnover' | 'history') =>
+        setQuickPanel((cur) => (cur === p ? null : p));
       if (e.key === ' ' || e.code === 'Space') {
         e.preventDefault();
         setPhotoZoom((z) => !z);
@@ -271,10 +332,19 @@ export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props
         fireInstantQuote();
       } else if (e.key === 'F3') {
         e.preventDefault();
+        togglePanel('alt');
+      } else if (e.key === 'F5') {
+        e.preventDefault(); // 攔掉瀏覽器整頁重新整理
+        togglePanel('turnover');
+      } else if (e.key === 'F6') {
+        e.preventDefault();
+        togglePanel('history');
+      } else if (e.key === 'F7') {
+        e.preventDefault();
         fireInstantInquiry();
       }
     };
-    // capture 階段：搶在焦點鎖定對話框冒泡攔截 + 瀏覽器默認（F3=找下一個）之前 preventDefault
+    // capture 階段：搶在焦點鎖定對話框冒泡攔截 + 瀏覽器默認（F3=找下一個/F5=重整）之前 preventDefault
     window.addEventListener('keydown', h, true);
     return () => window.removeEventListener('keydown', h, true);
   }, [fireInstantQuote, fireInstantInquiry]);
@@ -320,14 +390,28 @@ export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props
               預覽中
             </span>
           ) : null}
+          {/* Step 5：情境倉徽章（倉別＝情境決定、交接 §4）*/}
+          {entryContext?.warehouseId && (
+            <span
+              className="ml-2 inline-flex items-center gap-1 rounded border border-primary/50 bg-primary/12 px-2 py-0.5 text-[11px] text-primary"
+              title={`${entryContext.label ?? '情境倉'}：依入口情境帶入`}
+            >
+              <Pin className="size-3" />
+              {entryContext.label ?? '情境倉'}
+              <span className="font-mono">
+                {entryContext.warehouseName ?? entryContext.warehouseId}
+              </span>
+            </span>
+          )}
+          {/* F3 依交接 §5 綁可替代零件；即時詢價改綁 F7（執行長 2026-07-10 拍板）*/}
           <button
             type="button"
             onClick={fireInstantInquiry}
             className="ml-auto inline-flex items-center gap-1.5 rounded-md border border-border/55 bg-background/40 px-2.5 py-1 text-xs font-medium text-foreground hover:border-primary/55 hover:bg-secondary/60"
-            title="即時詢價（調貨、F3）"
+            title="即時詢價（調貨、F7）"
           >
             即時詢價
-            <kbd className="rounded border border-border/40 bg-muted/40 px-1 py-px font-mono text-[10px]">F3</kbd>
+            <kbd className="rounded border border-border/40 bg-muted/40 px-1 py-px font-mono text-[10px]">F7</kbd>
           </button>
           <button
             type="button"
@@ -352,8 +436,8 @@ export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props
           </button>
         </div>
 
-        {/* 三欄 */}
-        <div className="grid min-h-0 flex-1 grid-cols-[minmax(280px,1fr)_minmax(320px,1.1fr)_minmax(340px,1.2fr)]">
+        {/* 三欄（Step 1：基本資訊加大 → 左欄配比 1fr→1.25fr）*/}
+        <div className="grid min-h-0 flex-1 grid-cols-[minmax(340px,1.25fr)_minmax(300px,1fr)_minmax(340px,1.2fr)]">
           {/* 左欄：基本資料 + 縮圖 */}
           <LeftColumn
             detail={detail}
@@ -363,8 +447,15 @@ export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props
             onZoomToggle={() => setPhotoZoom((z) => !z)}
           />
 
-          {/* 中欄：庫存狀態 */}
-          <MiddleColumn stock={stock} loading={leftLoading} />
+          {/* 中欄：公司總存貨（不分倉）；情境倉/倉管入口 → 各倉分布自動展開 */}
+          <CompanyStockColumn
+            stock={stock}
+            settings={stockSettings}
+            loading={leftLoading}
+            contextWarehouseId={entryContext?.warehouseId}
+            contextLabel={entryContext?.label}
+            autoExpandBars={Boolean(entryContext?.warehouseId) || entryContext?.entry === 'warehouse'}
+          />
 
           {/* 右欄：通用零件 */}
           <RightColumn
@@ -392,10 +483,18 @@ export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props
           />
         </div>
 
-        {/* Footer 鍵盤提示 */}
+        {/* Footer 鍵盤提示（Step 4：4 快捷鍵）*/}
         <div className="flex items-center justify-between border-t border-border/35 bg-background/35 px-6 py-2 text-[12px] text-muted-foreground/85">
           <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <Kbd>Tab</Kbd> 切欄
+            <Kbd>F3</Kbd> 可替代
+            <span className="text-muted-foreground/35">·</span>
+            <Kbd>F4</Kbd> 報價
+            <span className="text-muted-foreground/35">·</span>
+            <Kbd>F5</Kbd> 周轉
+            <span className="text-muted-foreground/35">·</span>
+            <Kbd>F6</Kbd> 出入庫
+            <span className="text-muted-foreground/35">·</span>
+            <Kbd>F7</Kbd> 詢價
             <span className="text-muted-foreground/35">·</span>
             <Kbd>↑↓</Kbd> 選通用件
             <span className="text-muted-foreground/35">·</span>
@@ -418,6 +517,21 @@ export function PartMainWindow({ partId: initialPartId, onBack, onClose }: Props
             partId={effectivePartId}
             photos={photos}
             onClose={() => setPhotoZoom(false)}
+          />
+        )}
+
+        {/* Step 4：快捷鍵面板（F3/F5/F6、疊在視窗 2 上、Esc 或同鍵關）*/}
+        {quickPanel && (
+          <QuickPanelOverlay
+            kind={quickPanel}
+            partCode={detail?.code ?? ''}
+            compatRows={compatRows}
+            mainPartId={mainPartId}
+            historyRows={historyRows}
+            historyFetchedAt={historyFetchedAt}
+            historyLoading={historyLoading}
+            companyOnHand={Number(stock?.company.onHand ?? 0)}
+            onClose={() => setQuickPanel(null)}
           />
         )}
       </>
@@ -458,7 +572,8 @@ function LeftColumn({
           type="button"
           onClick={onZoomToggle}
           className={cn(
-            'group relative mx-auto flex aspect-square w-full max-w-[220px] items-center justify-center overflow-hidden rounded-lg border-2 bg-background/40 transition-colors',
+            // Step 1：基本資訊卡加大面積（交接 §6）→ 縮圖 220 → 280
+            'group relative mx-auto flex aspect-square w-full max-w-[280px] items-center justify-center overflow-hidden rounded-lg border-2 bg-background/40 transition-colors',
             previewActive ? 'border-border/55' : 'border-primary/35',
             'hover:border-primary',
           )}
@@ -514,163 +629,347 @@ function LeftColumn({
   );
 }
 
-// ─── 中欄 ────────────────────────────────────────────────
-// 執行長 2026-06-25 修正單：
-//   1. 表格化（表頭一行 + 每倉一列、數字欄對齊）
-//   2. 表頭文字自帶顏色當圖例、數字跟欄色、不另設圖例列
-//   3. 隱藏全 0 倉、底部「其他 N 倉無庫存 ▾」折疊；全倉 0 顯「各倉皆無庫存」
-//   4. 視窗尺寸恆定（鐵律）：中欄分三段、各倉位分布區塊 flex-1 內部捲動、不撐大外框
-function MiddleColumn({
+// ─── 中欄：公司總存貨 ─────────────────────────────────────
+// F2 改版 Step 1（交接 §3 §6）：預設頁不分倉、只答「公司到底有沒有貨」。
+//   · 大狀態：有貨可出（可出 ≥ 安全）／低於安全（0 < 可出 < 安全）／缺貨（可出 ≤ 0）
+//     未設定安全量時：可出 > 0 即視為有貨可出
+//   · 三指標：總可出（主角）／總庫存／在途
+//   · 水位條一條看懂：安全量 ─ 現量 ─ 最高量（各倉庫存設定 min/max 加總）
+//   · 各倉分布已自預設頁移除（執行長拍板：那是過度設計；倉別由入口情境決定）
+type CompanyStockStatus = 'ok' | 'low' | 'out';
+
+const STATUS_META: Record<
+  CompanyStockStatus,
+  { label: string; sub: string; color: string }
+> = {
+  ok: { label: '有貨可出', sub: '公司可出量充足', color: STOCK_COLORS.available },
+  low: { label: '低於安全', sub: '可出量低於安全庫存', color: STOCK_COLORS.inTransit },
+  out: { label: '缺貨', sub: '公司無可出庫存', color: STOCK_COLORS.reserved },
+};
+
+function CompanyStockColumn({
   stock,
+  settings,
   loading,
+  contextWarehouseId,
+  contextLabel,
+  autoExpandBars,
 }: {
   stock: PartStockSummaryDto | null;
+  settings: PartStockSettingRow[];
   loading: boolean;
+  /** Step 5：情境倉（銷售=客戶預設出貨倉）→ 各倉分布 pin 頂 + 徽章 */
+  contextWarehouseId?: string;
+  contextLabel?: string;
+  /** Step 5：情境倉存在或倉管入口 → 各倉分布自動展開 */
+  autoExpandBars?: boolean;
 }) {
   const company = stock?.company;
-  const warehouses = stock?.warehouses ?? [];
+  const onHand = Number(company?.onHand ?? 0);
+  const available = Number(company?.available ?? 0);
+  const inTransit = Number(company?.inTransit ?? 0);
 
-  // 過濾全 0 倉
-  const isAllZero = (w: (typeof warehouses)[number]) =>
-    Number(w.onHand) === 0 &&
-    Number(w.available) === 0 &&
-    Number(w.reserved) === 0 &&
-    Number(w.inTransit) === 0;
-  const nonZeroWh = warehouses.filter((w) => !isAllZero(w));
-  const zeroWh = warehouses.filter(isAllZero);
-  const [showZeros, setShowZeros] = useState(false);
-  const allZero = warehouses.length > 0 && nonZeroWh.length === 0;
+  // 公司層安全/最高 = 各倉庫存設定加總（設定為每倉一筆、無公司層欄位；0 = 未設定）
+  const safetyQty = settings.reduce((sum, s) => sum + Number(s.minQty || 0), 0);
+  const maxQty = settings.reduce((sum, s) => sum + Number(s.maxQty || 0), 0);
+
+  const status: CompanyStockStatus =
+    available <= 0 ? 'out' : safetyQty > 0 && available < safetyQty ? 'low' : 'ok';
+  const meta = STATUS_META[status];
 
   return (
     <section className="flex min-h-0 flex-col border-r border-border/40 bg-background/20">
-      <SectionHeader icon={<Warehouse className="size-3.5" />} label="庫存狀態" loading={loading} />
-      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden px-5 py-4">
-        {/* 上段：公司總 4 顆 KPI（shrink-0、固定高度）*/}
-        <div className="grid shrink-0 grid-cols-2 gap-2">
-          <KpiTile label="公司總庫存" value={company?.onHand} color={STOCK_COLORS.onHand} />
-          <KpiTile label="可出量" value={company?.available} color={STOCK_COLORS.available} />
-          <KpiTile
-            label="不可出量"
-            value={String(Number(company?.reserved ?? '0'))}
-            color={STOCK_COLORS.reserved}
-          />
-          <KpiTile
-            label="在進量（在途）"
-            value={company?.inTransit}
-            color={STOCK_COLORS.inTransit}
-          />
+      <SectionHeader
+        icon={<Warehouse className="size-3.5" />}
+        label="公司總存貨"
+        loading={loading}
+      />
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto px-5 py-4">
+        {/* 大狀態（視覺主角）*/}
+        <div
+          className="flex shrink-0 flex-col items-center gap-1 rounded-lg border-2 px-4 py-5"
+          style={{
+            borderColor: `${meta.color}88`,
+            backgroundColor: `${meta.color}14`,
+            boxShadow: `0 0 24px -8px ${meta.color}66`,
+          }}
+        >
+          <span className="text-[26px] font-bold tracking-[0.12em]" style={{ color: meta.color }}>
+            {stock ? meta.label : '—'}
+          </span>
+          <span className="text-[12px] text-muted-foreground/85">
+            {stock ? meta.sub : '庫存資料載入中'}
+          </span>
         </div>
 
-        {/* 下段：各倉位分布表格（flex-1 + overflow-auto、內容多時內部捲動）*/}
-        <div className="flex min-h-0 flex-1 flex-col gap-1.5 overflow-hidden">
-          <h4 className="shrink-0 text-[10px] uppercase tracking-[0.22em] text-muted-foreground/70">
-            各倉位分布
-          </h4>
-
-          {warehouses.length === 0 ? (
-            <div className="rounded-md border border-dashed border-border/35 px-3 py-4 text-center text-[11px] text-muted-foreground/55">
-              無倉位庫存資料
-            </div>
-          ) : allZero ? (
-            <div className="rounded-md border border-dashed border-border/35 px-3 py-6 text-center text-[12px] text-muted-foreground/65">
-              各倉皆無庫存
-            </div>
-          ) : (
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-border/50 bg-secondary/55">
-              {/* 表頭一行：文字自帶顏色當圖例 */}
-              <div
-                className="grid shrink-0 items-center border-b border-border/35 bg-background/45 px-3 py-2 text-[12px] font-medium uppercase tracking-[0.1em]"
-                style={{ gridTemplateColumns: WH_GRID_COLS }}
-              >
-                <span className="text-muted-foreground/85">倉位</span>
-                <span className="text-right" style={{ color: STOCK_COLORS.onHand }}>現有</span>
-                <span className="text-right" style={{ color: STOCK_COLORS.available }}>可出</span>
-                <span className="text-right" style={{ color: STOCK_COLORS.reserved }}>不可出</span>
-                <span className="text-right" style={{ color: STOCK_COLORS.inTransit }}>在途</span>
-              </div>
-
-              {/* 內容區（內部捲動）*/}
-              <div className="min-h-0 flex-1 overflow-auto">
-                <ul className="flex flex-col">
-                  {nonZeroWh.map((w) => (
-                    <WarehouseRow key={w.warehouseId} w={w} />
-                  ))}
-
-                  {/* 隱藏空倉折疊區 */}
-                  {zeroWh.length > 0 && (
-                    <li className="border-t border-border/20">
-                      <button
-                        type="button"
-                        onClick={() => setShowZeros((v) => !v)}
-                        className="flex w-full items-center gap-1.5 px-3 py-2 text-left text-[12px] text-muted-foreground/85 transition-colors hover:bg-secondary/60 hover:text-foreground"
-                      >
-                        {showZeros ? (
-                          <ChevronDown className="size-3" />
-                        ) : (
-                          <ChevronRight className="size-3" />
-                        )}
-                        <span>
-                          其他 <span className="font-mono">{zeroWh.length}</span> 倉無庫存
-                        </span>
-                      </button>
-                      {showZeros && (
-                        <ul className="border-t border-border/15 bg-background/20">
-                          {zeroWh.map((w) => (
-                            <WarehouseRow key={w.warehouseId} w={w} dimmed />
-                          ))}
-                        </ul>
-                      )}
-                    </li>
-                  )}
-                </ul>
-              </div>
-            </div>
-          )}
+        {/* 三指標：總可出（主角）／總庫存／在途 */}
+        <div className="grid shrink-0 grid-cols-3 gap-2">
+          <KpiTile label="總可出" value={company?.available} color={STOCK_COLORS.available} />
+          <KpiTile label="總庫存" value={company?.onHand} color={STOCK_COLORS.onHand} />
+          <KpiTile label="在途" value={company?.inTransit} color={STOCK_COLORS.inTransit} />
         </div>
+
+        {/* 公司庫存水位條：安全量 ─ 現量 ─ 最高量 */}
+        <CompanyWaterLevelBar
+          onHand={onHand}
+          safetyQty={safetyQty}
+          maxQty={maxQty}
+          statusColor={meta.color}
+          hasData={!!stock}
+        />
+
+        {/* 在途補充（有在途才顯示、避免版面死空）*/}
+        {inTransit > 0 && (
+          <p className="shrink-0 text-[12px] text-muted-foreground/75">
+            另有 <span className="font-mono" style={{ color: STOCK_COLORS.inTransit }}>{inTransit.toFixed(0)}</span> 件在途（採購已下單未入庫）
+          </p>
+        )}
+
+        {/* Step 3：各倉分布橫向長條（預設收合、遵守 §3 不攤在預設頁）
+            Step 5：情境倉 pin 頂＋徽章；情境入口自動展開 */}
+        <WarehouseBarsSection
+          warehouses={stock?.warehouses ?? []}
+          contextWarehouseId={contextWarehouseId}
+          contextLabel={contextLabel}
+          autoExpand={autoExpandBars}
+        />
       </div>
     </section>
   );
 }
 
-const WH_GRID_COLS = 'minmax(0, 1fr) 60px 60px 70px 60px';
+// ─── 各倉分布橫向長條（F2 Step 3、交接 §6）──────────────────
+// · 長條資料驅動可長可短：長度 ∝ 該倉現有量 / 各倉最大現有量
+// · 條內分段：可出（綠）+ 不可出（紅）= 現有；在途以數字附註
+// · 本倉（isPrimary）pin 頂 + 徽章；空倉折疊沿用「其他 N 倉無庫存 ▾」機制（本倉零庫存仍顯示、弱化）
+// · 一屏軟上限 8 倉：清單 max-height 內部捲動、不硬砍資料
+const WH_BARS_SOFT_CAP = 8;
+const WH_BAR_ROW_PX = 34;
 
-function WarehouseRow({
-  w,
-  dimmed,
+function WarehouseBarsSection({
+  warehouses,
+  contextWarehouseId,
+  contextLabel,
+  autoExpand,
 }: {
-  w: PartStockSummaryDto['warehouses'][number];
-  dimmed?: boolean;
+  warehouses: PartStockWarehouseRow[];
+  contextWarehouseId?: string;
+  contextLabel?: string;
+  autoExpand?: boolean;
 }) {
+  const [expanded, setExpanded] = useState(Boolean(autoExpand));
+  const [showZeros, setShowZeros] = useState(false);
+
+  // Step 5：情境倉事後才帶入（如視窗 2 開著時報價選客戶）→ 補展開。
+  // render 期間調整衍生狀態（React 官方 pattern、避免 effect 級聯 render）
+  const autoKey = autoExpand ? (contextWarehouseId ?? 'auto') : null;
+  const [prevAutoKey, setPrevAutoKey] = useState(autoKey);
+  if (autoKey !== prevAutoKey) {
+    setPrevAutoKey(autoKey);
+    if (autoKey) setExpanded(true);
+  }
+
+  const isAllZero = (w: PartStockWarehouseRow) =>
+    Number(w.onHand) === 0 &&
+    Number(w.available) === 0 &&
+    Number(w.reserved) === 0 &&
+    Number(w.inTransit) === 0;
+
+  // pin 順序：情境倉（Step 5、如客戶預設出貨倉）→ 本倉（isPrimary）→ 其餘依 API 排序 sortNo；
+  // 情境倉/本倉即使空倉也不進折疊區
+  const { pinnedRows, zeroRows, maxOnHand } = useMemo(() => {
+    const isCtx = (w: PartStockWarehouseRow) => w.warehouseId === contextWarehouseId;
+    const visible = warehouses.filter((w) => isCtx(w) || w.isPrimary || !isAllZero(w));
+    const zeros = warehouses.filter((w) => !isCtx(w) && !w.isPrimary && isAllZero(w));
+    const rank = (w: PartStockWarehouseRow) => (isCtx(w) ? 2 : w.isPrimary ? 1 : 0);
+    const sorted = [...visible].sort((a, b) => rank(b) - rank(a));
+    const max = Math.max(...warehouses.map((w) => Number(w.onHand)), 1);
+    return { pinnedRows: sorted, zeroRows: zeros, maxOnHand: max };
+  }, [warehouses, contextWarehouseId]);
+
+  if (warehouses.length === 0) return null;
+
   return (
-    <li
-      className={cn(
-        'grid items-center border-b border-border/15 px-3 py-1.5 last:border-b-0',
-        dimmed && 'opacity-55',
+    <div className="flex shrink-0 flex-col gap-1.5">
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        className="flex items-center gap-1.5 text-left text-[10px] uppercase tracking-[0.22em] text-muted-foreground/70 transition-colors hover:text-foreground"
+      >
+        {expanded ? <ChevronDown className="size-3" /> : <ChevronRight className="size-3" />}
+        各倉分布
+        <span className="font-mono normal-case tracking-normal">({warehouses.length} 倉)</span>
+      </button>
+
+      {expanded && (
+        <div
+          className="flex flex-col gap-1 overflow-y-auto pr-0.5"
+          style={{ maxHeight: WH_BARS_SOFT_CAP * WH_BAR_ROW_PX }}
+        >
+          {pinnedRows.map((w) => (
+            <WarehouseBar
+              key={w.warehouseId}
+              w={w}
+              maxOnHand={maxOnHand}
+              dimmed={isAllZero(w)}
+              contextLabel={w.warehouseId === contextWarehouseId ? (contextLabel ?? '情境倉') : undefined}
+            />
+          ))}
+
+          {zeroRows.length > 0 && (
+            <>
+              <button
+                type="button"
+                onClick={() => setShowZeros((v) => !v)}
+                className="flex items-center gap-1.5 py-1 text-left text-[12px] text-muted-foreground/85 transition-colors hover:text-foreground"
+              >
+                {showZeros ? <ChevronDown className="size-3" /> : <ChevronRight className="size-3" />}
+                其他 <span className="font-mono">{zeroRows.length}</span> 倉無庫存
+              </button>
+              {showZeros &&
+                zeroRows.map((w) => (
+                  <WarehouseBar key={w.warehouseId} w={w} maxOnHand={maxOnHand} dimmed />
+                ))}
+            </>
+          )}
+        </div>
       )}
-      style={{ gridTemplateColumns: WH_GRID_COLS }}
-    >
-      <span className="min-w-0 truncate text-[13px]">
-        <span className="font-mono font-medium text-primary">{w.warehouseCode}</span>
-        <span className="ml-1.5 text-foreground/85">{w.warehouseName}</span>
-      </span>
-      <WhCell value={w.onHand} color={STOCK_COLORS.onHand} />
-      <WhCell value={w.available} color={STOCK_COLORS.available} />
-      <WhCell value={w.reserved} color={STOCK_COLORS.reserved} />
-      <WhCell value={w.inTransit} color={STOCK_COLORS.inTransit} />
-    </li>
+    </div>
   );
 }
 
-function WhCell({ value, color }: { value: string; color: string }) {
-  const n = Number(value);
-  const isZero = n === 0;
+function WarehouseBar({
+  w,
+  maxOnHand,
+  dimmed,
+  contextLabel,
+}: {
+  w: PartStockWarehouseRow;
+  maxOnHand: number;
+  dimmed?: boolean;
+  /** Step 5：此倉為情境倉時的徽章文字（如「客戶倉」）*/
+  contextLabel?: string;
+}) {
+  const onHand = Number(w.onHand);
+  const available = Number(w.available);
+  const reserved = Number(w.reserved);
+  const inTransit = Number(w.inTransit);
+  const barPct = Math.min(100, (onHand / maxOnHand) * 100);
+  const availPct = onHand > 0 ? (available / onHand) * 100 : 0;
+
   return (
-    <span
-      className="text-right font-mono text-base tabular-nums"
-      style={{ color: isZero ? ZERO_GREY : color }}
-    >
-      {n.toFixed(0)}
-    </span>
+    <div className={cn('flex flex-col gap-0.5', dimmed && 'opacity-55')}>
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="flex min-w-0 items-baseline gap-1.5 truncate text-[12px]">
+          {contextLabel && (
+            <span
+              className="inline-flex shrink-0 items-center gap-0.5 rounded border border-primary/55 bg-primary/15 px-1 py-px font-mono text-[10px] font-bold text-primary"
+              title={`${contextLabel}（依入口情境帶入）`}
+            >
+              <Pin className="size-2.5" />
+              {contextLabel}
+            </span>
+          )}
+          {w.isPrimary && (
+            <span
+              className="inline-flex shrink-0 items-center gap-0.5 rounded border border-primary/55 bg-primary/15 px-1 py-px font-mono text-[10px] font-bold text-primary"
+              title="本倉（我的主要倉）"
+            >
+              <Pin className="size-2.5" />本倉
+            </span>
+          )}
+          <span className="font-mono font-medium text-primary">{w.warehouseCode}</span>
+          <span className="truncate text-foreground/85">{w.warehouseName}</span>
+        </span>
+        <span className="shrink-0 font-mono text-[12px] tabular-nums">
+          <span style={{ color: available > 0 ? STOCK_COLORS.available : ZERO_GREY }}>
+            {available.toFixed(0)}
+          </span>
+          <span className="text-muted-foreground/45"> / {onHand.toFixed(0)}</span>
+          {inTransit > 0 && (
+            <span style={{ color: STOCK_COLORS.inTransit }} title="在途">
+              {' '}+{inTransit.toFixed(0)}
+            </span>
+          )}
+        </span>
+      </div>
+      {/* 長條：可出（綠）+ 不可出（紅）分段、長度資料驅動 */}
+      <div className="h-2 overflow-hidden rounded-sm bg-secondary/55">
+        <div className="flex h-full" style={{ width: `${barPct}%` }}>
+          <div style={{ width: `${availPct}%`, backgroundColor: STOCK_COLORS.available }} />
+          {reserved > 0 && (
+            <div style={{ width: `${100 - availPct}%`, backgroundColor: STOCK_COLORS.reserved }} />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 水位條：0 ──[安全]────現量▮──────[最高] 一條看懂（交接 §6）
+// 未設定安全/最高（皆 0）→ 只畫現量、附「未設定安全量」註記
+function CompanyWaterLevelBar({
+  onHand,
+  safetyQty,
+  maxQty,
+  statusColor,
+  hasData,
+}: {
+  onHand: number;
+  safetyQty: number;
+  maxQty: number;
+  statusColor: string;
+  hasData: boolean;
+}) {
+  // 刻度上限：最高量為主；現量爆錶（超過最高）或未設定時退化取現量，再退 1 防除以 0
+  const scale = Math.max(maxQty, onHand, safetyQty, 1);
+  const pct = (n: number) => `${Math.min(100, (n / scale) * 100)}%`;
+  const hasSettings = safetyQty > 0 || maxQty > 0;
+
+  return (
+    <div className="flex shrink-0 flex-col gap-1.5">
+      <div className="flex items-baseline justify-between">
+        <h4 className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground/70">
+          公司庫存水位
+        </h4>
+        {!hasSettings && hasData && (
+          <span className="text-[10px] text-muted-foreground/55">未設定安全量／最高量</span>
+        )}
+      </div>
+
+      <div className="relative h-7 overflow-hidden rounded-md border border-border/50 bg-secondary/55">
+        {/* 現量填色 */}
+        <div
+          className="absolute inset-y-0 left-0 transition-[width] duration-300"
+          style={{ width: pct(onHand), backgroundColor: `${statusColor}40` }}
+        />
+        {/* 安全量刻線 */}
+        {safetyQty > 0 && (
+          <div
+            className="absolute inset-y-0 w-px"
+            style={{ left: pct(safetyQty), backgroundColor: STOCK_COLORS.reserved }}
+            title={`安全量 ${safetyQty}`}
+          />
+        )}
+        {/* 現量數字（貼填色右緣、靠左防溢出）*/}
+        <span
+          className="absolute top-1/2 -translate-y-1/2 pl-2 font-mono text-[13px] font-semibold tabular-nums"
+          style={{ color: statusColor }}
+        >
+          {hasData ? onHand.toFixed(0) : '—'}
+        </span>
+      </div>
+
+      {/* 底部圖例：安全 ─ 現量 ─ 最高 */}
+      <div className="flex items-baseline justify-between font-mono text-[11px] tabular-nums">
+        <span style={{ color: STOCK_COLORS.reserved }}>
+          安全 {safetyQty > 0 ? safetyQty.toFixed(0) : '—'}
+        </span>
+        <span className="text-muted-foreground/70">
+          最高 {maxQty > 0 ? maxQty.toFixed(0) : '—'}
+        </span>
+      </div>
+    </div>
   );
 }
 
@@ -912,16 +1211,27 @@ function SectionHeader({
   );
 }
 
-function KpiTile({ label, value, color }: { label: string; value: string | undefined; color: string }) {
+function KpiTile({
+  label,
+  value,
+  color,
+  exact,
+}: {
+  label: string;
+  value: string | undefined;
+  color: string;
+  /** true = 值原樣顯示（含小數／'—'、F5 周轉率用）；預設取整 */
+  exact?: boolean;
+}) {
   const n = value ? Number(value) : 0;
-  const isZero = n === 0;
+  const isZero = !value || value === '—' || n === 0;
   return (
     <div className="flex flex-col gap-0.5 rounded-md border border-border/55 bg-secondary px-3 py-2 shadow-sm">
       <span className="text-[12px] font-medium uppercase tracking-[0.1em] text-foreground/60">
         {label}
       </span>
       <span className="font-mono text-[20px] font-semibold" style={{ color: isZero ? ZERO_GREY : color }}>
-        {n.toFixed(0)}
+        {exact ? (value ?? '—') : n.toFixed(0)}
       </span>
     </div>
   );
@@ -981,6 +1291,298 @@ function Kbd({ children }: { children: React.ReactNode }) {
     <kbd className="rounded border border-border/45 bg-background/45 px-1.5 py-px font-mono text-[11px] text-muted-foreground/90">
       {children}
     </kbd>
+  );
+}
+
+// ─── Step 4：快捷鍵面板（F3 可替代 / F5 周轉率 / F6 出入庫）──────
+// 交接 §5：取代偉盟 11 彈窗的常用集。F3 只露 料號/廠牌/庫存數量。
+// F5 周轉率：無單料號 API（nx08 僅 top-10 聚合）→ 依交接「視 API 而定」
+// 先以既有 stock-history（近 100 筆）前端統計、面板標注估算基礎。
+const DOC_TYPE_LABELS: Record<string, string> = {
+  P: '進貨',
+  R: '退貨',
+  S: '銷貨',
+  I: '開帳',
+  T: '盤點',
+  X: '調撥',
+};
+
+const QUICK_PANEL_META = {
+  alt: { title: '可替代零件', kbd: 'F3' },
+  turnover: { title: '周轉率分析', kbd: 'F5' },
+  history: { title: '出入庫紀錄', kbd: 'F6' },
+} as const;
+
+function QuickPanelOverlay({
+  kind,
+  partCode,
+  compatRows,
+  mainPartId,
+  historyRows,
+  historyFetchedAt,
+  historyLoading,
+  companyOnHand,
+  onClose,
+}: {
+  kind: 'alt' | 'turnover' | 'history';
+  partCode: string;
+  compatRows: PartCompatMemberDto[];
+  mainPartId: string;
+  historyRows: PartStockHistoryRow[] | null;
+  historyFetchedAt: number;
+  historyLoading: boolean;
+  companyOnHand: number;
+  onClose: () => void;
+}) {
+  const meta = QUICK_PANEL_META[kind];
+  return (
+    <FocusLockedDialog
+      open
+      onClose={onClose}
+      ariaLabel={meta.title}
+      backdropClassName="bg-black/55 backdrop-blur-[2px] animate-in fade-in duration-150"
+      dialogClassName="flex flex-col rounded-xl border border-border/60 bg-popover text-foreground shadow-[0_18px_50px_rgba(0,0,0,0.5),0_0_36px_-14px_rgba(232,160,32,0.25)] animate-in fade-in zoom-in-95 duration-150"
+      dialogStyle={{ width: 'min(680px, 90vw)', height: 'min(560px, 85vh)' }}
+    >
+      <>
+        <div className="flex items-center gap-2.5 border-b border-border/40 px-5 py-2.5">
+          <kbd className="rounded border border-primary/50 bg-primary/12 px-1.5 py-px font-mono text-[11px] font-bold text-primary">
+            {meta.kbd}
+          </kbd>
+          <h3 className="text-sm font-bold tracking-wide">{meta.title}</h3>
+          <span className="font-mono text-[12px] text-muted-foreground/75">{partCode}</span>
+          <button
+            type="button"
+            onClick={onClose}
+            className="ml-auto rounded-md border border-border/40 bg-background/40 p-1 text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
+            aria-label="關閉"
+            title="關閉（Esc）"
+          >
+            <X className="size-3.5" />
+          </button>
+        </div>
+
+        <div className="min-h-0 flex-1 overflow-auto px-5 py-3">
+          {kind === 'alt' && <AltPartsPanel rows={compatRows} mainPartId={mainPartId} />}
+          {kind === 'turnover' && (
+            <TurnoverPanel
+              rows={historyRows}
+              fetchedAt={historyFetchedAt}
+              loading={historyLoading}
+              companyOnHand={companyOnHand}
+            />
+          )}
+          {kind === 'history' && <StockHistoryPanel rows={historyRows} loading={historyLoading} />}
+        </div>
+
+        <div className="border-t border-border/35 bg-background/35 px-5 py-1.5 text-right text-[11px] text-muted-foreground/65">
+          <Kbd>Esc</Kbd> 或再按 <Kbd>{meta.kbd}</Kbd> 關閉
+        </div>
+      </>
+    </FocusLockedDialog>
+  );
+}
+
+/** F3 可替代零件：只露 料號 / 廠牌 / 庫存數量（交接 §5 拍板）*/
+function AltPartsPanel({ rows, mainPartId }: { rows: PartCompatMemberDto[]; mainPartId: string }) {
+  if (rows.length === 0) {
+    return <PanelEmpty msg="本料件未屬於任何通用件群組" />;
+  }
+  return (
+    <table className="w-full border-collapse text-[13px]">
+      <thead>
+        <tr className="border-b border-border/40 text-left text-[11px] uppercase tracking-[0.12em] text-muted-foreground/70">
+          <th className="py-1.5 pr-3 font-medium">料號</th>
+          <th className="py-1.5 pr-3 font-medium">廠牌</th>
+          <th className="py-1.5 text-right font-medium">庫存數量</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((r) => {
+          const onHand = Number(r.onHandTotal);
+          const isMain = r.id === mainPartId;
+          return (
+            <tr
+              key={r.id}
+              className={cn(
+                'border-b border-border/15 last:border-b-0',
+                isMain && 'bg-primary/8',
+                !r.isActive && 'opacity-55',
+              )}
+            >
+              <td className="py-2 pr-3">
+                <span className={cn('font-mono font-medium', isMain ? 'text-primary' : 'text-foreground/90')}>
+                  {r.code}
+                </span>
+                {isMain && (
+                  <span className="ml-2 rounded border border-primary/55 bg-primary/15 px-1.5 py-px font-mono text-[10px] font-bold text-primary">
+                    主
+                  </span>
+                )}
+              </td>
+              <td className="py-2 pr-3 text-foreground/85">{r.brandCode ?? r.brandName ?? '—'}</td>
+              <td
+                className="py-2 text-right font-mono tabular-nums"
+                style={{ color: onHand > 0 ? STOCK_COLORS.available : STOCK_COLORS.reserved }}
+              >
+                {onHand.toFixed(0)}
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
+}
+
+/** F5 周轉率分析：以近 100 筆出入庫前端統計（無單料號周轉 API、估算值）*/
+function TurnoverPanel({
+  rows,
+  fetchedAt,
+  loading,
+  companyOnHand,
+}: {
+  rows: PartStockHistoryRow[] | null;
+  fetchedAt: number;
+  loading: boolean;
+  companyOnHand: number;
+}) {
+  const stats = useMemo(() => {
+    if (!rows || !fetchedAt) return null;
+    const now = fetchedAt; // 統計基準＝資料載入時點（render 純函式、不呼叫 Date.now）
+    const DAY = 86400000;
+    let out30 = 0, out90 = 0, in90 = 0, outMoves90 = 0;
+    let oldest = now;
+    for (const r of rows) {
+      const t = new Date(r.movementDate).getTime();
+      if (t < oldest) oldest = t;
+      const age = (now - t) / DAY;
+      const qOut = Number(r.qtyOut) || 0;
+      const qIn = Number(r.qtyIn) || 0;
+      if (age <= 30) out30 += qOut;
+      if (age <= 90) {
+        out90 += qOut;
+        in90 += qIn;
+        if (qOut > 0) outMoves90 += 1;
+      }
+    }
+    const avgDailyOut = out30 / 30;
+    const daysOfStock = avgDailyOut > 0 ? companyOnHand / avgDailyOut : null;
+    // 年化周轉率（估）＝近 90 天出庫年化 / 目前現量
+    const turnoverPerYear = companyOnHand > 0 ? (out90 / 90) * 365 / companyOnHand : null;
+    const truncated = rows.length >= 100;
+    const coverageDays = Math.ceil((now - oldest) / DAY);
+    return { out30, out90, in90, outMoves90, avgDailyOut, daysOfStock, turnoverPerYear, truncated, coverageDays };
+  }, [rows, fetchedAt, companyOnHand]);
+
+  if (loading || !rows) return <PanelEmpty msg="載入中…" loading />;
+  if (rows.length === 0) return <PanelEmpty msg="本料件無出入庫紀錄、無法估算周轉" />;
+  if (!stats) return null;
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="grid grid-cols-3 gap-2">
+        <KpiTile label="近 30 天出庫" value={String(stats.out30)} color={STOCK_COLORS.available} />
+        <KpiTile label="近 90 天出庫" value={String(stats.out90)} color={STOCK_COLORS.available} />
+        <KpiTile label="近 90 天入庫" value={String(stats.in90)} color={STOCK_COLORS.onHand} />
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        <KpiTile
+          label="日均出庫（30天）"
+          value={stats.avgDailyOut.toFixed(1)}
+          color={STOCK_COLORS.onHand}
+          exact
+        />
+        <KpiTile
+          label="現量可售天數"
+          value={stats.daysOfStock === null ? '—' : Math.round(stats.daysOfStock).toString()}
+          color={STOCK_COLORS.inTransit}
+          exact
+        />
+        <KpiTile
+          label="年化周轉率（估）"
+          value={stats.turnoverPerYear === null ? '—' : stats.turnoverPerYear.toFixed(1)}
+          color={STOCK_COLORS.available}
+          exact
+        />
+      </div>
+      <p className="text-[11px] leading-relaxed text-muted-foreground/65">
+        估算基礎：近 {rows.length} 筆出入庫（涵蓋約 {stats.coverageDays} 天）與公司目前現量 {companyOnHand.toFixed(0)}。
+        {stats.truncated && ' ⚠ 紀錄已達 100 筆上限、更早異動未計入。'}
+      </p>
+    </div>
+  );
+}
+
+/** F6 出入庫紀錄：近 100 筆異動表 */
+function StockHistoryPanel({
+  rows,
+  loading,
+}: {
+  rows: PartStockHistoryRow[] | null;
+  loading: boolean;
+}) {
+  if (loading || !rows) return <PanelEmpty msg="載入中…" loading />;
+  if (rows.length === 0) return <PanelEmpty msg="本料件無出入庫紀錄" />;
+  return (
+    <table className="w-full border-collapse text-[12.5px]">
+      <thead className="sticky top-0 bg-popover">
+        <tr className="border-b border-border/40 text-left text-[11px] uppercase tracking-[0.12em] text-muted-foreground/70">
+          <th className="py-1.5 pr-2 font-medium">日期</th>
+          <th className="py-1.5 pr-2 font-medium">類型</th>
+          <th className="py-1.5 pr-2 text-right font-medium">入</th>
+          <th className="py-1.5 pr-2 text-right font-medium">出</th>
+          <th className="py-1.5 pr-2 text-right font-medium">結存</th>
+          <th className="py-1.5 font-medium">倉位</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((r) => {
+          const qIn = Number(r.qtyIn) || 0;
+          const qOut = Number(r.qtyOut) || 0;
+          return (
+            <tr key={r.id} className="border-b border-border/15 last:border-b-0">
+              <td className="py-1.5 pr-2 font-mono text-[12px] text-foreground/85">
+                {new Date(r.movementDate).toLocaleDateString('zh-TW')}
+              </td>
+              <td className="py-1.5 pr-2">
+                <span className="rounded border border-border/50 bg-secondary/40 px-1.5 py-px text-[11px] text-foreground/85">
+                  {DOC_TYPE_LABELS[r.sourceDocType] ?? r.sourceDocType}
+                </span>
+              </td>
+              <td
+                className="py-1.5 pr-2 text-right font-mono tabular-nums"
+                style={{ color: qIn > 0 ? STOCK_COLORS.available : ZERO_GREY }}
+              >
+                {qIn > 0 ? qIn.toFixed(0) : '—'}
+              </td>
+              <td
+                className="py-1.5 pr-2 text-right font-mono tabular-nums"
+                style={{ color: qOut > 0 ? STOCK_COLORS.reserved : ZERO_GREY }}
+              >
+                {qOut > 0 ? qOut.toFixed(0) : '—'}
+              </td>
+              <td className="py-1.5 pr-2 text-right font-mono tabular-nums text-foreground/85">
+                {Number(r.balanceQty).toFixed(0)}
+              </td>
+              <td className="py-1.5">
+                <span className="font-mono text-primary">{r.warehouseCode}</span>
+                <span className="ml-1 text-[11px] text-muted-foreground/70">{r.locationCode}</span>
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
+}
+
+function PanelEmpty({ msg, loading }: { msg: string; loading?: boolean }) {
+  return (
+    <div className="flex h-full min-h-[160px] items-center justify-center gap-2 text-[13px] text-muted-foreground/65">
+      {loading && <Loader2 className="size-4 animate-spin text-primary" />}
+      <span>{msg}</span>
+    </div>
   );
 }
 
