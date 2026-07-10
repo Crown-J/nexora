@@ -1044,7 +1044,8 @@ model Nx01Partner {
   updatedBy                                String                       @map("updated_by") @db.VarChar(15)
   /// 舊系統往來對象代號（純對照、不綁 FK、對齊零件 oldCode 範式）；W3 [3-2] 2026-06-06 新增
   legacyCode                               String?                      @map("legacy_code") @db.VarChar(50)
-  /// 預設發票聯式（2=二聯 / 3=三聯）。SO 建單自動帶入、可逐筆改。散客 L 強制 2、不可改。；W4 [3-6] 2026-06-06 新增
+  /// 預設發票聯式（0=不開發票 / 2=二聯 / 3=三聯）。SO 建單自動帶入、可逐筆改。散客 L 強制 2、不可改。；W4 [3-6] 2026-06-06 新增
+  /// 2026-07-10 註解訂正：0=不開發票 早已實作（DTO+UI）、偉盟 BCTXP 印證過半客戶免開票（偉盟設計檢視 P1-3）
   defaultInvoiceCopies                     Int                          @default(3) @map("default_invoice_copies") @db.SmallInt
   /// 地區 ID（FK nx01_region、顯示用、不入 partner code 編號）；02 對齊第二批 C 軌 CP1 2026-06-06 新增
   regionId                                 String?                      @map("region_id") @db.VarChar(15)
@@ -4393,7 +4394,7 @@ model Nx04So {
   status                 String         @default("DRAFT") @db.VarChar(30)
   /// 付款條件（快照自nx01_partner.payment_term）。影響AR產生時機。；啟用最低需求版本：LITE-CORE
   paymentTerm            String         @default("NET30") @map("payment_term") @db.VarChar(10)
-  /// 發票聯式（2=二聯 / 3=三聯）。建單時 service 從 partner.defaultInvoiceCopies 帶入、可逐筆改；散客 L 強制 2。；W4 [3-6] 2026-06-06 新增
+  /// 發票聯式（0=不開發票 / 2=二聯 / 3=三聯）。建單時 service 從 partner.defaultInvoiceCopies 帶入、可逐筆改；散客 L 強制 2。；W4 [3-6] 2026-06-06 新增
   invoiceCopies          Int            @default(3) @map("invoice_copies") @db.SmallInt
   /// 預計出貨日（選填）。；啟用最低需求版本：LITE-CORE
   expectedDeliveryDate   DateTime?      @map("expected_delivery_date") @db.Date

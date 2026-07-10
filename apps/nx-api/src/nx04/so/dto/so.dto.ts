@@ -111,7 +111,7 @@ export class CreateSoDto {
   @ArrayMinSize(0)
   items?: CreateSoItemDto[];
 
-  /** W4 [3-6] 發票聯式（2/3）。未填則從 partner.defaultInvoiceCopies 帶入；散客 L service 端強制 2 */
+  /** W4 [3-6] 發票聯式（0=不開/2/3）。未填則從 partner.defaultInvoiceCopies 帶入；散客 L service 端強制 2 */
   @IsOptional() @Type(() => Number) @IsInt() @IsIn(INVOICE_COPIES) invoiceCopies?: number;
 
   /** F1 特價售出 2026-06-08：標記此 SO 來自異常處置 X 特價售出（成本走 avgCost、單價=特價、不走折讓）。
@@ -167,7 +167,7 @@ export class UpdateSoDto {
   @MaxLength(200)
   deliveryAddress?: string;
 
-  /** W4 [3-6] 發票聯式（2/3）。SO 編輯時逐筆改；散客 L 不可改（service 端守門） */
+  /** W4 [3-6] 發票聯式（0=不開/2/3）。SO 編輯時逐筆改；散客 L 不可改（service 端守門） */
   @IsOptional() @Type(() => Number) @IsInt() @IsIn(INVOICE_COPIES) invoiceCopies?: number;
 
   /** 05 補做 C2/C3/C4 2026-06-09：業務員 / 銷貨方式 / 帳款年月 */

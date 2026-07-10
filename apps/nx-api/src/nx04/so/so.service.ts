@@ -99,7 +99,7 @@ const SO_SEL = {
   totalAmount: true,
   status: true,
   paymentTerm: true,
-  // W4 [3-6] 發票聯式（2/3、建單時從 partner.defaultInvoiceCopies 帶入、可逐筆改）
+  // W4 [3-6] 發票聯式（0=不開/2/3、建單時從 partner.defaultInvoiceCopies 帶入、可逐筆改）
   invoiceCopies: true,
   // F1 特價售出 2026-06-08：標記此 SO 來自異常處置 X 處置
   specialPriceFlag: true,
