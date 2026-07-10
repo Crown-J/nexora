@@ -898,7 +898,7 @@ export function PrCreatePanel({
     if (!initialRrId || initLoadedRef.current) return;
     initLoadedRef.current = true;
     void pickRr({ id: initialRrId } as Rr);
-  }, [initialRrId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [initialRrId]);
 
   async function pickRr(row: Rr) {
     setErr(null);
