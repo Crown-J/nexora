@@ -80,6 +80,16 @@ function optionLabel(
   return String(raw);
 }
 
+/** 詳細頁跨欄 class（detailSpan；textarea/json 未指定時預設 2 格、維持既有行為）。
+ *  窄螢幕（單欄）不跨、sm 起跨 2、xl 起才跨 3，避免小視窗擠壓。 */
+function detailSpanClass(f: EntityFieldDef): string | undefined {
+  const span = f.detailSpan ?? (f.type === 'textarea' || f.type === 'json' ? 2 : undefined);
+  if (span === 'full') return '[grid-column:1/-1]';
+  if (span === 3) return 'sm:[grid-column:span_2] xl:[grid-column:span_3]';
+  if (span === 2) return 'sm:[grid-column:span_2]';
+  return undefined;
+}
+
 type Tab = 'list' | 'detail';
 
 function formatDt(iso: unknown): string {
@@ -973,140 +983,168 @@ function DetailPane({
   if (mode !== 'edit' && !selected) {
     return <EmptyDetail message="從「資料瀏覽」選一筆，或按 A 新增" />;
   }
+
+  // 單一欄位渲染（原 config.fields.map 主體、抽函式供分組 chunk 重用；跨欄由外層 wrapper 管）
+  const renderDetailField = (f: EntityFieldDef) => {
+    // 計算欄位（唯讀即時預覽，如料號分段預覽）：編輯時讀 draft、瀏覽時讀 row
+    if (f.type === 'computed') {
+      const val = f.compute?.(editing ? draft : ((selected as Record<string, unknown>) ?? {})) ?? '';
+      return <FormField label={f.label} value={val || '—'} mono />;
+    }
+    const lockedNow = editing && !creating && f.lockedOnEdit;
+    // 編輯模式：select / ref 下拉（全鍵盤 KeyboardSelect：Enter 展開→↑↓選→Enter 確認+跳格→Esc 關）
+    if (editing && !lockedNow && (f.type === 'select' || f.type === 'ref')) {
+      const opts = f.type === 'select' ? (f.options ?? []) : (refOptions[f.key] ?? []);
+      const baseOpts = opts.map((o) => ({ value: String(o.value), label: o.label }));
+      // 非必填提供「清除」選項（對齊原 native 空白 option）；options 已含空值則不重複加
+      const hasEmpty = baseOpts.some((o) => o.value === '');
+      const selOpts = f.required || hasEmpty
+        ? baseOpts
+        : [{ value: '', label: f.placeholder ?? '（無）' }, ...baseOpts];
+      return (
+        <div className="flex flex-col gap-1">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-foreground/80">
+            {f.label + (f.required ? ' *' : '')}
+          </span>
+          <KeyboardSelect
+            value={String(draft[f.key] ?? '')}
+            options={selOpts}
+            placeholder={f.placeholder ?? (f.required ? '請選擇...' : '（無）')}
+            ariaLabel={f.label}
+            onChange={(v) => setDraft({ ...draft, [f.key]: v })}
+          />
+        </div>
+      );
+    }
+    // 編輯模式：textarea / json（長文 / JSON 巢狀；跨欄改由 detailSpanClass 管、預設仍 2 格）
+    if (editing && !lockedNow && (f.type === 'textarea' || f.type === 'json')) {
+      return (
+        <div className="flex flex-col gap-1">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-foreground/80">
+            {f.label + (f.required ? ' *' : '') + (f.type === 'json' ? '（JSON 陣列）' : '')}
+          </span>
+          <textarea
+            value={String(draft[f.key] ?? '')}
+            onChange={(e) => setDraft({ ...draft, [f.key]: e.target.value })}
+            rows={f.type === 'json' ? 8 : 4}
+            placeholder={f.placeholder}
+            className={cn(
+              'rounded-md border border-[var(--primary)]/30 bg-[var(--nx-surface-input)] px-2.5 py-1.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-[var(--primary)]/60 focus:ring-1 focus:ring-[var(--primary)]/40',
+              f.type === 'json' && 'font-mono text-xs',
+            )}
+          />
+        </div>
+      );
+    }
+    // 編輯模式：date（T3 進貨對齊批次 2026-06-07）
+    if (editing && !lockedNow && f.type === 'date') {
+      return (
+        <div className="flex flex-col gap-1">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-foreground/80">
+            {f.label + (f.required ? ' *' : '')}
+          </span>
+          <input
+            type="date"
+            value={String(draft[f.key] ?? '')}
+            onChange={(e) => setDraft({ ...draft, [f.key]: e.target.value })}
+            className="rounded-md border border-[var(--primary)]/30 bg-[var(--nx-surface-input)] px-2.5 py-1.5 text-sm text-foreground outline-none transition-colors focus:border-[var(--primary)]/60 focus:ring-1 focus:ring-[var(--primary)]/40"
+          />
+        </div>
+      );
+    }
+    // 編輯模式：text / number
+    if (editing && !lockedNow && f.type !== 'toggle') {
+      return (
+        <FormInput
+          label={f.label + (f.required ? ' *' : '')}
+          value={String(draft[f.key] ?? '')}
+          onChange={(v) => setDraft({ ...draft, [f.key]: v })}
+          placeholder={f.placeholder}
+          maxLength={f.maxLength}
+        />
+      );
+    }
+    // 編輯模式：toggle
+    if (editing && f.type === 'toggle') {
+      const on = Boolean(draft[f.key]);
+      return (
+        <div className="flex flex-col gap-1">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-foreground/80">{f.label}</span>
+          <button
+            type="button"
+            onClick={() => setDraft({ ...draft, [f.key]: !on })}
+            className={cn(
+              'inline-flex h-9 items-center justify-center rounded-md border px-3 text-sm font-medium transition-colors',
+              on
+                ? 'border-[var(--color-success)]/40 bg-[var(--color-success)]/10 text-[var(--color-success)]'
+                : 'border-[var(--color-danger)]/40 bg-[var(--color-danger)]/10 text-[var(--color-danger)]',
+            )}
+          >
+            {on ? '啟用' : '停用'}
+          </button>
+        </div>
+      );
+    }
+    // 瀏覽 / locked 欄位
+    const raw = editing ? draft[f.key] : selected?.[f.key];
+    const val =
+      f.type === 'toggle'
+        ? (raw ? '啟用' : '停用')
+        : f.type === 'select' || f.type === 'ref'
+          ? optionLabel(f, raw, refOptions)
+          : f.type === 'json'
+            ? (raw == null || raw === '' ? '—' : typeof raw === 'string' ? raw : JSON.stringify(raw))
+            : String(raw ?? '—');
+    return (
+      <FormField
+        label={f.label}
+        value={val === '' ? '—' : val}
+        mono={f.mono}
+        emphasis={f.emphasis}
+        tone={f.type === 'toggle' ? (raw ? 'green' : 'red') : undefined}
+      />
+    );
+  };
+
+  // 詳細頁分組：依 detailGroup「連續段」切 chunk、不重排欄位
+  // （2026-07-11 執行長拍板「統一底座 + 每檔個別調」、演進 2026-06-24「統一 5 欄 F 方案」拍板）
+  const fieldChunks: { label: string | null; fields: EntityFieldDef[] }[] = [];
+  for (const f of config.fields) {
+    const last = fieldChunks[fieldChunks.length - 1];
+    if (!last || (f.detailGroup && f.detailGroup !== last.label)) {
+      fieldChunks.push({ label: f.detailGroup ?? null, fields: [f] });
+    } else {
+      last.fields.push(f);
+    }
+  }
+
   return (
     <MasterDetailScroll scrollKey={selected?.id ?? (creating ? '__new__' : null)}>
-      <div className="px-4 py-4 sm:px-6">
-        {/* 2026-06-18 SectionHeader 已搬到 MasterPageHead tabs 同排 */}
-        {/* 2026-06-24 執行長拍板：detail 區排版統一 UserFormZoned 5 欄 minmax(220px,1fr) F 方案 */}
-        <div
-          ref={formRef}
-          data-master-form
-          onKeyDown={handleFormKey}
-          className="grid gap-3"
-          style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}
-        >
-          {config.fields.map((f) => {
-            // 計算欄位（唯讀即時預覽，如料號分段預覽）：編輯時讀 draft、瀏覽時讀 row
-            if (f.type === 'computed') {
-              const val = f.compute?.(editing ? draft : ((selected as Record<string, unknown>) ?? {})) ?? '';
-              return <FormField key={f.key} label={f.label} value={val || '—'} mono />;
-            }
-            const lockedNow = editing && !creating && f.lockedOnEdit;
-            // 編輯模式：select / ref 下拉（全鍵盤 KeyboardSelect：Enter 展開→↑↓選→Enter 確認+跳格→Esc 關）
-            if (editing && !lockedNow && (f.type === 'select' || f.type === 'ref')) {
-              const opts = f.type === 'select' ? (f.options ?? []) : (refOptions[f.key] ?? []);
-              const baseOpts = opts.map((o) => ({ value: String(o.value), label: o.label }));
-              // 非必填提供「清除」選項（對齊原 native 空白 option）；options 已含空值則不重複加
-              const hasEmpty = baseOpts.some((o) => o.value === '');
-              const selOpts = f.required || hasEmpty
-                ? baseOpts
-                : [{ value: '', label: f.placeholder ?? '（無）' }, ...baseOpts];
-              return (
-                <div key={f.key} className="flex flex-col gap-1">
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-foreground/80">
-                    {f.label + (f.required ? ' *' : '')}
-                  </span>
-                  <KeyboardSelect
-                    value={String(draft[f.key] ?? '')}
-                    options={selOpts}
-                    placeholder={f.placeholder ?? (f.required ? '請選擇...' : '（無）')}
-                    ariaLabel={f.label}
-                    onChange={(v) => setDraft({ ...draft, [f.key]: v })}
-                  />
+      {/* 2026-06-18 SectionHeader 已搬到 MasterPageHead tabs 同排 */}
+      {/* formRef 包所有 chunk：Enter 跳格鏈跨組照走 */}
+      <div ref={formRef} data-master-form onKeyDown={handleFormKey} className="px-4 py-4 sm:px-6">
+        {fieldChunks.map((chunk, ci) => (
+          <div key={chunk.label ?? `_chunk_${ci}`} className={ci > 0 ? 'mt-5' : undefined}>
+            {chunk.label ? (
+              <div className="mb-2.5 flex items-center gap-2 border-b border-border/40 pb-1.5">
+                <span className="size-1.5 rounded-full bg-[var(--primary)]/70" />
+                <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                  {chunk.label}
+                </span>
+              </div>
+            ) : null}
+            <div
+              className="grid gap-3"
+              style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}
+            >
+              {chunk.fields.map((f) => (
+                <div key={f.key} className={detailSpanClass(f)}>
+                  {renderDetailField(f)}
                 </div>
-              );
-            }
-            // 編輯模式：textarea / json（長文 / JSON 巢狀）
-            if (editing && !lockedNow && (f.type === 'textarea' || f.type === 'json')) {
-              return (
-                <div key={f.key} className="flex flex-col gap-1 [grid-column:span_2]">
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-foreground/80">
-                    {f.label + (f.required ? ' *' : '') + (f.type === 'json' ? '（JSON 陣列）' : '')}
-                  </span>
-                  <textarea
-                    value={String(draft[f.key] ?? '')}
-                    onChange={(e) => setDraft({ ...draft, [f.key]: e.target.value })}
-                    rows={f.type === 'json' ? 8 : 4}
-                    placeholder={f.placeholder}
-                    className={cn(
-                      'rounded-md border border-[var(--primary)]/30 bg-[var(--nx-surface-input)] px-2.5 py-1.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-[var(--primary)]/60 focus:ring-1 focus:ring-[var(--primary)]/40',
-                      f.type === 'json' && 'font-mono text-xs',
-                    )}
-                  />
-                </div>
-              );
-            }
-            // 編輯模式：date（T3 進貨對齊批次 2026-06-07）
-            if (editing && !lockedNow && f.type === 'date') {
-              return (
-                <div key={f.key} className="flex flex-col gap-1">
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-foreground/80">
-                    {f.label + (f.required ? ' *' : '')}
-                  </span>
-                  <input
-                    type="date"
-                    value={String(draft[f.key] ?? '')}
-                    onChange={(e) => setDraft({ ...draft, [f.key]: e.target.value })}
-                    className="rounded-md border border-[var(--primary)]/30 bg-[var(--nx-surface-input)] px-2.5 py-1.5 text-sm text-foreground outline-none transition-colors focus:border-[var(--primary)]/60 focus:ring-1 focus:ring-[var(--primary)]/40"
-                  />
-                </div>
-              );
-            }
-            // 編輯模式：text / number
-            if (editing && !lockedNow && f.type !== 'toggle') {
-              return (
-                <FormInput
-                  key={f.key}
-                  label={f.label + (f.required ? ' *' : '')}
-                  value={String(draft[f.key] ?? '')}
-                  onChange={(v) => setDraft({ ...draft, [f.key]: v })}
-                  placeholder={f.placeholder}
-                  maxLength={f.maxLength}
-                />
-              );
-            }
-            // 編輯模式：toggle
-            if (editing && f.type === 'toggle') {
-              const on = Boolean(draft[f.key]);
-              return (
-                <div key={f.key} className="flex flex-col gap-1">
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-foreground/80">{f.label}</span>
-                  <button
-                    type="button"
-                    onClick={() => setDraft({ ...draft, [f.key]: !on })}
-                    className={cn(
-                      'inline-flex h-9 items-center justify-center rounded-md border px-3 text-sm font-medium transition-colors',
-                      on
-                        ? 'border-[var(--color-success)]/40 bg-[var(--color-success)]/10 text-[var(--color-success)]'
-                        : 'border-[var(--color-danger)]/40 bg-[var(--color-danger)]/10 text-[var(--color-danger)]',
-                    )}
-                  >
-                    {on ? '啟用' : '停用'}
-                  </button>
-                </div>
-              );
-            }
-            // 瀏覽 / locked 欄位
-            const raw = editing ? draft[f.key] : selected?.[f.key];
-            const val =
-              f.type === 'toggle'
-                ? (raw ? '啟用' : '停用')
-                : f.type === 'select' || f.type === 'ref'
-                  ? optionLabel(f, raw, refOptions)
-                  : f.type === 'json'
-                    ? (raw == null || raw === '' ? '—' : typeof raw === 'string' ? raw : JSON.stringify(raw))
-                    : String(raw ?? '—');
-            return (
-              <FormField
-                key={f.key}
-                label={f.label}
-                value={val === '' ? '—' : val}
-                mono={f.mono}
-                tone={f.type === 'toggle' ? (raw ? 'green' : 'red') : undefined}
-              />
-            );
-          })}
-        </div>
+              ))}
+            </div>
+          </div>
+        ))}
 
         {/* audit（瀏覽既有資料時） — 跟主 grid 同 5 欄 220px 範式 */}
         {!creating && selected ? (

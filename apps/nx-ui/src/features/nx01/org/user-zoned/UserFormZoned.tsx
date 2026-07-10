@@ -410,13 +410,14 @@ export function UserFormZoned({
       return wrap(<FormField label={f.label} value={`${placeholderHint}：${f.notes ?? '—'}`} dim />);
     }
 
-    // 瀏覽
+    // 瀏覽（userAccount/userName 主識別 emphasis、詳細頁排版 2026-07-11 執行長拍板）
     const raw = draft[f.key];
     return wrap(
       <FormField
         label={f.label}
         value={String(raw ?? '—') || '—'}
         mono={f.key === 'userAccount'}
+        emphasis={f.key === 'userAccount' || f.key === 'userName'}
       />,
     );
   };
