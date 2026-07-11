@@ -10,11 +10,15 @@
 //   · 各倉分布自預設頁移除（執行長明確拿掉；倉別改由入口情境決定、見交接 §4）
 //   · 基本資訊卡加大面積
 //
-// 核心連動（視窗 2 靈魂）：
-//   · Enter（右欄）= 預覽：左中切到該件資料、但主件保留置頂高亮（供比完切回）
+// 核心連動（視窗 2 靈魂、執行長 2026-07-11 S01 走查改版）：
+//   · ↑↓（右欄）= 選件：左欄基本資料 + 中欄庫存「即時跟隨」選中列（主件只留「主」徽章、不再恆亮）
+//   · Space = 標記✓/取消（可多顆）；F4 報價：有標記＝批次報價、無標記＝報當前件
 //   · Alt+F（右欄）= 跳搜：以該件為新主件重來、原主件不保留
+//   · Alt+W = 各倉分布展開/收合（localStorage 記憶、換料不縮回）
+//   · Alt+P = 放大零件圖（原 Space、讓位給標記）
+//   · Alt+H = 快捷鍵說明（引導精靈通用鍵）；底部提示列已收進右上「?」
+//   · F3 = 聚焦右欄通用零件（＝可替代件；原 F3 小面板與右欄同資料、已合併退役）
 //   · Esc = 關視窗 2 → 退回搜尋窗（保留搜尋窗 state）
-//   · Space = 放大零件圖
 //
 // 焦點地基：FocusLockedDialog 包殼、modal-stack 自動隔離背景。
 'use client';
@@ -22,8 +26,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowLeft,
+  Check,
   ChevronDown,
   ChevronRight,
+  HelpCircle,
   Image as ImageIcon,
   Loader2,
   Package,
@@ -109,11 +115,42 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
   const compatListRef = useRef<HTMLDivElement>(null);
   const compatFirstRowRef = useRef<HTMLButtonElement>(null);
 
-  // 圖片放大
+  // 標記（Space、執行長 2026-07-11）：F4 報價時有標記＝批次
+  const [markedIds, setMarkedIds] = useState<Set<string>>(new Set());
+
+  // 圖片放大（Alt+P、原 Space 讓位給標記）
   const [photoZoom, setPhotoZoom] = useState(false);
 
-  // F2 改版 Step 4（交接 §5）：4 快捷鍵面板（F3 可替代 / F5 周轉率 / F6 出入庫；F4 報價走全域事件）
-  // F2 下鑽（交接 §7 缺口、執行長 2026-07-11 拍板）：F8 銷貨比價
+  // 快捷鍵說明（Alt+H / 右上「?」、取代底部提示列）
+  const [helpOpen, setHelpOpen] = useState(false);
+
+  // 各倉分布展開（Alt+W、localStorage 記憶、換料不縮回）
+  const [whExpanded, setWhExpanded] = useState<boolean>(() => {
+    try {
+      if (typeof window !== 'undefined') return localStorage.getItem('nx-f2-wh-bars') === '1';
+    } catch {
+      /* 讀不到走預設 */
+    }
+    return false;
+  });
+  const toggleWhExpanded = useCallback(() => {
+    setWhExpanded((v) => {
+      const next = !v;
+      try {
+        localStorage.setItem('nx-f2-wh-bars', next ? '1' : '0');
+      } catch {
+        /* 存不了不擋 */
+      }
+      return next;
+    });
+  }, []);
+  // 情境倉（銷售選客戶/倉管入口）出現 → 自動展開（不寫記憶、手動 Alt+W 才寫）
+  useEffect(() => {
+    if (entryContext?.warehouseId || entryContext?.entry === 'warehouse') setWhExpanded(true);
+  }, [entryContext?.warehouseId, entryContext?.entry]);
+
+  // F2 改版 Step 4（交接 §5）：快捷鍵面板（F5 周轉率 / F6 出入庫；F4 報價走全域事件）
+  // F3 可替代小面板已退役（與右欄同資料、2026-07-11 合併）；F2 下鑽：F8 銷貨比價
   const [quickPanel, setQuickPanel] = useState<QuickPanelKind | null>(null);
   // 出入庫紀錄 lazy 載（F6、換料件清空重抓）
   const [historyRows, setHistoryRows] = useState<PartStockHistoryRow[] | null>(null);
@@ -292,6 +329,7 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
     const myReq = ++rightReqRef.current;
     setRightLoading(true);
     setHighlightIndex(0);
+    setMarkedIds(new Set()); // 換主件（新群組）→ 標記歸零
     void (async () => {
       try {
         const r = await getPartCompatGroup(mainPartId);
@@ -338,23 +376,24 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
   }, []);
 
   // 右欄動作 callbacks（row onKeyDown 與 FocusZone 容器共用）
-  const compatMoveDown = useCallback(() => {
-    const total = compatRows.length;
-    if (total === 0) return;
-    setHighlightIndex((i) => {
-      const next = Math.min(total - 1, i + 1);
+  // 執行長 2026-07-11：↑↓ 選件時左欄基本資料 + 中欄庫存「即時跟隨」（不用再按 Enter）
+  const compatSelectIndex = useCallback(
+    (next: number) => {
+      setHighlightIndex(next);
       focusCompatRow(next);
-      return next;
-    });
-  }, [compatRows.length]);
+      const r = compatRows[next];
+      if (r) setPreviewPartId(r.id === mainPartId ? null : r.id);
+    },
+    [compatRows, mainPartId],
+  );
+  const compatMoveDown = useCallback(() => {
+    if (compatRows.length === 0) return;
+    compatSelectIndex(Math.min(compatRows.length - 1, highlightIndex + 1));
+  }, [compatRows.length, highlightIndex, compatSelectIndex]);
   const compatMoveUp = useCallback(() => {
     if (compatRows.length === 0) return;
-    setHighlightIndex((i) => {
-      const next = Math.max(0, i - 1);
-      focusCompatRow(next);
-      return next;
-    });
-  }, [compatRows.length]);
+    compatSelectIndex(Math.max(0, highlightIndex - 1));
+  }, [compatRows.length, highlightIndex, compatSelectIndex]);
   const compatEnter = useCallback(() => {
     const r = compatRows[highlightIndex];
     if (!r) return;
@@ -365,7 +404,17 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
     const r = compatRows[highlightIndex];
     if (r) jumpSearch(r);
   }, [compatRows, highlightIndex, jumpSearch]);
-  const compatToggleZoom = useCallback(() => setPhotoZoom((z) => !z), []);
+  // Space 標記✓/取消（執行長 2026-07-11）：只在全域 keydown 處理、避免 row/zone 雙觸發
+  const compatToggleMark = useCallback(() => {
+    const r = compatRows[highlightIndex];
+    if (!r) return;
+    setMarkedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(r.id)) next.delete(r.id);
+      else next.add(r.id);
+      return next;
+    });
+  }, [compatRows, highlightIndex]);
 
   // row button onKeyDown（focus 在 row 時走這、FocusZone scope='space-only' 不接 row 冒泡）
   const handleCompatKey = useCallback(
@@ -392,30 +441,35 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
           e.preventDefault();
           compatEnter();
           break;
-        case ' ':
-          e.preventDefault();
-          compatToggleZoom();
-          break;
+        // Space 標記走全域 capture handler（避免與 row 雙觸發）
       }
     },
-    [
-      compatRows.length,
-      compatMoveDown,
-      compatMoveUp,
-      compatEnter,
-      compatJumpSearch,
-      compatToggleZoom,
-    ],
+    [compatRows.length, compatMoveDown, compatMoveUp, compatEnter, compatJumpSearch],
   );
 
   // 即時報價（F4 / 按鈕）：dispatch 事件，全域 GlobalInstantQuote 接（design 層不 import nx04）
+  // 執行長 2026-07-11：右欄有 Space 標記 → 帶 items 陣列＝批次報價；無標記＝報當前件
   const fireInstantQuote = useCallback(() => {
+    const marked = compatRows.filter((r) => markedIds.has(r.id));
+    if (marked.length > 0) {
+      window.dispatchEvent(
+        new CustomEvent('nx-instant-quote', {
+          detail: {
+            partId: marked[0].id,
+            code: marked[0].code,
+            name: marked[0].name,
+            items: marked.map((r) => ({ partId: r.id, code: r.code, name: r.name })),
+          },
+        }),
+      );
+      return;
+    }
     window.dispatchEvent(
       new CustomEvent('nx-instant-quote', {
         detail: { partId: effectivePartId, code: detail?.code, name: detail?.name },
       }),
     );
-  }, [effectivePartId, detail?.code, detail?.name]);
+  }, [compatRows, markedIds, effectivePartId, detail?.code, detail?.name]);
 
   // 即時詢價（F3 / 按鈕）：dispatch 事件，全域 GlobalInstantInquiry 接（調貨側，挑同行）
   const fireInstantInquiry = useCallback(() => {
@@ -426,9 +480,9 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
     );
   }, [effectivePartId, detail?.code, detail?.name]);
 
-  // 全域 Space 放大 / 快捷鍵（任何地方按、除了 input/textarea）
-  // Step 4（交接 §5 拍板）：F3 可替代零件 / F4 即時報價 / F5 周轉率 / F6 出入庫。
-  // F3 原綁「即時詢價」、依交接改綁可替代零件；詢價改綁 F7（執行長 2026-07-10 拍板）。
+  // 全域快捷鍵（任何地方按、除了 input/textarea）
+  // 執行長 2026-07-11 S01 走查改版：Space=標記✓（原放大改 Alt+P）/ Alt+W 各倉分布 / Alt+H 說明
+  // F3 改聚焦右欄通用零件（原 F3 小面板與右欄同資料、合併退役）；F7 詢價（2026-07-10 拍板）。
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if (e.isComposing) return;
@@ -440,15 +494,37 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
       if (isEditable) return;
       const togglePanel = (p: QuickPanelKind) =>
         setQuickPanel((cur) => (cur === p ? null : p));
+      if (e.altKey && !e.ctrlKey && !e.metaKey) {
+        const k = e.key.toLowerCase();
+        if (k === 'p') {
+          // Alt+P 放大零件圖（stopPropagation：不讓背景選單 accelerator 撿到）
+          e.preventDefault();
+          e.stopPropagation();
+          setPhotoZoom((z) => !z);
+        } else if (k === 'w') {
+          // Alt+W 各倉分布展開/收合（記憶）
+          e.preventDefault();
+          e.stopPropagation();
+          toggleWhExpanded();
+        } else if (k === 'h') {
+          // Alt+H 快捷鍵說明（引導精靈通用鍵）
+          e.preventDefault();
+          e.stopPropagation();
+          setHelpOpen((v) => !v);
+        }
+        return; // 其他 Alt 組合放行（Alt+F 跳搜由右欄 row/zone 處理）
+      }
       if (e.key === ' ' || e.code === 'Space') {
+        // Space = 標記✓/取消（批次報價用）；只在這攔一次、row/zone 不再處理避免雙觸發
         e.preventDefault();
-        setPhotoZoom((z) => !z);
+        compatToggleMark();
       } else if (e.key === 'F4') {
         e.preventDefault();
         fireInstantQuote();
       } else if (e.key === 'F3') {
+        // F3 = 聚焦右欄通用零件（＝可替代件）
         e.preventDefault();
-        togglePanel('alt');
+        focusCompatRow(highlightIndex);
       } else if (e.key === 'F5') {
         e.preventDefault(); // 攔掉瀏覽器整頁重新整理
         togglePanel('turnover');
@@ -465,7 +541,7 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
         e.preventDefault();
         togglePanel('purchase');
       } else if (e.key === 'F10') {
-        // ⚠ F10 瀏覽器預設聚焦選單列；capture 階段 preventDefault 攔（同 F3/F5 手法、瀏覽器實測）
+        // ⚠ F10 瀏覽器預設聚焦選單列；capture 階段 preventDefault 攔（同 F5 手法、瀏覽器實測）
         e.preventDefault();
         togglePanel('related');
       }
@@ -473,7 +549,7 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
     // capture 階段：搶在焦點鎖定對話框冒泡攔截 + 瀏覽器默認（F3=找下一個/F5=重整）之前 preventDefault
     window.addEventListener('keydown', h, true);
     return () => window.removeEventListener('keydown', h, true);
-  }, [fireInstantQuote, fireInstantInquiry]);
+  }, [fireInstantQuote, fireInstantInquiry, compatToggleMark, toggleWhExpanded, highlightIndex]);
 
   // 執行長 2026-06-25：開窗焦點永遠在右側通用零件、不去 Header「退回搜尋」按鈕。
   // 1. initialFocusRef={compatListRef} → mount 時先 focus FocusZone 容器（即使資料還沒載完、容器可 focus）
@@ -551,6 +627,16 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
           <span className="text-[10px] font-semibold uppercase tracking-[0.28em] text-muted-foreground/60">
             F2 · 視窗 2
           </span>
+          {/* 快捷鍵說明（Alt+H）：底部提示列收攏至此（執行長 2026-07-11）*/}
+          <button
+            type="button"
+            onClick={() => setHelpOpen((v) => !v)}
+            className="ml-1 rounded-md border border-border/40 bg-background/40 p-1 text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
+            aria-label="快捷鍵說明"
+            title="快捷鍵說明 (Alt+H)"
+          >
+            <HelpCircle className="size-3.5" />
+          </button>
           <button
             type="button"
             onClick={onClose}
@@ -573,23 +659,25 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
             onZoomToggle={() => setPhotoZoom((z) => !z)}
           />
 
-          {/* 中欄：公司總存貨（不分倉）；情境倉/倉管入口 → 各倉分布自動展開 */}
+          {/* 中欄：公司總存貨（不分倉）；各倉分布 Alt+W 展開/收合（記憶）、情境倉自動展開 */}
           <CompanyStockColumn
             stock={stock}
             settings={stockSettings}
             loading={leftLoading}
             contextWarehouseId={entryContext?.warehouseId}
             contextLabel={entryContext?.label}
-            autoExpandBars={Boolean(entryContext?.warehouseId) || entryContext?.entry === 'warehouse'}
+            whExpanded={whExpanded}
+            onToggleWh={toggleWhExpanded}
           />
 
-          {/* 右欄：通用零件 */}
+          {/* 右欄：通用零件（＝可替代件、執行長 2026-07-11 合併）*/}
           <RightColumn
             group={compatGroup}
             rows={compatRows}
             mainPartId={mainPartId}
             effectivePartId={effectivePartId}
             highlightIndex={highlightIndex}
+            markedIds={markedIds}
             onHover={(idx) => setHighlightIndex(idx)}
             onKeyDown={handleCompatKey}
             onClickRow={(row) => {
@@ -603,45 +691,12 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
               onArrowDown: compatMoveDown,
               onArrowUp: compatMoveUp,
               onEnter: compatEnter,
-              onSpace: compatToggleZoom,
               onAltF: compatJumpSearch,
             }}
           />
         </div>
 
-        {/* Footer 鍵盤提示（Step 4：4 快捷鍵）*/}
-        <div className="flex items-center justify-between border-t border-border/35 bg-background/35 px-6 py-2 text-[12px] text-muted-foreground/85">
-          <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <Kbd>F3</Kbd> 可替代
-            <span className="text-muted-foreground/35">·</span>
-            <Kbd>F4</Kbd> 報價
-            <span className="text-muted-foreground/35">·</span>
-            <Kbd>F5</Kbd> 周轉
-            <span className="text-muted-foreground/35">·</span>
-            <Kbd>F6</Kbd> 出入庫
-            <span className="text-muted-foreground/35">·</span>
-            <Kbd>F7</Kbd> 詢價
-            <span className="text-muted-foreground/35">·</span>
-            <Kbd>F8</Kbd> 銷貨比價
-            <span className="text-muted-foreground/35">·</span>
-            <Kbd>F9</Kbd> 進貨比價
-            <span className="text-muted-foreground/35">·</span>
-            <Kbd>F10</Kbd> 相關零件
-            <span className="text-muted-foreground/35">·</span>
-            <Kbd>↑↓</Kbd> 選通用件
-            <span className="text-muted-foreground/35">·</span>
-            <Kbd>Enter</Kbd> 預覽（留主件）
-            <span className="text-muted-foreground/35">·</span>
-            <Kbd>Alt+F</Kbd> 跳搜（換主件）
-            <span className="text-muted-foreground/35">·</span>
-            <Kbd>Space</Kbd> 放大圖
-            <span className="text-muted-foreground/35">·</span>
-            <Kbd>Esc</Kbd> 退回搜尋窗
-          </span>
-          <span className="shrink-0 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground/55">
-            NEXORA · 視窗 2
-          </span>
-        </div>
+        {/* 底部提示列已退役：快捷鍵說明收進右上「?」/ Alt+H（執行長 2026-07-11）*/}
 
         {/* 圖片放大 Lightbox（疊在最上層）*/}
         {photoZoom && photos.length > 0 && (
@@ -654,12 +709,13 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
 
         {/* Step 4：快捷鍵面板（F3/F5/F6、疊在視窗 2 上、Esc 或同鍵關）
             F2 下鑽：F8 銷貨比價 */}
+        {/* 快捷鍵說明（Alt+H / 右上「?」）*/}
+        {helpOpen && <ShortcutHelpOverlay onClose={() => setHelpOpen(false)} />}
+
         {quickPanel && (
           <QuickPanelOverlay
             kind={quickPanel}
             partCode={detail?.code ?? ''}
-            compatRows={compatRows}
-            mainPartId={mainPartId}
             historyRows={historyRows}
             historyLoading={historyLoading}
             monthlyStats={monthlyStats}
@@ -702,6 +758,9 @@ function LeftColumn({
   onZoomToggle: () => void;
 }) {
   const v = (s: string | null | undefined) => (s && s.trim() ? s : '—');
+  // 執行長 2026-07-11 S01 走查：代碼＝名稱時不重複顯示（BOSCH · BOSCH → BOSCH）
+  const codeName = (o: { code: string; name: string } | null | undefined) =>
+    !o ? '—' : o.code === o.name ? o.name : `${o.code} · ${o.name}`;
   const mainPhoto = photos[0];
 
   return (
@@ -718,7 +777,7 @@ function LeftColumn({
             previewActive ? 'border-border/55' : 'border-primary/35',
             'hover:border-primary',
           )}
-          title="Space 放大"
+          title="Alt+P 放大"
         >
           {detail && mainPhoto ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -734,36 +793,26 @@ function LeftColumn({
             </div>
           )}
           <span className="pointer-events-none absolute bottom-1.5 right-1.5 rounded border border-border/50 bg-background/80 px-2 py-0.5 font-mono text-[11px] text-foreground/90 opacity-0 transition-opacity group-hover:opacity-100">
-            Space 放大
+            Alt+P 放大
           </span>
         </button>
 
-        {/* 文字資料 */}
+        {/* 文字資料（執行長 2026-07-11 S01 走查去重：
+            廠牌/族群同碼不重複、正副廠只留文字、狀態列移除——停用時料號旁補徽章即可）*/}
         <div className="flex flex-col gap-1.5">
-          <DataRow label="基準料號" value={detail?.code ?? '—'} mono primary />
+          <DataRow
+            label="基準料號"
+            value={detail?.code ?? '—'}
+            mono
+            primary
+            badge={detail && !detail.isActive ? 'inactive' : undefined}
+          />
           <DataRow label="廠牌料號" value={v(detail?.secCode)} mono />
           <DataRow label="品名" value={detail?.name ?? '—'} />
-          <DataRow
-            label="廠牌"
-            value={detail?.brand ? `${detail.brand.code} · ${detail.brand.name}` : '—'}
-          />
-          <DataRow
-            label="族群"
-            value={
-              detail?.partGroup ? `${detail.partGroup.code} · ${detail.partGroup.name}` : '—'
-            }
-          />
-          <DataRow
-            label="正/副廠"
-            value={detail ? (detail.isOem ? '正廠' : '副廠') : '—'}
-            badge={detail ? (detail.isOem ? 'oem' : 'non-oem') : undefined}
-          />
+          <DataRow label="廠牌" value={codeName(detail?.brand)} />
+          <DataRow label="族群" value={codeName(detail?.partGroup)} />
+          <DataRow label="正/副廠" value={detail ? (detail.isOem ? '正廠' : '副廠') : '—'} />
           <DataRow label="規格備註" value={v(detail?.spec)} />
-          <DataRow
-            label="狀態"
-            value={detail ? (detail.isActive ? '啟用' : '停用') : '—'}
-            badge={detail ? (detail.isActive ? undefined : 'inactive') : undefined}
-          />
         </div>
       </div>
     </aside>
@@ -794,7 +843,8 @@ function CompanyStockColumn({
   loading,
   contextWarehouseId,
   contextLabel,
-  autoExpandBars,
+  whExpanded,
+  onToggleWh,
 }: {
   stock: PartStockSummaryDto | null;
   settings: PartStockSettingRow[];
@@ -802,8 +852,9 @@ function CompanyStockColumn({
   /** Step 5：情境倉（銷售=客戶預設出貨倉）→ 各倉分布 pin 頂 + 徽章 */
   contextWarehouseId?: string;
   contextLabel?: string;
-  /** Step 5：情境倉存在或倉管入口 → 各倉分布自動展開 */
-  autoExpandBars?: boolean;
+  /** 各倉分布展開（Alt+W、父層記憶、執行長 2026-07-11）*/
+  whExpanded: boolean;
+  onToggleWh: () => void;
 }) {
   const company = stock?.company;
   const onHand = Number(company?.onHand ?? 0);
@@ -866,13 +917,14 @@ function CompanyStockColumn({
           </p>
         )}
 
-        {/* Step 3：各倉分布橫向長條（預設收合、遵守 §3 不攤在預設頁）
-            Step 5：情境倉 pin 頂＋徽章；情境入口自動展開 */}
+        {/* Step 3：各倉分布橫向長條（Alt+W 展開/收合、父層記憶換料不縮回）
+            Step 5：情境倉 pin 頂＋徽章；情境入口自動展開（父層 effect）*/}
         <WarehouseBarsSection
           warehouses={stock?.warehouses ?? []}
           contextWarehouseId={contextWarehouseId}
           contextLabel={contextLabel}
-          autoExpand={autoExpandBars}
+          expanded={whExpanded}
+          onToggle={onToggleWh}
         />
       </div>
     </section>
@@ -891,24 +943,17 @@ function WarehouseBarsSection({
   warehouses,
   contextWarehouseId,
   contextLabel,
-  autoExpand,
+  expanded,
+  onToggle,
 }: {
   warehouses: PartStockWarehouseRow[];
   contextWarehouseId?: string;
   contextLabel?: string;
-  autoExpand?: boolean;
+  /** 展開狀態受控（父層 Alt+W + localStorage 記憶、執行長 2026-07-11：換料不縮回）*/
+  expanded: boolean;
+  onToggle: () => void;
 }) {
-  const [expanded, setExpanded] = useState(Boolean(autoExpand));
   const [showZeros, setShowZeros] = useState(false);
-
-  // Step 5：情境倉事後才帶入（如視窗 2 開著時報價選客戶）→ 補展開。
-  // render 期間調整衍生狀態（React 官方 pattern、避免 effect 級聯 render）
-  const autoKey = autoExpand ? (contextWarehouseId ?? 'auto') : null;
-  const [prevAutoKey, setPrevAutoKey] = useState(autoKey);
-  if (autoKey !== prevAutoKey) {
-    setPrevAutoKey(autoKey);
-    if (autoKey) setExpanded(true);
-  }
 
   const isAllZero = (w: PartStockWarehouseRow) =>
     Number(w.onHand) === 0 &&
@@ -934,12 +979,13 @@ function WarehouseBarsSection({
     <div className="flex shrink-0 flex-col gap-1.5">
       <button
         type="button"
-        onClick={() => setExpanded((v) => !v)}
+        onClick={onToggle}
         className="flex items-center gap-1.5 text-left text-[10px] uppercase tracking-[0.22em] text-muted-foreground/70 transition-colors hover:text-foreground"
       >
         {expanded ? <ChevronDown className="size-3" /> : <ChevronRight className="size-3" />}
         各倉分布
         <span className="font-mono normal-case tracking-normal">({warehouses.length} 倉)</span>
+        <Kbd>Alt+W</Kbd>
       </button>
 
       {expanded && (
@@ -1121,6 +1167,7 @@ function RightColumn({
   mainPartId,
   effectivePartId,
   highlightIndex,
+  markedIds,
   onHover,
   onKeyDown,
   onClickRow,
@@ -1134,31 +1181,29 @@ function RightColumn({
   mainPartId: string;
   effectivePartId: string;
   highlightIndex: number;
+  /** Space 標記（批次報價用、執行長 2026-07-11）*/
+  markedIds: Set<string>;
   onHover: (idx: number) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLButtonElement>) => void;
   onClickRow: (row: PartCompatMemberDto) => void;
   loading: boolean;
   firstRowRef: React.RefObject<HTMLButtonElement | null>;
   listRef: React.RefObject<HTMLDivElement | null>;
-  /** 軌 2 FocusZone callbacks（容器接的方向鍵、點 row 間空白後仍 work）*/
+  /** 軌 2 FocusZone callbacks（容器接的方向鍵、點 row 間空白後仍 work；Space 走全域）*/
   zoneCallbacks: {
     onArrowDown: () => void;
     onArrowUp: () => void;
     onEnter: () => void;
-    onSpace: () => void;
     onAltF: () => void;
   };
 }) {
-  // FocusZone 容器 onKeyDown（接 Alt+F、Space 等非標準 callback 鍵）
+  // FocusZone 容器 onKeyDown（接 Alt+F 等非標準 callback 鍵；Space 標記走全域 capture）
   const handleZoneKey = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
       if (e.altKey && (e.key === 'f' || e.key === 'F')) {
         e.preventDefault();
         e.stopPropagation();
         zoneCallbacks.onAltF();
-      } else if (e.key === ' ' || e.code === 'Space') {
-        e.preventDefault();
-        zoneCallbacks.onSpace();
       }
     },
     [zoneCallbacks],
@@ -1168,7 +1213,7 @@ function RightColumn({
     <section className="flex min-h-0 flex-col bg-background/15">
       <SectionHeader
         icon={<Package className="size-3.5" />}
-        label="通用零件"
+        label="通用零件（可替代）"
         sublabel={group ? `${group.groupCode} · ${group.groupName}` : '本料件無通用件群組'}
         loading={loading}
       />
@@ -1199,6 +1244,7 @@ function RightColumn({
                     isMain={isMain}
                     isPreviewTarget={isPreviewTarget}
                     isHighlighted={idx === highlightIndex}
+                    isMarked={markedIds.has(row.id)}
                     onHover={() => onHover(idx)}
                     onKeyDown={onKeyDown}
                     onClick={() => onClickRow(row)}
@@ -1220,6 +1266,7 @@ function CompatCard({
   isMain,
   isPreviewTarget,
   isHighlighted,
+  isMarked,
   onHover,
   onKeyDown,
   onClick,
@@ -1230,6 +1277,8 @@ function CompatCard({
   isMain: boolean;
   isPreviewTarget: boolean;
   isHighlighted: boolean;
+  /** Space 標記✓（批次報價、執行長 2026-07-11）*/
+  isMarked: boolean;
   onHover: () => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLButtonElement>) => void;
   onClick: () => void;
@@ -1248,14 +1297,16 @@ function CompatCard({
       className={cn(
         'relative flex w-full flex-col gap-1.5 overflow-hidden rounded-xl bg-secondary/60 px-4 py-3 text-left outline-none',
         'border-2 transition-[border-color,box-shadow,background-color] duration-150 ease-out',
-        isMain
-          ? // 主件永遠高亮
-            'border-primary bg-primary/12 shadow-[0_0_12px_-2px_rgba(232,160,32,0.45)]'
-          : isHighlighted
-            ? 'border-primary bg-primary/12 shadow-[0_0_12px_-2px_rgba(232,160,32,0.45)]'
+        // 執行長 2026-07-11 S01 走查：只有「選中列」亮金框（主件不再恆亮、只留「主」徽章）
+        isHighlighted
+          ? 'border-primary bg-primary/12 shadow-[0_0_12px_-2px_rgba(232,160,32,0.45)]'
+          : isMain
+            ? 'border-primary/45 bg-primary/[0.06]'
             : isPreviewTarget
               ? 'border-muted-foreground bg-secondary/15'
               : 'border-border/35 bg-secondary/40 hover:border-primary/55 hover:bg-secondary/75',
+        // Space 標記✓：綠色外圈（與金框選中互不干擾）
+        isMarked && 'ring-2 ring-[#22D88F]/70',
         !row.isActive && 'opacity-55',
       )}
     >
@@ -1270,6 +1321,14 @@ function CompatCard({
           {row.code}
         </span>
         <div className="flex shrink-0 items-center gap-1.5">
+          {isMarked && (
+            <span
+              className="inline-flex items-center rounded-md border border-[#22D88F]/70 bg-[#22D88F]/15 px-1.5 py-0.5 font-mono text-[11px] font-bold text-[#22D88F]"
+              title="已標記（F4 批次報價）"
+            >
+              <Check className="size-3" />
+            </span>
+          )}
           {isMain ? (
             <span className="rounded-md border border-primary bg-primary/25 px-2 py-0.5 font-mono text-[11px] font-bold uppercase tracking-[0.08em] text-primary">
               主
@@ -1449,10 +1508,10 @@ const DOC_TYPE_LABELS: Record<string, string> = {
 };
 
 // F2 下鑽（交接 §7、執行長 2026-07-11 拍板）：F8 銷貨比價 / F9 進貨比價 / F10 相關零件
-type QuickPanelKind = 'alt' | 'turnover' | 'history' | 'sales' | 'purchase' | 'related';
+// F3 可替代小面板已退役（與右欄通用零件同資料、執行長 2026-07-11 S01 走查合併；F3 改聚焦右欄）
+type QuickPanelKind = 'turnover' | 'history' | 'sales' | 'purchase' | 'related';
 
 const QUICK_PANEL_META: Record<QuickPanelKind, { title: string; kbd: string; wide?: boolean }> = {
-  alt: { title: '可替代零件', kbd: 'F3' },
   turnover: { title: '周轉率分析', kbd: 'F5' },
   history: { title: '出入庫紀錄', kbd: 'F6' },
   sales: { title: '銷貨比價', kbd: 'F8', wide: true },
@@ -1463,8 +1522,6 @@ const QUICK_PANEL_META: Record<QuickPanelKind, { title: string; kbd: string; wid
 function QuickPanelOverlay({
   kind,
   partCode,
-  compatRows,
-  mainPartId,
   historyRows,
   historyLoading,
   monthlyStats,
@@ -1481,8 +1538,6 @@ function QuickPanelOverlay({
 }: {
   kind: QuickPanelKind;
   partCode: string;
-  compatRows: PartCompatMemberDto[];
-  mainPartId: string;
   historyRows: PartStockHistoryRow[] | null;
   historyLoading: boolean;
   monthlyStats: PartMonthlyStatsDto | null;
@@ -1531,7 +1586,6 @@ function QuickPanelOverlay({
         </div>
 
         <div className="min-h-0 flex-1 overflow-auto px-5 py-3">
-          {kind === 'alt' && <AltPartsPanel rows={compatRows} mainPartId={mainPartId} />}
           {kind === 'turnover' && (
             <TurnoverPanel
               stats={monthlyStats}
@@ -1557,55 +1611,75 @@ function QuickPanelOverlay({
   );
 }
 
-/** F3 可替代零件：只露 料號 / 廠牌 / 庫存數量（交接 §5 拍板）*/
-function AltPartsPanel({ rows, mainPartId }: { rows: PartCompatMemberDto[]; mainPartId: string }) {
-  if (rows.length === 0) {
-    return <PanelEmpty msg="本料件未屬於任何通用件群組" />;
-  }
+/** 快捷鍵說明（Alt+H / 右上「?」、執行長 2026-07-11：取代底部提示列、引導精靈通用鍵）*/
+function ShortcutHelpOverlay({ onClose }: { onClose: () => void }) {
+  const Group = ({ title }: { title: string }) => (
+    <div className="col-span-2 pt-2.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-primary/85 first:pt-0">
+      {title}
+    </div>
+  );
+  const Row = ({ k, desc }: { k: string; desc: string }) => (
+    <>
+      <span className="text-right">
+        <Kbd>{k}</Kbd>
+      </span>
+      <span className="text-[13px] text-foreground/90">{desc}</span>
+    </>
+  );
   return (
-    <table className="w-full border-collapse text-[13px]">
-      <thead>
-        <tr className="border-b border-border/40 text-left text-[11px] uppercase tracking-[0.12em] text-muted-foreground/70">
-          <th className="py-1.5 pr-3 font-medium">料號</th>
-          <th className="py-1.5 pr-3 font-medium">廠牌</th>
-          <th className="py-1.5 text-right font-medium">庫存數量</th>
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((r) => {
-          const onHand = Number(r.onHandTotal);
-          const isMain = r.id === mainPartId;
-          return (
-            <tr
-              key={r.id}
-              className={cn(
-                'border-b border-border/15 last:border-b-0',
-                isMain && 'bg-primary/8',
-                !r.isActive && 'opacity-55',
-              )}
-            >
-              <td className="py-2 pr-3">
-                <span className={cn('font-mono font-medium', isMain ? 'text-primary' : 'text-foreground/90')}>
-                  {r.code}
-                </span>
-                {isMain && (
-                  <span className="ml-2 rounded border border-primary/55 bg-primary/15 px-1.5 py-px font-mono text-[10px] font-bold text-primary">
-                    主
-                  </span>
-                )}
-              </td>
-              <td className="py-2 pr-3 text-foreground/85">{r.brandCode ?? r.brandName ?? '—'}</td>
-              <td
-                className="py-2 text-right font-mono tabular-nums"
-                style={{ color: onHand > 0 ? STOCK_COLORS.available : STOCK_COLORS.reserved }}
-              >
-                {onHand.toFixed(0)}
-              </td>
-            </tr>
-          );
-        })}
-      </tbody>
-    </table>
+    <FocusLockedDialog
+      open
+      onClose={onClose}
+      ariaLabel="快捷鍵說明"
+      backdropClassName="bg-black/55 backdrop-blur-[2px] animate-in fade-in duration-150"
+      dialogClassName="flex flex-col rounded-xl border border-border/60 bg-popover text-foreground shadow-[0_18px_50px_rgba(0,0,0,0.5),0_0_36px_-14px_rgba(232,160,32,0.25)] animate-in fade-in zoom-in-95 duration-150"
+      dialogStyle={{ width: 'min(560px, 92vw)', maxHeight: 'min(640px, 90vh)' }}
+    >
+      <>
+        <div className="flex items-center gap-2.5 border-b border-border/40 px-5 py-2.5">
+          <HelpCircle className="size-4 text-primary" />
+          <h3 className="text-sm font-bold tracking-wide">快捷鍵說明</h3>
+          <kbd className="rounded border border-primary/50 bg-primary/12 px-1.5 py-px font-mono text-[11px] font-bold text-primary">
+            Alt+H
+          </kbd>
+          <button
+            type="button"
+            onClick={onClose}
+            className="ml-auto rounded-md border border-border/40 bg-background/40 p-1 text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
+            aria-label="關閉"
+            title="關閉（Esc）"
+          >
+            <X className="size-3.5" />
+          </button>
+        </div>
+        <div className="min-h-0 flex-1 overflow-auto px-5 py-3">
+          <div className="grid grid-cols-[88px_1fr] items-baseline gap-x-3 gap-y-1.5">
+            <Group title="右欄・通用零件（＝可替代件）" />
+            <Row k="↑↓" desc="選件（左欄資料＋中欄庫存即時跟隨）" />
+            <Row k="Space" desc="標記✓／取消（可標多顆、供批次報價）" />
+            <Row k="Alt+F" desc="以選中件跳搜（換主件重來）" />
+            <Row k="F3" desc="聚焦右欄清單" />
+            <Group title="報價・詢價" />
+            <Row k="F4" desc="即時報價（右欄有 ✓ 標記＝批次報價）" />
+            <Row k="F7" desc="即時詢價（同行調貨、記一家一筆）" />
+            <Group title="查價面板" />
+            <Row k="F5" desc="周轉率分析" />
+            <Row k="F6" desc="出入庫紀錄" />
+            <Row k="F8" desc="銷貨比價（建議售價＝成本+A~D 價）" />
+            <Row k="F9" desc="進貨比價（歷史進價）" />
+            <Row k="F10" desc="相關零件＋適用車型（兩頁籤）" />
+            <Group title="視窗" />
+            <Row k="Alt+W" desc="各倉分布展開／收合（會記憶、換料不縮回）" />
+            <Row k="Alt+P" desc="放大零件圖" />
+            <Row k="Alt+H" desc="本說明（引導精靈通用鍵）" />
+            <Row k="Esc" desc="退回搜尋窗" />
+          </div>
+        </div>
+        <div className="border-t border-border/35 bg-background/35 px-5 py-1.5 text-right text-[11px] text-muted-foreground/65">
+          <Kbd>Esc</Kbd> 或再按 <Kbd>Alt+H</Kbd> 關閉
+        </div>
+      </>
+    </FocusLockedDialog>
   );
 }
 
