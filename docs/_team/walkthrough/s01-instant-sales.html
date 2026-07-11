@@ -2,8 +2,9 @@
 <html lang="zh-Hant">
 <!-- docs/_team/walkthrough/s01-instant-sales.html -->
 <!-- 位置：docs/_team/walkthrough/（情境攻略測試本、一情境一本） -->
-<!-- 版本：v2.2（2026-07-11、Hank；依執行長「即時銷售情境」五步稿改寫、鍵位/入口/欄位全部 grep 實掛核對；
-     v2.1 嵌入 dev DB 真實料號/客戶/同行；v2.2 主視窗改版後鍵位更新（Space 標記/F4 批次/Alt+W/Alt+P/Alt+H）） -->
+<!-- 版本：v2.3（2026-07-12、Hank；依執行長「即時銷售情境」五步稿改寫、鍵位/入口/欄位全部 grep 實掛核對；
+     v2.1 嵌入 dev DB 真實料號/客戶/同行；v2.2 主視窗改版鍵位；v2.3 F1/F2 分流
+     （F1=即時庫存查詢・原 F2 整組；F2=即時報價查詢工作台・客戶錨定連續報價）） -->
 <!-- 說明：即時銷售情境本。含分歧路線（🧭）與系統現況差異（⚠️ 請執行長實走後給設計判斷）。
      勾選進度存 localStorage（key: nx-wt-s01）、總覽頁 index.html 會讀摘要。 -->
 <head>
@@ -69,7 +70,7 @@
 </head>
 <body>
 <div class="wrap">
-<h1>📞 情境本 S01｜即時銷售 <span class="v">v2.2（2026-07-11、含真實料號＋主視窗改版鍵位）</span></h1>
+<h1>📞 情境本 S01｜即時銷售 <span class="v">v2.3（2026-07-12、F1 查庫存／F2 報價分流版）</span></h1>
 <div class="sub">客戶來電 → 查庫存 → 替代品 → 同行詢價比價 → 報價 → 銷貨單 → 調貨單 → 交棒出貨。分歧照實際電話節奏走。　<a href="index.html">← 回總覽</a></div>
 
 <div class="rules">
@@ -84,7 +85,8 @@
   <div class="t">🗺 路線總覽（對照你的情境稿五步）</div>
   <code>①來電查庫存</code> ─有貨→ <code>③報價</code> ─成交→ <code>④銷貨單</code> → 交棒出貨<br>
   　└ 沒貨 → 替代品（有→③）→ 都沒 → 問急迫性：很急→轉介別間｜可等一下→<code>②同行詢價</code>→③→④→<code>⑤調貨單</code>｜願等到貨→③→④行標客訂<br>
-  <span style="font-size:12px">⚠️ 唯一跟你稿子順序不同的是 ④⑤（系統要先有銷貨單才能開調貨單）——關卡五有專門的判斷題。</span>
+  <span style="font-size:12px">⚠️ 唯一跟你稿子順序不同的是 ④⑤（系統要先有銷貨單才能開調貨單）——關卡五有專門的判斷題。</span><br>
+  <span style="font-size:12px;color:var(--green)">🆕 07/11 夜你點名的 F1/F2 分流已上：<code>F1</code>＝即時庫存查詢（原 F2 整組、純查庫存不綁客戶）、<code>F2</code>＝即時報價查詢（先選客戶一次→連續查料報價→產訊息複製）。關卡三主線直接用新 F2。</span>
 </div>
 
 <div class="map" style="border-color:var(--gold)">
@@ -103,8 +105,8 @@
   <div class="lv-head"><h2>關卡一｜客戶來電：三十秒內答「有沒有貨」</h2><span class="who">角色：業務（電話上）</span><span class="prog"></span></div>
   <div class="scene">📞 客戶 <b>C0048 凱富興業</b> 來電：<b>「機油芯 021 115 562，有貨嗎？多少錢？」</b>——客戶在線上等、手不能離鍵盤。</div>
   <ol class="steps">
-    <li>任何頁面直接按 <kbd>F2</kbd> 開料件即時查詢窗
-      <div class="exp">預期：查詢窗彈出、游標已在搜尋框（不用點）</div>
+    <li>任何頁面直接按 <kbd>F1</kbd> 開即時庫存查詢窗（🆕 原 F2、已分流：F1 查庫存、F2 報價）
+      <div class="exp">預期：查詢窗彈出、游標已在搜尋框（不用點）；瀏覽器的 F1 說明頁不會跳出來</div>
       <div class="checks"></div></li>
     <li>打 <code>021 115 562</code>（或關鍵字「機油芯」）→ <kbd>↑</kbd><kbd>↓</kbd> 選料 → <kbd>Enter</kbd> 進主視窗、中欄看庫存
       <div class="exp">預期：這顆有貨（Z01:8 Z02:10 Z03:2）；總量水位條看得懂、可用量（＝在手－已承諾）跟在手量分得清、不會答應客戶其實被別單訂走的貨</div>
@@ -143,10 +145,10 @@
   <div class="lv-head"><h2>關卡二｜同行調貨詢價：打三家、記三筆、比一比</h2><span class="who">角色：業務（掛掉客戶電話後）</span><span class="prog"></span></div>
   <div class="scene">☎️ 換一通：客戶 <b>C0049 源明汽車修護廠</b> 要 <b>皮帶-冷氣 025 260 849B</b>——一查<b>全倉 0 顆</b>。客戶願意等，翻同行名單一家一家問。<b>恆迎日常。</b></div>
   <ol class="steps">
-    <li>打之前先看行情：<kbd>F2</kbd> 打 <code>025 260 849B</code> → <kbd>F9</kbd> 進貨比價（歷史進價、實際成本橘色強調）、<kbd>F7</kbd> 面板先掃過去詢價紀錄
+    <li>打之前先看行情：<kbd>F1</kbd> 打 <code>025 260 849B</code> → <kbd>F9</kbd> 進貨比價（歷史進價、實際成本橘色強調）、<kbd>F7</kbd> 面板先掃過去詢價紀錄
       <div class="exp">預期：這顆同行 O0007 復興上次詢過 405、心裡有底價再拿起電話</div>
       <div class="checks"></div></li>
-    <li>每問到一家 → <kbd>F2</kbd> → <kbd>F7</kbd> 即時詢價：選同行（如 <code>O0007</code> 復興、<code>O0012</code> 鐙薪）、填數量、填「同行報我的價」→ 存一筆。打幾家記幾筆
+    <li>每問到一家 → <kbd>F1</kbd> → <kbd>F7</kbd> 即時詢價：選同行（如 <code>O0007</code> 復興、<code>O0012</code> 鐙薪）、填數量、填「同行報我的價」→ 存一筆。打幾家記幾筆
       <div class="exp">預期：對話框欄位少、電話夾在肩膀上單手也能操作</div>
       <div class="checks"></div></li>
     <li><kbd>Alt</kbd>+<kbd>W</kbd> 銷售選單 → 詢價紀錄：看剛記的幾筆、點「單價」欄排序、最低價那家一眼挑出來
@@ -166,14 +168,17 @@
   <div class="lv-head"><h2>關卡三｜即時報價：「上次跟你拿多少」馬上答</h2><span class="who">角色：業務（回到電話上）</span><span class="prog"></span></div>
   <div class="scene">📞 <b>「有貨（調得到／等到貨約幾天）。價格是——」</b>報價根據：過去報價、過去成交、建議售價。</div>
   <ol class="steps">
-    <li>路線一（電話上最快）：<kbd>F2</kbd> 選著料直接按 <kbd>F4</kbd> 即時報價——選客戶、單行快報、<kbd>Alt</kbd>+<kbd>S</kbd> 存報價紀錄
-      <div class="exp">預期：從接電話到報出口、整條路徑十秒內</div>
+    <li>🆕 主線・<kbd>F2</kbd> 即時報價查詢（你 07/11 夜點名的分流設計、Hank 已做）：先選客戶 <code>C0048</code> 凱富興業<b>一次</b> → 查料 <code>021 115 562</code> → 自動成行帶價 → Enter 量→價→<b>自動回搜尋框</b>查下一顆
+      <div class="exp">預期：連報三顆、客戶只選一次；每行看得到可出量、量超過可出亮「缺 N」提醒</div>
       <div class="checks"></div></li>
-    <li>報價時看歷史價參考面板：建議售價（成本＋客戶等級毛利）、這個客戶最近報價／最近成交、同級客戶最近報價／成交
-      <div class="exp">預期：五格都在；用機油芯 <code>021 115 562</code> ×客戶 <code>C0048</code> 會看到「本客戶最近報價 320」（更早一筆 295）；超過一個月的舊價不會自動帶入</div>
+    <li>報價時看歷史價參考面板（工作台下方、跟著聚焦行）：建議售價（成本＋客戶等級毛利）、這個客戶最近報價／最近成交、同級客戶最近報價／成交
+      <div class="exp">預期：五格都在；機油芯 <code>021 115 562</code> ×客戶 <code>C0048</code> 會看到「本客戶最近報價 320」（更早一筆 295）；超過一個月的舊價不會自動帶入</div>
       <div class="checks"></div></li>
-    <li>路線二（多顆料、要留正式單）：回首頁按 <kbd>1</kbd> 開報價單 → 加行：<kbd>Alt</kbd>+<kbd>A</kbd> 新增、<kbd>Alt</kbd>+<kbd>F</kbd> 從報價紀錄拉入、填量價 <kbd>Enter</kbd> 一路跳格到底
-      <div class="exp">預期：即時報價（單行、留紀錄）vs 報價單（多行、正式文件）分工清楚</div>
+    <li>報完 → 「給客戶的訊息」多行一鍵複製（貼 Line）→ 「完成報價」存 N 筆紀錄
+      <div class="exp">預期：訊息一行一顆、格式「料號 品名〔數量〕報價 NT$」；沒存就關會被確認擋一下（防誤觸）</div>
+      <div class="checks"></div></li>
+    <li>路線二（要留正式文件）：回首頁按 <kbd>1</kbd> 開報價單 → 加行：<kbd>Alt</kbd>+<kbd>A</kbd> 新增、<kbd>Alt</kbd>+<kbd>F</kbd> 從報價紀錄拉入（剛剛 F2 存的紀錄就在這）、填量價 <kbd>Enter</kbd> 一路跳格到底
+      <div class="exp">預期：F2 工作台（快、留紀錄）vs 報價單（正式文件）分工清楚、紀錄接得上單</div>
       <div class="checks"></div></li>
     <li>報價單 <kbd>Alt</kbd>+<kbd>S</kbd> 存檔 → 寄出（狀態 草稿→已寄出）
       <div class="exp">預期：⚠️ 草稿直接轉銷貨會被擋（業務閘）、訊息看得懂</div>
@@ -181,7 +186,7 @@
     <li>支線 D（等到貨）：報價行備註寫交期說明（例「等下批到貨、約 7 天」）
       <div class="exp">預期：行備註欄在、字數夠寫一句話</div>
       <div class="checks"></div></li>
-    <li>🆕 批次報價：F2 右欄 <kbd>Space</kbd> 標記 2 顆（例：P9103 ＋替代品 P9142）→ <kbd>F4</kbd> → 選客戶一次、兩顆都自動帶價 → 確認存 2 筆
+    <li>🆕 批次報價（同群組替代品比價用）：F1 右欄 <kbd>Space</kbd> 標記 2 顆（例：P9103 ＋替代品 P9142）→ <kbd>F4</kbd> → 選客戶一次、兩顆都自動帶價 → 確認存 2 筆
       <div class="exp">預期：價留白＝該顆略過不報；「給客戶的訊息」兩行一起複製貼 Line（07/11 你點的批次報價、Hank 已做）</div>
       <div class="checks"></div></li>
   </ol>
@@ -222,7 +227,7 @@
   </ol>
   <div class="gap"><span class="t">⚠️ 現況差異（你情境稿點名的兩題、實走後給判斷）</span><br>
     <b>1) 報價階段不帶貨源。</b>報價單明細目前「沒有」出貨倉／貨源欄——貨源（本倉／自倉調撥／同行調貨／客戶訂單）是到<b>銷貨行</b>才標、而且是專屬欄位不是塞備註——比你稿子想的「備註欄註記」更結構化、但發生在銷貨階段不是報價階段。<b>判斷題：報價階段要不要也能註記「這顆是調貨／別倉」？</b><br>
-    <b>2) 加行沒有即時缺貨提示。</b>（原況）加明細行當下系統不跳缺貨、要嘛你 F2 先查過、要嘛到單據確認時才自動處理自倉調撥。<br>
+    <b>2) 加行沒有即時缺貨提示。</b>（原況）加明細行當下系統不跳缺貨、要嘛你 F1 先查過、要嘛到單據確認時才自動處理自倉調撥。<br>
     <span style="color:var(--green)">✅ 執行長 07/11 拍板「要做」、Hank 已實作：銷貨單加明細列選完料號後、若<b>出貨倉可用量 &lt; 下單量</b>、該行下方即亮黃字「本倉可用 N、下單 M、不足 X——記得標補貨來源」。軟提示、<b>不擋單</b>（缺貨照樣能開單、去標同行調貨／自倉調撥）。<b>實測料號</b>：噴油嘴 <code style="color:inherit">06B 133 551L</code> 只有 Z01 有 2 顆——出貨倉選 Z01、下單打 3 以上、黃字就會跳。測：黃字時機對嗎？文案清楚嗎？貨源在銷貨行標（不在報價階段）這設計你也已認可。</span>
     <div class="checks"></div></div>
   <div class="enc"><span class="t">💥 遭遇戰：這個客戶被凍結了</span><br>
