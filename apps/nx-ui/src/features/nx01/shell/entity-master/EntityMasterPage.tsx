@@ -666,15 +666,20 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
 
       // ↑↓ 切 row（不依賴 DOM focus、靠 selectedId state）
       // row 本身 keydown 由 MasterTable.handleTableKey 處理；此處接管 focus 在 body / 別處時
-      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'Home' || e.key === 'End') {
         if (tab !== 'list') return; // detail 模式 ↑↓ 不切 row
         if (tgt?.hasAttribute?.('data-row-id')) return; // row 焦點交給 MasterTable
         if (displayRows.length === 0) return;
         const idx = displayRows.findIndex((r) => r.id === selectedId);
+        // 鍵盤情境驗收 2026-07-11 補：Home/End 首尾列（對齊 DocWorkbench 既有行為）
         const nextIdx =
-          e.key === 'ArrowDown'
-            ? Math.min(displayRows.length - 1, Math.max(0, idx + 1))
-            : Math.max(0, idx - 1);
+          e.key === 'Home'
+            ? 0
+            : e.key === 'End'
+              ? displayRows.length - 1
+              : e.key === 'ArrowDown'
+                ? Math.min(displayRows.length - 1, Math.max(0, idx + 1))
+                : Math.max(0, idx - 1);
         const nextRow = displayRows[nextIdx];
         if (nextRow) {
           e.preventDefault();
