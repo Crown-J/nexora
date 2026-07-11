@@ -15,6 +15,7 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  Copy,
   Download,
   FileClock,
   Pencil,
@@ -52,6 +53,20 @@ import { QuoteRecordPickerDialog } from './QuoteRecordPickerDialog';
 import type { Quote, QuoteItem } from '@data/types/nx04/quote';
 // W5-ISSUE-CHAIN Step 5 2026-07-11：問題回報孤兒按鈕復活（單據外殼改版時掉的掛載點）
 import { IssueReportModal } from '@/features/shared/issue-report-trigger';
+
+// 給客戶的訊息（複製貼通訊軟體、執行長 2026-07-11）：整張報價每行一列 + 多行時附含稅合計。
+// 格式對齊即時報價 / SalesFlowHub：「料號 品名〔數量 N〕報價 NT$ X」。
+function buildCustomerMessage(q: Quote): string {
+  const fmt = (n: number) =>
+    n < 100 && n !== Math.floor(n) ? n.toFixed(2) : n.toLocaleString('zh-TW', { maximumFractionDigits: 0 });
+  const items = q.items ?? [];
+  const lines = items.map((it) => {
+    const qtyPart = Number(it.qty) > 1 ? `　數量 ${Number(it.qty)}` : '';
+    return `${it.baseNo ?? it.partNo} ${it.partName}${qtyPart}　報價 NT$ ${fmt(Number(it.unitPrice))}`;
+  });
+  if (items.length > 1) lines.push(`合計 NT$ ${fmt(Number(q.totalAmount))}（含稅）`);
+  return lines.join('\n');
+}
 
 export function QuoteDetailPanel({
   id,
@@ -91,6 +106,7 @@ export function QuoteDetailPanel({
   const [recordPickerOpen, setRecordPickerOpen] = useState(false);
   const [headerConfirmOpen, setHeaderConfirmOpen] = useState(false);
   const [selItem, setSelItem] = useState<string | null>(null); // 明細選中列（↑↓ 用）
+  const [copied, setCopied] = useState(false); // 複製給客戶訊息的短暫回饋
 
   // 表頭可編欄位（編輯模式）
   const [quoteDate, setQuoteDate] = useState('');
@@ -384,6 +400,17 @@ export function QuoteDetailPanel({
               <ToolbarButton icon={RefreshCcw} letter="R" label="重新整理" enabled onClick={() => void reload()} />
               <ToolbarButton icon={Printer} letter="P" label="列印" enabled onClick={() => setPrintOpen(true)} />
               <ToolbarButton icon={Download} letter="O" label="匯出" enabled onClick={() => setPrintOpen(true)} />
+              <ToolbarButton
+                icon={Copy}
+                label={copied ? '已複製' : '複製訊息'}
+                enabled={(q.items?.length ?? 0) > 0}
+                accent={copied}
+                onClick={() => {
+                  void navigator.clipboard.writeText(buildCustomerMessage(q));
+                  setCopied(true);
+                  window.setTimeout(() => setCopied(false), 1500);
+                }}
+              />
             </>
           ) : mode === 'editHeader' ? (
             <>
