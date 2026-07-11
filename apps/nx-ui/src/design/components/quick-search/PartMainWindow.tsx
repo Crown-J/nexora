@@ -95,13 +95,24 @@ type Props = {
   cornerBadge?: string;
   /** 開窗自動聚焦右欄第一列（F2 報價流傳 false：焦點給量價輸入）*/
   autoFocusCompat?: boolean;
-  /** F4／「即時報價」鈕的覆寫動作（F2 報價流：聚焦量價輸入、不再開選客戶的單顆對話框）*/
+  /** F4／「即時報價」鈕的覆寫動作（F2 報價流：開報價環節、不再開選客戶的單顆對話框）*/
   onQuoteAction?: () => void;
+  /** 右欄卡片樣式（執行長 2026-07-12）：'quote'＝瘦身版（料號/品名/廠牌/庫存/建議售價）；預設 'stock' */
+  compatVariant?: 'stock' | 'quote';
+  /** 右欄每顆的建議售價（依客戶等級、features 端拿報價候選 API 餵；quote variant 用）*/
+  compatExtras?: Record<string, { suggested: string | null }>;
+  /** Alt+Q 報價環節（F2 報價流）：帶 Space 標記列、無標記帶目前選中列 */
+  onQuoteMarked?: (rows: PartCompatMemberDto[]) => void;
+  /** Alt+D 加入調貨清單（F2 報價流）：帶 Space 標記列、無標記帶目前選中列 */
+  onTransferMarked?: (rows: PartCompatMemberDto[]) => void;
+  /** Alt+1/2/3 價格細節窗（F2 報價流：1=ABCD 價 2=該客戶紀錄 3=其他客戶紀錄）；ctx＝目前預覽件 */
+  onAltDigit?: (n: 1 | 2 | 3, ctx: { partId: string; code: string }) => void;
 };
 
 // 執行長 2026-06-25 拍板的庫存四指標配色（KpiTile + WhTile 共用、視覺一致）
 const STOCK_COLORS = {
-  onHand: '#E8E8EB', // 現有 = 白
+  // 現有 = 跟主題走的前景色（原寫死 #E8E8EB 近白、淺色主題與背景同色看不到——執行長 2026-07-12 抓的）
+  onHand: 'var(--foreground)',
   available: '#22D88F', // 可出 = 綠
   reserved: '#E26060', // 不可出 = 紅
   inTransit: '#FFB347', // 在途 = 橘
@@ -118,6 +129,11 @@ export function PartMainWindow({
   cornerBadge = 'F1 · 庫存主視窗',
   autoFocusCompat = true,
   onQuoteAction,
+  compatVariant = 'stock',
+  compatExtras,
+  onQuoteMarked,
+  onTransferMarked,
+  onAltDigit,
 }: Props) {
   // 主件：Alt+F 跳搜時切換
   const [mainPartId, setMainPartId] = useState(initialPartId);
@@ -497,6 +513,19 @@ export function PartMainWindow({
     );
   }, [compatRows, markedIds, effectivePartId, detail?.code, detail?.name]);
 
+  // 「即時報價」鈕＝與 F4 同路由：F2 流走報價環節（標記列/選中列）、F1 走單顆/批次對話框
+  const quoteButtonAction = useCallback(() => {
+    if (onQuoteMarked) {
+      const marked = compatRows.filter((r) => markedIds.has(r.id));
+      const cur = compatRows[highlightIndex];
+      const rows = marked.length > 0 ? marked : cur ? [cur] : [];
+      if (rows.length > 0) onQuoteMarked(rows);
+      return;
+    }
+    if (onQuoteAction) onQuoteAction();
+    else fireInstantQuote();
+  }, [onQuoteMarked, compatRows, markedIds, highlightIndex, onQuoteAction, fireInstantQuote]);
+
   // 即時詢價（F3 / 按鈕）：dispatch 事件，全域 GlobalInstantInquiry 接（調貨側，挑同行）
   const fireInstantInquiry = useCallback(() => {
     window.dispatchEvent(
@@ -520,6 +549,13 @@ export function PartMainWindow({
       if (isEditable) return;
       const togglePanel = (p: QuickPanelKind) =>
         setQuickPanel((cur) => (cur === p ? null : p));
+      // Space 標記列（無標記＝目前選中列）——Alt+Q／Alt+D／F4（F2 流）共用
+      const markedOrCurrent = () => {
+        const marked = compatRows.filter((r) => markedIds.has(r.id));
+        if (marked.length > 0) return marked;
+        const cur = compatRows[highlightIndex];
+        return cur ? [cur] : [];
+      };
       if (e.altKey && !e.ctrlKey && !e.metaKey) {
         const k = e.key.toLowerCase();
         if (k === 'p') {
@@ -537,6 +573,28 @@ export function PartMainWindow({
           e.preventDefault();
           e.stopPropagation();
           setHelpOpen((v) => !v);
+        } else if (k === '5') {
+          // Alt+5 周轉率（原 F5、F5 讓給全域調貨詢價視窗——執行長 2026-07-12）
+          e.preventDefault();
+          e.stopPropagation();
+          togglePanel('turnover');
+        } else if (k === 'q' && onQuoteMarked) {
+          // Alt+Q 報價環節（F2 報價流、執行長 2026-07-12）
+          e.preventDefault();
+          e.stopPropagation();
+          const rows = markedOrCurrent();
+          if (rows.length > 0) onQuoteMarked(rows);
+        } else if (k === 'd' && onTransferMarked) {
+          // Alt+D 加入調貨清單（F2 報價流）
+          e.preventDefault();
+          e.stopPropagation();
+          const rows = markedOrCurrent();
+          if (rows.length > 0) onTransferMarked(rows);
+        } else if ((k === '1' || k === '2' || k === '3') && onAltDigit) {
+          // Alt+1/2/3 價格細節窗（F2 報價流：ABCD／該客戶紀錄／其他客戶紀錄）
+          e.preventDefault();
+          e.stopPropagation();
+          onAltDigit(Number(k) as 1 | 2 | 3, { partId: effectivePartId, code: detail?.code ?? '' });
         }
         return; // 其他 Alt 組合放行（Alt+F 跳搜由右欄 row/zone 處理）
       }
@@ -546,17 +604,18 @@ export function PartMainWindow({
         compatToggleMark();
       } else if (e.key === 'F4') {
         e.preventDefault();
-        // F2 報價流覆寫：聚焦量價輸入（不開要重選客戶的單顆對話框）
-        if (onQuoteAction) onQuoteAction();
+        // F2 報價流：F4＝同 Alt+Q（開報價環節、不開要重選客戶的單顆對話框）
+        if (onQuoteMarked) {
+          const rows = markedOrCurrent();
+          if (rows.length > 0) onQuoteMarked(rows);
+        } else if (onQuoteAction) onQuoteAction();
         else fireInstantQuote();
       } else if (e.key === 'F3') {
         // F3 = 聚焦右欄通用零件（＝可替代件）
         e.preventDefault();
         focusCompatRow(highlightIndex);
-      } else if (e.key === 'F5') {
-        e.preventDefault(); // 攔掉瀏覽器整頁重新整理
-        togglePanel('turnover');
       } else if (e.key === 'F6') {
+        // F5 已讓給全域調貨詢價視窗（執行長 2026-07-12）；周轉率改 Alt+5
         e.preventDefault();
         togglePanel('history');
       } else if (e.key === 'F7') {
@@ -577,7 +636,21 @@ export function PartMainWindow({
     // capture 階段：搶在焦點鎖定對話框冒泡攔截 + 瀏覽器默認（F3=找下一個/F5=重整）之前 preventDefault
     window.addEventListener('keydown', h, true);
     return () => window.removeEventListener('keydown', h, true);
-  }, [fireInstantQuote, fireInstantInquiry, compatToggleMark, toggleWhExpanded, highlightIndex, onQuoteAction]);
+  }, [
+    fireInstantQuote,
+    fireInstantInquiry,
+    compatToggleMark,
+    toggleWhExpanded,
+    highlightIndex,
+    onQuoteAction,
+    compatRows,
+    markedIds,
+    onQuoteMarked,
+    onTransferMarked,
+    onAltDigit,
+    effectivePartId,
+    detail?.code,
+  ]);
 
   // 執行長 2026-06-25：開窗焦點永遠在右側通用零件、不去 Header「退回搜尋」按鈕。
   // 1. initialFocusRef={compatListRef} → mount 時先 focus FocusZone 容器（即使資料還沒載完、容器可 focus）
@@ -646,7 +719,7 @@ export function PartMainWindow({
           </button>
           <button
             type="button"
-            onClick={onQuoteAction ?? fireInstantQuote}
+            onClick={quoteButtonAction}
             className="inline-flex items-center gap-1.5 rounded-md border border-primary/55 bg-primary/15 px-2.5 py-1 text-xs font-medium text-primary hover:bg-primary/25"
             title="即時報價 (F4)"
           >
@@ -711,7 +784,7 @@ export function PartMainWindow({
             }
           />
 
-          {/* 右欄：通用零件（＝可替代件、執行長 2026-07-11 合併）*/}
+          {/* 右欄：通用零件（＝可替代件、執行長 2026-07-11 合併；2026-07-12 quote 瘦身版）*/}
           <RightColumn
             group={compatGroup}
             rows={compatRows}
@@ -719,6 +792,8 @@ export function PartMainWindow({
             effectivePartId={effectivePartId}
             highlightIndex={highlightIndex}
             markedIds={markedIds}
+            variant={compatVariant}
+            extras={compatExtras}
             onHover={(idx) => setHighlightIndex(idx)}
             onKeyDown={handleCompatKey}
             onClickRow={(row) => {
@@ -1222,6 +1297,8 @@ function RightColumn({
   effectivePartId,
   highlightIndex,
   markedIds,
+  variant = 'stock',
+  extras,
   onHover,
   onKeyDown,
   onClickRow,
@@ -1237,6 +1314,10 @@ function RightColumn({
   highlightIndex: number;
   /** Space 標記（批次報價用、執行長 2026-07-11）*/
   markedIds: Set<string>;
+  /** 卡片樣式：'quote'＝瘦身版（執行長 2026-07-12）*/
+  variant?: 'stock' | 'quote';
+  /** 每顆建議售價（quote variant、依客戶等級）*/
+  extras?: Record<string, { suggested: string | null }>;
   onHover: (idx: number) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLButtonElement>) => void;
   onClickRow: (row: PartCompatMemberDto) => void;
@@ -1299,6 +1380,8 @@ function RightColumn({
                     isPreviewTarget={isPreviewTarget}
                     isHighlighted={idx === highlightIndex}
                     isMarked={markedIds.has(row.id)}
+                    variant={variant}
+                    suggested={extras?.[row.id]?.suggested ?? null}
                     onHover={() => onHover(idx)}
                     onKeyDown={onKeyDown}
                     onClick={() => onClickRow(row)}
@@ -1321,6 +1404,8 @@ function CompatCard({
   isPreviewTarget,
   isHighlighted,
   isMarked,
+  variant = 'stock',
+  suggested,
   onHover,
   onKeyDown,
   onClick,
@@ -1333,6 +1418,10 @@ function CompatCard({
   isHighlighted: boolean;
   /** Space 標記✓（批次報價、執行長 2026-07-11）*/
   isMarked: boolean;
+  /** 'quote'＝瘦身版：料號/品名/廠牌/庫存/建議售價（執行長 2026-07-12、其餘細節看左欄）*/
+  variant?: 'stock' | 'quote';
+  /** 建議售價（quote variant、依客戶等級＝該客戶地板價）*/
+  suggested?: string | null;
   onHover: () => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLButtonElement>) => void;
   onClick: () => void;
@@ -1392,47 +1481,66 @@ function CompatCard({
               替代
             </span>
           )}
-          <span
-            className={cn(
-              'rounded-md border px-2 py-0.5 font-mono text-[11px] font-medium uppercase tracking-[0.08em]',
-              row.isOem
-                ? 'border-primary/55 bg-primary/15 text-primary'
-                : 'border-border/55 bg-muted/35 text-muted-foreground/95',
-            )}
-          >
-            {row.isOem ? '正廠' : '副廠'}
-          </span>
+          {variant === 'stock' && (
+            <span
+              className={cn(
+                'rounded-md border px-2 py-0.5 font-mono text-[11px] font-medium uppercase tracking-[0.08em]',
+                row.isOem
+                  ? 'border-primary/55 bg-primary/15 text-primary'
+                  : 'border-border/55 bg-muted/35 text-muted-foreground/95',
+              )}
+            >
+              {row.isOem ? '正廠' : '副廠'}
+            </span>
+          )}
         </div>
       </div>
 
       {/* 中排：品名 */}
       <div className="break-words text-[15px] font-medium leading-snug text-foreground">{row.name}</div>
 
-      {/* 下排：副廠料號 / 廠牌 / 即時庫存（字級拉到 13、灰字對比拉高）*/}
+      {/* 下排：
+          stock＝副廠料號 / 廠牌 / 即時庫存
+          quote＝廠牌 / 庫存 / 建議售價（執行長 2026-07-12 瘦身：其餘細節看左欄）*/}
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <span className="inline-flex items-baseline gap-3">
-          <span className="inline-flex items-baseline gap-1.5">
-            <span className="text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground/75">副廠</span>
-            <span className="font-mono text-[13px] text-foreground/90">{row.secCode ?? '—'}</span>
-          </span>
-          <span className="select-none text-muted-foreground/30">·</span>
+          {variant === 'stock' && (
+            <>
+              <span className="inline-flex items-baseline gap-1.5">
+                <span className="text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground/75">副廠</span>
+                <span className="font-mono text-[13px] text-foreground/90">{row.secCode ?? '—'}</span>
+              </span>
+              <span className="select-none text-muted-foreground/30">·</span>
+            </>
+          )}
           <span className="inline-flex items-baseline gap-1.5">
             <span className="text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground/75">廠牌</span>
             <span className="text-[13px] text-foreground/90">{row.brandCode ?? row.brandName ?? '—'}</span>
           </span>
         </span>
-        <span
-          className={cn(
-            'inline-flex items-baseline gap-1.5 rounded-md px-2.5 py-0.5 font-mono text-[14px] font-semibold',
-            outOfStock
-              ? 'border border-destructive/60 bg-destructive/10 text-destructive'
-              : 'border border-[#22D88F]/40 bg-[#22D88F]/10 text-[#22D88F]',
+        <span className="inline-flex items-baseline gap-2">
+          <span
+            className={cn(
+              'inline-flex items-baseline gap-1.5 rounded-md px-2.5 py-0.5 font-mono text-[14px] font-semibold',
+              outOfStock
+                ? 'border border-destructive/60 bg-destructive/10 text-destructive'
+                : 'border border-[#22D88F]/40 bg-[#22D88F]/10 text-[#22D88F]',
+            )}
+            title={`公司總現有量 ${row.onHandTotal}`}
+          >
+            <span className="text-[10px] font-medium uppercase tracking-[0.1em] opacity-75">庫存</span>
+            {row.onHandTotal}
+            {outOfStock ? '（缺）' : ''}
+          </span>
+          {variant === 'quote' && (
+            <span
+              className="inline-flex items-baseline gap-1.5 rounded-md border border-primary/45 bg-primary/10 px-2.5 py-0.5 font-mono text-[14px] font-semibold text-primary"
+              title="建議售價（依客戶等級＝此客戶地板價）"
+            >
+              <span className="text-[10px] font-medium uppercase tracking-[0.1em] opacity-75">建議</span>
+              {suggested ?? '—'}
+            </span>
           )}
-          title={`公司總現有量 ${row.onHandTotal}`}
-        >
-          <span className="text-[10px] font-medium uppercase tracking-[0.1em] opacity-75">庫存</span>
-          {row.onHandTotal}
-          {outOfStock ? '（缺）' : ''}
         </span>
       </div>
     </button>
@@ -1566,7 +1674,7 @@ const DOC_TYPE_LABELS: Record<string, string> = {
 type QuickPanelKind = 'turnover' | 'history' | 'sales' | 'purchase' | 'related';
 
 const QUICK_PANEL_META: Record<QuickPanelKind, { title: string; kbd: string; wide?: boolean }> = {
-  turnover: { title: '周轉率分析', kbd: 'F5' },
+  turnover: { title: '周轉率分析', kbd: 'Alt+5' },
   history: { title: '出入庫紀錄', kbd: 'F6' },
   sales: { title: '銷貨比價', kbd: 'F8', wide: true },
   purchase: { title: '進貨比價', kbd: 'F9', wide: true },
@@ -1713,13 +1821,16 @@ function ShortcutHelpOverlay({ onClose }: { onClose: () => void }) {
             <Row k="Space" desc="標記✓／取消（可標多顆、供批次報價）" />
             <Row k="Alt+F" desc="以選中件跳搜（換主件重來）" />
             <Row k="F3" desc="聚焦右欄清單" />
-            <Group title="報價・詢價" />
-            <Row k="F4" desc="即時報價（右欄有 ✓ 標記＝批次報價）" />
+            <Group title="報價・調貨" />
+            <Row k="Alt+Q" desc="報價環節（帶 ✓ 標記列；F2 報價流）" />
+            <Row k="Alt+D" desc="加入調貨清單（之後 F5 開調貨詢價視窗）" />
+            <Row k="Alt+1~3" desc="價格細節：ABCD 價／該客戶紀錄／其他客戶（F2）" />
+            <Row k="F4" desc="即時報價（F1＝單顆/批次；F2＝同 Alt+Q）" />
             <Row k="F7" desc="即時詢價（同行調貨、記一家一筆）" />
             <Group title="查價面板" />
-            <Row k="F5" desc="周轉率分析" />
+            <Row k="Alt+5" desc="周轉率分析（原 F5、F5 讓給調貨詢價）" />
             <Row k="F6" desc="出入庫紀錄" />
-            <Row k="F8" desc="銷貨比價（建議售價＝成本+A~D 價）" />
+            <Row k="F8" desc="銷貨比價（成本+A~D 價）" />
             <Row k="F9" desc="進貨比價（歷史進價）" />
             <Row k="F10" desc="相關零件＋適用車型（兩頁籤）" />
             <Group title="視窗" />

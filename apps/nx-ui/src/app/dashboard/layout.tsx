@@ -22,6 +22,7 @@ import { GlobalPartQuickSearch } from '@design/components/quick-search/GlobalPar
 import { GlobalInstantQuote } from '@/features/nx04/quote/ui/GlobalInstantQuote';
 import { GlobalInstantInquiry } from '@/features/nx04/quote/ui/GlobalInstantInquiry';
 import { GlobalQuoteSession } from '@/features/nx04/quote/ui/GlobalQuoteSession';
+import { GlobalTransferInquiry } from '@/features/nx04/quote/ui/GlobalTransferInquiry';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
@@ -31,6 +32,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <GlobalPartQuickSearch />
       {/* F2 即時報價查詢工作台（客戶錨定連續報價、執行長 2026-07-11 夜拍板）*/}
       <GlobalQuoteSession />
+      {/* F5 即時調貨詢價視窗（吃 F2 Alt+D 的調貨清單、執行長 2026-07-12 拍板）*/}
+      <GlobalTransferInquiry />
       {/* 即時報價（單顆/批次）：聽 F1 主視窗發的 nx-instant-quote 事件（Step5B）*/}
       <GlobalInstantQuote />
       {/* 即時詢價：聽 F1 主視窗發的 nx-instant-inquiry 事件（調貨側 B1）*/}
