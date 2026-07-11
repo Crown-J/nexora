@@ -2,8 +2,8 @@
 <html lang="zh-Hant">
 <!-- docs/_team/walkthrough/s01-instant-sales.html -->
 <!-- 位置：docs/_team/walkthrough/（情境攻略測試本、一情境一本） -->
-<!-- 版本：v2.1（2026-07-11、Hank；依執行長「即時銷售情境」五步稿改寫、鍵位/入口/欄位全部 grep 實掛核對；
-     v2.1 嵌入 dev DB 真實料號/客戶/同行，標出缺的測試資料） -->
+<!-- 版本：v2.2（2026-07-11、Hank；依執行長「即時銷售情境」五步稿改寫、鍵位/入口/欄位全部 grep 實掛核對；
+     v2.1 嵌入 dev DB 真實料號/客戶/同行；v2.2 主視窗改版後鍵位更新（Space 標記/F4 批次/Alt+W/Alt+P/Alt+H）） -->
 <!-- 說明：即時銷售情境本。含分歧路線（🧭）與系統現況差異（⚠️ 請執行長實走後給設計判斷）。
      勾選進度存 localStorage（key: nx-wt-s01）、總覽頁 index.html 會讀摘要。 -->
 <head>
@@ -69,7 +69,7 @@
 </head>
 <body>
 <div class="wrap">
-<h1>📞 情境本 S01｜即時銷售 <span class="v">v2.1（2026-07-11、含真實料號）</span></h1>
+<h1>📞 情境本 S01｜即時銷售 <span class="v">v2.2（2026-07-11、含真實料號＋主視窗改版鍵位）</span></h1>
 <div class="sub">客戶來電 → 查庫存 → 替代品 → 同行詢價比價 → 報價 → 銷貨單 → 調貨單 → 交棒出貨。分歧照實際電話節奏走。　<a href="index.html">← 回總覽</a></div>
 
 <div class="rules">
@@ -109,8 +109,11 @@
     <li>打 <code>021 115 562</code>（或關鍵字「機油芯」）→ <kbd>↑</kbd><kbd>↓</kbd> 選料 → <kbd>Enter</kbd> 進主視窗、中欄看庫存
       <div class="exp">預期：這顆有貨（Z01:8 Z02:10 Z03:2）；總量水位條看得懂、可用量（＝在手－已承諾）跟在手量分得清、不會答應客戶其實被別單訂走的貨</div>
       <div class="checks"></div></li>
-    <li>沒貨 → 按 <kbd>F3</kbd> 可替代零件（通用件群組）——有替代的話跟客戶說明、問要不要
-      <div class="exp">預期：替代料的庫存/廠牌一眼可比、電話上講得出差在哪　<b style="color:var(--green)">✅ 已建 demo：機油芯-P9103 按 F3 會帶出替代品 機油芯-P9142（021 115 562A *）</b></div>
+    <li>沒貨 → 看右欄「通用零件（可替代）」＝替代品清單（<kbd>F3</kbd> 聚焦右欄）：<kbd>↑</kbd><kbd>↓</kbd> 選件、左欄資料＋中欄庫存<b>即時跟著切換</b>
+      <div class="exp">預期：選到哪顆看哪顆、選中列亮金框（主件只留「主」徽章不再恆亮）　<b style="color:var(--green)">✅ demo：機油芯-P9103 的替代品 機油芯-P9142（021 115 562A *）就在右欄</b></div>
+      <div class="checks"></div></li>
+    <li>中欄按 <kbd>Alt</kbd>+<kbd>W</kbd> 展開各倉分布、再切幾顆料確認<b>不會縮回去</b>（會記憶）
+      <div class="exp">預期：Z01/Z02/Z03 各倉可出量一眼看到；再按 Alt+W 收合</div>
       <div class="checks"></div></li>
     <li>順手按 <kbd>F10</kbd> 相關零件（改號/同款/組合包＋適用車型兩頁籤）——有時是料號改版、翻一下避免漏答
       <div class="exp">預期：兩頁籤切換順、改號鏈看得懂</div>
@@ -124,8 +127,15 @@
       <li><span class="k">D</span>沒貨、客戶<b>願意等下次到貨</b> → 跳<b>關卡三</b>報價（備註交期）、關卡四銷貨行標「客戶訂單」（支線 D）</li>
     </ul>
   </div>
-  <div class="tip"><span class="t">💡 攻略提示</span><br>
-    F2 窗內八快捷：<kbd>F3</kbd> 可替代 <kbd>F4</kbd> 即時報價 <kbd>F5</kbd> 周轉 <kbd>F6</kbd> 出入庫 <kbd>F7</kbd> 即時詢價（調貨） <kbd>F8</kbd> 銷貨比價 <kbd>F9</kbd> 進貨比價 <kbd>F10</kbd> 相關零件</div>
+  <div class="tip"><span class="t">🆕 07/11 夜・主視窗改版（你回報的 6 題全處理、這關順便驗收）</span><br>
+    ①左欄去重：廠牌/族群同碼只顯示一次、正副廠單一顯示、「狀態」列拿掉（停用時料號旁補紅徽章）<br>
+    ②<kbd>Alt</kbd>+<kbd>W</kbd> 各倉分布展開/收合、狀態會記憶（換料不縮回）<br>
+    ③「通用零件＝可替代件」合併：右欄是唯一入口、<kbd>F3</kbd> 改為聚焦右欄（原 F3 小面板退役、資料本來就同一份）<br>
+    ④只有「選中列」亮金框、主件只留「主」徽章不再恆亮<br>
+    ⑤底部快捷鍵提示列拿掉、收進右上「?」鈕＝<kbd>Alt</kbd>+<kbd>H</kbd>（以後引導精靈通用鍵）<br>
+    ⑥<kbd>Space</kbd> 改為標記✓（可標多顆）、標記後 <kbd>F4</kbd>＝批次報價；放大圖改 <kbd>Alt</kbd>+<kbd>P</kbd></div>
+  <div class="tip"><span class="t">💡 攻略提示（新鍵位表、Alt+H 隨時叫出）</span><br>
+    <kbd>F4</kbd> 報價（有✓＝批次）<kbd>F5</kbd> 周轉 <kbd>F6</kbd> 出入庫 <kbd>F7</kbd> 詢價 <kbd>F8</kbd> 銷貨比價 <kbd>F9</kbd> 進貨比價 <kbd>F10</kbd> 相關零件；<kbd>Space</kbd> 標記 <kbd>Alt</kbd>+<kbd>W</kbd> 各倉 <kbd>Alt</kbd>+<kbd>P</kbd> 放大 <kbd>Alt</kbd>+<kbd>F</kbd> 跳搜 <kbd>Alt</kbd>+<kbd>H</kbd> 說明</div>
 </div>
 
 <!-- ═══════════ 關卡二 ═══════════ -->
@@ -170,6 +180,9 @@
       <div class="checks"></div></li>
     <li>支線 D（等到貨）：報價行備註寫交期說明（例「等下批到貨、約 7 天」）
       <div class="exp">預期：行備註欄在、字數夠寫一句話</div>
+      <div class="checks"></div></li>
+    <li>🆕 批次報價：F2 右欄 <kbd>Space</kbd> 標記 2 顆（例：P9103 ＋替代品 P9142）→ <kbd>F4</kbd> → 選客戶一次、兩顆都自動帶價 → 確認存 2 筆
+      <div class="exp">預期：價留白＝該顆略過不報；「給客戶的訊息」兩行一起複製貼 Line（07/11 你點的批次報價、Hank 已做）</div>
       <div class="checks"></div></li>
   </ol>
   <div class="tip"><span class="t">🆕 07/11 新增：給客戶的訊息（一鍵複製貼 Line）— 三個報價入口都有了</span><br>
