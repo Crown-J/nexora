@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<!-- docs/_team/walkthrough/index.html -->
+<!-- 位置：docs/_team/walkthrough/（情境攻略測試本、一情境一本） -->
+<!-- 版本：v1.0（2026-07-11、Hank；情境本總覽——目錄 + 各本進度） -->
+<!-- 說明：執行長情境測試的入口頁。每本自帶勾選進度（localStorage）、本頁讀各本
+     的 -sum 摘要顯示進度。新情境稿 → Hank 產新本 → 在 BOOKS 清單加一行。 -->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXORA 情境攻略測試本・總覽</title>
+<style>
+  :root{--bg:#0f1115;--card:#171a21;--card2:#1d2129;--fg:#e8e8eb;--mut:#9a9aa5;--line:#2c313c;
+        --gold:#e8a020;--green:#22d88f;--red:#e24b4a;--blue:#378add;--purple:#7f77dd;}
+  @media (prefers-color-scheme: light){
+    :root{--bg:#f4f3ef;--card:#ffffff;--card2:#f0efe9;--fg:#22242a;--mut:#6b6b74;--line:#ddd9d0;}
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.75 "Noto Sans TC",system-ui,sans-serif;padding:24px 16px 60px;}
+  .wrap{max-width:880px;margin:0 auto;}
+  h1{font-size:24px;margin:0 0 4px;}
+  .sub{color:var(--mut);font-size:13px;margin-bottom:20px;}
+  h2{font-size:15px;color:var(--mut);margin:26px 0 10px;font-weight:600;}
+  .book{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);
+        border-radius:12px;padding:12px 18px;margin-bottom:10px;text-decoration:none;color:var(--fg);}
+  a.book:hover{border-color:var(--gold);}
+  .book .no{font:700 13px/1 Consolas,monospace;color:var(--gold);min-width:36px;}
+  .book .name{font-weight:600;}
+  .book .desc{font-size:12.5px;color:var(--mut);}
+  .book .prog{margin-left:auto;font:600 12px/1 Consolas,monospace;color:var(--green);white-space:nowrap;}
+  .book.planned{opacity:.55;}
+  .book.planned .prog{color:var(--mut);}
+  .note{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 18px;font-size:13px;color:var(--mut);margin-top:24px;}
+  .note b{color:var(--gold);}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>🎮 NEXORA 情境攻略測試本・總覽</h1>
+<div class="sub">一個業務情境一本。照關卡實走、勾四檢查點（在／清／鍵／手）＋ ⚠️ 設計判斷格。勾選進度存在這台瀏覽器。</div>
+
+<h2>現役本</h2>
+<a class="book" href="s01-instant-sales.html" data-key="nx-wt-s01">
+  <span class="no">S01</span>
+  <span><span class="name">即時銷售</span><br>
+  <span class="desc">客戶來電 → 查庫存/替代品 → 同行詢價比價 → 報價 → 銷貨單 → 調貨單 → 交棒出貨（v2.0、依執行長情境稿）</span></span>
+  <span class="prog">—</span>
+</a>
+<a class="book" href="../walkthrough-keyboard-test-v1.html" data-key="nx-walkthrough-v1">
+  <span class="no">V1</span>
+  <span><span class="name">綜合總測本（v1、保留）</span><br>
+  <span class="desc">七關卡＋隱藏關「拔掉滑鼠」。S 系列逐本取代中、已走的進度不受影響</span></span>
+  <span class="prog">—</span>
+</a>
+
+<h2>規劃中（等執行長情境稿、一稿一本）</h2>
+<div class="book planned"><span class="no">S02</span><span><span class="name">出貨與物流</span><br><span class="desc">撿貨 → 包貨 → 配送/自取/寄貨 → 送達（承接 S01 交棒）</span></span><span class="prog">未開本</span></div>
+<div class="book planned"><span class="no">S03</span><span><span class="name">客戶退貨與折讓</span><br><span class="desc">銷退 → 驗貨好壞品 → 回倉 → 自動折讓</span></span><span class="prog">未開本</span></div>
+<div class="book planned"><span class="no">S04</span><span><span class="name">採購補貨</span><br><span class="desc">缺貨簿 → 採購簽核鏈 → 進貨驗收 → 客訂回補</span></span><span class="prog">未開本</span></div>
+<div class="book planned"><span class="no">S05</span><span><span class="name">進貨退回與保固</span><br><span class="desc">壞品退供應商 → 走保固 → 保固申請追蹤</span></span><span class="prog">未開本</span></div>
+<div class="book planned"><span class="no">S06</span><span><span class="name">倉管日常</span><br><span class="desc">調撥 → 盤點 → 條碼標籤 → 誤差回報/報廢</span></span><span class="prog">未開本</span></div>
+<div class="book planned"><span class="no">S07</span><span><span class="name">收付款與月結</span><br><span class="desc">應收沖帳 → 應付/歸戶付款 → 月關帳與解鎖</span></span><span class="prog">未開本</span></div>
+<div class="book planned"><span class="no">S08</span><span><span class="name">主檔維護</span><br><span class="desc">零件/往來對象/價格等級/通用件群組的日常維護</span></span><span class="prog">未開本</span></div>
+
+<div class="note">
+  📮 <b>怎麼追加情境：</b>像即時銷售那樣、用你的話寫「情境稿」（步驟＋分歧）丟給 Hank → Hank 對系統真相逐條核對、產成一本（做得到的寫成關卡、跟稿子不一樣的寫成 ⚠️ 判斷格）。<br>
+  🐛 <b>怎麼回報：</b>卡住記「本-關卡-步驟」（例：S01-4-3）＋一句話。⚠️ 格的判斷意見一起附上。
+</div>
+</div>
+
+<script>
+(function(){
+  document.querySelectorAll('.book[data-key]').forEach(function(el){
+    var key=el.getAttribute('data-key');
+    var progEl=el.querySelector('.prog');
+    try{
+      var sum=localStorage.getItem(key+'-sum');
+      if(sum){progEl.textContent=sum;return;}
+      var map=JSON.parse(localStorage.getItem(key)||'null');
+      if(map){var d=0;Object.keys(map).forEach(function(k){if(map[k])d++;});progEl.textContent='已勾 '+d+' 項';}
+      else progEl.textContent='未開始';
+    }catch(e){progEl.textContent='—';}
+  });
+})();
+</script>
+</body>
+</html>
