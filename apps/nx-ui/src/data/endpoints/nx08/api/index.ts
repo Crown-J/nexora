@@ -303,3 +303,21 @@ export async function listUsersForReport(): Promise<Array<{ id: string; username
   const data = await res.json().catch(() => ({}));
   return (data.items ?? data.rows ?? []) as Array<{ id: string; username: string; displayName: string }>;
 }
+
+// ============================================================
+// 首頁待辦彙總（首頁改版 V1 2026-07-11）
+// ============================================================
+
+export type HomeSummary = {
+  sales: { openQuotes: number; toShipSo: number; replenishingItems: number; overdueAr: number };
+  warehouse: { inspectingRr: number; pickingItems: number; packingItems: number };
+  finance: { apDueSoon: number; overdueAr: number };
+  /** OWNER/SYSADMIN 才有、其他 null */
+  manager: { todaySoAmount: string; todaySoCount: number } | null;
+};
+
+export async function getHomeSummary(): Promise<HomeSummary> {
+  const res = await apiFetch('/nx08/dashboard/home/summary', { method: 'GET' });
+  await assertOk(res, 'nxui_nx08_home_summary');
+  return (await res.json()) as HomeSummary;
+}

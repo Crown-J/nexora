@@ -9,6 +9,8 @@ import { Nx08DailyReportController } from './daily-report/daily-report.controlle
 import { Nx08DailyReportService } from './daily-report/daily-report.service';
 import { Nx08FinanceDashboardController } from './dashboard/finance/finance-dashboard.controller';
 import { Nx08FinanceDashboardService } from './dashboard/finance/finance-dashboard.service';
+import { Nx08HomeDashboardController } from './dashboard/home/home-dashboard.controller';
+import { Nx08HomeDashboardService } from './dashboard/home/home-dashboard.service';
 import { Nx08OwnerDashboardController } from './dashboard/owner/owner-dashboard.controller';
 import { Nx08OwnerDashboardService } from './dashboard/owner/owner-dashboard.service';
 import { Nx08PurchasingDashboardController } from './dashboard/purchasing/purchasing-dashboard.controller';
@@ -46,6 +48,8 @@ import { Nx08MonthlyReportService } from './monthly-report/monthly-report.servic
     Nx08FinanceDashboardController,
     Nx08OwnerDashboardController,
     Nx08StrategyDashboardController, // 含 bcgMatrix ⭐⭐⭐
+    // 首頁改版 V1 2026-07-11：待辦彙總
+    Nx08HomeDashboardController,
     // IMPL-01 ETL（外部 cron 觸發、mock shell）
     Nx08EtlController,
   ],
@@ -61,6 +65,7 @@ import { Nx08MonthlyReportService } from './monthly-report/monthly-report.servic
     Nx08FinanceDashboardService,
     Nx08OwnerDashboardService,
     Nx08StrategyDashboardService,
+    Nx08HomeDashboardService,
     Nx08EtlService,
   ],
 })
