@@ -130,12 +130,11 @@ export const MENU_BAR: MenuNode[] = [
     ],
   },
 
-  // ───────── 採購與進貨 (X)：暫緩 ─────────
+  // ───────── 採購與進貨 (X)：2026-07-11 開放（單據頁全數已建、doc-shell 列印十張全通） ─────────
   {
     key: 'purchase',
     label: '採購與進貨',
     accel: 'X',
-    comingSoon: true,
     children: [
       { key: 'demand', label: '缺貨簿', href: '/dashboard/purchase/demand' },
       { key: 'rfq', label: '詢價作業', href: '/dashboard/purchase/rfq' },
@@ -189,12 +188,11 @@ export const MENU_BAR: MenuNode[] = [
     ],
   },
 
-  // ───────── 庫存管理 (U)：暫緩 ─────────
+  // ───────── 庫存管理 (U)：2026-07-11 開放（href 子項頁面逐一核實存在、未建項維持 pending） ─────────
   {
     key: 'inventory',
     label: '庫存管理',
     accel: 'U',
-    comingSoon: true,
     children: [
       {
         key: 'i-inbound',
@@ -239,12 +237,11 @@ export const MENU_BAR: MenuNode[] = [
     ],
   },
 
-  // ───────── 會計財務 (Q)：暫緩 ─────────
+  // ───────── 會計財務 (Q)：2026-07-11 開放（AR/AP/票據/月關帳/帳務頁全在） ─────────
   {
     key: 'finance',
     label: '會計財務',
     accel: 'Q',
-    comingSoon: true,
     children: [
       { key: 'ar', label: '應收帳款', href: '/dashboard/finance/ar' },
       { key: 'ap', label: '應付帳款', href: '/dashboard/finance/ap' },
@@ -254,12 +251,11 @@ export const MENU_BAR: MenuNode[] = [
     ],
   },
 
-  // ───────── 報表與分析 (N)：暫緩 ─────────
+  // ───────── 報表與分析 (N)：2026-07-11 開放（六報表頁全在） ─────────
   {
     key: 'report',
     label: '報表與分析',
     accel: 'N',
-    comingSoon: true,
     children: [
       { key: 'r-personal', label: '個人月報', href: '/dashboard/report/personal' },
       { key: 'r-purchase', label: '採購報表', href: '/dashboard/report/purchase' },
