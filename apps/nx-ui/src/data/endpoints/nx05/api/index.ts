@@ -47,6 +47,8 @@ export type ApRow = {
   rrId: string | null;
   tiId: string | null;
   supplierId: string;
+  /** 帳款歸戶對象（null=同 supplierId；來源 PO 付款對象、母公司代付） */
+  billToPartnerId: string | null;
   apDate: string;
   dueDate: string;
   originalAmount: string;

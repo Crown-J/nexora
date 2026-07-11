@@ -26,6 +26,7 @@ const AP_SEL = {
   rrId: true,
   tiId: true,
   supplierId: true,
+  billToPartnerId: true,
   apDate: true,
   dueDate: true,
   currencyId: true,
