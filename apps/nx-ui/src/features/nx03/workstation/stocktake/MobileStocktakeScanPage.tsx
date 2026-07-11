@@ -19,7 +19,7 @@
 
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CheckCircle2, Circle, RotateCcw, ScanBarcode, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -32,6 +32,8 @@ import {
   type StocktakeDetail,
   type StocktakeItem,
 } from '@data/endpoints/nx03/workstation/api';
+// 偉盟 P2 2.6 2026-07-11：條碼對照解析（掃原廠條碼 → 料號）
+import { resolveBarcode } from '@data/endpoints/nx01/part-barcode/api/part-barcode';
 
 import { BarcodeScanner } from '../shared/BarcodeScanner';
 import { DocStatusBadge, type DocStatusTone } from '../shared/DocStatusBadge';
@@ -228,14 +230,38 @@ export function MobileStocktakeScanPage({ id }: { id: string }) {
     void load();
   }, [load]);
 
+  // 偉盟 P2 2.6 2026-07-11：非料號字串（原廠條碼）→ 查條碼對照、防過期回應
+  const resolveReqRef = useRef(0);
+
   const handleScan = useCallback(
     (decodedText: string): boolean => {
       if (!stk) return false;
       const trimmed = decodedText.trim();
       const hit = stk.items.find((it) => it.partNo === trimmed || it.partId === trimmed);
       if (!hit) {
-        setScanFeedback({ ok: false, message: `找不到對應品項：${trimmed}` });
-        return true;
+        // 偉盟 P2 2.6：料號直比未中 → 查條碼對照（async、命中後程式自行關掃描器開輸入）
+        setScanFeedback({ ok: false, message: `查詢條碼對照：${trimmed}…` });
+        const req = ++resolveReqRef.current;
+        resolveBarcode(trimmed)
+          .then((r) => {
+            if (req !== resolveReqRef.current) return;
+            if (!r.found) {
+              setScanFeedback({ ok: false, message: `找不到對應品項：${trimmed}` });
+              return;
+            }
+            const mapped = stk.items.find((it) => it.partId === r.partId);
+            if (!mapped) {
+              setScanFeedback({ ok: false, message: `條碼對應 ${r.partNo} ${r.partName}、不在本盤點單內` });
+              return;
+            }
+            setScanFeedback({ ok: true, message: `命中：${mapped.partNo ?? mapped.partId} ${mapped.partName ?? ''}` });
+            setEditingItemId(mapped.id);
+            setScannerOpen(false);
+          })
+          .catch(() => {
+            if (req === resolveReqRef.current) setScanFeedback({ ok: false, message: `找不到對應品項：${trimmed}` });
+          });
+        return true; // 對照查詢中、掃描器先留著
       }
       setScanFeedback({ ok: true, message: `命中：${hit.partNo ?? hit.partId} ${hit.partName ?? ''}` });
       setEditingItemId(hit.id);

@@ -105,6 +105,8 @@ export const MENU_BAR: MenuNode[] = [
             ],
           },
           { key: 'supplier-supply', label: '供貨對應', href: '/dashboard/master/supplier-supply' },
+          // 偉盟 P2 2.8 2026-07-11：批次調價維運工具
+          { key: 'batch-price', label: '批次調價', href: '/dashboard/master/parts/batch-price' },
         ],
       },
       {
