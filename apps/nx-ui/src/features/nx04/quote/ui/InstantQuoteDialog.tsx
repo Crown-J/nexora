@@ -3,8 +3,8 @@
 //   選客戶 → 帶 5 格比價 + 自動帶價(近一個月本客戶價，否則建議售價) → 填量/價 → 建單
 'use client';
 
-import { X } from 'lucide-react';
-import { useState } from 'react';
+import { Copy, X } from 'lucide-react';
+import { useMemo, useState } from 'react';
 
 import { getQuotePriceIntel } from '@data/endpoints/nx04/quote/api/quote';
 import { createQuoteRecord } from '@data/endpoints/nx04/record/api/record';
@@ -12,6 +12,12 @@ import { FocusLockedDialog } from '@design/primitives/focus-locked-dialog';
 
 import { CustomerPicker, type PickedCustomer } from './CustomerPicker';
 import { PriceIntelPanel } from './PriceIntelPanel';
+
+// 報價金額格式（對齊 SalesFlowHub formatNt：小額保留小數、其餘千分位無小數）
+function formatNt(n: number): string {
+  if (n < 100 && n !== Math.floor(n)) return n.toFixed(2);
+  return n.toLocaleString('zh-TW', { maximumFractionDigits: 0 });
+}
 
 export function InstantQuoteDialog({
   partId,
@@ -90,6 +96,14 @@ export function InstantQuoteDialog({
     }
   }
 
+  // 給客戶的訊息：報價後一鍵複製、貼通訊軟體（執行長 2026-07-11）。量>1 才顯示數量。
+  const copyText = useMemo(() => {
+    const p = Number(price);
+    if (!(p >= 0) || price === '') return '';
+    const qtyPart = Number(qty) > 1 ? `　數量 ${Number(qty)}` : '';
+    return `${code} ${name}${qtyPart}　報價 NT$ ${formatNt(p)}`;
+  }, [code, name, qty, price]);
+
   const inputCls = 'w-full rounded border bg-background px-2 py-1 text-sm';
 
   return (
@@ -131,6 +145,27 @@ export function InstantQuoteDialog({
                 <input type="number" min="0" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} className={`${inputCls} font-semibold tabular-nums`} />
               </label>
             </div>
+            {copyText ? (
+              <div>
+                <div className="mb-1 flex items-center justify-between gap-2">
+                  <span className="text-xs font-medium text-muted-foreground">給客戶的訊息（複製貼通訊軟體）</span>
+                  <button
+                    type="button"
+                    onClick={() => void navigator.clipboard.writeText(copyText)}
+                    className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground hover:bg-muted/40"
+                  >
+                    <Copy className="size-3.5" aria-hidden />
+                    複製
+                  </button>
+                </div>
+                <textarea
+                  readOnly
+                  rows={2}
+                  value={copyText}
+                  className="w-full resize-y rounded-md border border-border bg-muted/20 px-2 py-2 font-mono text-[11px] leading-relaxed text-foreground"
+                />
+              </div>
+            ) : null}
           </div>
         ) : null}
 
