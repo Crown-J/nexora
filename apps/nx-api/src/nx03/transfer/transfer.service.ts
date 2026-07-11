@@ -1,6 +1,5 @@
 import {
   BadRequestException,
-  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -10,7 +9,6 @@ import { Prisma as PrismaNs } from 'db-core';
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
-import { planSupportsNx02PlusFeatures } from '../../shared/plan/plan-plus-support';
 import { allocNx03DocNo } from '../../shared/nx03/nx03-doc-no';
 import { applyQtyInWithLedger, applyQtyOutWithLedger } from '../../shared/nx03/nx03-inventory';
 import { Nx03ListQueryDto } from '../../shared/nx03/nx03-list-query.dto';
@@ -89,11 +87,8 @@ export class TransferService {
     private readonly audit: Nx01AuditLogWriterService,
   ) {}
 
-  private ensurePlus(user: RequestUser) {
-    if (!planSupportsNx02PlusFeatures(user.planCode)) {
-      throw new ForbiddenException('Transfer requires PLUS or PRO plan');
-    }
-  }
+  // 產品鐵則（絕不做版本功能閘門、舊 Plan Guard 已廢）：原 ensurePlus 調撥 plan 閘
+  // 2026-07-11 C/D 組驗收發現全 API 最後一處殘留、依既拍板拆除
 
   private whereList(tenantId: string, q: Nx03ListQueryDto): Prisma.Nx03StWhereInput {
     const where: Prisma.Nx03StWhereInput = { tenantId, voidedAt: null };
@@ -193,9 +188,7 @@ export class TransferService {
     return { ...flattenStRefs(rest), items };
   }
 
-  async list(user: RequestUser, q: Nx03ListQueryDto) {
-    this.ensurePlus(user);
-    const tenantId = requireTenantId(user);
+  async list(user: RequestUser, q: Nx03ListQueryDto) {    const tenantId = requireTenantId(user);
     const page = q.page ?? 1;
     const pageSize = q.pageSize ?? 20;
     const where = this.whereList(tenantId, q);
@@ -227,9 +220,7 @@ export class TransferService {
     return { page, pageSize, total, items };
   }
 
-  async getById(user: RequestUser, id: string) {
-    this.ensurePlus(user);
-    const tenantId = requireTenantId(user);
+  async getById(user: RequestUser, id: string) {    const tenantId = requireTenantId(user);
     const row = await this.prisma.nx03St.findFirst({
       where: { id, tenantId },
       select: {
@@ -246,9 +237,7 @@ export class TransferService {
     return { ...mapped, createdByName: creator?.userName ?? null };
   }
 
-  async create(user: RequestUser, dto: CreateTransferDto) {
-    this.ensurePlus(user);
-    const tenantId = requireTenantId(user);
+  async create(user: RequestUser, dto: CreateTransferDto) {    const tenantId = requireTenantId(user);
     if (dto.fromWarehouseId.trim() === dto.toWarehouseId.trim()) {
       throw new BadRequestException('fromWarehouseId and toWarehouseId must differ');
     }
@@ -348,9 +337,7 @@ export class TransferService {
     });
   }
 
-  async update(user: RequestUser, id: string, dto: UpdateTransferDto) {
-    this.ensurePlus(user);
-    const tenantId = requireTenantId(user);
+  async update(user: RequestUser, id: string, dto: UpdateTransferDto) {    const tenantId = requireTenantId(user);
     const existing = await this.prisma.nx03St.findFirst({ where: { id, tenantId }, select: TR_SEL });
     if (!existing) throw new NotFoundException('Transfer not found');
     if (existing.voidedAt) throw new BadRequestException('Transfer is voided');
@@ -412,9 +399,7 @@ export class TransferService {
     });
   }
 
-  async softDelete(user: RequestUser, id: string) {
-    this.ensurePlus(user);
-    const tenantId = requireTenantId(user);
+  async softDelete(user: RequestUser, id: string) {    const tenantId = requireTenantId(user);
     const existing = await this.prisma.nx03St.findFirst({ where: { id, tenantId }, select: TR_SEL });
     if (!existing) throw new NotFoundException('Transfer not found');
     if (existing.voidedAt) throw new BadRequestException('Transfer already voided');
@@ -446,9 +431,7 @@ export class TransferService {
     return this.mapDetail(full as never);
   }
 
-  async addItem(user: RequestUser, stId: string, dto: CreateTransferItemDto) {
-    this.ensurePlus(user);
-    const tenantId = requireTenantId(user);
+  async addItem(user: RequestUser, stId: string, dto: CreateTransferItemDto) {    const tenantId = requireTenantId(user);
     const head = await this.prisma.nx03St.findFirst({ where: { id: stId, tenantId }, select: TR_SEL });
     if (!head) throw new NotFoundException('Transfer not found');
     if (head.voidedAt) throw new BadRequestException('Transfer is voided');
@@ -476,9 +459,7 @@ export class TransferService {
     });
   }
 
-  async patchItem(user: RequestUser, stId: string, itemId: string, dto: PatchTransferItemDto) {
-    this.ensurePlus(user);
-    const tenantId = requireTenantId(user);
+  async patchItem(user: RequestUser, stId: string, itemId: string, dto: PatchTransferItemDto) {    const tenantId = requireTenantId(user);
     const head = await this.prisma.nx03St.findFirst({ where: { id: stId, tenantId }, select: TR_SEL });
     if (!head) throw new NotFoundException('Transfer not found');
     if (head.voidedAt) throw new BadRequestException('Transfer is voided');
@@ -526,9 +507,7 @@ export class TransferService {
     return row;
   }
 
-  async removeItem(user: RequestUser, stId: string, itemId: string) {
-    this.ensurePlus(user);
-    const tenantId = requireTenantId(user);
+  async removeItem(user: RequestUser, stId: string, itemId: string) {    const tenantId = requireTenantId(user);
     const head = await this.prisma.nx03St.findFirst({ where: { id: stId, tenantId }, select: TR_SEL });
     if (!head) throw new NotFoundException('Transfer not found');
     if (head.voidedAt) throw new BadRequestException('Transfer is voided');

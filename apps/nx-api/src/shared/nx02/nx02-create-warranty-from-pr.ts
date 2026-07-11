@@ -61,7 +61,10 @@ export async function createWarrantyClaimsFromPr(
   if (!pr) return result;
   // 防呆：只有 W 才走保固（caller 已 guard、helper 內部再驗一次）
   if (pr.dispositionFlag !== 'W') return result;
-  if (pr.status !== 'POSTED' && pr.status !== 'P') return result;
+  // ⚠️ 2026-07-11 C/D 組驗收修 bug：原「status 須已 POSTED」防呆在 tx 內永遠不成立——
+  // caller（applyPrPosting）跑在 header status 寫入之前、此處讀到的還是 DRAFT →
+  // 靜默 return、保固單從未自動建（階段 I P2 功能死路）。呼叫語境唯一
+  // （POSTED transition 交易內）、status 防呆移除、以 dispositionFlag 防呆為準。
 
   for (const item of pr.rev_Nx02PrItem_prId) {
     // 冪等：sourcePrItemId 已有對應保固單則跳過
