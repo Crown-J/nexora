@@ -70,9 +70,11 @@ export class CreateSoItemDto {
 }
 
 export class CreateSoDto {
+  /** 出貨倉庫（可空：service 依 客戶預設倉→使用者隸屬倉→主倉 fallback；Phase 3 commit 3a 即有 fallback、DTO 漏鬆綁 2026-07-11 修） */
+  @IsOptional()
   @IsString()
   @MaxLength(15)
-  warehouseId!: string;
+  warehouseId?: string;
 
   @IsDateString()
   soDate!: string;

@@ -451,10 +451,27 @@ export class SoService {
 
       // NX04-IMPL-01 Phase 3 commit 3a 接點 1：客戶預設據點 fallback
       // dto.warehouseId 為主、無 → fallback customer.defaultWarehouseId（M1 配套）
-      const effectiveWhId = dto.warehouseId?.trim() || customer.defaultWarehouseId;
+      // 2026-07-11 補齊承諾三層鏈（建單面板文案：客戶預設倉→使用者隸屬倉→主倉）：
+      //   隸屬倉取主要倉（isPrimary）優先、僅單倉隸屬時取該倉；最後 fallback 租戶主倉（isMain）
+      let effectiveWhId = dto.warehouseId?.trim() || customer.defaultWarehouseId;
+      if (!effectiveWhId) {
+        const uw = await tx.nx01UserWarehouse.findMany({
+          where: { tenantId, userId: user.sub, isActive: true },
+          select: { warehouseId: true, isPrimary: true },
+        });
+        effectiveWhId =
+          uw.find((r) => r.isPrimary)?.warehouseId ?? (uw.length === 1 ? uw[0]?.warehouseId : null) ?? null;
+      }
+      if (!effectiveWhId) {
+        const main = await tx.nx01Warehouse.findFirst({
+          where: { tenantId, isMain: true, isActive: true },
+          select: { id: true },
+        });
+        effectiveWhId = main?.id ?? null;
+      }
       if (!effectiveWhId) {
         throw new BadRequestException(
-          'warehouseId required (dto or customer.defaultWarehouseId both empty)',
+          '無法決定出貨倉庫（未指定、客戶無預設倉、使用者無隸屬倉、租戶無主倉）',
         );
       }
       const wh = await tx.nx01Warehouse.findFirst({
