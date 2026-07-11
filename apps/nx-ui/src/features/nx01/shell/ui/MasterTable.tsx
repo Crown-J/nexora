@@ -267,6 +267,19 @@ export function MasterTable<T>({
       nextRow?.focus();
       const nextId = nextRow?.getAttribute('data-row-id');
       if (nextId) onSelect(nextId);
+    } else if (e.key === 'Home' || e.key === 'End') {
+      // 鍵盤情境驗收 2026-07-11 補：列上有焦點時 Home/End 首尾列（原僅 ↑↓/Enter、
+      // 全域 handler 有 Home/End 但列焦點時讓位到此、形成缺口）
+      if (!onRow) return;
+      const rowEls = Array.from(
+        container.querySelectorAll<HTMLTableRowElement>('[data-row-id]'),
+      );
+      if (rowEls.length === 0) return;
+      e.preventDefault();
+      const nextRow = rowEls[e.key === 'Home' ? 0 : rowEls.length - 1];
+      nextRow?.focus();
+      const nextId = nextRow?.getAttribute('data-row-id');
+      if (nextId) onSelect(nextId);
     } else if (e.key === 'Enter') {
       if (!onRow) return;
       const id = active.getAttribute('data-row-id');
