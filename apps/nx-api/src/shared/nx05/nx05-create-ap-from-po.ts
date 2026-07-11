@@ -28,6 +28,8 @@ export async function createApFromConfirmedPo(
       docNo: true,
       poDate: true,
       supplierId: true,
+      // 直送鏈盤點 2026-07-11 補接：付款對象（T7 欄）→ AP 歸戶
+      invoiceToPartnerId: true,
       currencyId: true,
       totalAmount: true,
     },
@@ -51,6 +53,7 @@ export async function createApFromConfirmedPo(
       sourceType: 'PO',
       poId: p.poId,
       supplierId: po.supplierId,
+      billToPartnerId: po.invoiceToPartnerId,
       apDate,
       dueDate,
       currencyId: po.currencyId,

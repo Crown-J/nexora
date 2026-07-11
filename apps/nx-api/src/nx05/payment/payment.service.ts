@@ -97,7 +97,7 @@ export class PaymentService {
     return this.prisma.$transaction(async (tx) => {
       const ap = await tx.nx05ApLedger.findFirst({
         where: { id: dto.apId, tenantId },
-        select: { docNo: true, supplierId: true },
+        select: { docNo: true, supplierId: true, billToPartnerId: true },
       });
       if (!ap) throw new NotFoundException('AP not found');
       const payDate = new Date(dto.payDate);
@@ -111,7 +111,8 @@ export class PaymentService {
           docNo,
           payType: 'CP',
           payDate,
-          partnerId: ap.supplierId,
+          // 直送鏈盤點 2026-07-11 補接：AP 有歸戶對象（母公司代付）時、付款對象取歸戶
+          partnerId: ap.billToPartnerId ?? ap.supplierId,
           apId: dto.apId,
           amount: new PrismaNs.Decimal(dto.amount),
           currencyId: currId,

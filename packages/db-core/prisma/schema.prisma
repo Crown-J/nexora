@@ -1150,6 +1150,7 @@ model Nx01Partner {
   rev_Nx04Sr_customerId                    Nx04Sr[]                     @relation("R_Nx04Sr_customerId")
   rev_Nx05Allowance_partnerId              Nx05Allowance[]              @relation("R_Nx05Allowance_partnerId")
   rev_Nx05ApLedger_supplierId              Nx05ApLedger[]               @relation("R_Nx05ApLedger_supplierId")
+  rev_Nx05ApLedger_billToPartnerId         Nx05ApLedger[]               @relation("R_Nx05ApLedger_billToPartnerId")
   rev_Nx05ArLedger_customerId              Nx05ArLedger[]               @relation("R_Nx05ArLedger_customerId")
   rev_Nx05Note_partnerId                   Nx05Note[]                   @relation("R_Nx05Note_partnerId")
   rev_Nx05Paylog_partnerId                 Nx05Paylog[]                 @relation("R_Nx05Paylog_partnerId")
@@ -4995,6 +4996,9 @@ model Nx05ApLedger {
   tiId                               String?                @map("ti_id") @db.VarChar(15)
   /// 廠商ID（FK nx01_partner）。；啟用最低需求版本：LITE-CORE
   supplierId                         String                 @map("supplier_id") @db.VarChar(15)
+  /// 帳款歸戶對象（FK nx01_partner、可空＝同 supplierId）。直送鏈盤點 2026-07-11 補接：
+  /// 承 PO.invoiceToPartnerId（母公司付款/集團代付、T7 有欄無帳收尾）；付款單 partner 取此欄優先於 supplierId。；啟用最低需求版本：LITE-CORE
+  billToPartnerId                    String?                @map("bill_to_partner_id") @db.VarChar(15)
   /// 應付帳款產生日期。；啟用最低需求版本：LITE-CORE
   apDate                             DateTime               @map("ap_date") @db.Date
   /// 到期日（依付款條件計算）。；啟用最低需求版本：LITE-CORE
@@ -5030,6 +5034,7 @@ model Nx05ApLedger {
   rr                                 Nx02Rr?                @relation("R_Nx05ApLedger_rrId", fields: [rrId], references: [id])
   ti                                 Nx02Ti?                @relation("R_Nx05ApLedger_tiId", fields: [tiId], references: [id])
   supplier                           Nx01Partner            @relation("R_Nx05ApLedger_supplierId", fields: [supplierId], references: [id])
+  billToPartner                      Nx01Partner?           @relation("R_Nx05ApLedger_billToPartnerId", fields: [billToPartnerId], references: [id])
   currency                           Nx01Currency           @relation("R_Nx05ApLedger_currencyId", fields: [currencyId], references: [id])
   rev_Nx05Allowance_refApId          Nx05Allowance[]        @relation("R_Nx05Allowance_refApId")
   rev_Nx05Paylog_apId                Nx05Paylog[]           @relation("R_Nx05Paylog_apId")

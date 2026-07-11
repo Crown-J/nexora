@@ -157,7 +157,16 @@ export function ApWorkbench() {
                 {
                   key: 'supplier',
                   label: '廠商',
-                  render: (r: ApRow) => <span className="font-mono text-[10px]">{r.supplierId}</span>,
+                  render: (r: ApRow) => (
+                    <span className="font-mono text-[10px]">
+                      {r.supplierId}
+                      {r.billToPartnerId ? (
+                        <span className="block text-[#E8A020]" title="帳款歸戶對象（母公司代付、承採購單付款對象）">
+                          歸戶 {r.billToPartnerId}
+                        </span>
+                      ) : null}
+                    </span>
+                  ),
                 },
                 {
                   key: 'apDate',
@@ -188,7 +197,7 @@ export function ApWorkbench() {
                     <div className="flex justify-end gap-1">
                       <button
                         type="button"
-                        onClick={() => setPaylogDialog({ partnerId: r.supplierId })}
+                        onClick={() => setPaylogDialog({ partnerId: r.billToPartnerId ?? r.supplierId })}
                         title="開付款票據沖銷（可勾多張 AP）"
                         className="inline-flex h-6 items-center gap-1 rounded-md border border-[#E8A020]/40 bg-[#E8A020]/10 px-2 text-[10px] font-medium text-[#E8A020] hover:bg-[#E8A020]/20"
                       >
