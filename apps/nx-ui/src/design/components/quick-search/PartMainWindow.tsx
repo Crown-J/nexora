@@ -81,6 +81,22 @@ type Props = {
   onBack: () => void;
   /** 整個關閉（搜尋窗也關）*/
   onClose: () => void;
+  /** F2 報價流（2026-07-12 執行長拍板）：中欄下半「價格資訊」render prop（跟著預覽件切換）。
+      design 層不 import nx04、由 features 注入（歷史價面板＋量價輸入）。*/
+  renderPriceSection?: (args: {
+    partId: string;
+    code: string;
+    name: string;
+    available: number;
+  }) => React.ReactNode;
+  /** 標題旁附加內容（F2 報價流：客戶徽章＋已報數）*/
+  headerExtra?: React.ReactNode;
+  /** 右上角標（F1 預設「F1 · 庫存主視窗」）*/
+  cornerBadge?: string;
+  /** 開窗自動聚焦右欄第一列（F2 報價流傳 false：焦點給量價輸入）*/
+  autoFocusCompat?: boolean;
+  /** F4／「即時報價」鈕的覆寫動作（F2 報價流：聚焦量價輸入、不再開選客戶的單顆對話框）*/
+  onQuoteAction?: () => void;
 };
 
 // 執行長 2026-06-25 拍板的庫存四指標配色（KpiTile + WhTile 共用、視覺一致）
@@ -92,7 +108,17 @@ const STOCK_COLORS = {
 } as const;
 const ZERO_GREY = '#5A5A60'; // 0 值弱化色
 
-export function PartMainWindow({ partId: initialPartId, entryContext, onBack, onClose }: Props) {
+export function PartMainWindow({
+  partId: initialPartId,
+  entryContext,
+  onBack,
+  onClose,
+  renderPriceSection,
+  headerExtra,
+  cornerBadge = 'F1 · 庫存主視窗',
+  autoFocusCompat = true,
+  onQuoteAction,
+}: Props) {
   // 主件：Alt+F 跳搜時切換
   const [mainPartId, setMainPartId] = useState(initialPartId);
   // 預覽：Enter 暫切（null = 顯示 mainPartId 自己）
@@ -520,7 +546,9 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
         compatToggleMark();
       } else if (e.key === 'F4') {
         e.preventDefault();
-        fireInstantQuote();
+        // F2 報價流覆寫：聚焦量價輸入（不開要重選客戶的單顆對話框）
+        if (onQuoteAction) onQuoteAction();
+        else fireInstantQuote();
       } else if (e.key === 'F3') {
         // F3 = 聚焦右欄通用零件（＝可替代件）
         e.preventDefault();
@@ -549,18 +577,19 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
     // capture 階段：搶在焦點鎖定對話框冒泡攔截 + 瀏覽器默認（F3=找下一個/F5=重整）之前 preventDefault
     window.addEventListener('keydown', h, true);
     return () => window.removeEventListener('keydown', h, true);
-  }, [fireInstantQuote, fireInstantInquiry, compatToggleMark, toggleWhExpanded, highlightIndex]);
+  }, [fireInstantQuote, fireInstantInquiry, compatToggleMark, toggleWhExpanded, highlightIndex, onQuoteAction]);
 
   // 執行長 2026-06-25：開窗焦點永遠在右側通用零件、不去 Header「退回搜尋」按鈕。
   // 1. initialFocusRef={compatListRef} → mount 時先 focus FocusZone 容器（即使資料還沒載完、容器可 focus）
   // 2. compatRows 載入後 useEffect → 切到第一筆（主件）row、↑↓ 直接生效
   useEffect(() => {
+    if (!autoFocusCompat) return; // F2 報價流：焦點留給量價輸入、不搶
     if (compatRows.length === 0) return;
     queueMicrotask(() => {
       const el = document.querySelector('[data-compat-row="0"]') as HTMLElement | null;
       el?.focus();
     });
-  }, [compatRows.length, mainPartId]);
+  }, [compatRows.length, mainPartId, autoFocusCompat]);
 
   return (
     <FocusLockedDialog
@@ -617,15 +646,16 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
           </button>
           <button
             type="button"
-            onClick={fireInstantQuote}
+            onClick={onQuoteAction ?? fireInstantQuote}
             className="inline-flex items-center gap-1.5 rounded-md border border-primary/55 bg-primary/15 px-2.5 py-1 text-xs font-medium text-primary hover:bg-primary/25"
             title="即時報價 (F4)"
           >
             即時報價
             <kbd className="rounded border border-primary/40 bg-primary/10 px-1 py-px font-mono text-[10px]">F4</kbd>
           </button>
+          {headerExtra}
           <span className="text-[10px] font-semibold uppercase tracking-[0.28em] text-muted-foreground/60">
-            F1 · 庫存主視窗
+            {cornerBadge}
           </span>
           {/* 快捷鍵說明（Alt+H）：底部提示列收攏至此（執行長 2026-07-11）*/}
           <button
@@ -659,7 +689,8 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
             onZoomToggle={() => setPhotoZoom((z) => !z)}
           />
 
-          {/* 中欄：公司總存貨（不分倉）；各倉分布 Alt+W 展開/收合（記憶）、情境倉自動展開 */}
+          {/* 中欄：公司總存貨（不分倉）；各倉分布 Alt+W 展開/收合（記憶）、情境倉自動展開；
+              F2 報價流（2026-07-12）：下半掛「價格資訊」slot（跟著預覽件）*/}
           <CompanyStockColumn
             stock={stock}
             settings={stockSettings}
@@ -668,6 +699,16 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
             contextLabel={entryContext?.label}
             whExpanded={whExpanded}
             onToggleWh={toggleWhExpanded}
+            priceSection={
+              renderPriceSection
+                ? renderPriceSection({
+                    partId: effectivePartId,
+                    code: detail?.code ?? '',
+                    name: detail?.name ?? '',
+                    available: Number(stock?.company.available ?? 0),
+                  })
+                : undefined
+            }
           />
 
           {/* 右欄：通用零件（＝可替代件、執行長 2026-07-11 合併）*/}
@@ -845,6 +886,7 @@ function CompanyStockColumn({
   contextLabel,
   whExpanded,
   onToggleWh,
+  priceSection,
 }: {
   stock: PartStockSummaryDto | null;
   settings: PartStockSettingRow[];
@@ -855,6 +897,8 @@ function CompanyStockColumn({
   /** 各倉分布展開（Alt+W、父層記憶、執行長 2026-07-11）*/
   whExpanded: boolean;
   onToggleWh: () => void;
+  /** F2 報價流（2026-07-12）：中欄下半「價格資訊」（歷史報價/成交＋量價輸入、features 注入）*/
+  priceSection?: React.ReactNode;
 }) {
   const company = stock?.company;
   const onHand = Number(company?.onHand ?? 0);
@@ -873,7 +917,7 @@ function CompanyStockColumn({
     <section className="flex min-h-0 flex-col border-r border-border/40 bg-background/20">
       <SectionHeader
         icon={<Warehouse className="size-3.5" />}
-        label="公司總存貨"
+        label={priceSection ? '庫存資訊' : '公司總存貨'}
         loading={loading}
       />
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto px-5 py-4">
@@ -927,6 +971,16 @@ function CompanyStockColumn({
           onToggle={onToggleWh}
         />
       </div>
+
+      {/* F2 報價流（2026-07-12 執行長拍板）：中欄下半＝價格資訊（歷史報價/成交＋量價輸入）*/}
+      {priceSection ? (
+        <>
+          <SectionHeader icon={<Package className="size-3.5" />} label="價格資訊" />
+          <div className="max-h-[52%] shrink-0 overflow-auto border-t border-border/35 px-4 py-3">
+            {priceSection}
+          </div>
+        </>
+      ) : null}
     </section>
   );
 }
