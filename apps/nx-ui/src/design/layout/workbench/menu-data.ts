@@ -1,5 +1,7 @@
 // apps/nx-ui/src/design/layout/workbench/menu-data.ts
 // 第一層選單列「目標 IA」登錄表（執行長 2026-06-28 定案、八大組）。
+// 2026-07-11 執行長拍板重排：分組原則=「誰在做事（角色動線）」、組內排序=該角色作業時序；
+//   頂層 銷售移採購前（日常以賣為主）、簽核移最後（暫緩）；同行調貨單=業務動線 → 移入銷售。
 // - accel：頂層 Alt+字母 快捷（字尾字母、閃開工具列 Alt+A/E/D/F/M/R… 與分頁 Alt+1/2）
 // - pending：功能尚未建置 → 灰顯「建置中」、不可點
 // - comingSoon：整個模組暫緩討論 → 頂層灰顯、展開只顯「即將推出」（子項先留存、待之後啟用）
@@ -38,54 +40,12 @@ export const MENU_BAR: MenuNode[] = [
     ],
   },
 
-  // ───────── 基本資料 (Y)：七分類 ─────────
+  // ───────── 基本資料 (Y)：七分類（2026-07-11 重排：日常高頻的產品/往來對象提前、開帳型設定往後） ─────────
   {
     key: 'master',
     label: '基本資料',
     accel: 'Y',
     children: [
-      {
-        key: 'm-account',
-        label: '帳號權限',
-        children: [
-          { key: 'users', label: '使用者基本資料', href: '/dashboard/master/users' },
-          // 權限綁「權限等級」非職務（拆分軌新頁 permission-level）
-          { key: 'account-type', label: '權限等級', href: '/dashboard/settings/permission-levels' },
-          { key: 'role-view', label: '權限設定', href: '/dashboard/settings/permission-settings' },
-        ],
-      },
-      {
-        key: 'm-org',
-        label: '組織架構',
-        children: [
-          { key: 'department', label: '部門基本資料', href: '/dashboard/master/department' },
-          { key: 'team', label: '組別基本資料', href: '/dashboard/master/team' },
-          { key: 'roles-m', label: '職務基本資料', href: '/dashboard/master/roles' },
-          { key: 'org-structure', label: '組織架構設定', href: '/dashboard/master/org-structure' },
-        ],
-      },
-      {
-        key: 'm-site',
-        label: '據點倉庫',
-        children: [
-          { key: 'site', label: '據點基本資料', href: '/dashboard/master/site' },
-          { key: 'warehouses', label: '倉庫基本資料', href: '/dashboard/master/warehouses' },
-          // 五層倉儲：據點→倉庫→區域→貨架→庫位（區域=倉庫分區 A/B/C，非地理地區）
-          { key: 'wh-zone', label: '區域基本資料', href: '/dashboard/master/warehouse-zone' },
-          { key: 'wh-rack', label: '貨架基本資料', href: '/dashboard/master/warehouse-rack' },
-          { key: 'location', label: '庫位基本資料', href: '/dashboard/master/location' },
-          { key: 'location-structure', label: '據點架構圖', href: '/dashboard/master/location-structure' },
-        ],
-      },
-      {
-        key: 'm-partner',
-        label: '往來對象',
-        children: [
-          { key: 'cust', label: '客戶基本資料', href: '/dashboard/master/partners/customer' },
-          { key: 'supp', label: '供應商基本資料', href: '/dashboard/master/partners/supplier' },
-          { key: 'other-partner', label: '其他往來對象', href: '/dashboard/master/partners/other' },
-        ],
-      },
       {
         key: 'm-product',
         label: '產品與廠牌',
@@ -110,6 +70,48 @@ export const MENU_BAR: MenuNode[] = [
         ],
       },
       {
+        key: 'm-partner',
+        label: '往來對象',
+        children: [
+          { key: 'cust', label: '客戶基本資料', href: '/dashboard/master/partners/customer' },
+          { key: 'supp', label: '供應商基本資料', href: '/dashboard/master/partners/supplier' },
+          { key: 'other-partner', label: '其他往來對象', href: '/dashboard/master/partners/other' },
+        ],
+      },
+      {
+        key: 'm-site',
+        label: '據點倉庫',
+        children: [
+          { key: 'site', label: '據點基本資料', href: '/dashboard/master/site' },
+          { key: 'warehouses', label: '倉庫基本資料', href: '/dashboard/master/warehouses' },
+          // 五層倉儲：據點→倉庫→區域→貨架→庫位（區域=倉庫分區 A/B/C，非地理地區）
+          { key: 'wh-zone', label: '區域基本資料', href: '/dashboard/master/warehouse-zone' },
+          { key: 'wh-rack', label: '貨架基本資料', href: '/dashboard/master/warehouse-rack' },
+          { key: 'location', label: '庫位基本資料', href: '/dashboard/master/location' },
+          { key: 'location-structure', label: '據點架構圖', href: '/dashboard/master/location-structure' },
+        ],
+      },
+      {
+        key: 'm-account',
+        label: '帳號權限',
+        children: [
+          { key: 'users', label: '使用者基本資料', href: '/dashboard/master/users' },
+          // 權限綁「權限等級」非職務（拆分軌新頁 permission-level）
+          { key: 'account-type', label: '權限等級', href: '/dashboard/settings/permission-levels' },
+          { key: 'role-view', label: '權限設定', href: '/dashboard/settings/permission-settings' },
+        ],
+      },
+      {
+        key: 'm-org',
+        label: '組織架構',
+        children: [
+          { key: 'department', label: '部門基本資料', href: '/dashboard/master/department' },
+          { key: 'team', label: '組別基本資料', href: '/dashboard/master/team' },
+          { key: 'roles-m', label: '職務基本資料', href: '/dashboard/master/roles' },
+          { key: 'org-structure', label: '組織架構設定', href: '/dashboard/master/org-structure' },
+        ],
+      },
+      {
         key: 'm-acc',
         label: '財務會計',
         children: [
@@ -130,38 +132,21 @@ export const MENU_BAR: MenuNode[] = [
     ],
   },
 
-  // ───────── 採購與進貨 (X)：2026-07-11 開放（單據頁全數已建、doc-shell 列印十張全通） ─────────
-  {
-    key: 'purchase',
-    label: '採購與進貨',
-    accel: 'X',
-    children: [
-      { key: 'demand', label: '缺貨簿', href: '/dashboard/purchase/demand' },
-      { key: 'rfq', label: '詢價作業', href: '/dashboard/purchase/rfq' },
-      { key: 'po', label: '採購單', href: '/dashboard/purchase/po' },
-      // NX02-TI-SHELL 2026-07-11：正名——原 key 'ti' 掛的是國內採購工作台（改 key 'domestic'）、
-      // 同行調貨單 TI 管理面首發、進貨單 RR 補上直達項
-      { key: 'domestic', label: '國內採購工作台', href: '/dashboard/purchase/domestic' },
-      { key: 'rr', label: '進貨單', href: '/dashboard/purchase/rr' },
-      { key: 'ti', label: '同行調貨單', href: '/dashboard/purchase/ti' },
-      { key: 'pr', label: '進貨退回', href: '/dashboard/purchase/pr' },
-      { key: 'warranty', label: '保固申請', href: '/dashboard/purchase/warranty' },
-      { key: 'special', label: '特殊採購', href: '/dashboard/purchase/special' },
-    ],
-  },
-
-  // ───────── 銷售作業 (W)：建置中（報價單已進新外殼、其餘為 LITE 頁待逐張改版）─────────
+  // ───────── 銷售作業 (W)：業務動線、照流程時序（客戶詢價→報價→銷貨→缺貨調貨→退回） ─────────
   {
     key: 'sales',
     label: '銷售作業',
     accel: 'W',
     children: [
+      // 「調貨詢價」單據降級成清單＝「詢價紀錄」（即時詢價寫入）；舊 R7 mock 入口退役、路由留給內部 prototype。
+      { key: 'iq-log', label: '詢價紀錄', href: '/dashboard/sale/inquiry-log' },
       { key: 'qt', label: '報價單', href: '/dashboard/sale/qt' },
       { key: 'qt-log', label: '報價紀錄', href: '/dashboard/sale/quote-log' },
-      { key: 'iq-log', label: '詢價紀錄', href: '/dashboard/sale/inquiry-log' },
       { key: 'so', label: '銷貨單', href: '/dashboard/sale/so' },
+      // 2026-07-11 執行長拍板：同行調貨=業務動線（銷貨缺貨→打給同行）、自採購移入；
+      //   到貨「驗收」仍歸倉管（庫存管理→到貨驗收）、單據面在此。
+      { key: 'ti', label: '同行調貨單', href: '/dashboard/purchase/ti' },
       { key: 'sreturn', label: '銷貨退回', href: '/dashboard/sale/return' },
-      // 「調貨詢價」單據降級成清單＝上方「詢價紀錄」（即時詢價寫入）；舊 R7 mock 入口退役、路由留給內部 prototype。
       // ⚠️ 調撥單（Nx03St 倉對倉內部調撥）2026-07-07 執行長拍板改歸「庫存管理(U) → 調撥作業」、不在銷售作業；
       //    此處不再列（非同行調貨；同行調貨單是 Nx02Ti）。
       { key: 'promotion', label: '促銷組合', href: '/dashboard/sale/promotion' },
@@ -170,21 +155,23 @@ export const MENU_BAR: MenuNode[] = [
     ],
   },
 
-  // ───────── 簽核作業 (V)：跨模組簽核中心 ─────────
+  // ───────── 採購與進貨 (X)：採購人員動線（工作台主入口→缺貨→詢價→採購→進貨→退回→保固） ─────────
   {
-    key: 'approval',
-    label: '簽核作業',
-    accel: 'V',
-    comingSoon: true,
+    key: 'purchase',
+    label: '採購與進貨',
+    accel: 'X',
     children: [
-      { key: 'ap-po', label: '採購單簽核', pending: true },
-      { key: 'ap-pr', label: '退貨單簽核', pending: true },
-      { key: 'ap-sr', label: '銷退單簽核', pending: true },
-      { key: 'ap-transfer', label: '調撥簽核', pending: true },
-      { key: 'ap-scrap', label: '零件報廢簽核', pending: true },
-      { key: 'ap-conv', label: '零件重組分解簽核', pending: true },
-      { key: 'ap-allowance', label: '折讓單簽核', href: '/dashboard/finance/allowance' },
-      { key: 'ap-settings', label: '簽核作業設定', pending: true },
+      // NX02-TI-SHELL 2026-07-11：正名——原 key 'ti' 掛的是國內採購工作台（改 key 'domestic'）；
+      //   同行調貨單 2026-07-11 執行長拍板移入銷售作業（業務動線）。
+      { key: 'domestic', label: '國內採購工作台', href: '/dashboard/purchase/domestic' },
+      { key: 'demand', label: '缺貨簿', href: '/dashboard/purchase/demand' },
+      { key: 'rfq', label: '詢價作業', href: '/dashboard/purchase/rfq' },
+      { key: 'po', label: '採購單', href: '/dashboard/purchase/po' },
+      { key: 'special', label: '特殊採購', href: '/dashboard/purchase/special' },
+      { key: 'rr', label: '進貨單', href: '/dashboard/purchase/rr' },
+      { key: 'pr', label: '進貨退回', href: '/dashboard/purchase/pr' },
+      // 保固申請：2026-07-11 執行長拍板留採購（求償對象=供應商）
+      { key: 'warranty', label: '保固申請', href: '/dashboard/purchase/warranty' },
     ],
   },
 
@@ -263,6 +250,24 @@ export const MENU_BAR: MenuNode[] = [
       { key: 'r-inventory', label: '庫存報表', href: '/dashboard/report/inventory' },
       { key: 'r-pnl', label: '損益表', href: '/dashboard/report/pnl' },
       { key: 'r-ops', label: '營運報表', href: '/dashboard/report/ops' },
+    ],
+  },
+
+  // ───────── 簽核作業 (V)：跨模組簽核中心（暫緩、2026-07-11 移列最後） ─────────
+  {
+    key: 'approval',
+    label: '簽核作業',
+    accel: 'V',
+    comingSoon: true,
+    children: [
+      { key: 'ap-po', label: '採購單簽核', pending: true },
+      { key: 'ap-pr', label: '退貨單簽核', pending: true },
+      { key: 'ap-sr', label: '銷退單簽核', pending: true },
+      { key: 'ap-transfer', label: '調撥簽核', pending: true },
+      { key: 'ap-scrap', label: '零件報廢簽核', pending: true },
+      { key: 'ap-conv', label: '零件重組分解簽核', pending: true },
+      { key: 'ap-allowance', label: '折讓單簽核', href: '/dashboard/finance/allowance' },
+      { key: 'ap-settings', label: '簽核作業設定', pending: true },
     ],
   },
 ];
