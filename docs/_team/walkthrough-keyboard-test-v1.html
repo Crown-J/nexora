@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<!-- docs/_team/walkthrough-keyboard-test-v1.html -->
+<!-- 位置：docs/_team/（團隊工作檔） -->
+<!-- 版本：v1.0（2026-07-11、Hank；鍵位與分支全部來自 0711 驗收實測/程式碼實掛） -->
+<!-- 說明：遊戲攻略式情境測試本。執行長照關卡在系統實走、每步勾四檢查點：
+     ①功能真的在 ②排版清楚 ③全鍵盤可完成 ④快捷鍵順手。勾選進度存 localStorage。 -->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXORA 情境攻略測試本 v1.0</title>
+<style>
+  :root{--bg:#0f1115;--card:#171a21;--card2:#1d2129;--fg:#e8e8eb;--mut:#9a9aa5;--line:#2c313c;
+        --gold:#e8a020;--green:#22d88f;--red:#e24b4a;--blue:#378add;--purple:#7f77dd;}
+  @media (prefers-color-scheme: light){
+    :root{--bg:#f4f3ef;--card:#ffffff;--card2:#f0efe9;--fg:#22242a;--mut:#6b6b74;--line:#ddd9d0;}
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.75 "Noto Sans TC",system-ui,sans-serif;padding:24px 16px 80px;}
+  .wrap{max-width:880px;margin:0 auto;}
+  h1{font-size:24px;margin:0 0 4px;} h1 .v{font-size:12px;color:var(--mut);font-weight:400;}
+  .sub{color:var(--mut);font-size:13px;margin-bottom:20px;}
+  .rules{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:13.5px;margin-bottom:24px;}
+  .rules b{color:var(--gold);}
+  kbd{display:inline-block;background:var(--card2);border:1px solid var(--line);border-bottom-width:3px;
+      border-radius:6px;padding:1px 8px;font:600 12.5px/1.6 Consolas,monospace;color:var(--gold);margin:0 1px;white-space:nowrap;}
+  .lv{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:26px;overflow:hidden;}
+  .lv-head{padding:14px 20px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+  .lv-head h2{font-size:17px;margin:0;} .lv-head .who{font-size:12px;color:var(--mut);}
+  .lv-head .prog{margin-left:auto;font:600 12px/1 Consolas,monospace;color:var(--green);}
+  .scene{padding:10px 20px;background:var(--card2);font-size:13.5px;color:var(--mut);border-bottom:1px solid var(--line);}
+  .scene b{color:var(--fg);}
+  ol.steps{margin:0;padding:6px 0 14px;list-style:none;counter-reset:st;}
+  ol.steps>li{counter-increment:st;padding:10px 20px 10px 58px;position:relative;border-bottom:1px dashed var(--line);}
+  ol.steps>li:last-child{border-bottom:none;}
+  ol.steps>li::before{content:counter(st);position:absolute;left:20px;top:12px;width:24px;height:24px;
+      border-radius:50%;background:var(--card2);border:1px solid var(--line);color:var(--gold);
+      font:600 12px/22px Consolas,monospace;text-align:center;}
+  .exp{color:var(--mut);font-size:13px;}
+  .checks{margin-top:6px;display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--mut);}
+  .checks label{cursor:pointer;user-select:none;display:inline-flex;align-items:center;gap:4px;}
+  .checks input{accent-color:var(--green);}
+  .checks label.done{color:var(--green);}
+  .enc{margin:12px 20px;background:color-mix(in srgb,var(--red) 8%,var(--card));border:1px solid color-mix(in srgb,var(--red) 45%,transparent);
+       border-radius:10px;padding:10px 14px;font-size:13.5px;}
+  .enc .t{color:var(--red);font-weight:700;font-size:13px;}
+  .tip{margin:12px 20px;background:color-mix(in srgb,var(--blue) 8%,var(--card));border:1px solid color-mix(in srgb,var(--blue) 45%,transparent);
+       border-radius:10px;padding:10px 14px;font-size:13.5px;}
+  .tip .t{color:var(--blue);font-weight:700;font-size:13px;}
+  .boss{border-color:var(--purple);}
+  .boss .lv-head h2::before{content:"👑 ";}
+  .totals{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);
+          padding:10px 16px;text-align:center;font:600 13px/1 Consolas,monospace;color:var(--green);}
+  a{color:var(--blue);}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>🎮 NEXORA 情境攻略測試本 <span class="v">v1.0（2026-07-11）</span></h1>
+<div class="sub">像跑遊戲關卡一樣測系統。鍵位＝程式實掛、分支＝驗收實測撞過的業務閘。勾選會自動儲存在這台瀏覽器。</div>
+
+<div class="rules">
+  每一步都問自己四件事、對應四個勾：<br>
+  <b>①在</b>＝功能真的存在　<b>②清</b>＝排版清楚不複雜　<b>③鍵</b>＝不碰滑鼠能完成　<b>④手</b>＝快捷鍵順手好按<br>
+  <span style="color:var(--mut)">③④只勾「這一步有按鍵」的項目；哪一步卡住就記下關卡編號-步驟號丟給 Hank。</span><br>
+  🧰 準備：dev server 起著、用 Y0001 登入、<b>硬重整一次（Ctrl+Shift+R）</b>再開始。
+</div>
+
+<!-- ═══════════ 關卡一 ═══════════ -->
+<div class="lv" data-lv="1">
+  <div class="lv-head"><h2>關卡一｜客戶來電：黃金三十秒</h2><span class="who">角色：業務（櫃台接電話）</span><span class="prog"></span></div>
+  <div class="scene">📞 <b>「喂，我要 GOLF 的前輪軸承，多少錢？有貨嗎？」</b>——客戶在線上等、你手不能離鍵盤。</div>
+  <ol class="steps">
+    <li>任何頁面直接按 <kbd>F2</kbd> 開料號即時查詢窗
+      <div class="exp">預期：查詢窗彈出、游標已在搜尋框（不用點）</div>
+      <div class="checks"></div></li>
+    <li>打料號或關鍵字 → <kbd>↑</kbd><kbd>↓</kbd> 選料 → <kbd>Enter</kbd> 進主視窗
+      <div class="exp">預期：三欄主視窗（基本資料/庫存/價格）、看得到各倉庫存</div>
+      <div class="checks"></div></li>
+    <li>按 <kbd>F4</kbd> 看這顆料的歷史報價、<kbd>F8</kbd> 看銷貨比價（建議售價列＝成本+A~D 價）
+      <div class="exp">預期：面板即開即關、客戶問「上次跟你們拿多少」馬上答得出</div>
+      <div class="checks"></div></li>
+    <li>客戶問「有沒有替代品」→ 按 <kbd>F3</kbd> 可替代零件、<kbd>F10</kbd> 相關零件（對應料/適用車型兩頁籤）
+      <div class="exp">預期：F10 兩頁籤切換順、車型年份看得懂</div>
+      <div class="checks"></div></li>
+    <li><kbd>Esc</kbd> 關查詢窗 → 回首頁按 <kbd>1</kbd> 直接開新報價
+      <div class="exp">預期：報價建單畫面、游標落在第一個要填的欄位</div>
+      <div class="checks"></div></li>
+    <li>報價明細加行：選料、填量價、<kbd>Enter</kbd> 一路跳格到底
+      <div class="exp">預期：Enter 跳格鏈不斷、不用滑鼠點格子</div>
+      <div class="checks"></div></li>
+  </ol>
+  <div class="enc"><span class="t">💥 遭遇戰：報價低於底價</span><br>
+    給熟客殺到底價以下 → 系統要求<b>必填理由</b>才放行。測：理由欄好不好找？填完流程順嗎？</div>
+  <div class="enc"><span class="t">💥 遭遇戰：第一次進頁跳出操作導覽</span><br>
+    新頁面首次進入會有導覽浮層、此時<b>背景鍵盤全鎖</b>（設計行為）。按任意鍵焦點會跳到「我知道了」→ <kbd>Enter</kbd> 關閉。測：這體感能接受嗎？</div>
+  <div class="tip"><span class="t">💡 攻略提示</span><br>
+    F2 窗內八快捷：<kbd>F3</kbd> 可替代 <kbd>F4</kbd> 報價 <kbd>F5</kbd> 周轉 <kbd>F6</kbd> 出入庫 <kbd>F7</kbd> 詢價 <kbd>F8</kbd> 銷貨比價 <kbd>F9</kbd> 進貨比價 <kbd>F10</kbd> 相關零件</div>
+</div>
+
+<!-- ═══════════ 關卡二 ═══════════ -->
+<div class="lv" data-lv="2">
+  <div class="lv-head"><h2>關卡二｜成交！報價轉銷貨</h2><span class="who">角色：業務</span><span class="prog"></span></div>
+  <div class="scene">📞 客戶回電：<b>「好、就照你報的價，出貨吧。」</b></div>
+  <ol class="steps">
+    <li><kbd>Alt</kbd>+<kbd>W</kbd> 開銷售選單 → <kbd>↓</kbd> 移到「報價單」→ <kbd>Enter</kbd>
+      <div class="exp">預期：選單開啟時焦點自動落第一項、↑↓ 會跳過「建置中」項目</div>
+      <div class="checks"></div></li>
+    <li>報價列表 <kbd>Alt</kbd>+<kbd>F</kbd> 開搜尋（游標自動進框）→ 打客戶或單號 → <kbd>↑</kbd><kbd>↓</kbd> 選單、<kbd>Enter</kbd> 開詳情
+      <div class="exp">預期：搜尋即打即找、Esc 可收搜尋條</div>
+      <div class="checks"></div></li>
+    <li>把報價單「寄出」（狀態 草稿→已寄出）
+      <div class="exp">預期：找得到寄出按鈕/動作；⚠️ 草稿直接轉銷貨會被擋（業務閘、訊息要看得懂）</div>
+      <div class="checks"></div></li>
+    <li>按「轉銷貨」→ 檢查明細**整批帶過去**、單價跟報價一字不差、銷貨單上看得到來源報價單號
+      <div class="exp">預期：不用重 key 任何一行</div>
+      <div class="checks"></div></li>
+    <li>檢查出貨倉自動帶入（客戶有預設倉帶預設倉、沒有帶你的隸屬倉）
+      <div class="exp">預期：倉位欄已有值、不會叫你手選</div>
+      <div class="checks"></div></li>
+  </ol>
+  <div class="enc"><span class="t">💥 遭遇戰：這個客戶被凍結了</span><br>
+    對授信凍結戶建銷貨 → 直接擋單、訊息含凍結原因。測：訊息清楚嗎？接著去 基本資料→往來對象 解凍再回來、流程斷點多不多？</div>
+</div>
+
+<!-- ═══════════ 關卡三 ═══════════ -->
+<div class="lv" data-lv="3">
+  <div class="lv-head"><h2>關卡三｜沒庫存！打給同行調貨</h2><span class="who">角色：業務</span><span class="prog"></span></div>
+  <div class="scene">😱 銷貨明細有一顆<b>庫存 0</b>。客戶等著要、恆迎日常：<b>打給同行調。</b></div>
+  <ol class="steps">
+    <li>明細行把補貨來源標成「同行調貨」
+      <div class="exp">預期：行狀態自動變「待補貨」、看得出這行在等調貨</div>
+      <div class="checks"></div></li>
+    <li>先 <kbd>F2</kbd> → <kbd>F9</kbd> 進貨比價、<kbd>F7</kbd> 詢價紀錄——決定打給哪家同行、大概什麼價
+      <div class="exp">預期：歷史進價一眼可比（實際成本欄有橘色強調）</div>
+      <div class="checks"></div></li>
+    <li>銷貨單上的「待調貨行」開同行調貨單（選同行、勾行、一鍵建）
+      <div class="exp">預期：調貨單草稿生成、銷貨行自動連結調貨單並轉「補貨中」</div>
+      <div class="checks"></div></li>
+    <li>去 銷售作業→同行調貨單（<kbd>Alt</kbd>+<kbd>W</kbd> 選單裡、7/11 剛搬過來的位置）確認單在、明細回連銷貨
+      <div class="exp">預期：調貨單在「銷售」選單找得到（不再是採購）、位置符合直覺</div>
+      <div class="checks"></div></li>
+  </ol>
+  <div class="tip"><span class="t">💡 攻略提示</span><br>
+    調貨的「收貨」不在這裡——貨到時是倉管在 庫存管理→入庫作業→到貨驗收 收、單據歸業務、收貨歸倉管。</div>
+</div>
+
+<!-- ═══════════ 關卡四 ═══════════ -->
+<div class="lv" data-lv="4">
+  <div class="lv-head"><h2>關卡四｜出貨收錢</h2><span class="who">角色：業務→會計</span><span class="prog"></span></div>
+  <div class="scene">🚚 貨備好了。出貨、然後把錢收回來。</div>
+  <ol class="steps">
+    <li>銷貨單狀態推進：確認 → 撿貨 → 出貨
+      <div class="exp">預期：每步都有明確按鈕/動作；出貨後量價鎖定不能改（試改一格、應被擋）</div>
+      <div class="checks"></div></li>
+    <li><kbd>Alt</kbd>+<kbd>Q</kbd> → 應收帳款：出貨那張單的應收<b>自動出現</b>、金額含稅正確
+      <div class="exp">預期：不用手建應收</div>
+      <div class="checks"></div></li>
+    <li>對應收建收款 → 過帳 → 餘額歸零、狀態變「已付清」
+      <div class="exp">預期：沖帳兩步內完成</div>
+      <div class="checks"></div></li>
+  </ol>
+  <div class="enc"><span class="t">💥 遭遇戰：不小心關過帳的月份</span><br>
+    會計→月關帳 關掉上個月 → 回頭想塞一筆上月收款 → 被鎖、訊息會告訴你「誰可以解鎖回頭改」。測：解鎖流程（負責人 REOPEN）好不好走？</div>
+</div>
+
+<!-- ═══════════ 關卡五 ═══════════ -->
+<div class="lv" data-lv="5">
+  <div class="lv-head"><h2>關卡五｜客戶退貨</h2><span class="who">角色：業務→倉管</span><span class="prog"></span></div>
+  <div class="scene">📦 客戶：<b>「這顆不合、退一顆。」</b>（只有出過貨的單能退）</div>
+  <ol class="steps">
+    <li>對已出貨的銷貨單開銷退、挑行、填退量、選退貨原因
+      <div class="exp">預期：⚠️ 對草稿單開退會被擋（正確）；退貨取件方式（自送/順路取/寄回）選項看得懂</div>
+      <div class="checks"></div></li>
+    <li>倉管驗貨：每一行標「好品/壞品」——沒標完就過帳會被擋、訊息指名缺哪行
+      <div class="exp">預期：標記操作直覺、擋單訊息精確</div>
+      <div class="checks"></div></li>
+    <li>過帳 → 好品庫存自動回倉、系統自動開折讓單
+      <div class="exp">預期：庫存和帳都不用手調</div>
+      <div class="checks"></div></li>
+  </ol>
+</div>
+
+<!-- ═══════════ 關卡六 ═══════════ -->
+<div class="lv" data-lv="6">
+  <div class="lv-head"><h2>關卡六｜採購補貨</h2><span class="who">角色：採購</span><span class="prog"></span></div>
+  <div class="scene">🛒 缺貨簿有一串要補的料。走正式採購。</div>
+  <ol class="steps">
+    <li><kbd>Alt</kbd>+<kbd>X</kbd> → 國內採購工作台（選單第一位＝主入口）
+      <div class="exp">預期：工作台一眼看得到今天要處理什麼</div>
+      <div class="checks"></div></li>
+    <li>建採購單（<kbd>Alt</kbd>+<kbd>A</kbd>）→ 走簽核鏈：送審 → 核准 → 寄出 → 廠商確認
+      <div class="exp">預期：每一步狀態清楚；廠商確認後 應付帳款自動產生（Alt+Q 去看）</div>
+      <div class="checks"></div></li>
+    <li>母公司代付情境：採購單填「付款對象」→ 確認後應付帳款掛歸戶（列表有金色「歸戶」副行）、開付款單對象自動帶歸戶
+      <div class="exp">預期：7/11 新功能、欄位好找</div>
+      <div class="checks"></div></li>
+    <li>貨到：採購單「轉進貨」（要指定收貨庫位）→ 驗收 → 過帳 → 庫存增加
+      <div class="exp">預期：庫位欄不會讓你猜、過帳後庫存立刻查得到（F2 → F6 出入庫）</div>
+      <div class="checks"></div></li>
+    <li>來了一顆壞的：開進貨退回、處置選「走保固」→ 過帳後<b>保固申請單自動生成</b>（採購→保固申請）
+      <div class="exp">預期：7/11 修好的功能、保固單回連原退貨單</div>
+      <div class="checks"></div></li>
+  </ol>
+</div>
+
+<!-- ═══════════ 關卡七 ═══════════ -->
+<div class="lv" data-lv="7">
+  <div class="lv-head"><h2>關卡七｜倉管的一天</h2><span class="who">角色：倉管</span><span class="prog"></span></div>
+  <div class="scene">🏭 撿貨、包貨、調撥、盤點、有問題回報。</div>
+  <ol class="steps">
+    <li><kbd>Alt</kbd>+<kbd>U</kbd> → 出貨作業 → 撿貨/包貨：清單照單撿、狀態逐步推
+      <div class="exp">預期：待撿清單清楚、鍵盤能選單操作</div>
+      <div class="checks"></div></li>
+    <li>調撥：Z01 調兩顆去 Z02（挑庫位）→ 運送中 → 收貨 → 兩倉餘額互轉
+      <div class="exp">預期：LITE 也能用（7/11 拆掉的擋牆）、不會叫你升級方案</div>
+      <div class="checks"></div></li>
+    <li>發現一顆壞品：誤差回報 → 送出 → 「一鍵開報廢單」→ 報廢過帳 → 回報單<b>自動結案</b>
+      <div class="exp">預期：異常鏈全程不用手動關單</div>
+      <div class="checks"></div></li>
+    <li>條碼：零件主檔掛條碼、設預設 → 標籤列印（🖨 這步順便驗列印版面）
+      <div class="exp">預期：一料多條碼、重複條碼會告訴你撞到哪顆料</div>
+      <div class="checks"></div></li>
+  </ol>
+</div>
+
+<!-- ═══════════ 隱藏關 ═══════════ -->
+<div class="lv boss" data-lv="8">
+  <div class="lv-head"><h2>隱藏關｜拔掉滑鼠</h2><span class="who">難度：★★★</span><span class="prog"></span></div>
+  <div class="scene">🖱️❌ <b>把滑鼠拔掉（或推到拿不到的地方）</b>、重跑一次關卡一＋關卡二。這是「全鍵盤」的終極驗收。</div>
+  <ol class="steps">
+    <li>選單全鍵盤：<kbd>Alt</kbd>+<kbd>Y</kbd> → <kbd>↓</kbd> 到「產品與廠牌」→ <kbd>→</kbd> 進子選單 → 選「零件基本資料」
+      <div class="exp">預期：→ 進子層、← 退回、左右換頂層選單、Esc 關閉焦點回選單列</div>
+      <div class="checks"></div></li>
+    <li>主檔頁全鍵盤：<kbd>↑</kbd><kbd>↓</kbd> 選列、<kbd>Home</kbd>/<kbd>End</kbd> 首尾、<kbd>Enter</kbd> 開詳情、<kbd>Alt</kbd>+<kbd>1</kbd>/<kbd>2</kbd> 切列表詳情、<kbd>Alt</kbd>+<kbd>E</kbd> 編輯 → <kbd>Enter</kbd> 跳格 → <kbd>Alt</kbd>+<kbd>S</kbd> 存檔
+      <div class="exp">預期：整圈不碰滑鼠；焦點在哪永遠看得出來（金色高亮）</div>
+      <div class="checks"></div></li>
+    <li>對話框全鍵盤：<kbd>Alt</kbd>+<kbd>D</kbd> 叫出停用確認 → 框上直接標 <kbd>Esc</kbd> 取消/<kbd>Enter</kbd> 確認 → 按 Esc 全身而退
+      <div class="exp">預期：框開著時背景熱鍵全部失效（按 Alt+A 不會穿透）</div>
+      <div class="checks"></div></li>
+    <li>終極試煉：從 <kbd>F2</kbd> 查料 → 首頁 <kbd>1</kbd> 開報價 → 加行 → 存檔寄出 → 轉銷貨、全程零滑鼠
+      <div class="exp">卡在哪一步、就是鍵盤軌的下一個待辦——記下來</div>
+      <div class="checks"></div></li>
+  </ol>
+  <div class="tip"><span class="t">💡 通關獎勵</span><br>
+    跑完把「不順手的鍵位」清單丟給 Hank——④手 的不及格項就是下一輪鍵位調整的輸入。</div>
+</div>
+
+<div class="totals"></div>
+</div>
+
+<script>
+(function(){
+  var KEY='nx-walkthrough-v1';
+  var saved={};
+  try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){}
+  var labels=[['在','功能在'],['清','排版清楚'],['鍵','全鍵盤'],['手','鍵位順手']];
+  document.querySelectorAll('.lv').forEach(function(lv){
+    var lvId=lv.getAttribute('data-lv');
+    lv.querySelectorAll('ol.steps>li').forEach(function(li,si){
+      var box=li.querySelector('.checks');
+      labels.forEach(function(pair){
+        var id=lvId+'-'+si+'-'+pair[0];
+        var lab=document.createElement('label');
+        var cb=document.createElement('input');
+        cb.type='checkbox';cb.checked=!!saved[id];
+        if(cb.checked)lab.classList.add('done');
+        cb.addEventListener('change',function(){
+          saved[id]=cb.checked;lab.classList.toggle('done',cb.checked);
+          localStorage.setItem(KEY,JSON.stringify(saved));refresh();
+        });
+        lab.appendChild(cb);lab.appendChild(document.createTextNode(pair[0]+' '+pair[1]));
+        box.appendChild(lab);
+      });
+    });
+  });
+  function refresh(){
+    var total=0,done=0;
+    document.querySelectorAll('.lv').forEach(function(lv){
+      var t=0,d=0;
+      lv.querySelectorAll('.checks input').forEach(function(cb){t++;if(cb.checked)d++;});
+      lv.querySelector('.prog').textContent=d+'/'+t;
+      total+=t;done+=d;
+    });
+    document.querySelector('.totals').textContent='🏆 總進度 '+done+'/'+total+(done===total?'　全破！':'');
+  }
+  refresh();
+})();
+</script>
+</body>
+</html>
