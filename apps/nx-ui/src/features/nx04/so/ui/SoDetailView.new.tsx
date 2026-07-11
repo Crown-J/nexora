@@ -41,6 +41,7 @@ import {
   updateSo,
 } from '@data/endpoints/nx04/so/api/so';
 import { getQuotePriceIntel } from '@data/endpoints/nx04/quote/api/quote';
+import { lookupStockBalance } from '@data/endpoints/nx03/stock-balance/api/lookup';
 import type { OpenQuoteLine, So, SoItem } from '@data/types/nx04/so';
 import { SO_STATUS_LABEL, type SoStatus } from '@data/types/nx04/so';
 
@@ -695,6 +696,8 @@ function SoInlineItemRow({
   const [price, setPrice] = useState(editItem ? String(editItem.unitPrice) : '');
   const [busy, setBusy] = useState(false);
   const [pickerKey, setPickerKey] = useState(0);
+  // 加行缺貨軟提示（執行長 2026-07-11）：選料後查該料在出貨倉的可用量；null=未查/查不到。不擋單、只提醒要標補貨來源。
+  const [availInWh, setAvailInWh] = useState<number | null>(null);
   // 偉盟設計檢視 P1-5：替代出貨（編輯模式限定）。undefined=未動、null=清除、string=新選料 id
   const [actualTouch, setActualTouch] = useState<string | null | undefined>(undefined);
   const [actualKey, setActualKey] = useState(0);
@@ -709,6 +712,7 @@ function SoInlineItemRow({
 
   const pickPart = async (p: PickedPart) => {
     setPart(p);
+    setAvailInWh(null);
     setTimeout(() => qtyRef.current?.focus(), 0);
     try {
       const intel = await getQuotePriceIntel(so.customerId, p.id);
@@ -719,12 +723,20 @@ function SoInlineItemRow({
     } catch {
       /* 查不到不擋 */
     }
+    try {
+      // 查該料在出貨倉的可用量；查不到（該倉沒進過此料）視為 0，即缺貨
+      const bal = so.warehouseId ? await lookupStockBalance(p.id, so.warehouseId) : null;
+      setAvailInWh(bal?.availableQty ?? 0);
+    } catch {
+      /* 查不到就不提示、不擋 */
+    }
   };
 
   const reset = () => {
     setPart(null);
     setQty('1');
     setPrice('');
+    setAvailInWh(null);
     setPickerKey((k) => k + 1);
     setTimeout(() => partRef.current?.focus(), 0);
   };
@@ -766,6 +778,8 @@ function SoInlineItemRow({
   const lineTax = Math.round((lineSub * taxRate) / 100);
   const cell = 'w-full rounded border border-primary/40 bg-background px-2 py-1 text-sm tabular-nums';
   const selectAll = (e: React.FocusEvent<HTMLInputElement>) => e.target.select();
+  // 加行缺貨軟提示：本倉可用量不足下單量時亮黃字（不擋單）
+  const short = !isEdit && !!part && availInWh !== null && Number(qty) > availInWh;
 
   return (
     <tr
@@ -807,7 +821,17 @@ function SoInlineItemRow({
             </div>
           </div>
         ) : (
-          <PartPicker key={pickerKey} inputRef={partRef} onPick={(p) => void pickPart(p)} />
+          <div className="space-y-1">
+            <PartPicker key={pickerKey} inputRef={partRef} onPick={(p) => void pickPart(p)} />
+            {short ? (
+              <div className="flex items-center gap-1 text-[11px] text-amber-600">
+                <AlertTriangle className="size-3.5 shrink-0" aria-hidden />
+                <span>
+                  本倉可用 {availInWh}、下單 {Number(qty)}、不足 {Number(qty) - (availInWh ?? 0)}——記得標補貨來源（同行調貨／自倉調撥）
+                </span>
+              </div>
+            ) : null}
+          </div>
         )}
       </td>
       <td className="px-2 py-1">
