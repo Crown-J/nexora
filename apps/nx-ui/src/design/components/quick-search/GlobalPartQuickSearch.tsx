@@ -1,8 +1,13 @@
 // apps/nx-ui/src/design/components/quick-search/GlobalPartQuickSearch.tsx
-// F2 全域 hotkey + 視窗 1（搜尋窗）/ 視窗 2（主視窗）管理（執行長 2026-06-25 視窗 2 任務單）
+// F1 全域 hotkey + 視窗 1（搜尋窗）/ 視窗 2（主視窗）管理（執行長 2026-06-25 視窗 2 任務單）
+//
+// ⚠️ 執行長 2026-07-11 夜拍板・F1/F2 分流（偉盟單一即時報價的解構）：
+//   · F1 = 即時庫存查詢（本檔、原 F2 整組改綁）：純查庫存/庫位/歷史、不綁客戶
+//   · F2 = 即時報價查詢（features/nx04/quote/ui/GlobalQuoteSession）：先選客戶一次
+//     → 連續查料連續報價 → 產訊息複製。解決「每報一顆要重選一次客戶」。
 //
 // 流程：
-//   1. F2 → 搜尋窗開
+//   1. F1 → 搜尋窗開
 //   2. 搜尋窗 Enter selectRow → dispatch `nx-part-selected` event；搜尋窗仍 mounted
 //   3. 本元件接 event → setMainPartId、PartMainWindow 開（疊在搜尋窗上）
 //   4. 主視窗 Esc/退回搜尋 → setMainPartId(null)、自動回搜尋窗（搜尋條件保留）
@@ -85,14 +90,15 @@ export function GlobalPartQuickSearch() {
     }, CLOSE_ANIMATION_MS);
   }, [mounted, closing]);
 
-  // F2 toggle：若主視窗開、F2 先關主視窗回搜尋窗；否則 toggle 搜尋窗（銷售為錨、預設 sales）
+  // F1 toggle（原 F2、2026-07-11 夜分流）：若主視窗開、F1 先關主視窗回搜尋窗；
+  // 否則 toggle 搜尋窗（銷售為錨、預設 sales）。preventDefault 攔瀏覽器 F1 說明頁。
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
-      if (e.key === 'F2') {
+      if (e.key === 'F1') {
         e.preventDefault();
         e.stopPropagation();
         if (mainPartId) {
-          // 主視窗開著 F2 → 回搜尋窗
+          // 主視窗開著 F1 → 回搜尋窗
           setMainPartId(null);
         } else if (mounted) {
           closeAll();

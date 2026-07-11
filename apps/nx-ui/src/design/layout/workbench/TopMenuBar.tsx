@@ -298,7 +298,7 @@ export function TopMenuBar({ menus, onSelect, onHome, onSearch, status }: Props)
       <button
         type="button"
         onClick={onSearch}
-        title="料號即時查詢（F2）"
+        title="即時庫存查詢（F1）"
         className="grid h-7 w-7 place-items-center rounded-sm text-[var(--nx-menubar-fg)] hover:bg-white/10 hover:text-white"
       >
         <Search className="h-[15px] w-[15px]" />

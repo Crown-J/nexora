@@ -625,7 +625,7 @@ export function PartMainWindow({ partId: initialPartId, entryContext, onBack, on
             <kbd className="rounded border border-primary/40 bg-primary/10 px-1 py-px font-mono text-[10px]">F4</kbd>
           </button>
           <span className="text-[10px] font-semibold uppercase tracking-[0.28em] text-muted-foreground/60">
-            F2 · 視窗 2
+            F1 · 庫存主視窗
           </span>
           {/* 快捷鍵說明（Alt+H）：底部提示列收攏至此（執行長 2026-07-11）*/}
           <button

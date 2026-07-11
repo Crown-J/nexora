@@ -577,12 +577,12 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
         <div className="flex items-center gap-2.5 border-b border-border/40 px-6 py-3">
           <span className="size-2 rounded-full bg-primary shadow-[0_0_10px_#02EDAB]" />
           <PackageSearch className="size-[18px] text-primary" />
-          <h2 className="text-[15px] font-semibold tracking-wide text-foreground">料號即時搜尋</h2>
+          <h2 className="text-[15px] font-semibold tracking-wide text-foreground">即時庫存查詢</h2>
           <span className="ml-3 text-[11px] uppercase tracking-[0.18em] text-muted-foreground/60">
             2 主力 + 進階 · Alt+1~3 切換
           </span>
           <span className="ml-auto text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground/65">
-            F2 · QUICK SEARCH
+            F1 · STOCK SEARCH
           </span>
           <button
             type="button"

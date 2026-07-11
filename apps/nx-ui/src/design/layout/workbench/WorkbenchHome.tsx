@@ -178,12 +178,17 @@ export function WorkbenchHome() {
       {/* ② 快捷動作 */}
       <div className="mt-5">
         <div className="mb-1.5 text-[11.5px] font-medium text-muted-foreground">
-          快捷動作（鍵盤直達：F2 查料號、數字鍵開單）
+          快捷動作（鍵盤直達：F1 查庫存、F2 報價、數字鍵開單）
         </div>
         <div className="flex flex-wrap gap-2">
           <span className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-[13px] text-muted-foreground">
             <Search className="h-4 w-4" />
-            料號即時查詢
+            即時庫存查詢
+            <kbd className="rounded bg-muted px-1.5 py-0.5 text-[10.5px]">F1</kbd>
+          </span>
+          <span className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-[13px] text-muted-foreground">
+            <FilePlus className="h-4 w-4" />
+            即時報價查詢
             <kbd className="rounded bg-muted px-1.5 py-0.5 text-[10.5px]">F2</kbd>
           </span>
           <button type="button" onClick={() => go('/dashboard/sale/qt', '新報價')} className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-[13px] transition hover:border-primary/50 hover:bg-primary/[0.04]">

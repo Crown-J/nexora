@@ -21,16 +21,19 @@ import { WorkbenchShell } from '@design/layout/workbench/WorkbenchShell';
 import { GlobalPartQuickSearch } from '@design/components/quick-search/GlobalPartQuickSearch';
 import { GlobalInstantQuote } from '@/features/nx04/quote/ui/GlobalInstantQuote';
 import { GlobalInstantInquiry } from '@/features/nx04/quote/ui/GlobalInstantInquiry';
+import { GlobalQuoteSession } from '@/features/nx04/quote/ui/GlobalQuoteSession';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <WorkbenchShell>
       <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">載入中...</div>}>{children}</Suspense>
-      {/* F2 全域料號即時搜尋（執行長 2026-06-17 拍板、純查詢、所有登入使用者可用）*/}
+      {/* F1 全域即時庫存查詢（原 F2、執行長 2026-07-11 夜 F1/F2 分流）*/}
       <GlobalPartQuickSearch />
-      {/* 即時報價：聽 F2 主視窗發的 nx-instant-quote 事件（Step5B）*/}
+      {/* F2 即時報價查詢工作台（客戶錨定連續報價、執行長 2026-07-11 夜拍板）*/}
+      <GlobalQuoteSession />
+      {/* 即時報價（單顆/批次）：聽 F1 主視窗發的 nx-instant-quote 事件（Step5B）*/}
       <GlobalInstantQuote />
-      {/* 即時詢價：聽 F2 主視窗發的 nx-instant-inquiry 事件（調貨側 B1）*/}
+      {/* 即時詢價：聽 F1 主視窗發的 nx-instant-inquiry 事件（調貨側 B1）*/}
       <GlobalInstantInquiry />
     </WorkbenchShell>
   );

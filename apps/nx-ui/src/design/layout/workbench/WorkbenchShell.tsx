@@ -45,7 +45,8 @@ function WorkbenchChrome({ children }: Props) {
   );
 
   const onSearch = useCallback(() => {
-    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'F2', bubbles: true }));
+    // F1/F2 分流（2026-07-11 夜）：選單列放大鏡＝庫存查詢、改發 F1
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'F1', bubbles: true }));
   }, []);
 
   return (
