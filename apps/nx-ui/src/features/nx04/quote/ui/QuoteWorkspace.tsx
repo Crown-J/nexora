@@ -1025,18 +1025,38 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                           Alt+P 放大
                         </span>
                       </button>
-                      <div className="min-w-0 flex-1 space-y-1.5 text-[13.5px]">
-                        <div className="break-all font-mono text-[16px] font-semibold text-primary">{detail.code}</div>
-                        <div className="text-[15px] font-medium text-foreground">{detail.name}</div>
-                        <div className="text-[12.5px] text-muted-foreground">
-                          廠牌料號 <span className="font-mono text-foreground/85">{detail.secCode ?? '—'}</span>
-                        </div>
-                        <div className="text-[12.5px] text-muted-foreground">
-                          廠牌 <span className="text-foreground/85">{detail.brand ? detail.brand.code : '—'}</span>
-                          <span className="mx-1.5 text-muted-foreground/35">·</span>
-                          {detail.isOem ? '正廠' : '副廠'}
-                        </div>
-                        {detail.spec ? <div className="text-[12.5px] text-muted-foreground">規格 {detail.spec}</div> : null}
+                      {/* 回饋 3-1：標籤/值兩欄對齊（同階段①八欄卡範式）*/}
+                      <div className="min-w-0 flex-1 space-y-1.5 rounded-lg border border-border/40 bg-secondary/30 px-3.5 py-2.5">
+                        {(
+                          [
+                            ['基準料號', detail.code, 'mono-primary'],
+                            ['品名', detail.name, 'strong'],
+                            ['廠牌料號', detail.secCode ?? '—', 'mono'],
+                            ['廠牌', detail.brand ? detail.brand.code : '—', ''],
+                            ['正/副廠', detail.isOem ? '正廠' : '副廠', ''],
+                            ['規格', detail.spec ?? '—', ''],
+                          ] as const
+                        ).map(([label, value, kind]) => (
+                          <div
+                            key={label}
+                            className="flex items-baseline gap-3 border-b border-border/25 pb-1.5 text-[13px] last:border-b-0 last:pb-0"
+                          >
+                            <span className="w-14 shrink-0 text-[11.5px] text-foreground/60">{label}</span>
+                            <span
+                              className={`min-w-0 flex-1 break-words ${
+                                kind === 'mono-primary'
+                                  ? 'font-mono text-[14.5px] font-semibold text-primary'
+                                  : kind === 'mono'
+                                    ? 'font-mono text-foreground/90'
+                                    : kind === 'strong'
+                                      ? 'text-[13.5px] font-medium text-foreground'
+                                      : 'text-foreground/90'
+                              }`}
+                            >
+                              {value}
+                            </span>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   ) : (
@@ -1067,31 +1087,35 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                     }}
                     className="mt-1 min-h-0 flex-1 space-y-1.5 overflow-auto outline-none"
                   >
-                    {compat.map((r, i) => (
-                      <div
-                        key={r.partId}
-                        onClick={() => {
-                          setCompatSel(i);
-                          toggleLine(r);
-                        }}
-                        className={`flex cursor-pointer items-baseline justify-between gap-3 rounded-lg border-2 px-3 py-2 ${
-                          i === compatSel
-                            ? 'border-primary bg-primary/10'
-                            : 'border-border/35 bg-secondary/40 hover:border-primary/45'
-                        } ${lineIds.has(r.partId) ? 'ring-2 ring-[#22D88F]/60' : ''}`}
-                      >
-                        <span className="min-w-0">
-                          <span className="font-mono text-[13.5px] font-semibold text-primary/90">{r.code}</span>
-                          {lineIds.has(r.partId) ? <Check className="ml-1 inline size-3.5 text-[#22D88F]" /> : null}
-                          <span className="ml-2 text-[13px]">{r.name}</span>
-                          <span className="ml-2 text-[11.5px] text-muted-foreground">{r.brand ?? ''}</span>
-                        </span>
-                        <span className="shrink-0 font-mono text-[13px] tabular-nums">
-                          <span className={r.avail > 0 ? 'text-[#22D88F]' : 'text-destructive'}>{r.avail}</span>
-                          {r.suggested ? <span className="ml-2 text-primary">建議 {formatNt(Number(r.suggested))}</span> : null}
-                        </span>
-                      </div>
-                    ))}
+                    {compat.map((r, i) => {
+                      // 回饋 3-2：已加入報價的狀態要夠明顯——實心綠邊+綠底+「✓ 已加入」實心徽章（原淡 ring 退場）
+                      const added = lineIds.has(r.partId);
+                      return (
+                        <div
+                          key={r.partId}
+                          onClick={() => {
+                            setCompatSel(i);
+                            toggleLine(r);
+                          }}
+                          className={`flex cursor-pointer items-baseline justify-between gap-3 rounded-lg border-2 px-3 py-2 ${
+                            i === compatSel ? 'border-primary' : added ? 'border-[#22D88F]/80' : 'border-border/35 hover:border-primary/45'
+                          } ${added ? 'bg-[#22D88F]/12' : i === compatSel ? 'bg-primary/10' : 'bg-secondary/40'}`}
+                        >
+                          <span className="min-w-0">
+                            <span className="font-mono text-[13.5px] font-semibold text-primary/90">{r.code}</span>
+                            {added ? (
+                              <span className="ml-2 rounded bg-[#22D88F] px-1.5 py-px text-[10px] font-bold text-background">✓ 已加入</span>
+                            ) : null}
+                            <span className="ml-2 text-[13px]">{r.name}</span>
+                            <span className="ml-2 text-[11.5px] text-muted-foreground">{r.brand ?? ''}</span>
+                          </span>
+                          <span className="shrink-0 font-mono text-[13px] tabular-nums">
+                            <span className={r.avail > 0 ? 'text-[#22D88F]' : 'text-destructive'}>{r.avail}</span>
+                            {r.suggested ? <span className="ml-2 text-primary">建議 {formatNt(Number(r.suggested))}</span> : null}
+                          </span>
+                        </div>
+                      );
+                    })}
                     {compat.length === 0 && currentPartId ? (
                       <div className="py-6 text-center text-[12px] text-muted-foreground">載入中…</div>
                     ) : null}
