@@ -4316,6 +4316,8 @@ model Nx04QuoteRecord {
   source          String        @default("INSTANT") @db.VarChar(10)
   /// 來源單據 ID（source=QUOTE 時回指報價單；id 快照、不設 FK）。
   sourceDocId     String?       @map("source_doc_id") @db.VarChar(15)
+  /// 調貨旗標（F2 報價④出貨倉庫選「調貨」＝報這顆時已決定走同行調貨；調貨詢價軌 2026-07-12）。
+  isTransfer      Boolean       @default(false) @map("is_transfer")
   /// 業務員（id 快照、不設 FK，同 createdBy 範式）。
   salesPersonId   String?       @map("sales_person_id") @db.VarChar(15)
   /// 備註。

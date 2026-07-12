@@ -69,6 +69,10 @@ END $$;
 -- 值域同 nx04_so.delivery_type（D=配送/P=自取/C=寄貨）、nullable、無 FK/CHECK（application 層 enum）
 ALTER TABLE "nx01_partner" ADD COLUMN IF NOT EXISTS "default_delivery_type" VARCHAR(1);
 
+-- ---- 5) TRANSFER-INQ 6/7（2026-07-12）：報價紀錄調貨旗標 ----
+-- F2 報價④出貨倉庫選「調貨」＝報這顆時已決定走同行調貨、旗標落進紀錄
+ALTER TABLE "nx04_quote_record" ADD COLUMN IF NOT EXISTS "is_transfer" BOOLEAN NOT NULL DEFAULT FALSE;
+
 -- ============================================================
 -- 【已套用歷史】（production 套完把段落移到這、標套用日期）
 -- ============================================================

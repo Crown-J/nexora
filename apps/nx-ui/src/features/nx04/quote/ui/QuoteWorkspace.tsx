@@ -720,6 +720,8 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
           // S4-2：出貨倉跟著項目走（未選 → 客戶預設倉；調貨項不帶倉）
           warehouseId: l.transfer ? undefined : (l.warehouseId ?? customer.defaultWarehouseId ?? undefined),
           source: 'INSTANT',
+          // 調貨詢價軌 2026-07-12：④選「調貨」的決策落進紀錄（之後拉單看得到、不用重判）
+          isTransfer: !!l.transfer,
         });
       }
       setSaved(validLines.length);

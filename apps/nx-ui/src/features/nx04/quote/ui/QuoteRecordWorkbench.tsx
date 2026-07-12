@@ -225,6 +225,17 @@ export function QuoteRecordWorkbench() {
       { key: 'partName', label: '品名', render: (r) => r.partName ?? '—' },
       { key: 'qty', label: '數量', sortable: true, render: (r) => <span className="tabular-nums">{fmtNum(r.qty)}</span> },
       { key: 'unitPrice', label: '單價', sortable: true, render: (r) => <span className="font-medium tabular-nums">{fmtNum(r.unitPrice)}</span> },
+      // 調貨詢價軌 2026-07-12：④選「調貨」的決策落紀錄、這裡看得到
+      {
+        key: 'isTransfer',
+        label: '調貨',
+        render: (r) =>
+          r.isTransfer ? (
+            <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] text-amber-800" title="報價時已決定走同行調貨">調貨</span>
+          ) : (
+            <span className="text-muted-foreground/40">—</span>
+          ),
+      },
       { key: 'salesPersonName', label: '業務', render: (r) => salesName(r) },
       { key: 'createdAt', label: '建單時間', sortable: true, render: (r) => <span className="text-xs text-muted-foreground">{r.createdAt.slice(0, 16).replace('T', ' ')}</span> },
     ],

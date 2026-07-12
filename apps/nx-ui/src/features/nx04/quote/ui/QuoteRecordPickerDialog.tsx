@@ -142,7 +142,15 @@ export function QuoteRecordPickerDialog({
                       </span>
                     </td>
                     <td className="px-2 py-1.5">{r.recordDate.slice(0, 10)}</td>
-                    <td className="px-2 py-1.5 font-mono text-xs">{r.baseNo ?? r.partNo}</td>
+                    <td className="px-2 py-1.5 font-mono text-xs">
+                      {r.baseNo ?? r.partNo}
+                      {/* 調貨詢價軌 2026-07-12：報價當下已決定走同行調貨 → 拉入開單時記得標補貨來源 */}
+                      {r.isTransfer ? (
+                        <span className="ml-1 rounded bg-amber-100 px-1 py-0.5 text-[10px] text-amber-800" title="報價時已決定走同行調貨——開銷貨單請把該行補貨來源標「同行調貨」">
+                          調貨
+                        </span>
+                      ) : null}
+                    </td>
                     <td className="px-2 py-1.5">{r.brandName ?? '—'}</td>
                     <td className="px-2 py-1.5">{r.partName}</td>
                     <td className="px-2 py-1.5 text-right tabular-nums">{fmtNum(r.qty)}</td>

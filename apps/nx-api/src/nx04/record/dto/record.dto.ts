@@ -1,6 +1,6 @@
 // apps/nx-api/src/nx04/record/dto/record.dto.ts
 // 報價紀錄表 / 詢價紀錄表 的查詢 + 建立 DTO（NX04 紀錄表 A2）
-import { IsDateString, IsIn, IsNumber, IsOptional, IsString, MaxLength, Min } from 'class-validator';
+import { IsBoolean, IsDateString, IsIn, IsNumber, IsOptional, IsString, MaxLength, Min } from 'class-validator';
 
 import { Nx04ListQueryDto } from '../../../shared/nx04/nx04-list-query.dto';
 
@@ -40,6 +40,8 @@ export class CreateQuoteRecordDto {
   /** 來源：INSTANT 即時報價（預設）/ QUOTE 由報價單行寫入 */
   @IsOptional() @IsIn(['INSTANT', 'QUOTE']) source?: string;
   @IsOptional() @IsString() @MaxLength(15) sourceDocId?: string;
+  /** 調貨旗標（F2 報價④選「調貨」；調貨詢價軌 2026-07-12）*/
+  @IsOptional() @IsBoolean() isTransfer?: boolean;
   @IsOptional() @IsString() @MaxLength(15) salesPersonId?: string;
   @IsOptional() @IsString() @MaxLength(200) remark?: string;
 }

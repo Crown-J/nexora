@@ -24,6 +24,8 @@ export interface QuoteRecord {
   currencyCode: string | null;
   source: string; // INSTANT 即時 / QUOTE 由報價單行寫入
   sourceDocId: string | null;
+  /** 調貨旗標（F2 報價④選「調貨」；調貨詢價軌 2026-07-12）*/
+  isTransfer: boolean;
   salesPersonId: string | null;
   salesPersonName: string | null;
   remark: string | null;
@@ -78,6 +80,7 @@ export interface CreateQuoteRecordPayload {
   currencyId?: string;
   source?: string;
   sourceDocId?: string;
+  isTransfer?: boolean;
   salesPersonId?: string;
   remark?: string;
 }
