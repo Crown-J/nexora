@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { listPartners, type PartnerDto } from '@data/endpoints/nx01/api/partner';
 import {
   getPartCompatGroup,
   getPartDetail,
@@ -93,6 +94,8 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
   const [err, setErr] = useState<string | null>(null);
   const [saved, setSaved] = useState<number | null>(null);
   const [transferCount, setTransferCount] = useState(0);
+  // 階段 1 C 欄：客戶基本資訊（客編/名稱/地址/電話/備註、執行長 07/12）
+  const [partnerInfo, setPartnerInfo] = useState<PartnerDto | null>(null);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const resListRef = useRef<HTMLDivElement>(null);
@@ -123,6 +126,24 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
     window.addEventListener(TRANSFER_LIST_EVENT, sync);
     return () => window.removeEventListener(TRANSFER_LIST_EVENT, sync);
   }, []);
+
+  // 選定客戶 → 抓完整基本資訊（電話/備註；地址為結構化衛星表、v1 未接）
+  useEffect(() => {
+    if (!customer) {
+      setPartnerInfo(null);
+      return;
+    }
+    let alive = true;
+    void listPartners({ q: customer.code, partnerType: 'C', pageSize: 5 })
+      .then((r) => {
+        if (!alive) return;
+        setPartnerInfo(r.items.find((p) => p.code === customer.code) ?? r.items[0] ?? null);
+      })
+      .catch(() => alive && setPartnerInfo(null));
+    return () => {
+      alive = false;
+    };
+  }, [customer]);
 
   // 階段切換 → 聚焦該階段主要元素
   useEffect(() => {
@@ -335,10 +356,20 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
     setErr(null);
   };
 
-  const guardedClose = () => {
-    if (saved === null && lines.length > 0 && !window.confirm('報價還沒存、確定關閉？（清單會消失）')) return;
+  // 穩定身分（防 FocusLockedDialog 掛載 effect 重跑搶焦點——07/12 走查坑）
+  const linesRef = useRef(lines);
+  linesRef.current = lines;
+  const savedRef = useRef(saved);
+  savedRef.current = saved;
+  const guardedClose = useCallback(() => {
+    if (
+      savedRef.current === null &&
+      linesRef.current.length > 0 &&
+      !window.confirm('報價還沒存、確定關閉？（清單會消失）')
+    )
+      return;
     onClose();
-  };
+  }, [onClose]);
 
   const lineIds = new Set(lines.map((l) => l.partId));
   const inputCls = 'w-full rounded border bg-background px-2 py-1 text-sm tabular-nums text-right';
@@ -391,8 +422,10 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
 
         {/* A 階段軌 ｜ B 主容器 ｜ C 副容器 */}
         <div className="grid min-h-0 flex-1 grid-cols-[52px_minmax(420px,1.15fr)_minmax(380px,1fr)]">
-          {/* A：純圖示階段軌（Alt+1~5）*/}
-          <nav className="flex flex-col items-center gap-2 border-r border-border/40 bg-background/30 py-4">
+          {/* A：純圖示階段軌（Alt+1~5、車站路線式：平均分散＋連結線——執行長 07/12）*/}
+          <nav className="relative flex flex-col items-center justify-evenly border-r border-border/40 bg-background/30 py-6">
+            {/* 路線連結線（貫穿五站、置於圖示下層）*/}
+            <span aria-hidden className="absolute bottom-10 left-1/2 top-10 w-[2px] -translate-x-1/2 bg-border/70" />
             {STAGES.map((s) => {
               const active = s.n === stage;
               const done =
@@ -407,10 +440,12 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                   type="button"
                   onClick={() => setStage(s.n)}
                   title={`${s.label}（Alt+${s.n}）`}
-                  className={`relative grid size-10 place-items-center rounded-lg border transition-colors ${
+                  className={`relative z-10 grid size-10 place-items-center rounded-full border-2 transition-colors ${
                     active
-                      ? 'border-primary bg-primary/15 text-primary shadow-[0_0_10px_-2px_rgba(232,160,32,0.5)]'
-                      : 'border-border/40 bg-background/40 text-muted-foreground hover:border-primary/50 hover:text-foreground'
+                      ? 'border-primary bg-primary/20 text-primary shadow-[0_0_10px_-2px_rgba(232,160,32,0.6)]'
+                      : done
+                        ? 'border-[#22D88F]/70 bg-popover text-[#22D88F] hover:border-primary/60'
+                        : 'border-border/60 bg-popover text-muted-foreground hover:border-primary/50 hover:text-foreground'
                   }`}
                 >
                   {s.icon}
@@ -419,7 +454,7 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                       <Check className="size-3" />
                     </span>
                   ) : null}
-                  <span className="absolute -bottom-0.5 right-0.5 font-mono text-[9px] opacity-60">{s.n}</span>
+                  <span className="absolute -bottom-1 -right-1 rounded bg-popover px-0.5 font-mono text-[9px] opacity-70">{s.n}</span>
                 </button>
               );
             })}
@@ -763,15 +798,21 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
               <div className="space-y-2">
                 <div className={secHead}>客戶基本資訊</div>
                 {customer ? (
-                  <div className="space-y-1.5 rounded-lg border border-border/40 bg-secondary/30 px-4 py-3 text-[13.5px]">
-                    <div>
-                      <span className="font-mono text-primary">{customer.code}</span>
-                      <span className="ml-2 font-medium">{customer.name}</span>
-                    </div>
-                    <div className="text-[12.5px] text-muted-foreground">
-                      預設出貨倉：{customer.defaultWarehouseName ?? '未設定（開單時走隸屬倉/主倉）'}
-                    </div>
-                    <div className="text-[11.5px] text-muted-foreground/70">建議售價（地板價）將依此客戶等級計算</div>
+                  <div className="space-y-1.5 rounded-lg border border-border/40 bg-secondary/30 px-4 py-3">
+                    {(
+                      [
+                        ['客編', customer.code, true],
+                        ['名稱', customer.name, false],
+                        ['地址', '—（結構化地址待接、v1）', false],
+                        ['電話', partnerInfo ? (partnerInfo.phone ?? partnerInfo.mobile ?? '—') : '載入中…', false],
+                        ['備註', partnerInfo ? (partnerInfo.remark ?? '—') : '載入中…', false],
+                      ] as const
+                    ).map(([label, value, mono]) => (
+                      <div key={label} className="flex items-baseline gap-3 border-b border-border/25 pb-1.5 text-[13.5px] last:border-b-0 last:pb-0">
+                        <span className="w-10 shrink-0 text-[12px] text-foreground/60">{label}</span>
+                        <span className={`min-w-0 flex-1 break-words ${mono ? 'font-mono text-primary' : 'text-foreground/95'}`}>{value}</span>
+                      </div>
+                    ))}
                   </div>
                 ) : (
                   <div className="text-[12px] text-muted-foreground">左欄搜尋客戶、選定後這裡顯示基本資訊；散客可跳過</div>

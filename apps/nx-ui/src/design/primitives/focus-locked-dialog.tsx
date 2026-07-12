@@ -83,8 +83,14 @@ export function FocusLockedDialog({
 }: Props) {
   const layerRef = useRef<HTMLDivElement>(null);
   const layerIdRef = useRef<number | null>(null);
+  // ⚠️ 2026-07-12 修（執行長 F2 工作台走查抓的坑）：onClose 每次 render 換身分（inline 函式）
+  // 會重跑本 effect → 重新 pushLayer + 搶焦點 → 「打一個字焦點就跳走」。
+  // callback 走 ref、effect 只依賴 open/initialFocusRef 等穩定值。
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   // mount: push stack + 記前焦點 + 移焦點進 dialog
+  const hasClose = !!onClose;
   useEffect(() => {
     if (!open) return;
     const el = layerRef.current;
@@ -95,8 +101,8 @@ export function FocusLockedDialog({
     const id = pushLayer({
       element: el,
       prevFocus,
-      allowBackdropClose: closeOnBackdropClick && !!onClose,
-      onEscape: closeOnEscape && onClose ? onClose : undefined,
+      allowBackdropClose: closeOnBackdropClick && hasClose,
+      onEscape: closeOnEscape && hasClose ? () => onCloseRef.current?.() : undefined,
     });
     layerIdRef.current = id;
 
@@ -115,7 +121,7 @@ export function FocusLockedDialog({
       }
       layerIdRef.current = null;
     };
-  }, [open, closeOnBackdropClick, closeOnEscape, onClose, initialFocusRef]);
+  }, [open, closeOnBackdropClick, closeOnEscape, hasClose, initialFocusRef]);
 
   // Esc 處理：layer 內部 onKeyDown（target 在 layer 內、guard 已放行）
   // 只有最上層 layer 才接 Esc（驗收條件 6 多層 Esc 逐層回退）
