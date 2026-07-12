@@ -97,6 +97,7 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
   // 階段 1 C 欄：客戶基本資訊（客編/名稱/地址/電話/備註、執行長 07/12）
   const [partnerInfo, setPartnerInfo] = useState<PartnerDto | null>(null);
 
+  const custBoxRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const resListRef = useRef<HTMLDivElement>(null);
   const compatListRef = useRef<HTMLDivElement>(null);
@@ -146,9 +147,13 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
   }, [customer]);
 
   // 階段切換 → 聚焦該階段主要元素
+  // ⚠️ 階段 1 必須在這裡補聚焦：FocusLockedDialog 開啟時的預設聚焦會落在
+  //   DOM 第一個 focusable（右上關閉鈕）、蓋掉 CustomerPicker 的 autoFocus
+  //   ——執行長 07/12「F2 後不能直接打字」的病灶
   useEffect(() => {
     const t = setTimeout(() => {
-      if (stage === 2) searchInputRef.current?.focus();
+      if (stage === 1) custBoxRef.current?.querySelector('input')?.focus();
+      else if (stage === 2) searchInputRef.current?.focus();
       else if (stage === 3) compatListRef.current?.focus();
       else if (stage === 4) qtyRefs.current[0]?.focus();
       else if (stage === 5) {
@@ -463,7 +468,7 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
           {/* B 主容器 */}
           <section className="flex min-h-0 flex-col overflow-auto border-r border-border/40 px-5 py-4">
             {stage === 1 && (
-              <div className="mx-auto w-full max-w-md space-y-3 pt-8">
+              <div ref={custBoxRef} className="mx-auto w-full max-w-md space-y-3 pt-8">
                 <div className={secHead}>客戶搜尋</div>
                 <CustomerPicker
                   autoFocus
