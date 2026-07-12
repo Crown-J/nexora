@@ -8,7 +8,8 @@
 //       ｜C 出貨狀態大卡+三指標（總庫存/可出/不可出）+各倉卡片（Alt+D 加調貨已退場→④出貨倉庫）
 //     4 報價：B 卡片式項目（↑↓ 選、Alt+D 移除、Alt+S 結案、Alt+2 回搜尋累加）
 //       ｜C 五列屬性面板（Enter 進、↑↓：建議售價/歷史/出貨倉庫（倉位或調貨）/數量/報價、Esc 回 B）
-//     5 發送訊息：B 訊息（Alt+A 全選、Enter 存檔→確認）｜C 訊息內容設定（記憶）
+//     5 發送訊息：B 滿版固定訊息框（Alt+E 編輯、Shift+Enter 換行、Enter 回副容器）
+//       ｜C 設定卡（↑↓ Space、Enter 存檔→確認→關窗）＋複製/存檔鈕；訊息同品名分組（品名組標題）
 //   防呆沿用：無庫存且近月無同行詢價→報價前提示；公司有貨→加調貨前提示。
 'use client';
 
@@ -63,7 +64,19 @@ type Stage = 1 | 2 | 3 | 4 | 5;
 type FlatRow = { kind: 'primary' | 'alt' | 'single'; member: PartSearchRow };
 type MasterOpt = { id: string; code: string; name: string };
 const SEARCH_METHODS = ['partNo', 'keyword', 'advanced'] as const;
-type CompatRow = { partId: string; code: string; name: string; brand: string | null; avail: number; suggested: string | null; prefill: string };
+type CompatRow = {
+  partId: string;
+  code: string;
+  name: string;
+  brand: string | null;
+  // S5-6 訊息分組識別用：正廠 或 廠牌名
+  brandName: string | null;
+  isOem: boolean;
+  secCode: string | null;
+  avail: number;
+  suggested: string | null;
+  prefill: string;
+};
 type QuoteLine = CompatRow & {
   qty: string;
   price: string;
@@ -74,7 +87,8 @@ type QuoteLine = CompatRow & {
 };
 // S4-2 C 欄五列屬性（↑↓ 移動、Enter 展開/編輯）
 const PROP_ROWS = ['建議售價', '報價/成交歷史', '出貨倉庫', '數量', '報價'] as const;
-type MsgOpts = { baseNo: boolean; secCode: boolean; partName: boolean; qtyAlways: boolean };
+// S5-6（執行長 07/12 定案）：品名固定當組標題（不再是每行開關）、新增「廠牌」識別選項
+type MsgOpts = { brand: boolean; baseNo: boolean; secCode: boolean; qtyAlways: boolean };
 
 const STAGES: { n: Stage; label: string; icon: React.ReactNode }[] = [
   { n: 1, label: '對象', icon: <UserRound className="size-[18px]" /> },
@@ -92,7 +106,14 @@ function formatNt(n: number): string {
 const PAY_TERM_LABEL: Record<string, string> = { PREPAY: '先付款', NET30: '月結30天', NET60: '月結60天', NET90: '月結90天' };
 const DELIVERY_LABEL: Record<string, string> = { D: '配送', P: '自取', C: '寄送' };
 const MSG_OPTS_KEY = 'nx-f2-msg-opts';
-const defaultOpts: MsgOpts = { baseNo: true, secCode: false, partName: true, qtyAlways: false };
+const defaultOpts: MsgOpts = { brand: true, baseNo: true, secCode: false, qtyAlways: false };
+// C 欄設定卡（S5-3 卡片設計、↑↓ Space 操作）
+const MSG_OPT_DEFS: { key: keyof MsgOpts; label: string }[] = [
+  { key: 'brand', label: '廠牌識別（正廠／廠牌名）' },
+  { key: 'baseNo', label: '顯示基準料號' },
+  { key: 'secCode', label: '顯示副廠料號' },
+  { key: 'qtyAlways', label: '數量恆顯示（否則 >1 才顯示）' },
+];
 
 export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
   const [stage, setStage] = useState<Stage>(1);
@@ -192,6 +213,14 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
         e.preventDefault();
         e.stopPropagation();
         setStage((s) => (s === 1 ? 2 : s));
+      } else if (k === 'e') {
+        // S5-4：Alt+E 進主容器編輯模式（階段⑤限定）
+        e.preventDefault();
+        e.stopPropagation();
+        if (stageRef.current === 5) {
+          setEditMode(true);
+          setTimeout(() => msgRef.current?.focus(), 30);
+        }
       }
     };
     window.addEventListener('keydown', h, true);
@@ -280,10 +309,8 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
       else if (stage === 2) searchInputRef.current?.focus();
       else if (stage === 3) compatListRef.current?.focus();
       else if (stage === 4) linesListRef.current?.focus();
-      else if (stage === 5) {
-        msgRef.current?.focus();
-        msgRef.current?.select();
-      }
+      // S5-4：階段⑤焦點預設在副容器（設定卡）
+      else if (stage === 5) optsPanelRef.current?.focus();
     }, 60);
     return () => clearTimeout(t);
   }, [stage]);
@@ -423,6 +450,9 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                   code: c.code,
                   name: c.name,
                   brand: c.brandCode ?? c.brandName,
+                  brandName: c.brandName ?? c.brandCode,
+                  isOem: c.isOem,
+                  secCode: c.secCode,
                   avail: Object.values(c.stockByWh).reduce((s, v) => s + Number(v), 0),
                   suggested: c.suggestedPrice,
                   prefill: c.customerLastAmount ?? c.suggestedPrice ?? '',
@@ -436,6 +466,9 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                   code: m.code,
                   name: m.name,
                   brand: m.brandCode ?? m.brandName,
+                  brandName: m.brandName ?? m.brandCode,
+                  isOem: m.isOem,
+                  secCode: m.secCode,
                   avail: Number(m.onHandTotal),
                   suggested: null,
                   prefill: '',
@@ -451,7 +484,20 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
         setCompat(
           rows.length > 0
             ? rows
-            : [{ partId: d.id, code: d.code, name: d.name, brand: d.brand?.code ?? null, avail: 0, suggested: null, prefill: '' }],
+            : [
+                {
+                  partId: d.id,
+                  code: d.code,
+                  name: d.name,
+                  brand: d.brand?.code ?? null,
+                  brandName: d.brand?.name ?? d.brand?.code ?? null,
+                  isOem: d.isOem,
+                  secCode: d.secCode,
+                  avail: 0,
+                  suggested: null,
+                  prefill: '',
+                },
+              ],
         );
       } catch {
         if (reqRef.current === myReq) setDetail(null);
@@ -564,22 +610,39 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
     setLines((p) => p.map((x, xi) => (xi === idx ? { ...x, ...patch } : x)));
   }, []);
 
-  // ── 訊息 ──
+  // ── 訊息（S5-6：同品名分組——品名固定組標題、組內每行＝識別＋報價）──
   const validLines = lines.filter((l) => l.price !== '' && Number(l.qty) > 0 && Number(l.price) >= 0);
-  const copyText = useMemo(
-    () =>
-      validLines
-        .map((l) => {
-          const parts: string[] = [];
-          if (msgOpts.baseNo) parts.push(l.code);
-          if (msgOpts.secCode && detail && detail.id === l.partId && detail.secCode) parts.push(detail.secCode);
-          if (msgOpts.partName) parts.push(l.name);
-          const qtyPart = msgOpts.qtyAlways || Number(l.qty) > 1 ? `　數量 ${Number(l.qty)}` : '';
-          return `${parts.join(' ')}${qtyPart}　報價 NT$ ${formatNt(Number(l.price))}`;
-        })
-        .join('\n'),
-    [validLines, msgOpts, detail],
-  );
+  const copyText = useMemo(() => {
+    const groups = new Map<string, QuoteLine[]>();
+    for (const l of validLines) {
+      const arr = groups.get(l.name);
+      if (arr) arr.push(l);
+      else groups.set(l.name, [l]);
+    }
+    const blocks: string[] = [];
+    for (const [name, ls] of groups) {
+      const rows = ls.map((l) => {
+        const parts: string[] = [];
+        if (msgOpts.brand) parts.push(l.isOem ? '正廠' : (l.brandName ?? l.brand ?? ''));
+        if (msgOpts.baseNo) parts.push(l.code);
+        if (msgOpts.secCode && l.secCode) parts.push(l.secCode);
+        const qtyPart = msgOpts.qtyAlways || Number(l.qty) > 1 ? `　數量 ${Number(l.qty)}` : '';
+        return `${parts.filter(Boolean).join(' ')}${qtyPart}　報價 NT$ ${formatNt(Number(l.price))}`.trim();
+      });
+      blocks.push([name, ...rows].join('\n'));
+    }
+    return blocks.join('\n\n');
+  }, [validLines, msgOpts]);
+  // S5-4 編輯模式（Alt+E）＋手動編輯稿；定案 5(a)：copyText 重生成（設定卡/項目變更）即蓋掉手動稿
+  const [editMode, setEditMode] = useState(false);
+  const [msgDraft, setMsgDraft] = useState<string | null>(null);
+  useEffect(() => {
+    setMsgDraft(null);
+  }, [copyText]);
+  const msgText = msgDraft ?? copyText;
+  // C 欄設定卡焦點列
+  const [optSel, setOptSel] = useState(0);
+  const optsPanelRef = useRef<HTMLDivElement>(null);
   const setOpt = (patch: Partial<MsgOpts>) =>
     setMsgOpts((prev) => {
       const next = { ...prev, ...patch };
@@ -609,6 +672,8 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
       }
       setSaved(validLines.length);
       setConfirmOpen(false);
+      // S5-4：存檔確認後關閉整個即時報價視窗（「下一通」退場）
+      onClose();
     } catch (e) {
       setErr(e instanceof Error ? e.message : '報價紀錄儲存失敗');
       setConfirmOpen(false);
@@ -616,25 +681,6 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
       setBusy(false);
     }
   }
-
-  const resetForNextCall = () => {
-    setStage(1);
-    setCustomer(null);
-    setCustQ('');
-    setCustCands([]);
-    setCustCandSel(0);
-    setCustPicked(false);
-    setSearchRes(null);
-    setResSel(0);
-    setQ1('');
-    setQ2('');
-    setCurrentPartId(null);
-    setDetail(null);
-    setCompat([]);
-    setLines([]);
-    setSaved(null);
-    setErr(null);
-  };
 
   // 穩定身分（防 FocusLockedDialog 掛載 effect 重跑搶焦點——07/12 走查坑）
   const linesRef = useRef(lines);
@@ -1117,71 +1163,35 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
             )}
 
             {stage === 5 && (
-              <div
-                className="space-y-3"
-                onKeyDown={(e) => {
-                  if (e.altKey && (e.key === 'a' || e.key === 'A')) {
-                    e.preventDefault();
-                    msgRef.current?.focus();
-                    msgRef.current?.select();
-                  }
-                }}
-              >
-                <div className={secHead}>給客戶的訊息</div>
+              /* S5-1：主容器整版＝訊息內容、尺寸固定（內部捲動）；按鈕已移副容器（S5-2）*/
+              <div className="flex min-h-0 flex-1 flex-col gap-2">
+                <div className={secHead}>
+                  給客戶的訊息
+                  {editMode ? <span className="ml-2 normal-case tracking-normal text-primary">編輯模式</span> : null}
+                </div>
                 <textarea
                   ref={msgRef}
-                  readOnly
-                  rows={Math.min(10, Math.max(3, copyText.split('\n').length + 1))}
-                  value={copyText || '（沒有可發送的報價行——回「報價」填量價）'}
+                  readOnly={!editMode}
+                  value={msgText || '（沒有可發送的報價行——回「報價」填量價）'}
+                  onChange={(e) => setMsgDraft(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' && saved === null) {
+                    if (!editMode) return;
+                    // 定案 4：編輯模式 Enter＝回副容器、換行走 Shift+Enter
+                    if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault();
-                      if (customer && validLines.length > 0) setConfirmOpen(true);
+                      setEditMode(false);
+                      setTimeout(() => optsPanelRef.current?.focus(), 0);
+                    } else if (e.key === 'Escape') {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setEditMode(false);
+                      setTimeout(() => optsPanelRef.current?.focus(), 0);
                     }
                   }}
-                  className="w-full resize-y rounded-md border border-border bg-muted/20 px-3 py-2 font-mono text-[12px] leading-relaxed text-foreground"
+                  className={`min-h-0 w-full flex-1 resize-none overflow-auto rounded-md border px-3 py-2 font-mono text-[13px] leading-relaxed text-foreground ${
+                    editMode ? 'border-primary/60 bg-background' : 'border-border bg-muted/20'
+                  }`}
                 />
-                {!customer && saved === null ? (
-                  <div className="space-y-2 rounded-lg border border-dashed border-border px-4 py-3">
-                    <div className="text-[12px] text-muted-foreground">
-                      散客：訊息可直接複製；<b className="text-foreground">要存報價紀錄請先補客戶</b>
-                    </div>
-                    <CustomerPicker onPick={setCustomer} onCommit={() => {}} />
-                  </div>
-                ) : null}
-                {err ? <div className="text-xs text-destructive">{err}</div> : null}
-                <div className="flex items-center justify-end gap-2">
-                  {saved !== null ? (
-                    <>
-                      <span className="mr-auto text-sm text-[#22D88F]">✅ 已存 {saved} 筆報價紀錄</span>
-                      <button type="button" onClick={resetForNextCall} className="rounded border px-4 py-1.5 text-sm">
-                        下一通（回對象）
-                      </button>
-                      <button type="button" onClick={onClose} className="rounded bg-primary px-4 py-1.5 text-sm text-primary-foreground">
-                        關閉
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => void navigator.clipboard.writeText(copyText)}
-                        disabled={!copyText}
-                        className="rounded border px-4 py-1.5 text-sm disabled:opacity-50"
-                      >
-                        複製訊息
-                      </button>
-                      <button
-                        type="button"
-                        disabled={busy || !customer || validLines.length === 0}
-                        onClick={() => setConfirmOpen(true)}
-                        className="rounded bg-primary px-4 py-1.5 text-sm text-primary-foreground disabled:opacity-50"
-                      >
-                        存檔
-                      </button>
-                    </>
-                  )}
-                </div>
               </div>
             )}
           </section>
@@ -1706,22 +1716,87 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
             )}
 
             {stage === 5 && (
-              <div className="space-y-3">
+              <div className="flex min-h-0 flex-1 flex-col gap-3">
                 <div className={secHead}>訊息內容設定（會記住）</div>
-                {(
-                  [
-                    ['baseNo', '顯示基準料號'],
-                    ['secCode', '顯示副廠料號（主件）'],
-                    ['partName', '顯示品名'],
-                    ['qtyAlways', '數量恆顯示（否則 >1 才顯示）'],
-                  ] as const
-                ).map(([k, label]) => (
-                  <label key={k} className="flex cursor-pointer items-center gap-2 text-[13px]">
-                    <input type="checkbox" checked={msgOpts[k]} onChange={(e) => setOpt({ [k]: e.target.checked })} className="accent-[#22D88F]" />
-                    {label}
-                  </label>
-                ))}
-                <div className="pt-2 text-[11px] text-muted-foreground/70">勾選即時反映在左側訊息；設定存在這台瀏覽器</div>
+                {/* S5-3 設定卡＋S5-4 鍵盤流：↑↓ 選卡、Space 啟用/取消、Enter 存檔 */}
+                <div
+                  ref={optsPanelRef}
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'ArrowDown') {
+                      e.preventDefault();
+                      setOptSel((i) => Math.min(MSG_OPT_DEFS.length - 1, i + 1));
+                    } else if (e.key === 'ArrowUp') {
+                      e.preventDefault();
+                      setOptSel((i) => Math.max(0, i - 1));
+                    } else if (e.key === ' ') {
+                      e.preventDefault();
+                      const def = MSG_OPT_DEFS[optSel];
+                      if (def) setOpt({ [def.key]: !msgOpts[def.key] });
+                    } else if (e.key === 'Enter') {
+                      // S5-4：副容器 Enter＝存檔 → 確認 → 關窗
+                      e.preventDefault();
+                      if (customer && validLines.length > 0 && !busy) setConfirmOpen(true);
+                    }
+                  }}
+                  className="space-y-1.5 outline-none"
+                >
+                  {MSG_OPT_DEFS.map((def, i) => {
+                    const on = msgOpts[def.key];
+                    return (
+                      <div
+                        key={def.key}
+                        onClick={() => {
+                          setOptSel(i);
+                          setOpt({ [def.key]: !on });
+                        }}
+                        className={`flex cursor-pointer items-center justify-between gap-3 rounded-lg border-2 px-3 py-2 text-[13px] ${
+                          i === optSel ? 'border-primary bg-primary/10' : 'border-border/35 bg-secondary/30 hover:border-primary/45'
+                        }`}
+                      >
+                        <span className="text-foreground/85">{def.label}</span>
+                        <span
+                          className={`shrink-0 rounded border px-1.5 py-px font-mono text-[10px] ${
+                            on ? 'border-[#22D88F]/60 bg-[#22D88F]/12 text-[#22D88F]' : 'border-border/50 text-muted-foreground/60'
+                          }`}
+                        >
+                          {on ? 'ON' : 'OFF'}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="text-[11px] text-muted-foreground/70">
+                  品名固定顯示在組標題（同品名分組）；變更設定會重新生成訊息、手動編輯以最後動作為準
+                </div>
+                {!customer ? (
+                  <div className="space-y-2 rounded-lg border border-dashed border-border px-3 py-2.5">
+                    <div className="text-[12px] text-muted-foreground">
+                      散客：訊息可直接複製；<b className="text-foreground">要存報價紀錄請先補客戶</b>
+                    </div>
+                    <CustomerPicker onPick={setCustomer} onCommit={() => {}} />
+                  </div>
+                ) : null}
+                {err ? <div className="text-xs text-destructive">{err}</div> : null}
+                {/* S5-2 按鈕移到副容器下方 */}
+                <div className="mt-auto flex items-center justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => void navigator.clipboard.writeText(msgText)}
+                    disabled={!msgText}
+                    className="rounded border px-4 py-1.5 text-sm disabled:opacity-50"
+                  >
+                    複製訊息
+                  </button>
+                  <button
+                    type="button"
+                    disabled={busy || !customer || validLines.length === 0}
+                    onClick={() => setConfirmOpen(true)}
+                    className="rounded bg-primary px-4 py-1.5 text-sm text-primary-foreground disabled:opacity-50"
+                  >
+                    存檔
+                  </button>
+                </div>
               </div>
             )}
           </aside>
@@ -1863,8 +1938,9 @@ function QuoteHelpOverlay({ onClose }: { onClose: () => void }) {
             <Row k="Alt+S" desc="結案 → 確認 → 進發送訊息" />
             <Row k="Alt+2" desc="回搜尋報下一顆（項目保留累加）" />
             <Group title="⑤ 發送訊息" />
-            <Row k="Alt+A" desc="全選訊息（→ Ctrl+C 複製）" />
-            <Row k="Enter" desc="存檔（確認後寫入報價紀錄）" />
+            <Row k="↑↓ / Space" desc="右欄選設定卡／啟用取消（即時重生成訊息）" />
+            <Row k="Alt+E" desc="左欄編輯模式（Shift+Enter 換行、Enter 回右欄）" />
+            <Row k="Enter" desc="右欄＝存檔 → 確認後關閉工作台" />
           </div>
         </div>
         <div className="border-t border-border/35 bg-background/35 px-5 py-1.5 text-right text-[11px] text-muted-foreground/65">
