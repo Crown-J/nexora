@@ -88,7 +88,8 @@ type QuoteLine = CompatRow & {
 // S4-2 C 欄五列屬性（↑↓ 移動、Enter 展開/編輯）
 const PROP_ROWS = ['建議售價', '報價/成交歷史', '出貨倉庫', '數量', '報價'] as const;
 // S5-6（執行長 07/12 定案）：品名固定當組標題（不再是每行開關）、新增「廠牌」識別選項
-type MsgOpts = { brand: boolean; baseNo: boolean; secCode: boolean; qtyAlways: boolean };
+// 回饋 5-1（07/12 二輪）：加「出貨倉庫」選項
+type MsgOpts = { brand: boolean; baseNo: boolean; secCode: boolean; qtyAlways: boolean; warehouse: boolean };
 
 const STAGES: { n: Stage; label: string; icon: React.ReactNode }[] = [
   { n: 1, label: '對象', icon: <UserRound className="size-[18px]" /> },
@@ -106,13 +107,14 @@ function formatNt(n: number): string {
 const PAY_TERM_LABEL: Record<string, string> = { PREPAY: '先付款', NET30: '月結30天', NET60: '月結60天', NET90: '月結90天' };
 const DELIVERY_LABEL: Record<string, string> = { D: '配送', P: '自取', C: '寄送' };
 const MSG_OPTS_KEY = 'nx-f2-msg-opts';
-const defaultOpts: MsgOpts = { brand: true, baseNo: true, secCode: false, qtyAlways: false };
+const defaultOpts: MsgOpts = { brand: true, baseNo: true, secCode: false, qtyAlways: false, warehouse: false };
 // C 欄設定卡（S5-3 卡片設計、↑↓ Space 操作）
 const MSG_OPT_DEFS: { key: keyof MsgOpts; label: string }[] = [
   { key: 'brand', label: '廠牌識別（正廠／廠牌名）' },
   { key: 'baseNo', label: '顯示基準料號' },
   { key: 'secCode', label: '顯示副廠料號' },
   { key: 'qtyAlways', label: '數量恆顯示（否則 >1 才顯示）' },
+  { key: 'warehouse', label: '顯示出貨倉庫' },
 ];
 
 export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
@@ -670,12 +672,15 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
         if (msgOpts.baseNo) parts.push(l.code);
         if (msgOpts.secCode && l.secCode) parts.push(l.secCode);
         const qtyPart = msgOpts.qtyAlways || Number(l.qty) > 1 ? `　數量 ${Number(l.qty)}` : '';
-        return `${parts.filter(Boolean).join(' ')}${qtyPart}　報價 NT$ ${formatNt(Number(l.price))}`.trim();
+        // 回饋 5-1：出貨倉庫（項目自選倉 → 調貨 → 客戶預設倉、都沒有就不顯示）
+        const whLabel = l.transfer ? '調貨' : (l.warehouseLabel ?? customer?.defaultWarehouseName ?? null);
+        const whPart = msgOpts.warehouse && whLabel ? `　出貨 ${whLabel}` : '';
+        return `${parts.filter(Boolean).join(' ')}${qtyPart}${whPart}　報價 NT$ ${formatNt(Number(l.price))}`.trim();
       });
       blocks.push([name, ...rows].join('\n'));
     }
     return blocks.join('\n\n');
-  }, [validLines, msgOpts]);
+  }, [validLines, msgOpts, customer]);
   // S5-4 編輯模式（Alt+E）＋手動編輯稿；定案 5(a)：copyText 重生成（設定卡/項目變更）即蓋掉手動稿
   const [editMode, setEditMode] = useState(false);
   const [msgDraft, setMsgDraft] = useState<string | null>(null);
