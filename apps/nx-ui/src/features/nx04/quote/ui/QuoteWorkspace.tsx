@@ -1935,6 +1935,14 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                   <X className="size-3.5" />
                 </button>
               </div>
+              {/* 執行長 07/12 五輪：欄位式＋表頭（數量獨立一欄、告別看不懂的 ×N）*/}
+              <div className="grid grid-cols-[80px_40px_minmax(0,1fr)_44px_150px] items-baseline gap-x-2.5 border-b border-border/30 bg-background/40 px-6 py-1.5 text-[10.5px] uppercase tracking-[0.1em] text-muted-foreground/65">
+                <span>日期</span>
+                <span>類別</span>
+                <span>客戶</span>
+                <span className="text-right">數量</span>
+                <span className="text-right">單價（對建議售價差）</span>
+              </div>
               <div
                 ref={histListRef}
                 tabIndex={0}
@@ -1959,7 +1967,7 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                     }
                   }
                 }}
-                className="min-h-0 flex-1 space-y-1 overflow-auto px-4 py-3 outline-none"
+                className="min-h-0 flex-1 space-y-1 overflow-auto px-4 py-2.5 outline-none"
               >
                 {history === null ? (
                   <div className="py-6 text-center text-[12px] text-muted-foreground">載入中…</div>
@@ -1971,24 +1979,24 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                       key={hi}
                       data-f2hist={hi}
                       onClick={() => setHistSel(hi)}
-                      className={`flex cursor-pointer items-baseline gap-2.5 rounded-lg border-2 px-3 py-1.5 text-[12.5px] ${
+                      className={`grid cursor-pointer grid-cols-[80px_40px_minmax(0,1fr)_44px_150px] items-baseline gap-x-2.5 rounded-lg border-2 px-2 py-1.5 text-[12.5px] ${
                         hi === histSel ? 'border-primary bg-primary/10' : 'border-border/30 bg-secondary/25 hover:border-primary/40'
                       }`}
                     >
-                      <span className="shrink-0 font-mono text-muted-foreground/80">{h.date.slice(0, 10)}</span>
-                      <span className={`shrink-0 font-medium ${h.kind === 'SALE' ? 'text-[#22D88F]' : 'text-primary'}`}>
+                      <span className="font-mono text-muted-foreground/80">{h.date.slice(0, 10)}</span>
+                      <span className={`font-medium ${h.kind === 'SALE' ? 'text-[#22D88F]' : 'text-primary'}`}>
                         {h.kind === 'SALE' ? '成交' : '報價'}
                       </span>
-                      {/* 執行長 07/12 三輪：不標該客戶/同級距、直接列客編+客名；該客戶金字提示 */}
+                      {/* 客編+客名；該客戶金字 */}
                       <span
-                        className={`min-w-0 flex-1 truncate ${
+                        className={`min-w-0 truncate ${
                           h.scope === 'CUSTOMER' ? 'font-medium text-primary' : 'text-muted-foreground/70'
                         }`}
                       >
                         {[h.customerCode, h.customerName].filter(Boolean).join(' ') || '—'}
                       </span>
-                      {/* 執行長 07/12 四輪：×N 數量退場 → 對建議售價的價差、股票式 ▲綠▼紅 */}
-                      <span className="shrink-0 font-mono tabular-nums">
+                      <span className="text-right font-mono tabular-nums text-foreground/85">{Number(h.qty ?? 1)}</span>
+                      <span className="text-right font-mono tabular-nums">
                         {(() => {
                           const sug = curLine.suggested ? Number(curLine.suggested) : null;
                           if (!sug) return null;
