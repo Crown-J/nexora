@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<!-- docs/_team/walkthrough/s01b-transfer-inquiry.html -->
+<!-- 位置：docs/_team/walkthrough/（情境攻略測試本、一情境一本） -->
+<!-- 版本：v1.0（2026-07-12、Hank；調貨詢價專用本、拆自 S01 關卡二＋關卡五。
+     依 TRANSFER-INQ 1/7~6/7 當日完工版、鍵位全數實測過再寫。） -->
+<!-- 說明：F5 清單 → 記同行詢價 → 決定跟誰調（Line 上）→ 銷貨單標同行調貨 → 一鍵補調貨單。
+     勾選進度存 localStorage（key: nx-wt-s01b）、總覽頁 index.html 會讀摘要。 -->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXORA 情境本 S01B｜調貨詢價</title>
+<style>
+  :root{--bg:#0f1115;--card:#171a21;--card2:#1d2129;--fg:#e8e8eb;--mut:#9a9aa5;--line:#2c313c;
+        --gold:#e8a020;--green:#22d88f;--red:#e24b4a;--blue:#378add;--purple:#7f77dd;}
+  @media (prefers-color-scheme: light){
+    :root{--bg:#f4f3ef;--card:#ffffff;--card2:#f0efe9;--fg:#22242a;--mut:#6b6b74;--line:#ddd9d0;}
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.75 "Noto Sans TC",system-ui,sans-serif;padding:24px 16px 80px;}
+  .wrap{max-width:880px;margin:0 auto;}
+  h1{font-size:24px;margin:0 0 4px;} h1 .v{font-size:12px;color:var(--mut);font-weight:400;}
+  .sub{color:var(--mut);font-size:13px;margin-bottom:20px;}
+  .rules{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:13.5px;margin-bottom:16px;}
+  .rules b{color:var(--gold);}
+  .map{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:13px;margin-bottom:24px;color:var(--mut);}
+  .map .t{color:var(--fg);font-weight:700;margin-bottom:4px;}
+  .map code{color:var(--gold);background:var(--card2);border-radius:4px;padding:0 6px;font:600 12px/1.8 Consolas,monospace;white-space:nowrap;}
+  kbd{display:inline-block;background:var(--card2);border:1px solid var(--line);border-bottom-width:3px;
+      border-radius:6px;padding:1px 8px;font:600 12.5px/1.6 Consolas,monospace;color:var(--gold);margin:0 1px;white-space:nowrap;}
+  .lv{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:26px;overflow:hidden;}
+  .lv-head{padding:14px 20px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+  .lv-head h2{font-size:17px;margin:0;} .lv-head .who{font-size:12px;color:var(--mut);}
+  .lv-head .prog{margin-left:auto;font:600 12px/1 Consolas,monospace;color:var(--green);}
+  .scene{padding:10px 20px;background:var(--card2);font-size:13.5px;color:var(--mut);border-bottom:1px solid var(--line);}
+  .scene b{color:var(--fg);}
+  ol.steps{margin:0;padding:6px 0 14px;list-style:none;counter-reset:st;}
+  ol.steps>li{counter-increment:st;padding:10px 20px 10px 58px;position:relative;border-bottom:1px dashed var(--line);}
+  ol.steps>li:last-child{border-bottom:none;}
+  ol.steps>li::before{content:counter(st);position:absolute;left:20px;top:12px;width:24px;height:24px;
+      border-radius:50%;background:var(--card2);border:1px solid var(--line);color:var(--gold);
+      font:600 12px/22px Consolas,monospace;text-align:center;}
+  .exp{color:var(--mut);font-size:13px;}
+  .checks{margin-top:6px;display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--mut);}
+  .checks label{cursor:pointer;user-select:none;display:inline-flex;align-items:center;gap:4px;}
+  .checks input{accent-color:var(--green);}
+  .checks label.done{color:var(--green);}
+  .enc{margin:12px 20px;background:color-mix(in srgb,var(--red) 8%,var(--card));border:1px solid color-mix(in srgb,var(--red) 45%,transparent);
+       border-radius:10px;padding:10px 14px;font-size:13.5px;}
+  .enc .t{color:var(--red);font-weight:700;font-size:13px;}
+  .tip{margin:12px 20px;background:color-mix(in srgb,var(--blue) 8%,var(--card));border:1px solid color-mix(in srgb,var(--blue) 45%,transparent);
+       border-radius:10px;padding:10px 14px;font-size:13.5px;}
+  .tip .t{color:var(--blue);font-weight:700;font-size:13px;}
+  .gap{margin:12px 20px;background:color-mix(in srgb,var(--gold) 9%,var(--card));border:1px solid color-mix(in srgb,var(--gold) 50%,transparent);
+       border-radius:10px;padding:10px 14px;font-size:13.5px;}
+  .gap .t{color:var(--gold);font-weight:700;font-size:13px;}
+  .gap .checks{margin-top:8px;}
+  .totals{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);
+          padding:10px 16px;text-align:center;font:600 13px/1 Consolas,monospace;color:var(--green);}
+  a{color:var(--blue);}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>🤝 情境本 S01B｜調貨詢價 <span class="v">v1.0（2026-07-12、TRANSFER-INQ 完工版）</span></h1>
+<div class="sub">客戶要的料全倉 0 顆 → 堆進 <kbd>F5</kbd> 清單 → 掛掉電話打給同行、問到價就記 → Line 上決定跟誰調 → 銷貨單標「同行調貨」→ 一鍵補調貨單（成本自動帶）。　<a href="index.html">← 回總覽</a>｜情境主線在 <a href="s01-instant-sales.html">S01</a>｜報價流在 <a href="s01a-instant-quote.html">S01A</a></div>
+
+<div class="rules">
+  每一步四個勾：<b>①在</b>＝功能真的存在　<b>②清</b>＝排版清楚不複雜　<b>③鍵</b>＝不碰滑鼠能完成　<b>④手</b>＝快捷鍵順手好按<br>
+  <span style="color:var(--mut)">③④只勾「這一步有按鍵」的項目。⚠️ 格＝實走後給設計判斷、勾「判」表示意見已記下。</span><br>
+  🧰 準備：dev server 起著、Y0001 登入、<b>硬重整一次（Ctrl+Shift+R）</b>再開始。卡住記「S01B-關卡-步驟」丟給 Hank。<br>
+  🧙 F5 視窗迷路按 <kbd>Alt</kbd>+<kbd>H</kbd>（或右上「?」）——引導精靈連「怎麼加料進來」都寫了。
+</div>
+
+<div class="map" style="border-color:var(--gold)">
+  <div class="t" style="color:var(--gold)">🎬 本本測試資料（都在你 dev DB、可直接照著打）</div>
+  <b>主角料</b>：<code>025 260 849B</code> 皮帶-冷氣（VW 正廠、<b>全倉 0 顆</b>——調貨路線就是為它走的；已有兩筆同行詢價：復興 405、鐙薪 398）<br>
+  <b>同行</b>：<code>O0007</code> 復興交通器材（詢過 405）　<code>O0012</code> 鐙薪企業（詢過 398）　<code>O0013</code> 品鑫（<b>沒</b>詢過這顆——驗「查無詢價」警示用）<br>
+  <b>客戶</b>：<code>C0049</code> 源明汽車修護廠（預設倉 Z02；報價紀錄裡有一筆 620 掛「調貨」徽章＝F2 決策落地的樣子、銷售選單→報價紀錄可看）<br>
+  <span style="color:var(--mut);font-size:12px">F5 清單存在瀏覽器本機（草稿性質、換電腦不帶走）；詢價「紀錄」才進資料庫、全公司共用。</span>
+</div>
+
+<!-- ═══════════ 關卡零 ═══════════ -->
+<div class="lv" data-lv="0">
+  <div class="lv-head"><h2>關卡零｜料怎麼進清單：兩個入口</h2><span class="who">F2 ④選調貨／F1 Alt+D</span><span class="prog"></span></div>
+  <div class="scene">☎️ <b>「皮帶-冷氣 025 260 849B 有嗎？」</b>——一查全倉 0 顆。客戶願意等、先把料記下來。</div>
+  <ol class="steps">
+    <li>入口一（報價流）：<kbd>F2</kbd> 選 C0049 → 搜 <code>025 260 849B</code> → ④報價屬性「出貨倉庫」<kbd>Enter</kbd> → 選最後一項<b>「調貨」</b>
+      <div class="exp">預期：公司有現貨的料會先跳確認防呆（這顆 0 顆、直接入）；項目卡掛橘色「調貨詢價（F5）」徽章、上方客戶徽章旁出現「調N」計數</div>
+      <div class="checks"></div></li>
+    <li>入口二（純查庫存流）：任何頁面 <kbd>F1</kbd> 搜同一顆 → 進主視窗 → <kbd>Alt</kbd>+<kbd>D</kbd>
+      <div class="exp">預期：右下彈出綠點提示「已加入調貨詢價清單（N 顆、清單共 M 顆）——F5 開清單」；這顆料不屬任何通用件群組、右欄空清單也照樣加得進（抓主件本身）</div>
+      <div class="checks"></div></li>
+    <li>同一顆再按一次 <kbd>Alt</kbd>+<kbd>D</kbd>
+      <div class="exp">預期：去重、提示改「已在調貨詢價清單」、清單不會多一筆</div>
+      <div class="checks"></div></li>
+  </ol>
+  <div class="tip"><span class="t">💡 F2 選的「調貨」不白選</span><br>
+    ⑤存檔後這筆報價紀錄會掛琥珀色「調貨」徽章（銷售選單→報價紀錄、和「從報價紀錄拉入」的視窗都看得到）——之後開單的人一眼知道這顆當初就講好走調貨。</div>
+</div>
+
+<!-- ═══════════ 關卡一 ═══════════ -->
+<div class="lv" data-lv="1">
+  <div class="lv-head"><h2>關卡一｜F5 清單：一卡一料、掛電話前心裡有底價</h2><span class="who">任何頁面 F5</span><span class="prog"></span></div>
+  <div class="scene">📵 客戶電話掛了。<b>換你打出去之前</b>、先看清單。</div>
+  <ol class="steps">
+    <li>任何頁面按 <kbd>F5</kbd> 開「即時調貨詢價」
+      <div class="exp">預期：瀏覽器不會整頁重新整理（F5 被視窗接管、真要重整用 Ctrl+R）；焦點直接在清單、不用點</div>
+      <div class="checks"></div></li>
+    <li>看卡片：料號＋品名大字、加入時間、摘要行「<b>詢價 N 筆・近5筆最低 X（同行名）</b>」
+      <div class="exp">預期：皮帶卡顯示「詢價 2 筆・近2筆最低 398（鐙薪企業有限公司）」——還沒拿起電話就知道行情和最便宜那家</div>
+      <div class="checks"></div></li>
+    <li><kbd>↑</kbd><kbd>↓</kbd> 換選：選中卡金框＋<b>展開近 5 筆明細</b>（日期／同行／量／價）
+      <div class="exp">預期：換卡即展開即收合、清單自動捲動跟著走</div>
+      <div class="checks"></div></li>
+    <li><kbd>Alt</kbd>+<kbd>H</kbd> 開引導精靈掃一眼 → <kbd>Esc</kbd> 關；<kbd>Delete</kbd> 試移除一顆再用入口加回來
+      <div class="exp">預期：精靈有全部鍵位＋「怎麼加料進來」說明；Delete 移除不影響已記的詢價紀錄</div>
+      <div class="checks"></div></li>
+  </ol>
+</div>
+
+<!-- ═══════════ 關卡二 ═══════════ -->
+<div class="lv" data-lv="2">
+  <div class="lv-head"><h2>關卡二｜記詢價：連打三家不斷流（本本重頭戲）</h2><span class="who">電話夾肩膀上、單手操作</span><span class="prog"></span></div>
+  <div class="scene">☎️ <b>「喂、復興嗎？025 260 849B 有貨嗎、多少？」</b>——問到價、五個鍵存一筆。</div>
+  <ol class="steps">
+    <li>F5 清單選皮帶 → <kbd>Enter</kbd> 開「即時詢價」對話框
+      <div class="exp">預期：焦點<b>直接在同行輸入框</b>、拿起就打字；料號品名帶在框頂不用再選</div>
+      <div class="checks"></div></li>
+    <li>打 <code>復興</code>（或 <code>O0007</code>）→ 下拉即出 → <kbd>Enter</kbd> 選定
+      <div class="exp">預期：選定<b>自動跳數量欄</b>（值全選、直接打新值）；注音首碼 F4 也通（同客戶欄）</div>
+      <div class="checks"></div></li>
+    <li>數量 <kbd>Enter</kbd> → 價格欄打對方報的價 → <kbd>Enter</kbd> 存檔
+      <div class="exp">預期：對話框關閉、<b>焦點回 F5 清單原料</b>、卡片摘要「詢價 N 筆・最低…」即時+1 更新——不用重新整理</div>
+      <div class="checks"></div></li>
+    <li>直接再 <kbd>Enter</kbd> → 記第二家（鐙薪）→ 存 → 再 <kbd>Enter</kbd> 記第三家
+      <div class="exp">預期：<b>連打三家、手不用離開鍵盤</b>；每存一筆、展開的近 5 筆明細多一列</div>
+      <div class="checks"></div></li>
+    <li>加試單發入口：<kbd>F1</kbd> 搜任一顆料 → 主視窗 <kbd>F7</kbd>
+      <div class="exp">預期：同一個對話框、同一套鍵盤流（F7＝查庫存時順手記一筆、不用先進 F5 清單）</div>
+      <div class="checks"></div></li>
+    <li>價格欄空著直接 <kbd>Enter</kbd>
+      <div class="exp">預期：擋下、提示「數量需大於 0、單價需填且不可負」——不會存出 0 元詢價</div>
+      <div class="checks"></div></li>
+  </ol>
+</div>
+
+<!-- ═══════════ 關卡三 ═══════════ -->
+<div class="lv" data-lv="3">
+  <div class="lv-head"><h2>關卡三｜決定跟誰調：系統記帳、Line 上拍板</h2><span class="who">你 07/11 的定案</span><span class="prog"></span></div>
+  <div class="scene">💬 比價、催貨、確認沒被賣掉——<b>都在 Line 上完成</b>。系統的工作是記住每筆price、開單時自動帶成本。</div>
+  <ol class="steps">
+    <li>看 F5 卡片摘要挑最低（或最快到貨那家）→ 回 Line 跟那家口頭下訂
+      <div class="exp">預期：摘要「最低 X（同行名）」就是決策依據——照定案<b>不做並排比價視圖</b>、清單摘要＋展開明細夠用</div>
+      <div class="checks"></div></li>
+    <li>加驗全公司帳本：<kbd>Alt</kbd>+<kbd>W</kbd> 銷售作業 → 詢價紀錄 → 單價欄排序
+      <div class="exp">預期：剛記的幾筆都在（日期/同行/料號/量/價/業務）；純日誌、沒有編輯/刪除鈕＝正常設計</div>
+      <div class="checks"></div></li>
+  </ol>
+  <div class="gap"><span class="t">⚠️ 實走後給判斷</span><br>
+    卡片摘要的「最低」取<b>近 5 筆</b>內最低（詢價會過時、太舊的低價帶著誤導）。判斷題：這口徑 OK？還是要改「近 N 天」？
+    <div class="checks"></div></div>
+</div>
+
+<!-- ═══════════ 關卡四 ═══════════ -->
+<div class="lv" data-lv="4">
+  <div class="lv-head"><h2>關卡四｜銷貨單標「同行調貨」：缺貨行標得了了</h2><span class="who">07/12 新功能</span><span class="prog"></span></div>
+  <div class="scene">🤝 Line 上客戶＋同行都敲定了。回系統<b>先開銷貨單</b>（你拍板的順序 🅐）、缺貨那行標「同行調貨」。</div>
+  <ol class="steps">
+    <li>銷售作業 → 銷貨單 → <kbd>A</kbd> 新增：C0049、走到編輯明細 → 加行打 <code>025 260 849B</code> 選定
+      <div class="exp">預期：黃字提示「本倉可用 0、下單 1、不足 1——<b>單價按 Enter 後選補貨來源</b>」</div>
+      <div class="checks"></div></li>
+    <li>數量 <kbd>Enter</kbd> → 單價 <kbd>Enter</kbd> → 焦點<b>自動跳到「補貨來源」下拉</b> → <kbd>↑</kbd><kbd>↓</kbd> 選「同行調貨」→ <kbd>Enter</kbd> 存行
+      <div class="exp">預期：缺貨才會攔一手（庫存夠的料 Enter 直接存、不多這一步）；存完明細表新「狀態」欄顯示<b>「等貨」徽章＋「同行調貨」</b>小字</div>
+      <div class="checks"></div></li>
+    <li>加驗：編輯這行、把補貨來源改回「本倉現貨」再改回來
+      <div class="exp">預期：改標即生效（狀態徽章跟著換：本倉現貨=等撿貨、同行調貨=等貨）；等到關卡五建完調貨單再回來改→會被擋「補貨中不可改」</div>
+      <div class="checks"></div></li>
+  </ol>
+  <div class="gap"><span class="t">⚠️ 實走後給判斷（F2 決策沒全自動接到這裡）</span><br>
+    F2 報價選「調貨」已落進報價紀錄（琥珀徽章）、但銷貨單目前<b>沒有「從報價紀錄拉入」</b>的入口（舊版有、單據外殼改版時掉了）——所以這關的「同行調貨」還是要手標一次。旗標鏈已備好、入口回補後就能自動帶。判斷題：<b>銷貨單「從報價紀錄拉入」回補要不要排？</b>（報價單那邊的同款入口還在、可直接搬）
+    <div class="checks"></div></div>
+</div>
+
+<!-- ═══════════ 關卡五 ═══════════ -->
+<div class="lv" data-lv="5">
+  <div class="lv-head"><h2>關卡五｜一鍵補調貨單：成本自動帶、建單前先看到</h2><span class="who">單據純記錄、十秒補齊</span><span class="prog"></span></div>
+  <div class="scene">📋 銷貨單存好了。工具列按<b>「同行調貨」</b>、把跟復興講好的那筆變成正式單據。</div>
+  <ol class="steps">
+    <li>銷貨單詳情工具列「同行調貨」→ 同行欄打 <code>復興</code> → <kbd>Enter</kbd> 選定
+      <div class="exp">預期：選定<b>自動跳明細清單</b>；每行「帶入成本」欄即時亮出<b>該同行最近一筆詢價價</b>（金色數字）、底部「勾選 N 行・成本合計」</div>
+      <div class="checks"></div></li>
+    <li>把同行改成 <code>品鑫</code>（沒詢過這顆的）看成本欄
+      <div class="exp">預期：⚠️ 琥珀警示「查無詢價（成本 0）」——建下去成本 0、要進調貨單手動補；改回復興再繼續</div>
+      <div class="checks"></div></li>
+    <li>明細清單 <kbd>↑</kbd><kbd>↓</kbd> 選行、<kbd>Space</kbd> 勾/取消、<kbd>Enter</kbd> 建單
+      <div class="exp">預期：自動跳轉調貨單（TI）詳情；明細單價＝剛預覽的詢價價、表頭金額已算好——<b>成本沒重 key 一次</b></div>
+      <div class="checks"></div></li>
+    <li>回銷貨單看那行
+      <div class="exp">預期：狀態徽章轉<b>「補貨中」</b>、行上回連調貨單；這時再想改補貨來源會被擋（可讀訊息）</div>
+      <div class="checks"></div></li>
+    <li><kbd>Alt</kbd>+<kbd>W</kbd> → 銷售作業 → 同行調貨單：確認單在銷售選單（不在採購）
+      <div class="exp">預期：後續狀態 草稿→發出→回覆→待驗收→完成、每一步看得懂</div>
+      <div class="checks"></div></li>
+  </ol>
+  <div class="tip"><span class="t">💡 收貨不在這本</span><br>
+    貨到是倉管在 庫存管理→入庫作業 收。單據歸業務、收貨歸倉管——跟 S01 尾聲同一句話。</div>
+  <div class="tip"><span class="t">💡 為什麼一定要先有銷貨單</span><br>
+    調貨單每行綁銷貨行（你 07/11 拍板 🅐：Line 上都敲定了才回系統、單據純記錄）。「不綁客戶訂單、主動調貨補庫」按 07/06 拍板暫不做、遇到「同行直送客戶」再另議。</div>
+</div>
+
+<div class="totals"></div>
+</div>
+
+<script>
+(function(){
+  var KEY='nx-wt-s01b';
+  var saved={};
+  try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){}
+  var labels=[['在','功能在'],['清','排版清楚'],['鍵','全鍵盤'],['手','鍵位順手']];
+  function bind(cb,lab,id){
+    cb.checked=!!saved[id];
+    if(cb.checked)lab.classList.add('done');
+    cb.addEventListener('change',function(){
+      saved[id]=cb.checked;lab.classList.toggle('done',cb.checked);
+      localStorage.setItem(KEY,JSON.stringify(saved));refresh();
+    });
+  }
+  document.querySelectorAll('.lv').forEach(function(lv){
+    var lvId=lv.getAttribute('data-lv');
+    lv.querySelectorAll('ol.steps>li').forEach(function(li,si){
+      var box=li.querySelector('.checks');
+      labels.forEach(function(pair){
+        var id=lvId+'-'+si+'-'+pair[0];
+        var lab=document.createElement('label');
+        var cb=document.createElement('input');
+        cb.type='checkbox';
+        lab.appendChild(cb);lab.appendChild(document.createTextNode(pair[0]+' '+pair[1]));
+        bind(cb,lab,id);
+        box.appendChild(lab);
+      });
+    });
+    lv.querySelectorAll('.gap').forEach(function(g,gi){
+      var box=g.querySelector('.checks');
+      var id=lvId+'-gap'+gi;
+      var lab=document.createElement('label');
+      var cb=document.createElement('input');
+      cb.type='checkbox';
+      lab.appendChild(cb);lab.appendChild(document.createTextNode('判 已實走、判斷意見記下了'));
+      bind(cb,lab,id);
+      box.appendChild(lab);
+    });
+  });
+  function refresh(){
+    var total=0,done=0;
+    document.querySelectorAll('.lv').forEach(function(lv){
+      var t=0,d=0;
+      lv.querySelectorAll('.checks input').forEach(function(cb){t++;if(cb.checked)d++;});
+      lv.querySelector('.prog').textContent=d+'/'+t;
+      total+=t;done+=d;
+    });
+    document.querySelector('.totals').textContent='🏆 S01B 進度 '+done+'/'+total+(done===total?'　全破！':'');
+    try{localStorage.setItem(KEY+'-sum',done+'/'+total)}catch(e){}
+  }
+  refresh();
+})();
+</script>
+</body>
+</html>
