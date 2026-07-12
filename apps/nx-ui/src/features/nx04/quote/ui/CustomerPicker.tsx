@@ -35,6 +35,7 @@ export function CustomerPicker({
   onCommit,
   autoFocus,
   partnerType = 'C',
+  inputRef,
 }: {
   /** 選定客戶 */
   onPick: (c: PickedCustomer) => void;
@@ -43,6 +44,8 @@ export function CustomerPicker({
   autoFocus?: boolean;
   /** partner 類型過濾（預設 C 客戶；即時詢價傳 O 挑同行；進貨單傳 S 挑供應商）*/
   partnerType?: 'C' | 'O' | 'S';
+  /** 外部要拿輸入框 ref（FocusLockedDialog initialFocusRef 用、比照 PartPicker）*/
+  inputRef?: React.Ref<HTMLInputElement>;
 }) {
   const [text, setText] = useState('');
   const [rows, setRows] = useState<PickedCustomer[]>([]);
@@ -114,6 +117,7 @@ export function CustomerPicker({
   return (
     <div className="relative">
       <input
+        ref={inputRef}
         autoFocus={autoFocus}
         value={text}
         onChange={(e) => {
