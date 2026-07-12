@@ -7,7 +7,7 @@
 //     3 檢查庫存：B 上基本資料+圖片（Alt+P 放大）、下通用零件（↑↓ 選、Space 加入報價）
 //       ｜C 出貨狀態大卡+三指標（總庫存/可出/不可出）+各倉卡片（Alt+D 加調貨已退場→④出貨倉庫）
 //     4 報價：B 卡片式項目（↑↓ 選、Alt+D 移除、Alt+S 結案、Alt+2 回搜尋累加）
-//       ｜C 五列屬性面板（Enter 進、↑↓：建議售價/歷史/出貨倉庫（倉位或調貨）/數量/報價、Esc 回 B）
+//       ｜C 六列屬性面板（Enter 進、↑↓：建議售價/調貨詢價歷史/報價成交歷史/出貨倉庫（倉位或調貨）/數量/報價、Esc 回 B）
 //     5 發送訊息：B 滿版固定訊息框（Alt+E 編輯、Shift+Enter 換行、Enter 回副容器）
 //       ｜C 設定卡（↑↓ Space、Enter 存檔→確認→關窗）＋複製/存檔鈕；訊息同品名分組（品名組標題）
 //   防呆沿用：無庫存且近月無同行詢價→報價前提示；公司有貨→加調貨前提示。
@@ -51,6 +51,7 @@ import type {
   PartStockSummaryDto,
 } from '@data/types/nx01/part-search';
 import type { QuotePriceHistoryRow } from '@data/types/nx04/quote';
+import type { InquiryRecord } from '@data/types/nx04/record';
 import type { PartnerDto } from '@data/types/shared/master/partner';
 import { Combobox } from '@design/components/quick-search/Combobox';
 import { PhotoZoomOverlay } from '@design/components/quick-search/PartMainWindow';
@@ -85,8 +86,26 @@ type QuoteLine = CompatRow & {
   warehouseLabel?: string | null;
   transfer?: boolean;
 };
-// S4-2 C 欄五列屬性（↑↓ 移動、Enter 展開/編輯）
-const PROP_ROWS = ['建議售價', '報價/成交歷史', '出貨倉庫', '數量', '報價'] as const;
+// S4-2 C 欄屬性列（↑↓ 移動、Enter 展開/編輯）
+// TRANSFER-INQ 11（執行長 2026-07-13）：加「調貨詢價歷史」列在報價/成交歷史上面——
+//   同行詢價的價＝調貨成本＝報價底價；平常顯示近30天最低成本、Enter 開彈窗純看（不帶價）。
+const PROP_ROWS = ['建議售價', '調貨詢價歷史', '報價/成交歷史', '出貨倉庫', '數量', '報價'] as const;
+// 屬性列 index（插一列後全欄位後移、用具名常數避免 off-by-one）
+const P_SUGGESTED = 0;
+const P_INQUIRY = 1;
+const P_HISTORY = 2;
+const P_WAREHOUSE = 3;
+const P_QTY = 4;
+const P_PRICE = 5;
+
+// TRANSFER-INQ 11：近30天詢價窗——起訖都帶（後端 dateRange「只填起=查該日當天」、
+//   只帶 dateFrom 會漏掉整個區間、幾乎永遠 0 筆；本地時區、避免 UTC 差一天漏今天的詢價）
+function recent30Range(): { dateFrom: string; dateTo: string } {
+  const fmt = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const now = new Date();
+  return { dateFrom: fmt(new Date(now.getTime() - 30 * 86400000)), dateTo: fmt(now) };
+}
 // S5-6（執行長 07/12 定案）：品名固定當組標題（不再是每行開關）、新增「廠牌」識別選項
 // 回饋 5-1（07/12 二輪）：加「出貨倉庫」選項
 type MsgOpts = { brand: boolean; baseNo: boolean; secCode: boolean; qtyAlways: boolean; warehouse: boolean };
@@ -145,7 +164,7 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
   const [lines, setLines] = useState<QuoteLine[]>([]);
   const [lineSel, setLineSel] = useState(0);
   const [stockWarn, setStockWarn] = useState<string[]>([]);
-  // S4-2 C 欄五列屬性面板
+  // S4-2 C 欄屬性面板（TRANSFER-INQ 11：六列，加調貨詢價歷史）
   const [propSel, setPropSel] = useState(0);
   const [propOpen, setPropOpen] = useState<null | 'abcd' | 'wh'>(null);
   const [whSel, setWhSel] = useState(0);
@@ -155,6 +174,12 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
   // 回饋 4-2：歷史改彈出視窗（↑↓ 選、Enter 帶價入報價欄）
   const [histModalOpen, setHistModalOpen] = useState(false);
   const [histSel, setHistSel] = useState(0);
+  // TRANSFER-INQ 11：調貨詢價歷史（該料近30天同行詢價、聚焦行即載）——列顯示最低成本、彈窗純看
+  const [inqHistory, setInqHistory] = useState<InquiryRecord[] | null>(null);
+  const [inqModalOpen, setInqModalOpen] = useState(false);
+  const [inqSel, setInqSel] = useState(0);
+  // 記詢價存檔（F5/F7 發 nx-inquiry-recorded）→ 重算警示 + 重載當前列調貨詢價
+  const [inqTick, setInqTick] = useState(0);
   // 回饋 4-1：主（items）／副（props）容器誰在操作——非操作側變暗+操作側徽章
   const [quotePane, setQuotePane] = useState<'items' | 'props'>('items');
   const [msgOpts, setMsgOpts] = useState<MsgOpts>(() => {
@@ -192,6 +217,7 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
   const propPanelRef = useRef<HTMLDivElement>(null);
   const propEditRef = useRef<HTMLInputElement>(null);
   const histListRef = useRef<HTMLDivElement>(null);
+  const inqListRef = useRef<HTMLDivElement>(null);
   const msgRef = useRef<HTMLTextAreaElement>(null);
   const confirmRef = useRef<HTMLButtonElement>(null);
   const reqRef = useRef(0);
@@ -576,7 +602,8 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
     [],
   );
 
-  // 進階段 4 → 防呆檢查（無庫存且近月無同行詢價）
+  // 進階段 4 → 防呆檢查（無庫存且近30天無同行詢價；詢過即不警示——執行長 07/13）
+  // inqTick 進依賴：F5/F7 記完詢價回來、即時重算（原本 lines 沒變、警示會過時掛著）
   useEffect(() => {
     if (stage !== 4) return;
     const zero = lines.filter((l) => l.avail <= 0);
@@ -585,11 +612,11 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
       return;
     }
     let alive = true;
-    const dateFrom = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
+    const { dateFrom, dateTo } = recent30Range();
     void Promise.all(
       zero.map(async (l) => {
         try {
-          const r = await listInquiryRecords({ partNo: l.code, dateFrom, pageSize: 1 });
+          const r = await listInquiryRecords({ partNo: l.code, dateFrom, dateTo, pageSize: 1 });
           return r.items.length === 0 ? l.code : null;
         } catch {
           return null;
@@ -599,9 +626,16 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
     return () => {
       alive = false;
     };
-  }, [stage, lines]);
+  }, [stage, lines, inqTick]);
 
-  // ── S4-2 屬性面板（C 欄五列、跟著 B 欄聚焦卡片）──
+  // TRANSFER-INQ 11：記詢價存檔（F5/F7 → nx-inquiry-recorded）→ tick++ 觸發警示與詢價列重載
+  useEffect(() => {
+    const h = () => setInqTick((t) => t + 1);
+    window.addEventListener('nx-inquiry-recorded', h);
+    return () => window.removeEventListener('nx-inquiry-recorded', h);
+  }, []);
+
+  // ── S4-2 屬性面板（C 欄六列、跟著 B 欄聚焦卡片）──
   const curLine = lines[lineSel] ?? null;
   const curLinePartId = curLine?.partId ?? null;
   // 換聚焦項目 / 階段 → 面板收合回第一列、操作側回主容器
@@ -610,6 +644,7 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
     setPropOpen(null);
     setEditingProp(null);
     setHistModalOpen(false);
+    setInqModalOpen(false);
     setQuotePane('items');
   }, [lineSel, stage]);
   // 展開 ABCD 價（屬性 1）lazy 載
@@ -639,8 +674,30 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
       alive = false;
     };
   }, [curLinePartId, customer, stage]);
+  // TRANSFER-INQ 11：調貨詢價歷史聚焦行即載（近30天、不分客戶——同行詢價是成本、與客戶無關）
+  const curLineCode = curLine?.code ?? null;
+  useEffect(() => {
+    if (stage !== 4 || !curLineCode) {
+      setInqHistory(null);
+      return;
+    }
+    let alive = true;
+    setInqHistory(null);
+    const { dateFrom, dateTo } = recent30Range();
+    void listInquiryRecords({ partNo: curLineCode, dateFrom, dateTo, pageSize: 50 })
+      .then((r) => alive && setInqHistory(r.items))
+      .catch(() => alive && setInqHistory([]));
+    return () => {
+      alive = false;
+    };
+  }, [curLineCode, stage, inqTick]);
   // 該客戶前價＝歷史裡 scope=CUSTOMER 的最近一筆（報價/成交看哪個近就哪個；rows 已日期倒序）
   const custPrev = history?.find((h) => h.scope === 'CUSTOMER') ?? null;
+  // 調貨詢價列顯示＝近30天最低成本（含同行名）；空=未詢價
+  const inqLowest = useMemo(() => {
+    if (!inqHistory || inqHistory.length === 0) return null;
+    return inqHistory.reduce((a, r) => (Number(r.unitPrice) < Number(a.unitPrice) ? r : a), inqHistory[0]);
+  }, [inqHistory]);
   // 出貨倉庫選項（屬性 3）＝該料有可出量的倉（stock 已跟聚焦行載入）
   const whOptions = useMemo(() => (stock?.warehouses ?? []).filter((w) => Number(w.available) > 0), [stock]);
   // 聚焦項目卡捲入可視
@@ -651,6 +708,10 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     histListRef.current?.querySelector(`[data-f2hist="${histSel}"]`)?.scrollIntoView({ block: 'nearest' });
   }, [histSel]);
+  // 調貨詢價歷史彈窗選中列捲入可視
+  useEffect(() => {
+    inqListRef.current?.querySelector(`[data-f2inq="${inqSel}"]`)?.scrollIntoView({ block: 'nearest' });
+  }, [inqSel]);
   const patchLine = useCallback((idx: number, patch: Partial<QuoteLine>) => {
     setLines((p) => p.map((x, xi) => (xi === idx ? { ...x, ...patch } : x)));
   }, []);
@@ -1605,7 +1666,7 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                 {!curLine ? (
                   <div className="text-[12px] text-muted-foreground">左欄選一個報價項目、Enter 進來調屬性</div>
                 ) : (
-                  /* S4-2 五列屬性面板：↑↓ 移動、Enter 展開/編輯、Esc 回左欄卡片 */
+                  /* S4-2 六列屬性面板：↑↓ 移動、Enter 展開/編輯、Esc 回左欄卡片 */
                   <div
                     ref={propPanelRef}
                     tabIndex={0}
@@ -1665,16 +1726,20 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                         setPropSel((i) => Math.max(0, i - 1));
                       } else if (e.key === 'Enter') {
                         e.preventDefault();
-                        if (propSel === 0) setPropOpen('abcd');
-                        else if (propSel === 1) {
+                        if (propSel === P_SUGGESTED) setPropOpen('abcd');
+                        else if (propSel === P_INQUIRY) {
+                          // TRANSFER-INQ 11：調貨詢價歷史彈窗（純看、Esc 關、不帶價＝🅐）
+                          setInqSel(0);
+                          setInqModalOpen(true);
+                        } else if (propSel === P_HISTORY) {
                           // 回饋 4-2：歷史改彈出視窗（不向下擠版面）
                           setHistSel(0);
                           setHistModalOpen(true);
-                        } else if (propSel === 2) {
+                        } else if (propSel === P_WAREHOUSE) {
                           setWhSel(0);
                           setPropOpen('wh');
                         } else {
-                          setEditingProp(propSel === 3 ? 'qty' : 'price');
+                          setEditingProp(propSel === P_QTY ? 'qty' : 'price');
                           setTimeout(() => {
                             propEditRef.current?.focus();
                             propEditRef.current?.select();
@@ -1692,26 +1757,32 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                     {PROP_ROWS.map((label, i) => {
                       const active = i === propSel;
                       const value =
-                        i === 0
+                        i === P_SUGGESTED
                           ? curLine.suggested
                             ? `NT$ ${formatNt(Number(curLine.suggested))}`
                             : '—'
-                          : i === 1
-                            ? history === null
-                              ? customer
-                                ? '…'
-                                : '—（散客）'
-                              : custPrev
-                                ? `${custPrev.kind === 'SALE' ? '成交' : '報價'} NT$ ${formatNt(Number(custPrev.amount))}`
-                                : '—（無前價）'
-                            : i === 2
-                              ? curLine.transfer
-                                ? '調貨詢價（F5）'
-                                : (curLine.warehouseLabel ??
-                                  `客戶預設${customer?.defaultWarehouseName ? `（${customer.defaultWarehouseName}）` : '倉'}`)
-                              : i === 3
-                                ? curLine.qty
-                                : curLine.price || '未填';
+                          : i === P_INQUIRY
+                            ? inqHistory === null
+                              ? '…'
+                              : inqLowest
+                                ? `NT$ ${formatNt(Number(inqLowest.unitPrice))}${inqLowest.partnerName ? `（${inqLowest.partnerName}）` : ''}`
+                                : '—（未詢價）'
+                            : i === P_HISTORY
+                              ? history === null
+                                ? customer
+                                  ? '…'
+                                  : '—（散客）'
+                                : custPrev
+                                  ? `${custPrev.kind === 'SALE' ? '成交' : '報價'} NT$ ${formatNt(Number(custPrev.amount))}`
+                                  : '—（無前價）'
+                              : i === P_WAREHOUSE
+                                ? curLine.transfer
+                                  ? '調貨詢價（F5）'
+                                  : (curLine.warehouseLabel ??
+                                    `客戶預設${customer?.defaultWarehouseName ? `（${customer.defaultWarehouseName}）` : '倉'}`)
+                                : i === P_QTY
+                                  ? curLine.qty
+                                  : curLine.price || '未填';
                       return (
                         <div key={label}>
                           <div
@@ -1721,14 +1792,14 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                             }`}
                           >
                             <span className="text-[12.5px] text-foreground/70">{label}</span>
-                            {editingProp && active && (i === 3 || i === 4) ? (
+                            {editingProp && active && (i === P_QTY || i === P_PRICE) ? (
                               <input
                                 ref={propEditRef}
                                 type="number"
                                 min="0"
-                                step={i === 4 ? '0.01' : '1'}
-                                value={i === 3 ? curLine.qty : curLine.price}
-                                onChange={(e) => patchLine(lineSel, i === 3 ? { qty: e.target.value } : { price: e.target.value })}
+                                step={i === P_PRICE ? '0.01' : '1'}
+                                value={i === P_QTY ? curLine.qty : curLine.price}
+                                onChange={(e) => patchLine(lineSel, i === P_QTY ? { qty: e.target.value } : { price: e.target.value })}
                                 onKeyDown={(e) => {
                                   if (e.key === 'Enter' || e.key === 'Escape') {
                                     e.preventDefault();
@@ -1740,13 +1811,13 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                                 className="w-28 rounded border bg-background px-2 py-1 text-right font-mono text-sm tabular-nums"
                               />
                             ) : (
-                              <span className={`font-mono text-[13.5px] tabular-nums ${i === 4 && curLine.price ? 'font-semibold text-primary' : 'text-foreground/95'}`}>
+                              <span className={`font-mono text-[13.5px] tabular-nums ${i === P_PRICE && curLine.price ? 'font-semibold text-primary' : 'text-foreground/95'}`}>
                                 {value}
                               </span>
                             )}
                           </div>
                           {/* 展開區 */}
-                          {i === 0 && propOpen === 'abcd' ? (
+                          {i === P_SUGGESTED && propOpen === 'abcd' ? (
                             <div className="mt-1.5 grid grid-cols-4 gap-1.5 px-1">
                               {(['A', 'B', 'C', 'D'] as const).map((g) => {
                                 const v = abcd?.[`price${g}` as 'priceA' | 'priceB' | 'priceC' | 'priceD'];
@@ -1761,7 +1832,7 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                               })}
                             </div>
                           ) : null}
-                          {i === 2 && propOpen === 'wh' ? (
+                          {i === P_WAREHOUSE && propOpen === 'wh' ? (
                             <div className="mt-1.5 space-y-1 px-1">
                               {whOptions.map((w, wi) => (
                                 <div
@@ -2024,6 +2095,91 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
           </FocusLockedDialog>
         ) : null}
 
+        {/* TRANSFER-INQ 11：調貨詢價歷史彈窗——↑↓ 看、Esc 關（🅐 純看不帶價；成本≠售價、
+            看到底價後報價自己填、避免忘了加毛利賠本賣）。近30天、不分客戶。 */}
+        {inqModalOpen && curLine ? (
+          <FocusLockedDialog
+            open
+            onClose={() => setInqModalOpen(false)}
+            initialFocusRef={inqListRef}
+            ariaLabel="調貨詢價歷史"
+            backdropClassName="bg-black/55 backdrop-blur-[2px] animate-in fade-in duration-150"
+            dialogClassName="flex flex-col rounded-xl border border-border/60 bg-popover text-foreground shadow-[0_18px_50px_rgba(0,0,0,0.5),0_0_36px_-14px_rgba(232,160,32,0.25)] animate-in fade-in zoom-in-95 duration-150"
+            dialogStyle={{ width: 'min(560px, 92vw)', maxHeight: 'min(520px, 88vh)' }}
+          >
+            <>
+              <div className="flex items-center gap-2.5 border-b border-border/40 px-5 py-2.5">
+                <h3 className="text-sm font-bold tracking-wide">調貨詢價歷史</h3>
+                <span className="font-mono text-[12px] text-primary/85">{curLine.code}</span>
+                <span className="text-[11px] text-muted-foreground/70">近30天・同行報你的成本｜最低金字</span>
+                <button
+                  type="button"
+                  onClick={() => setInqModalOpen(false)}
+                  className="ml-auto rounded-md border border-border/40 bg-background/40 p-1 text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
+                  aria-label="關閉"
+                >
+                  <X className="size-3.5" />
+                </button>
+              </div>
+              <div className="grid grid-cols-[80px_minmax(0,1fr)_44px_120px] items-baseline gap-x-2.5 border-b border-border/30 bg-background/40 px-6 py-1.5 text-[10.5px] uppercase tracking-[0.1em] text-muted-foreground/65">
+                <span>日期</span>
+                <span>同行</span>
+                <span className="text-right">數量</span>
+                <span className="text-right">成本</span>
+              </div>
+              <div
+                ref={inqListRef}
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  const rows = inqHistory ?? [];
+                  if (rows.length === 0) return;
+                  if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    setInqSel((i) => Math.min(rows.length - 1, i + 1));
+                  } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    setInqSel((i) => Math.max(0, i - 1));
+                  }
+                  // 🅐 純看：Enter 不帶價（Esc 由 FocusLockedDialog 接、關窗）
+                }}
+                className="min-h-0 flex-1 space-y-1 overflow-auto px-4 py-2.5 outline-none"
+              >
+                {inqHistory === null ? (
+                  <div className="py-6 text-center text-[12px] text-muted-foreground">載入中…</div>
+                ) : inqHistory.length === 0 ? (
+                  <div className="py-6 text-center text-[12px] text-muted-foreground">近30天沒有同行詢價——按 F5 開清單問一輪</div>
+                ) : (
+                  inqHistory.map((r, ri) => {
+                    const isLowest = inqLowest?.id === r.id;
+                    return (
+                      <div
+                        key={r.id}
+                        data-f2inq={ri}
+                        onClick={() => setInqSel(ri)}
+                        className={`grid cursor-pointer grid-cols-[80px_minmax(0,1fr)_44px_120px] items-baseline gap-x-2.5 rounded-lg border-2 px-2 py-1.5 text-[12.5px] ${
+                          ri === inqSel ? 'border-primary bg-primary/10' : 'border-border/30 bg-secondary/25 hover:border-primary/40'
+                        }`}
+                      >
+                        <span className="font-mono text-muted-foreground/80">{r.recordDate.slice(0, 10)}</span>
+                        <span className="min-w-0 truncate">
+                          {[r.partnerCode, r.partnerName].filter(Boolean).join(' ') || '—'}
+                        </span>
+                        <span className="text-right font-mono tabular-nums text-foreground/85">{Number(r.qty)}</span>
+                        <span className={`text-right font-mono tabular-nums ${isLowest ? 'font-semibold text-primary' : 'text-foreground/90'}`}>
+                          {isLowest ? '★ ' : ''}NT$ {formatNt(Number(r.unitPrice))}
+                        </span>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+              <div className="border-t border-border/35 bg-background/35 px-5 py-1.5 text-right text-[11px] text-muted-foreground/65">
+                <Kbd>↑↓</Kbd> 看　<Kbd>Esc</Kbd> 關閉（純參考、不帶價）
+              </div>
+            </>
+          </FocusLockedDialog>
+        ) : null}
+
         {/* S3-2 圖片放大 Lightbox（Alt+P、F1 同款）*/}
         {photoZoom && photos.length > 0 && currentPartId ? (
           <PhotoZoomOverlay partId={currentPartId} photos={photos} onClose={() => setPhotoZoom(false)} />
@@ -2127,7 +2283,8 @@ function QuoteHelpOverlay({ onClose }: { onClose: () => void }) {
             <Row k="Enter" desc="進報價（已有項目時）" />
             <Group title="④ 報價" />
             <Row k="↑↓" desc="選報價項目卡（右欄屬性跟隨）" />
-            <Row k="Enter" desc="進右欄屬性面板：↑↓ 五列、Enter 展開/編輯、Esc 回卡片" />
+            <Row k="Enter" desc="進右欄屬性面板：↑↓ 六列、Enter 展開/編輯、Esc 回卡片" />
+            <Row k="第2列" desc="調貨詢價歷史：Enter 看近30天同行成本（純看、Esc 關）" />
             <Row k="Alt+D" desc="移除聚焦項目（需確認）" />
             <Row k="Alt+S" desc="結案 → 確認 → 進發送訊息" />
             <Row k="Alt+2" desc="回搜尋報下一顆（項目保留累加）" />
