@@ -2,8 +2,8 @@
 <html lang="zh-Hant">
 <!-- docs/_team/walkthrough/s01a-instant-quote.html -->
 <!-- 位置：docs/_team/walkthrough/（情境攻略測試本、一情境一本） -->
-<!-- 版本：v1.0（2026-07-12、Hank；F2 即時報價工作台專用本、拆自 S01 關卡三。
-     依 f2-workspace-tuning-2026-07-12.md 七步＋執行長三輪回饋的最終版、鍵位全數實測過再寫。） -->
+<!-- 版本：v1.1（2026-07-13、Hank；關卡四屬性面板五列→六列，加「調貨詢價歷史」列＋警示連動修正
+     （TRANSFER-INQ 11）。v1.0：F2 工作台專用本、拆自 S01 關卡三、依 f2-workspace-tuning 七步＋三輪回饋。） -->
 <!-- 說明：一關卡＝工作台一個階段、跟畫面左側階段軌一一對應。
      勾選進度存 localStorage（key: nx-wt-s01a）、總覽頁 index.html 會讀摘要。
      調貨詢價（F5 清單→詢價→調貨單）＝獨立本 s01b-transfer-inquiry.html（07/12 開本）。 -->
@@ -180,17 +180,20 @@
 
 <!-- ═══════════ 關卡四 ═══════════ -->
 <div class="lv" data-lv="4">
-  <div class="lv-head"><h2>關卡四｜④報價：卡片＋五列屬性面板（本本重頭戲）</h2><span class="who">左卡片、右屬性</span><span class="prog"></span></div>
-  <div class="scene">📞 <b>「上次跟你拿多少？」</b>——每顆項目一張卡、Enter 進右欄調五個屬性、全程不碰滑鼠。</div>
+  <div class="lv-head"><h2>關卡四｜④報價：卡片＋六列屬性面板（本本重頭戲）</h2><span class="who">左卡片、右屬性</span><span class="prog"></span></div>
+  <div class="scene">📞 <b>「上次跟你拿多少？」</b>——每顆項目一張卡、Enter 進右欄調屬性、全程不碰滑鼠。</div>
   <ol class="steps">
     <li>看左右「操作中」指示：左欄卡片區聚焦時、右欄整欄變暗＋標題掛「Enter 進來」；按 <kbd>Enter</kbd> 進右欄屬性面板後反過來（左暗＋「Esc 回這裡」）
       <div class="exp">預期：<b>一眼分得出現在控制哪一邊</b>（07/12 你點名的切換不明顯已修）；「操作中」金徽章跟著焦點跑</div>
       <div class="checks"></div></li>
-    <li>屬性面板 <kbd>↑</kbd><kbd>↓</kbd> 走五列：<b>建議售價 → 報價/成交歷史 → 出貨倉庫 → 數量 → 報價</b>；<kbd>Esc</kbd> 回左欄卡片
-      <div class="exp">預期：五列一屏放得下、選中列金框</div>
+    <li>屬性面板 <kbd>↑</kbd><kbd>↓</kbd> 走六列：<b>建議售價 → 調貨詢價歷史 → 報價/成交歷史 → 出貨倉庫 → 數量 → 報價</b>；<kbd>Esc</kbd> 回左欄卡片
+      <div class="exp">預期：六列一屏放得下、選中列金框（07/13 新增「調貨詢價歷史」在報價/成交歷史上面）</div>
       <div class="checks"></div></li>
     <li>「建議售價」<kbd>Enter</kbd> → 展開 ABCD 四級價 → 再 <kbd>Enter</kbd> 收合
       <div class="exp">預期：A/B/C/D 四格、無值顯示 —</div>
+      <div class="checks"></div></li>
+    <li>🆕 「調貨詢價歷史」列直接顯示<b>近30天同行報你的最低成本</b>（例「NT$ 398（鐙薪企業）」、沒詢過顯「—（未詢價）」）→ <kbd>Enter</kbd> 開<b>彈出視窗</b>：日期／同行／數量／成本、最低那筆帶 ★
+      <div class="exp">預期：<b>報這顆前先知道調得到、成本多少</b>（同行詢價的價＝調貨成本＝報價底價）；<kbd>↑</kbd><kbd>↓</kbd> 看、<kbd>Esc</kbd> 關——<b>純看不帶價</b>（成本≠售價、看到底價後報價自己填、免得忘加毛利賠本賣、07/13 你定的 🅐）</div>
       <div class="checks"></div></li>
     <li>「報價/成交歷史」列直接顯示<b>該客戶前價</b>（例「報價 NT$ 315」、報價/成交取最近）→ <kbd>Enter</kbd> 開<b>彈出視窗</b>：表頭 日期/類別/客戶/數量/單價、客名金字＝該客戶、價差 <b style="color:var(--green)">▲綠</b><b style="color:var(--red)">▼紅</b>（對建議售價）
       <div class="exp">預期：C0049 有 12 筆種好的歷史；<kbd>↑</kbd><kbd>↓</kbd> 選一筆 <kbd>Enter</kbd> → <b>價格直接帶進報價欄</b>、視窗關閉、屬性自動跳到「出貨倉庫」讓你續編；<kbd>Esc</kbd>＝不帶價關閉</div>
@@ -209,7 +212,8 @@
       <div class="checks"></div></li>
   </ol>
   <div class="enc"><span class="t">💥 遭遇戰：全缺貨又沒問過同行</span><br>
-    挑一顆全公司無庫存、近一個月也沒同行詢價紀錄的料進到④ → 上方亮黃色警示條「報了可能交不出來」。測：警示時機和文案 OK 嗎？</div>
+    挑一顆全公司無庫存、近30天也沒同行詢價紀錄的料進到④ → 上方亮黃色警示條「報了可能交不出來」（此時「調貨詢價歷史」列＝未詢價）。<br>
+    <span style="color:var(--green)">✅ 07/13 修：警示口徑對齊「近30天」、且<b>詢過就不警示</b>——去 <kbd>F5</kbd> 記一筆同行詢價回來、警示<b>即時消失</b>、調貨詢價列同步跳出成本（原本查詢有 bug、幾乎永遠警示、已修）。測：問完同行回來、警示有沒有即時退場？</span></div>
 </div>
 
 <!-- ═══════════ 關卡五 ═══════════ -->
