@@ -14,7 +14,7 @@ const KEY2BOPOMOFO: Record<string, string> = {
   a: 'ㄇ', s: 'ㄋ', d: 'ㄎ', f: 'ㄑ', g: 'ㄕ', h: 'ㄘ', j: 'ㄨ', k: 'ㄜ', l: 'ㄠ', ';': 'ㄤ',
   z: 'ㄈ', x: 'ㄌ', c: 'ㄏ', v: 'ㄒ', b: 'ㄖ', n: 'ㄙ', m: 'ㄩ', ',': 'ㄝ', '.': 'ㄡ', '/': 'ㄥ',
 };
-function keyToBopomofo(s: string): string {
+export function keyToBopomofo(s: string): string {
   return s
     .toLowerCase()
     .split('')

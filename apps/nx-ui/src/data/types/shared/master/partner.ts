@@ -41,6 +41,8 @@ export type PartnerDto = {
   defaultWarehouseId?: string | null;
   defaultWarehouseCode?: string | null;
   defaultWarehouseName?: string | null;
+  // F2-TUNING 定案 1 2026-07-12：預設取貨方式（D=配送/P=自取/C=寄貨、null=未設定）
+  defaultDeliveryType?: string | null;
   salesUserId?: string | null;
   salesUserAccount?: string | null;
   salesUserName?: string | null;
@@ -99,6 +101,8 @@ export type PartnerWritableFields = {
   website?: string | null;
   serviceLocation?: string | null;
   defaultWarehouseId?: string | null;
+  // F2-TUNING 定案 1 2026-07-12：預設取貨方式（D=配送/P=自取/C=寄貨）
+  defaultDeliveryType?: string | null;
   salesUserId?: string | null;
   defaultCurrencyId?: string | null;
   // W3 [3-2] 舊代號（純對照）

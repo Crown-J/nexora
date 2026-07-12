@@ -2,7 +2,7 @@
 // F2 即時報價工作台（執行長 2026-07-12 深夜拍板・A/B/C 三區五階段、取代三層疊窗）：
 //   A 階段軌（純圖示、Alt+1~5 切換）：對象 → 搜尋 → 檢查庫存 → 報價 → 發送訊息
 //   B 主容器／C 副容器 各階段內容：
-//     1 對象：B 客戶搜尋（Alt+N 散客跳過）｜C 客戶基本資訊
+//     1 對象：B 輸入 Enter（Alt+N 散客跳過）→ C 候選清單 ↑↓ Enter 選定 → 回 B 下半顯示＋C 基本資料八欄
 //     2 搜尋：B 三查法輸入（料號／品名+車型／進階）｜C 搜尋結果（↑↓ Enter 選定）
 //     3 檢查庫存：B 上基本資訊、下通用零件（↑↓ 選、Space 加入報價、Alt+D 加調貨）｜C 該件庫存
 //     4 報價：B 已選零件量價（Enter 鏈、末欄 → 階段5）｜C 該件歷史價五格
@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { listPartners, type PartnerDto } from '@data/endpoints/nx01/api/partner';
+import { listPartner } from '@data/endpoints/shared/master/partner/api/partner';
 import {
   getPartCompatGroup,
   getPartDetail,
@@ -35,9 +35,10 @@ import {
   listInquiryRecords,
 } from '@data/endpoints/nx04/record/api/record';
 import type { PartDetailDto, PartSearchRow, PartStockSummaryDto } from '@data/types/nx01/part-search';
+import type { PartnerDto } from '@data/types/shared/master/partner';
 import { FocusLockedDialog } from '@design/primitives/focus-locked-dialog';
 
-import { CustomerPicker, type PickedCustomer } from './CustomerPicker';
+import { CustomerPicker, keyToBopomofo, type PickedCustomer } from './CustomerPicker';
 import { PriceIntelPanel } from './PriceIntelPanel';
 import { addTransferItems, listTransferItems, TRANSFER_LIST_EVENT } from './transfer-inquiry-store';
 
@@ -58,6 +59,9 @@ function formatNt(n: number): string {
   if (n < 100 && n !== Math.floor(n)) return n.toFixed(2);
   return n.toLocaleString('zh-TW', { maximumFractionDigits: 0 });
 }
+// 階段① C 欄八欄用標籤（值域對齊系統真相：NX03 包貨 IsIn D/P/C/T、寄貨代碼是 C 不是 SO UI 漂移的 S）
+const PAY_TERM_LABEL: Record<string, string> = { PREPAY: '先付款', NET30: '月結30天', NET60: '月結60天', NET90: '月結90天' };
+const DELIVERY_LABEL: Record<string, string> = { D: '配送', P: '自取', C: '寄送' };
 const MSG_OPTS_KEY = 'nx-f2-msg-opts';
 const defaultOpts: MsgOpts = { baseNo: true, secCode: false, partName: true, qtyAlways: false };
 
@@ -97,10 +101,18 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
   const [err, setErr] = useState<string | null>(null);
   const [saved, setSaved] = useState<number | null>(null);
   const [transferCount, setTransferCount] = useState(0);
-  // 階段 1 C 欄：客戶基本資訊（客編/名稱/地址/電話/備註、執行長 07/12）
+  // 階段 1 C 欄：客戶基本資料（八欄、執行長 07/12 S1-2 加交易條件/取貨方式/預設倉庫）
   const [partnerInfo, setPartnerInfo] = useState<PartnerDto | null>(null);
+  // 階段 1 B→C→B 選人流（S1-1）：B 輸入 Enter → C 候選清單 ↑↓ Enter → 回 B 顯示
+  const [custQ, setCustQ] = useState('');
+  const [custCands, setCustCands] = useState<PartnerDto[]>([]);
+  const [custCandSel, setCustCandSel] = useState(0);
+  const [custPicked, setCustPicked] = useState(false);
+  const [custSearching, setCustSearching] = useState(false);
 
   const custBoxRef = useRef<HTMLDivElement>(null);
+  const custInputRef = useRef<HTMLInputElement>(null);
+  const custListRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const resListRef = useRef<HTMLDivElement>(null);
   const compatListRef = useRef<HTMLDivElement>(null);
@@ -144,23 +156,69 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
     return () => window.removeEventListener(TRANSFER_LIST_EVENT, sync);
   }, []);
 
-  // 選定客戶 → 抓完整基本資訊（電話/備註；地址為結構化衛星表、v1 未接）
+  // 選定客戶 → 補完整基本資料（階段① 選人流已直接帶入；此為階段⑤ CustomerPicker 補客戶的 fallback）
+  // infoFetchedFor：每個 customer.id 只補抓一次、避免查無此客時 setPartnerInfo 觸發重抓迴圈
+  const infoFetchedFor = useRef<string | null>(null);
   useEffect(() => {
     if (!customer) {
       setPartnerInfo(null);
+      infoFetchedFor.current = null;
       return;
     }
+    if (partnerInfo?.id === customer.id || infoFetchedFor.current === customer.id) return;
+    infoFetchedFor.current = customer.id;
     let alive = true;
-    void listPartners({ q: customer.code, partnerType: 'C', pageSize: 5 })
+    void listPartner({ page: 1, pageSize: 5, q: customer.code, partnerType: 'C', isActive: true })
       .then((r) => {
         if (!alive) return;
-        setPartnerInfo(r.items.find((p) => p.code === customer.code) ?? r.items[0] ?? null);
+        setPartnerInfo(r.items.find((p) => p.id === customer.id) ?? null);
       })
       .catch(() => alive && setPartnerInfo(null));
     return () => {
       alive = false;
     };
-  }, [customer]);
+  }, [customer, partnerInfo]);
+
+  // ── 階段①：客戶搜尋（Enter 關鍵字 / F4 注音首碼）→ 候選進 C 欄 ──
+  const runCustSearch = useCallback(
+    async (phonetic?: boolean) => {
+      const t = custQ.trim();
+      if (!t) return;
+      setCustSearching(true);
+      try {
+        const r = await listPartner({
+          page: 1,
+          pageSize: 20,
+          partnerType: 'C',
+          isActive: true,
+          ...(phonetic ? { phonetic: keyToBopomofo(t) } : { q: t }),
+        });
+        setCustCands(r.items);
+        setCustCandSel(0);
+        setTimeout(() => custListRef.current?.focus(), 30);
+      } catch {
+        setCustCands([]);
+      } finally {
+        setCustSearching(false);
+      }
+    },
+    [custQ],
+  );
+
+  const pickCustomer = useCallback((p: PartnerDto) => {
+    setPartnerInfo(p);
+    setCustomer({
+      id: p.id,
+      code: p.code,
+      name: p.name,
+      defaultWarehouseId: p.defaultWarehouseId,
+      defaultWarehouseName: p.defaultWarehouseName,
+    });
+    setCustPicked(true);
+    setCustQ(`${p.code}　${p.name}`);
+    setCustCands([]);
+    setTimeout(() => custInputRef.current?.focus(), 30);
+  }, []);
 
   // 階段切換 → 聚焦該階段主要元素
   // ⚠️ 階段 1 必須在這裡補聚焦：FocusLockedDialog 開啟時的預設聚焦會落在
@@ -366,6 +424,10 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
   const resetForNextCall = () => {
     setStage(1);
     setCustomer(null);
+    setCustQ('');
+    setCustCands([]);
+    setCustCandSel(0);
+    setCustPicked(false);
     setResults([]);
     setQ1('');
     setQ2('');
@@ -491,25 +553,53 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
           {/* B 主容器 */}
           <section className="flex min-h-0 flex-col overflow-auto border-r border-border/40 px-5 py-4">
             {stage === 1 && (
-              <div ref={custBoxRef} className="mx-auto w-full max-w-md space-y-3 pt-8">
-                <div className={secHead}>客戶搜尋</div>
-                <CustomerPicker
-                  autoFocus
-                  onPick={(c) => {
-                    setCustomer(c);
-                    setStage(2);
-                  }}
-                  onCommit={() => {}}
-                />
-                <div className="flex justify-end text-[11px] text-muted-foreground/70">
-                  <button
-                    type="button"
-                    onClick={() => setStage(2)}
-                    className="rounded border border-border px-2.5 py-1 hover:border-primary/50"
-                  >
-                    散客／新客戶、先跳過
-                  </button>
+              <div ref={custBoxRef} className="mx-auto flex w-full max-w-md flex-col gap-3 pt-8">
+                <div>
+                  <div className={secHead}>客戶搜尋</div>
+                  <input
+                    ref={custInputRef}
+                    value={custQ}
+                    onChange={(e) => {
+                      setCustQ(e.target.value);
+                      setCustPicked(false);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'F4') {
+                        e.preventDefault();
+                        void runCustSearch(true);
+                        return;
+                      }
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        // B→C→B：已選定再 Enter → 進搜尋；否則查候選（右欄）
+                        if (custPicked && customer) setStage(2);
+                        else void runCustSearch();
+                      }
+                    }}
+                    placeholder="輸入編號/名稱；注音首碼按 F4（例 we→太古）"
+                    className="mt-1 w-full rounded border bg-background px-3 py-2 text-sm"
+                  />
+                  <div className="mt-2 flex justify-end text-[11px] text-muted-foreground/70">
+                    <button
+                      type="button"
+                      onClick={() => setStage(2)}
+                      className="rounded border border-border px-2.5 py-1 hover:border-primary/50"
+                    >
+                      散客／新客戶、先跳過
+                    </button>
+                  </div>
                 </div>
+                {/* B 下半：選定的客戶（S1-1 選人流：C 欄選完回到這裡顯示）*/}
+                {customer ? (
+                  <div className="rounded-xl border-2 border-primary/50 bg-primary/[0.07] px-4 py-3">
+                    <div className="font-mono text-[13px] text-primary">{customer.code}</div>
+                    <div className="text-[17px] font-semibold">{customer.name}</div>
+                  </div>
+                ) : (
+                  <div className="rounded-lg border border-dashed border-border/60 px-4 py-6 text-center text-[12px] text-muted-foreground">
+                    {custSearching ? '搜尋中…' : custCands.length > 0 ? '在右欄選一個客戶' : '輸入關鍵字查客戶'}
+                  </div>
+                )}
               </div>
             )}
 
@@ -820,27 +910,99 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
           {/* C 副容器 */}
           <aside className="flex min-h-0 flex-col overflow-auto bg-background/20 px-5 py-4">
             {stage === 1 && (
-              <div className="space-y-2">
-                <div className={secHead}>客戶基本資訊</div>
-                {customer ? (
-                  <div className="space-y-1.5 rounded-lg border border-border/40 bg-secondary/30 px-4 py-3">
-                    {(
-                      [
-                        ['客編', customer.code, true],
-                        ['名稱', customer.name, false],
-                        ['地址', '—（結構化地址待接、v1）', false],
-                        ['電話', partnerInfo ? (partnerInfo.phone ?? partnerInfo.mobile ?? '—') : '載入中…', false],
-                        ['備註', partnerInfo ? (partnerInfo.remark ?? '—') : '載入中…', false],
-                      ] as const
-                    ).map(([label, value, mono]) => (
-                      <div key={label} className="flex items-baseline gap-3 border-b border-border/25 pb-1.5 text-[13.5px] last:border-b-0 last:pb-0">
-                        <span className="w-10 shrink-0 text-[12px] text-foreground/60">{label}</span>
-                        <span className={`min-w-0 flex-1 break-words ${mono ? 'font-mono text-primary' : 'text-foreground/95'}`}>{value}</span>
-                      </div>
-                    ))}
-                  </div>
+              <div className="flex min-h-0 flex-1 flex-col space-y-2">
+                {customer && custCands.length === 0 ? (
+                  /* 選定後：基本資料八欄（S1-2：五欄＋交易條件/取貨方式/預設倉庫）*/
+                  <>
+                    <div className={secHead}>客戶基本資料</div>
+                    <div className="space-y-1.5 rounded-lg border border-border/40 bg-secondary/30 px-4 py-3">
+                      {(
+                        [
+                          ['客編', customer.code, true],
+                          ['名稱', customer.name, false],
+                          ['地址', '—（結構化地址待接、v1）', false],
+                          ['電話', partnerInfo ? (partnerInfo.phone ?? partnerInfo.mobile ?? '—') : '載入中…', false],
+                          ['備註', partnerInfo ? (partnerInfo.remark ?? '—') : '載入中…', false],
+                          [
+                            '交易條件',
+                            partnerInfo
+                              ? (PAY_TERM_LABEL[partnerInfo.paymentTermDomestic] ?? partnerInfo.paymentTermDomestic)
+                              : '載入中…',
+                            false,
+                          ],
+                          [
+                            '取貨方式',
+                            partnerInfo
+                              ? partnerInfo.defaultDeliveryType
+                                ? (DELIVERY_LABEL[partnerInfo.defaultDeliveryType] ?? partnerInfo.defaultDeliveryType)
+                                : '—（未設定）'
+                              : '載入中…',
+                            false,
+                          ],
+                          [
+                            '預設倉庫',
+                            partnerInfo
+                              ? partnerInfo.defaultWarehouseName
+                                ? `${partnerInfo.defaultWarehouseCode ?? ''}　${partnerInfo.defaultWarehouseName}`.trim()
+                                : '—'
+                              : '載入中…',
+                            false,
+                          ],
+                        ] as const
+                      ).map(([label, value, mono]) => (
+                        <div key={label} className="flex items-baseline gap-3 border-b border-border/25 pb-1.5 text-[13.5px] last:border-b-0 last:pb-0">
+                          <span className="w-14 shrink-0 text-[12px] text-foreground/60">{label}</span>
+                          <span className={`min-w-0 flex-1 break-words ${mono ? 'font-mono text-primary' : 'text-foreground/95'}`}>{value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </>
                 ) : (
-                  <div className="text-[12px] text-muted-foreground">左欄搜尋客戶、選定後這裡顯示基本資訊；散客可跳過</div>
+                  /* 選定前：候選清單（S1-1：左輸入、右結果）*/
+                  <>
+                    <div className={secHead}>候選客戶</div>
+                    <div
+                      ref={custListRef}
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (custCands.length === 0) return;
+                        if (e.key === 'ArrowDown') {
+                          e.preventDefault();
+                          setCustCandSel((i) => Math.min(custCands.length - 1, i + 1));
+                        } else if (e.key === 'ArrowUp') {
+                          e.preventDefault();
+                          setCustCandSel((i) => Math.max(0, i - 1));
+                        } else if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const p = custCands[custCandSel];
+                          if (p) pickCustomer(p);
+                        } else if (e.key === 'Escape') {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          custInputRef.current?.focus();
+                        }
+                      }}
+                      className="min-h-0 flex-1 space-y-1 overflow-auto outline-none"
+                    >
+                      {custCands.map((p, i) => (
+                        <div
+                          key={p.id}
+                          onClick={() => pickCustomer(p)}
+                          className={`flex cursor-pointer items-baseline gap-2 rounded-md border px-3 py-1.5 text-[13px] ${
+                            i === custCandSel ? 'border-primary bg-primary/10' : 'border-border/30 hover:border-primary/40'
+                          }`}
+                        >
+                          <span className="font-mono text-primary/90">{p.code}</span>
+                          <span className="min-w-0 truncate">{p.name}</span>
+                        </div>
+                      ))}
+                      {custCands.length === 0 ? (
+                        <div className="py-6 text-center text-[12px] text-muted-foreground">
+                          {custSearching ? '搜尋中…' : '左欄輸入關鍵字查客戶；散客可跳過'}
+                        </div>
+                      ) : null}
+                    </div>
+                  </>
                 )}
               </div>
             )}
@@ -1058,7 +1220,9 @@ function QuoteHelpOverlay({ onClose }: { onClose: () => void }) {
             <Row k="Alt+H" desc="本說明（引導精靈通用鍵）" />
             <Row k="Esc" desc="關閉工作台（有未存報價會先確認）" />
             <Group title="① 對象" />
-            <Row k="Enter" desc="選定客戶 → 進搜尋" />
+            <Row k="Enter" desc="查候選（右欄）；選定後再按 → 進搜尋" />
+            <Row k="↑↓ / Enter" desc="右欄選候選客戶（Esc 回輸入框）" />
+            <Row k="F4" desc="注音首碼搜尋（例 we→太古）" />
             <Row k="Alt+N" desc="散客／新客戶、先跳過" />
             <Group title="② 搜尋" />
             <Row k="Enter" desc="查詢（結果在右欄）" />
