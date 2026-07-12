@@ -13,6 +13,7 @@
 import {
   Check,
   FilePlus,
+  HelpCircle,
   MessageSquareText,
   PackageSearch,
   UserRound,
@@ -90,6 +91,8 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
     return defaultOpts;
   });
   const [confirmOpen, setConfirmOpen] = useState(false);
+  // T1 引導精靈（Alt+H / 右上「?」、行內 kbd 提示全收進來——執行長 07/12）
+  const [helpOpen, setHelpOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [saved, setSaved] = useState<number | null>(null);
@@ -107,13 +110,26 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
   const confirmRef = useRef<HTMLButtonElement>(null);
   const reqRef = useRef(0);
 
-  // ── 全域鍵：Alt+1~5 切階段 ──
+  // ── 全域鍵：Alt+1~5 切階段、Alt+H 引導精靈、Alt+N 散客跳過（階段 1）──
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
-      if (e.altKey && !e.ctrlKey && !e.metaKey && ['1', '2', '3', '4', '5'].includes(e.key)) {
+      if (!e.altKey || e.ctrlKey || e.metaKey) return;
+      if (['1', '2', '3', '4', '5'].includes(e.key)) {
         e.preventDefault();
         e.stopPropagation();
         setStage(Number(e.key) as Stage);
+        return;
+      }
+      const k = e.key.toLowerCase();
+      if (k === 'h') {
+        e.preventDefault();
+        e.stopPropagation();
+        setHelpOpen((v) => !v);
+      } else if (k === 'n') {
+        // 散客／新客戶先跳過（原本只有鈕沒接鍵——T1 補上）
+        e.preventDefault();
+        e.stopPropagation();
+        setStage((s) => (s === 1 ? 2 : s));
       }
     };
     window.addEventListener('keydown', h, true);
@@ -412,9 +428,16 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
               </span>
             ) : null}
           </span>
-          <span className="ml-auto text-[10px] font-semibold uppercase tracking-[0.28em] text-muted-foreground/60">
-            F2 · QUOTE WORKSPACE
-          </span>
+          {/* T1：角標退役 → 引導精靈鈕（Alt+H、行內 kbd 提示全收進說明——執行長 07/12）*/}
+          <button
+            type="button"
+            onClick={() => setHelpOpen((v) => !v)}
+            className="ml-auto rounded-md border border-border/40 bg-background/40 p-1 text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
+            aria-label="引導精靈：快捷鍵說明"
+            title="引導精靈（Alt+H）"
+          >
+            <HelpCircle className="size-3.5" />
+          </button>
           <button
             type="button"
             onClick={guardedClose}
@@ -478,14 +501,13 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                   }}
                   onCommit={() => {}}
                 />
-                <div className="flex items-center justify-between text-[11px] text-muted-foreground/70">
-                  <span>Enter 選定 → 搜尋</span>
+                <div className="flex justify-end text-[11px] text-muted-foreground/70">
                   <button
                     type="button"
                     onClick={() => setStage(2)}
                     className="rounded border border-border px-2.5 py-1 hover:border-primary/50"
                   >
-                    散客／新客戶、先跳過 <kbd className="ml-1 rounded border border-border/50 bg-muted/40 px-1 font-mono text-[10px]">Alt+N</kbd>
+                    散客／新客戶、先跳過
                   </button>
                 </div>
               </div>
@@ -493,7 +515,7 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
 
             {stage === 2 && (
               <div className="space-y-3">
-                <div className={secHead}>查零件（Enter 查詢 → 右欄選結果）</div>
+                <div className={secHead}>查零件</div>
                 <div className="flex gap-1.5">
                   {(
                     [
@@ -544,7 +566,7 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                     className="w-full rounded border bg-background px-3 py-2 text-sm"
                   />
                 )}
-                <div className="text-[11px] text-muted-foreground/70">{searching ? '查詢中…' : `找到 ${results.length} 筆（右欄 ↑↓ 選、Enter 進檢查庫存）`}</div>
+                <div className="text-[11px] text-muted-foreground/70">{searching ? '查詢中…' : `找到 ${results.length} 筆`}</div>
               </div>
             )}
 
@@ -562,11 +584,11 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                       </div>
                     </div>
                   ) : (
-                    <div className="mt-1 text-[12px] text-muted-foreground">{currentPartId ? '載入中…' : '先在「搜尋」選一顆料（Alt+2）'}</div>
+                    <div className="mt-1 text-[12px] text-muted-foreground">{currentPartId ? '載入中…' : '先在「搜尋」選一顆料'}</div>
                   )}
                 </div>
                 <div className="flex min-h-0 flex-1 flex-col">
-                  <div className={secHead}>通用零件（↑↓ 選、Space 加入報價、Alt+D 加調貨、Enter → 報價）</div>
+                  <div className={secHead}>通用零件</div>
                   <div
                     ref={compatListRef}
                     tabIndex={0}
@@ -628,7 +650,7 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
 
             {stage === 4 && (
               <div className="space-y-3">
-                <div className={secHead}>報價清單（量↵價↵下一顆、末欄↵ → 發送訊息）</div>
+                <div className={secHead}>報價清單</div>
                 {stockWarn.length > 0 && (
                   <div className="rounded border border-amber-500/50 bg-amber-500/10 px-3 py-2 text-[12px] text-amber-600">
                     ⚠️ {stockWarn.join('、')} 全公司無庫存、近一個月也沒問過同行——報了可能交不出來
@@ -636,7 +658,7 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                 )}
                 {lines.length === 0 ? (
                   <div className="rounded-lg border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
-                    還沒選零件——回「檢查庫存」用 Space 加入（Alt+3）
+                    還沒選零件——先回「檢查庫存」加入
                   </div>
                 ) : (
                   <table className="w-full border-collapse text-sm">
@@ -736,9 +758,7 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                   }
                 }}
               >
-                <div className={secHead}>
-                  給客戶的訊息（<kbd className="rounded border border-border/50 bg-muted/40 px-1 font-mono text-[10px]">Alt+A</kbd> 全選 → Ctrl+C；Enter 存檔）
-                </div>
+                <div className={secHead}>給客戶的訊息</div>
                 <textarea
                   ref={msgRef}
                   readOnly
@@ -788,7 +808,7 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                         onClick={() => setConfirmOpen(true)}
                         className="rounded bg-primary px-4 py-1.5 text-sm text-primary-foreground disabled:opacity-50"
                       >
-                        存檔（Enter）
+                        存檔
                       </button>
                     </>
                   )}
@@ -827,7 +847,7 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
 
             {stage === 2 && (
               <div className="flex min-h-0 flex-1 flex-col">
-                <div className={secHead}>搜尋結果（↑↓ 選、Enter 進檢查庫存）</div>
+                <div className={secHead}>搜尋結果</div>
                 <div
                   ref={resListRef}
                   tabIndex={0}
@@ -974,6 +994,90 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
             </div>
           </div>
         ) : null}
+
+        {/* T1 引導精靈（Alt+H / 右上「?」、本功能全部快捷鍵）*/}
+        {helpOpen ? <QuoteHelpOverlay onClose={() => setHelpOpen(false)} /> : null}
+      </>
+    </FocusLockedDialog>
+  );
+}
+
+function Kbd({ children }: { children: React.ReactNode }) {
+  return (
+    <kbd className="rounded border border-border/45 bg-background/45 px-1.5 py-px font-mono text-[11px] text-muted-foreground/90">
+      {children}
+    </kbd>
+  );
+}
+
+/** T1 引導精靈（Alt+H / 右上「?」、執行長 07/12：角標退役、行內 kbd 提示全收進來）*/
+function QuoteHelpOverlay({ onClose }: { onClose: () => void }) {
+  const Group = ({ title }: { title: string }) => (
+    <div className="col-span-2 pt-2.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-primary/85 first:pt-0">
+      {title}
+    </div>
+  );
+  const Row = ({ k, desc }: { k: string; desc: string }) => (
+    <>
+      <span className="text-right">
+        <Kbd>{k}</Kbd>
+      </span>
+      <span className="text-[13px] text-foreground/90">{desc}</span>
+    </>
+  );
+  return (
+    <FocusLockedDialog
+      open
+      onClose={onClose}
+      ariaLabel="引導精靈：快捷鍵說明"
+      backdropClassName="bg-black/55 backdrop-blur-[2px] animate-in fade-in duration-150"
+      dialogClassName="flex flex-col rounded-xl border border-border/60 bg-popover text-foreground shadow-[0_18px_50px_rgba(0,0,0,0.5),0_0_36px_-14px_rgba(232,160,32,0.25)] animate-in fade-in zoom-in-95 duration-150"
+      dialogStyle={{ width: 'min(560px, 92vw)', maxHeight: 'min(640px, 90vh)' }}
+    >
+      <>
+        <div className="flex items-center gap-2.5 border-b border-border/40 px-5 py-2.5">
+          <HelpCircle className="size-4 text-primary" />
+          <h3 className="text-sm font-bold tracking-wide">即時報價・快捷鍵說明</h3>
+          <kbd className="rounded border border-primary/50 bg-primary/12 px-1.5 py-px font-mono text-[11px] font-bold text-primary">
+            Alt+H
+          </kbd>
+          <button
+            type="button"
+            onClick={onClose}
+            className="ml-auto rounded-md border border-border/40 bg-background/40 p-1 text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
+            aria-label="關閉"
+            title="關閉（Esc）"
+          >
+            <X className="size-3.5" />
+          </button>
+        </div>
+        <div className="min-h-0 flex-1 overflow-auto px-5 py-3">
+          <div className="grid grid-cols-[88px_1fr] items-baseline gap-x-3 gap-y-1.5">
+            <Group title="通用" />
+            <Row k="Alt+1~5" desc="切五階段：對象／搜尋／檢查庫存／報價／發送訊息" />
+            <Row k="Alt+H" desc="本說明（引導精靈通用鍵）" />
+            <Row k="Esc" desc="關閉工作台（有未存報價會先確認）" />
+            <Group title="① 對象" />
+            <Row k="Enter" desc="選定客戶 → 進搜尋" />
+            <Row k="Alt+N" desc="散客／新客戶、先跳過" />
+            <Group title="② 搜尋" />
+            <Row k="Enter" desc="查詢（結果在右欄）" />
+            <Row k="↑↓ / Enter" desc="右欄選結果 → 進檢查庫存" />
+            <Group title="③ 檢查庫存" />
+            <Row k="↑↓" desc="選通用零件（右欄庫存即時跟隨）" />
+            <Row k="Space" desc="加入／移除報價清單" />
+            <Row k="Alt+D" desc="加入調貨詢價清單（F5 開清單）" />
+            <Row k="Enter" desc="進報價（已有項目時）" />
+            <Group title="④ 報價" />
+            <Row k="Enter" desc="數量 → 單價 → 下一顆；末欄 → 發送訊息" />
+            <Group title="⑤ 發送訊息" />
+            <Row k="Alt+A" desc="全選訊息（→ Ctrl+C 複製）" />
+            <Row k="Enter" desc="存檔（確認後寫入報價紀錄）" />
+          </div>
+        </div>
+        <div className="border-t border-border/35 bg-background/35 px-5 py-1.5 text-right text-[11px] text-muted-foreground/65">
+          <Kbd>Esc</Kbd> 或再按 <Kbd>Alt+H</Kbd> 關閉
+        </div>
       </>
     </FocusLockedDialog>
   );
