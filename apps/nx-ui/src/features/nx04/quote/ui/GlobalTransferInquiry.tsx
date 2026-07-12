@@ -2,8 +2,9 @@
 // F5 全域即時調貨詢價視窗（執行長 2026-07-12 拍板；同日鍵盤流升級 2/7）：
 //   F2 報價④選「調貨」／F1 主視窗 Alt+D 加進來的清單在這消化——掛掉客戶電話後、
 //   照卡片打給同行、Enter 對選中料記一筆詢價（nx-instant-inquiry → InstantInquiryDialog）。
-//   每張卡帶「詢價 N 筆・最低 X（同行）」摘要、選中卡展開近 5 筆明細（比價在 Line 上完成、
-//   系統只記錄——S01 關卡二定案、不做並排比價視圖）。Delete 移除、清單存本機（localStorage）。
+//   每張卡帶「近30天 N 筆・最低 X（同行）」摘要（口徑=近 30 天、執行長 07/13 拍板）、
+//   選中卡展開窗內最近 5 筆明細（比價在 Line 上完成、系統只記錄——S01 關卡二定案、
+//   不做並排比價視圖）。Delete 移除、清單存本機（localStorage）。
 //   ⚠️ F5 攔掉瀏覽器重新整理（Ctrl+R 仍可用）——鍵盤優先 ERP 的取捨、執行長拍板。
 'use client';
 
@@ -26,8 +27,26 @@ import {
 const fmtNt = (n: number) =>
   n < 100 && n !== Math.floor(n) ? n.toFixed(2) : n.toLocaleString('zh-TW', { maximumFractionDigits: 0 });
 
-/** 每料詢價摘要＋近 5 筆（卡片摘要與展開明細同一份資料、一次抓）*/
+/** 每料詢價摘要＋展開明細（同一份資料、一次抓）。
+ *  口徑＝近 30 天（執行長 2026-07-13 拍板、取代初版「近 5 筆」——詢價會過時、太舊的低價帶著誤導）：
+ *  摘要筆數與最低價都算 30 天全窗、展開明細取窗內最近 5 筆。 */
 type PartInquirySummary = { total: number; recs: InquiryRecord[] };
+
+const SUMMARY_DAYS = 30;
+/** 30 天窗上限筆數：電話詢價量遠低於此、視為全窗 */
+const SUMMARY_FETCH_SIZE = 50;
+
+function fmtDate(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+/** 近 30 天窗（起訖都帶：後端「只填起＝該日當天」、單帶 dateFrom 會變成一天）*/
+function summaryDateRange(): { dateFrom: string; dateTo: string } {
+  const to = new Date();
+  const from = new Date();
+  from.setDate(from.getDate() - SUMMARY_DAYS);
+  return { dateFrom: fmtDate(from), dateTo: fmtDate(to) };
+}
 
 export function GlobalTransferInquiry() {
   const [open, setOpen] = useState(false);
@@ -93,7 +112,7 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
     reqSeqRef.current.set(partId, seq);
     void (async () => {
       try {
-        const r = await listInquiryRecords({ partNo: code, pageSize: 5 });
+        const r = await listInquiryRecords({ partNo: code, ...summaryDateRange(), pageSize: SUMMARY_FETCH_SIZE });
         if (reqSeqRef.current.get(partId) !== seq) return;
         setSums((m) => new Map(m).set(partId, { total: r.total, recs: r.items }));
       } catch {
@@ -174,16 +193,16 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
     }
   };
 
-  /** 卡片摘要行：詢價 N 筆・最低 X（同行）——用近 5 筆算最低、掛電話前心裡有底價 */
+  /** 卡片摘要行：近30天 N 筆・最低 X（同行）——掛電話前心裡有底價（最低算 30 天全窗）*/
   const summaryLine = (partId: string) => {
     const s = sums.get(partId);
     if (!s) return <span className="text-[12px] text-muted-foreground/70">詢價紀錄載入中…</span>;
     if (s.total === 0)
-      return <span className="text-[12px] text-muted-foreground">還沒詢價——Enter 記第一筆</span>;
+      return <span className="text-[12px] text-muted-foreground">近{SUMMARY_DAYS}天沒詢過——Enter 記第一筆</span>;
     const min = s.recs.reduce((a, r) => (Number(r.unitPrice) < Number(a.unitPrice) ? r : a), s.recs[0]);
     return (
       <span className="text-[12px] text-muted-foreground">
-        詢價 <span className="font-mono font-semibold text-foreground">{s.total}</span> 筆・近{Math.min(5, s.recs.length)}筆最低{' '}
+        近{SUMMARY_DAYS}天 <span className="font-mono font-semibold text-foreground">{s.total}</span> 筆・最低{' '}
         <span className="font-mono font-semibold text-primary">{fmtNt(Number(min.unitPrice))}</span>
         {min.partnerName ? <>（{min.partnerName}）</> : null}
       </span>
@@ -290,11 +309,11 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
                       </button>
                     </span>
                   </div>
-                  {/* 選中卡展開：近 5 筆同行詢價（比價參考）*/}
+                  {/* 選中卡展開：近 30 天內最近 5 筆同行詢價（比價參考）*/}
                   {isSel && s && s.recs.length > 0 ? (
                     <table className="mt-2 w-full border-collapse border-t border-border/30 text-[13px]">
                       <tbody>
-                        {s.recs.map((r) => (
+                        {s.recs.slice(0, 5).map((r) => (
                           <tr key={r.id} className="border-b border-border/15 last:border-b-0">
                             <td className="py-1 pr-3 font-mono text-[12px] text-muted-foreground">{r.recordDate.slice(0, 10)}</td>
                             <td className="py-1 pr-3">{r.partnerName ?? r.partnerCode ?? '—'}</td>
@@ -374,7 +393,7 @@ function TransferHelpOverlay({ onClose }: { onClose: () => void }) {
         <div className="min-h-0 flex-1 overflow-auto px-5 py-3">
           <div className="grid grid-cols-[88px_1fr] items-baseline gap-x-3 gap-y-1.5">
             <Row k="F5" desc="任何頁面開／關本視窗（瀏覽器重新整理改 Ctrl+R）" />
-            <Row k="↑↓" desc="選料（選中卡展開近 5 筆同行詢價）" />
+            <Row k="↑↓" desc="選料（選中卡展開近 30 天內最近 5 筆同行詢價）" />
             <Row k="Enter" desc="對選中料記一筆詢價（選同行→量→價、存檔即回清單）" />
             <Row k="Delete" desc="移除選中料（已記的詢價紀錄不受影響）" />
             <Row k="Alt+H" desc="本說明（引導精靈通用鍵）" />
