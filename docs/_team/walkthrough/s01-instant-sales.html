@@ -70,7 +70,7 @@
 </head>
 <body>
 <div class="wrap">
-<h1>📞 情境本 S01｜即時銷售 <span class="v">v2.5（2026-07-12、三卡片＋Alt+Q/D＋F5 調貨詢價版）</span></h1>
+<h1>📞 情境本 S01｜即時銷售 <span class="v">v2.6（2026-07-12、F2 工作台 A/B/C 三區五階段版）</span></h1>
 <div class="sub">客戶來電 → 查庫存 → 替代品 → 同行詢價比價 → 報價 → 銷貨單 → 調貨單 → 交棒出貨。分歧照實際電話節奏走。　<a href="index.html">← 回總覽</a></div>
 
 <div class="rules">
@@ -168,17 +168,20 @@
   <div class="lv-head"><h2>關卡三｜即時報價：「上次跟你拿多少」馬上答</h2><span class="who">角色：業務（回到電話上）</span><span class="prog"></span></div>
   <div class="scene">📞 <b>「有貨（調得到／等到貨約幾天）。價格是——」</b>報價根據：過去報價、過去成交、建議售價。</div>
   <ol class="steps">
-    <li>🆕 主線・<kbd>F2</kbd> 即時報價查詢（07/12 夜再改版）：客戶窗選 <code>C0048</code>（<b>新客戶可 Alt+N 跳過</b>）→ 三查法查 <code>021 115 562</code> → <kbd>Enter</kbd> 進報價主視窗——右欄<b>瘦身卡</b>（料號/品名/廠牌/庫存/<b>建議售價</b>）、中欄<b>上庫存/下三張價格卡</b>
-      <div class="exp">預期：建議售價＝依客戶等級的地板價（KPI 基準）；↑↓ 選件左中欄即時跟隨；<b>總庫存數字淺色主題現在看得到</b>（07/12 修）</div>
+    <li>🆕 主線・<kbd>F2</kbd> 即時報價工作台（07/12 深夜改版：左階段軌／中主容器／右副容器、單一視窗）：左軌五個圖示＝<b>對象→搜尋→檢查庫存→報價→發送訊息</b>、<kbd>Alt</kbd>+<kbd>1</kbd>~<kbd>5</kbd> 直跳
+      <div class="exp">預期：階段軌純圖示不佔空間、完成的階段有綠勾；上方客戶徽章＋已選數＋調貨數一直看得到</div>
       <div class="checks"></div></li>
-    <li>三張價格卡＋細節窗：<kbd>Alt</kbd>+<kbd>1</kbd> 建議售價（細節＝ABCD 價階梯）、<kbd>Alt</kbd>+<kbd>2</kbd> 過去交易・此客戶、<kbd>Alt</kbd>+<kbd>3</kbd> 其他交易・他客（點卡片同效）
-      <div class="exp">預期：卡片顯示前一次報價/成交＋日期；細節表<b>成交綠、報價金</b>；C0048×機油芯會看到上次報 320</div>
+    <li>①對象：搜 <code>C0048</code>（右欄顯示客戶資訊、散客 Alt+N 跳過）→ ②搜尋：三查法（料號/品名+車型/進階）查 <code>021 115 562</code>、右欄結果 <kbd>↑</kbd><kbd>↓</kbd><kbd>Enter</kbd> → ③檢查庫存：上基本資訊、下通用零件（右欄＝該件庫存分倉）
+      <div class="exp">預期：通用件列表帶庫存＋<b>建議售價</b>（依客戶等級＝地板價）；↑↓ 選件右欄庫存跟著換</div>
       <div class="checks"></div></li>
-    <li>報價環節：<kbd>Space</kbd> 標 2 顆（P9103＋替代 P9142）→ <kbd>Alt</kbd>+<kbd>Q</kbd>（F4 同效）→ 量 <kbd>Enter</kbd> 價 <kbd>Enter</kbd> 鏈 → <kbd>Alt</kbd>+<kbd>A</kbd> 全選訊息自己 Ctrl+C → 末欄 <kbd>Enter</kbd>＝存檔 → 確認（Enter）→ 回主視窗
-      <div class="exp">預期：每顆自動帶價；散客＝可複製、存前要補客戶；<b>防呆</b>：全公司無庫存且近月沒問過同行 → 會先提示確認</div>
+    <li>③按 <kbd>Space</kbd> 勾 2 顆（P9103＋替代 P9142、綠框✓）→ <kbd>Enter</kbd> 進 ④報價：量 <kbd>Enter</kbd> 價 <kbd>Enter</kbd> 鏈（右欄＝該件歷史價五格）→ 末欄 <kbd>Enter</kbd> 進 ⑤發送訊息
+      <div class="exp">預期：每顆自動帶價；<b>防呆</b>：全公司無庫存且近月沒問過同行 → 報價頁亮黃色警示條</div>
       <div class="checks"></div></li>
-    <li>調貨清單：缺貨料 <kbd>Space</kbd> 標記 → <kbd>Alt</kbd>+<kbd>D</kbd> 加入（公司有現貨會提示確認）→ 任何頁面 <kbd>F5</kbd> 開「即時調貨詢價」視窗：↑↓ 選料、<kbd>Enter</kbd> 記一筆同行詢價、<kbd>Delete</kbd> 移除
-      <div class="exp">預期：清單跨視窗同步（徽章「調N」）；選中料下方帶近期同行詢價可比價；F5 已攔掉瀏覽器重新整理</div>
+    <li>⑤發送訊息：<kbd>Alt</kbd>+<kbd>A</kbd> 全選自己 Ctrl+C → <kbd>Enter</kbd> 存檔 → 確認（Enter）→ ✅；右欄「訊息內容設定」勾基準料號/副廠料號/品名/數量（會記住）
+      <div class="exp">預期：勾選即時反映訊息內容；散客＝可複製、存前補客戶；存完可「下一通」回對象重來</div>
+      <div class="checks"></div></li>
+    <li>調貨清單：③檢查庫存選缺貨料 <kbd>Alt</kbd>+<kbd>D</kbd> 加入（公司有現貨會提示確認）→ 任何頁面 <kbd>F5</kbd> 開「即時調貨詢價」：↑↓ 選料、<kbd>Enter</kbd> 記同行詢價、<kbd>Delete</kbd> 移除
+      <div class="exp">預期：清單跨視窗同步（徽章「調N」）；選中料帶近期同行詢價可比價；F5 攔掉瀏覽器重新整理</div>
       <div class="checks"></div></li>
     <li>路線二（要留正式文件）：回首頁按 <kbd>1</kbd> 開報價單 → 加行：<kbd>Alt</kbd>+<kbd>A</kbd> 新增、<kbd>Alt</kbd>+<kbd>F</kbd> 從報價紀錄拉入（剛剛 F2 存的紀錄就在這）、填量價 <kbd>Enter</kbd> 一路跳格到底
       <div class="exp">預期：F2 工作台（快、留紀錄）vs 報價單（正式文件）分工清楚、紀錄接得上單</div>
