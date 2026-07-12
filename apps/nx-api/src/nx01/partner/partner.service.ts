@@ -46,6 +46,8 @@ const SEL = {
   // v1.2 階段 E P2：sales 補欄
   defaultWarehouseId: true,
   salesUserId: true,
+  // F2-TUNING 定案 1 2026-07-12：預設取貨方式（D=配送/P=自取/C=寄貨）
+  defaultDeliveryType: true,
   // v1.2 階段 E P2：finance 補欄
   defaultCurrencyId: true,
   // W3 [3-2] 舊系統代號
@@ -294,6 +296,8 @@ export class PartnerService {
         // v1.2 階段 E P2：sales 補欄
         defaultWarehouseId: dto.defaultWarehouseId?.trim() || null,
         salesUserId: dto.salesUserId?.trim() || null,
+        // F2-TUNING 定案 1：預設取貨方式
+        defaultDeliveryType: dto.defaultDeliveryType?.trim() || null,
         // v1.2 階段 E P2：finance 補欄
         defaultCurrencyId: dto.defaultCurrencyId?.trim() || null,
         // v1.2 階段 E P2：supplierGradeId 純供應商 S 用
@@ -406,6 +410,10 @@ export class PartnerService {
           : {}),
         ...(dto.salesUserId !== undefined
           ? { salesUserId: dto.salesUserId?.trim() || null }
+          : {}),
+        // F2-TUNING 定案 1：預設取貨方式
+        ...(dto.defaultDeliveryType !== undefined
+          ? { defaultDeliveryType: dto.defaultDeliveryType?.trim() || null }
           : {}),
         // v1.2 階段 E P2：finance 補欄
         ...(dto.defaultCurrencyId !== undefined

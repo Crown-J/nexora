@@ -21,6 +21,8 @@ const PARTNER_TYPES = ['C', 'O', 'S', 'T', 'V', 'B', 'L'] as const;
 // 02 對齊第二批 C 軌 CP2 2026-06-06：0=不開發票（新增）；2=二聯；3=三聯
 const INVOICE_COPIES = [0, 2, 3] as const;
 const PAY_DOM = ['PREPAY', 'NET30', 'NET60', 'NET90'] as const;
+// F2-TUNING 定案 1 2026-07-12：預設取貨方式、值域同 nx04_so.delivery_type（D=配送/P=自取/C=寄貨）
+const DELIVERY_TYPES = ['D', 'P', 'C'] as const;
 const PAY_IMP = ['TT', 'LC', 'DP', 'DA'] as const;
 const CREDIT_STAT = ['N', 'W', 'F'] as const;
 
@@ -158,6 +160,8 @@ export class CreatePartnerDto {
   // ── v1.2 階段 E P2：sales 區補欄 ──
   @IsOptional() @IsString() @MaxLength(15) defaultWarehouseId?: string;
   @IsOptional() @IsString() @MaxLength(15) salesUserId?: string;
+  /** F2-TUNING 定案 1：預設取貨方式（D=配送/P=自取/C=寄貨） */
+  @IsOptional() @IsString() @IsIn(DELIVERY_TYPES) defaultDeliveryType?: string;
 
   // ── v1.2 階段 E P2：finance 區補欄 ──
   @IsOptional() @IsString() @MaxLength(15) defaultCurrencyId?: string;
@@ -286,6 +290,8 @@ export class UpdatePartnerDto {
   // ── v1.2 階段 E P2：sales 區補欄 ──
   @IsOptional() @IsString() @MaxLength(15) defaultWarehouseId?: string | null;
   @IsOptional() @IsString() @MaxLength(15) salesUserId?: string | null;
+  /** F2-TUNING 定案 1：預設取貨方式（D=配送/P=自取/C=寄貨；null=清除） */
+  @IsOptional() @IsString() @IsIn(DELIVERY_TYPES) defaultDeliveryType?: string | null;
 
   // ── v1.2 階段 E P2：finance 區補欄 ──
   @IsOptional() @IsString() @MaxLength(15) defaultCurrencyId?: string | null;

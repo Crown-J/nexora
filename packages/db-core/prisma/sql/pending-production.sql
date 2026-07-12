@@ -65,6 +65,10 @@ BEGIN
   END IF;
 END $$;
 
+-- ---- 4) F2-TUNING 定案 1（2026-07-12）：客戶主檔補預設取貨方式 ----
+-- 值域同 nx04_so.delivery_type（D=配送/P=自取/C=寄貨）、nullable、無 FK/CHECK（application 層 enum）
+ALTER TABLE "nx01_partner" ADD COLUMN IF NOT EXISTS "default_delivery_type" VARCHAR(1);
+
 -- ============================================================
 -- 【已套用歷史】（production 套完把段落移到這、標套用日期）
 -- ============================================================

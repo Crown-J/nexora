@@ -1124,6 +1124,8 @@ model Nx01Partner {
   defaultCurrencyId                        String?                      @map("default_currency_id") @db.VarChar(15)
   /// 客戶預設取貨據點（FK nx01_warehouse、ON DELETE SET NULL、業界 muscle memory：客戶習慣取貨倉、SO 建單自動帶入、無庫存自動 NX03 ST 調撥）。NX04-IMPL-01 Phase 1 M1 新增。；啟用最低需求版本：LITE-CORE
   defaultWarehouseId                       String?                      @map("default_warehouse_id") @db.VarChar(15)
+  /// 預設取貨方式（值域同 nx04_so.delivery_type：D=配送/P=自取/C=寄貨；null=未設定）。F2 報價工作台客戶基本資料顯示用。2026-07-12 執行長定案（F2-TUNING 定案 1）新增。；啟用最低需求版本：LITE-CORE
+  defaultDeliveryType                      String?                      @map("default_delivery_type") @db.VarChar(1)
   tenant                                   Nx99Tenant                   @relation("R_Nx01Partner_tenantId", fields: [tenantId], references: [id])
   customerGrade                            Nx01CustomerGrade?           @relation("R_Nx01Partner_customerGradeId", fields: [customerGradeId], references: [id])
   supplierGrade                            Nx01SupplierGrade?           @relation("R_Nx01Partner_supplierGradeId", fields: [supplierGradeId], references: [id])
