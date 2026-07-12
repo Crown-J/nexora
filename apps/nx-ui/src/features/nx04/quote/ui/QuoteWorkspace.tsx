@@ -1925,7 +1925,7 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
               <div className="flex items-center gap-2.5 border-b border-border/40 px-5 py-2.5">
                 <h3 className="text-sm font-bold tracking-wide">報價/成交歷史</h3>
                 <span className="font-mono text-[12px] text-primary/85">{curLine.code}</span>
-                <span className="text-[11px] text-muted-foreground/70">成交綠・報價金｜含該客戶與同級距</span>
+                <span className="text-[11px] text-muted-foreground/70">成交綠・報價金｜客名金字＝該客戶</span>
                 <button
                   type="button"
                   onClick={() => setHistModalOpen(false)}
@@ -1979,9 +1979,13 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                       <span className={`shrink-0 font-medium ${h.kind === 'SALE' ? 'text-[#22D88F]' : 'text-primary'}`}>
                         {h.kind === 'SALE' ? '成交' : '報價'}
                       </span>
-                      <span className="shrink-0 text-muted-foreground/70">{h.scope === 'CUSTOMER' ? '該客戶' : '同級距'}</span>
-                      <span className="min-w-0 flex-1 truncate text-muted-foreground/60">
-                        {h.scope === 'GRADE' ? (h.customerName ?? h.customerCode ?? '') : ''}
+                      {/* 執行長 07/12 三輪：不標該客戶/同級距、直接列客編+客名；該客戶金字提示 */}
+                      <span
+                        className={`min-w-0 flex-1 truncate ${
+                          h.scope === 'CUSTOMER' ? 'font-medium text-primary' : 'text-muted-foreground/70'
+                        }`}
+                      >
+                        {[h.customerCode, h.customerName].filter(Boolean).join(' ') || '—'}
                       </span>
                       <span className="shrink-0 font-mono tabular-nums">
                         {Number(h.qty ?? 1) > 1 ? `×${Number(h.qty)} ` : ''}
