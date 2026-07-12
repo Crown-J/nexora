@@ -258,11 +258,36 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
     };
   }, [customer, partnerInfo]);
 
+  // 執行長 07/12 回饋 1-1：客戶欄即打即出——打字 debounce 即查、候選即時進 C 欄（不搶焦點、Enter 才跳右欄）
+  const custReqRef = useRef(0);
+  useEffect(() => {
+    if (custPicked) return;
+    const t = custQ.trim();
+    const myReq = ++custReqRef.current;
+    if (!t) {
+      setCustCands([]);
+      return;
+    }
+    const h = setTimeout(() => {
+      void listPartner({ page: 1, pageSize: 20, q: t, partnerType: 'C', isActive: true })
+        .then((r) => {
+          if (custReqRef.current !== myReq) return;
+          setCustCands(r.items);
+          setCustCandSel(0);
+        })
+        .catch(() => {
+          /* 查不到不擋 */
+        });
+    }, 250);
+    return () => clearTimeout(h);
+  }, [custQ, custPicked]);
+
   // ── 階段①：客戶搜尋（Enter 關鍵字 / F4 注音首碼）→ 候選進 C 欄 ──
   const runCustSearch = useCallback(
     async (phonetic?: boolean) => {
       const t = custQ.trim();
       if (!t) return;
+      const myReq = ++custReqRef.current; // 蓋掉 pending 的即打即出 debounce、避免晚到重設選中列
       setCustSearching(true);
       try {
         const r = await listPartner({
@@ -272,6 +297,7 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
           isActive: true,
           ...(phonetic ? { phonetic: keyToBopomofo(t) } : { q: t }),
         });
+        if (custReqRef.current !== myReq) return;
         setCustCands(r.items);
         setCustCandSel(0);
         setTimeout(() => custListRef.current?.focus(), 30);
@@ -860,7 +886,7 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                   </div>
                 ) : (
                   <div className="rounded-lg border border-dashed border-border/60 px-4 py-6 text-center text-[12px] text-muted-foreground">
-                    {custSearching ? '搜尋中…' : custCands.length > 0 ? '在右欄選一個客戶' : '輸入關鍵字查客戶'}
+                    {custSearching ? '搜尋中…' : custCands.length > 0 ? '在右欄選一個客戶（Enter 跳過去）' : '打字即出候選（右欄）'}
                   </div>
                 )}
               </div>
@@ -1287,7 +1313,7 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                       ))}
                       {custCands.length === 0 ? (
                         <div className="py-6 text-center text-[12px] text-muted-foreground">
-                          {custSearching ? '搜尋中…' : '左欄輸入關鍵字查客戶；散客可跳過'}
+                          {custSearching ? '搜尋中…' : '左欄打字即出候選；散客可跳過'}
                         </div>
                       ) : null}
                     </div>
