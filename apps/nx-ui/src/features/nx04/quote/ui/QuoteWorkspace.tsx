@@ -1987,8 +1987,20 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                       >
                         {[h.customerCode, h.customerName].filter(Boolean).join(' ') || '—'}
                       </span>
+                      {/* 執行長 07/12 四輪：×N 數量退場 → 對建議售價的價差、股票式 ▲綠▼紅 */}
                       <span className="shrink-0 font-mono tabular-nums">
-                        {Number(h.qty ?? 1) > 1 ? `×${Number(h.qty)} ` : ''}
+                        {(() => {
+                          const sug = curLine.suggested ? Number(curLine.suggested) : null;
+                          if (!sug) return null;
+                          const diff = Number(h.amount) - sug;
+                          if (diff === 0) return null;
+                          return (
+                            <span className={`mr-2 text-[11.5px] ${diff > 0 ? 'text-[#22D88F]' : 'text-[#E26060]'}`}>
+                              {diff > 0 ? '▲' : '▼'}
+                              {formatNt(Math.abs(diff))}
+                            </span>
+                          );
+                        })()}
                         <span className={h.kind === 'SALE' ? 'text-[#22D88F]' : 'text-primary'}>NT$ {formatNt(Number(h.amount))}</span>
                       </span>
                     </div>
