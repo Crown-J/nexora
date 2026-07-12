@@ -55,6 +55,8 @@ export const PARTNER_FIELDS: FieldDef<PartnerZone>[] = [
   { key: 'creditLimit', label: '信用額度', zone: 'sales', notes: '0 = 不限制' },
   { key: 'creditStatus', label: '信用狀態', zone: 'sales', notes: 'N=正常 / W=僅收現金 / F=凍結' },
   { key: 'defaultWarehouseId', label: '預設取貨倉', zone: 'sales' },
+  // F2-TUNING 定案 1（07/12 後端）＋TRANSFER-INQ 10（07/13 表單補欄、執行長拍板）
+  { key: 'defaultDeliveryType', label: '預設取貨方式', zone: 'sales', notes: 'D=配送 / P=自取 / C=寄貨；F2 報價與開銷貨單帶入' },
   { key: 'canTransferStock', label: '可同行調貨', zone: 'sales', notes: 'O 預設 true、C 可手動開' },
   { key: 'salesUserId', label: '業務歸屬', zone: 'sales' },
 

@@ -64,6 +64,13 @@ export const CREDIT_STATUS_OPTIONS = [
   { value: 'F', label: '凍結' },
 ];
 
+/** 預設取貨方式（值域同銷貨單 delivery_type：D/P/C——C=寄貨、非 S、值域訂正 07/12） */
+export const DELIVERY_TYPE_OPTIONS = [
+  { value: 'D', label: '配送' },
+  { value: 'P', label: '自取' },
+  { value: 'C', label: '寄貨' },
+];
+
 /** 後端 row → 編輯 draft（所有 PARTNER_FIELDS 對映、空值轉空字串） */
 export function partnerRowToDraft(row: PartnerDto): PartnerDraft {
   const draft: PartnerDraft = {};

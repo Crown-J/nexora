@@ -28,6 +28,7 @@ import { PartnerAddressSection } from './PartnerAddressSection';
 
 import {
   CREDIT_STATUS_OPTIONS,
+  DELIVERY_TYPE_OPTIONS,
   INVOICE_COPIES_OPTIONS,
   PARTNER_TYPE_LABEL,
   PARTNER_TYPE_OPTIONS,
@@ -213,18 +214,21 @@ export function PartnerFormZoned({
             );
           }
 
-          // paymentTermDomestic / paymentTermImport / creditStatus 靜態下拉
+          // paymentTermDomestic / paymentTermImport / creditStatus / defaultDeliveryType 靜態下拉
           if (fieldEditable && (
             f.key === 'paymentTermDomestic' ||
             f.key === 'paymentTermImport' ||
-            f.key === 'creditStatus'
+            f.key === 'creditStatus' ||
+            f.key === 'defaultDeliveryType'
           )) {
             const opts =
               f.key === 'paymentTermDomestic'
                 ? PAY_DOM_OPTIONS
                 : f.key === 'paymentTermImport'
                   ? PAY_IMP_OPTIONS
-                  : CREDIT_STATUS_OPTIONS;
+                  : f.key === 'creditStatus'
+                    ? CREDIT_STATUS_OPTIONS
+                    : DELIVERY_TYPE_OPTIONS;
             return (
               <FieldShell key={f.key} label={f.label} required={f.required}>
                 <KeyboardSelect
@@ -350,6 +354,7 @@ function renderBrowseValue(
   if (key === 'paymentTermDomestic') return PAY_DOM_OPTIONS.find((o) => o.value === raw)?.label ?? String(raw);
   if (key === 'paymentTermImport') return PAY_IMP_OPTIONS.find((o) => o.value === raw)?.label ?? String(raw);
   if (key === 'creditStatus') return CREDIT_STATUS_OPTIONS.find((o) => o.value === raw)?.label ?? String(raw);
+  if (key === 'defaultDeliveryType') return DELIVERY_TYPE_OPTIONS.find((o) => o.value === raw)?.label ?? String(raw);
   const refKey = FK_REF_KEYS[key];
   if (refKey) {
     const opts = refOptions[refKey] ?? [];
