@@ -3,7 +3,7 @@
 //   A 階段軌（純圖示、Alt+1~5 切換）：對象 → 搜尋 → 檢查庫存 → 報價 → 發送訊息
 //   B 主容器／C 副容器 各階段內容：
 //     1 對象：B 輸入 Enter（Alt+N 散客跳過）→ C 候選清單 ↑↓ Enter 選定 → 回 B 下半顯示＋C 基本資料八欄
-//     2 搜尋：B 三查法輸入（料號／品名+車型／進階）｜C 搜尋結果（↑↓ Enter 選定）
+//     2 搜尋：B 三查法輸入（[ ] 循環切、即打即出聯想、英數當注音碼）｜C 群組樹卡片（↑↓ Enter 選定）
 //     3 檢查庫存：B 上基本資訊、下通用零件（↑↓ 選、Space 加入報價、Alt+D 加調貨）｜C 該件庫存
 //     4 報價：B 已選零件量價（Enter 鏈、末欄 → 階段5）｜C 該件歷史價五格
 //     5 發送訊息：B 訊息（Alt+A 全選、Enter 存檔→確認）｜C 訊息內容設定（記憶）
@@ -26,6 +26,7 @@ import { listPartner } from '@data/endpoints/shared/master/partner/api/partner';
 import {
   getPartCompatGroup,
   getPartDetail,
+  getPartSearchMasterOptions,
   getPartStockSummary,
   quickSearchParts,
 } from '@data/endpoints/nx01/part-search/api/part-search';
@@ -34,8 +35,9 @@ import {
   createQuoteRecord,
   listInquiryRecords,
 } from '@data/endpoints/nx04/record/api/record';
-import type { PartDetailDto, PartSearchRow, PartStockSummaryDto } from '@data/types/nx01/part-search';
+import type { PartDetailDto, PartSearchResult, PartSearchRow, PartStockSummaryDto } from '@data/types/nx01/part-search';
 import type { PartnerDto } from '@data/types/shared/master/partner';
+import { Combobox } from '@design/components/quick-search/Combobox';
 import { FocusLockedDialog } from '@design/primitives/focus-locked-dialog';
 
 import { CustomerPicker, keyToBopomofo, type PickedCustomer } from './CustomerPicker';
@@ -43,6 +45,10 @@ import { PriceIntelPanel } from './PriceIntelPanel';
 import { addTransferItems, listTransferItems, TRANSFER_LIST_EVENT } from './transfer-inquiry-store';
 
 type Stage = 1 | 2 | 3 | 4 | 5;
+// S2-2 群組樹卡片扁平列（primary=群組主件 / alt=替代品縮排 / single=散件）
+type FlatRow = { kind: 'primary' | 'alt' | 'single'; member: PartSearchRow };
+type MasterOpt = { id: string; code: string; name: string };
+const SEARCH_METHODS = ['partNo', 'keyword', 'advanced'] as const;
 type CompatRow = { partId: string; code: string; name: string; brand: string | null; avail: number; suggested: string | null; prefill: string };
 type QuoteLine = CompatRow & { qty: string; price: string };
 type MsgOpts = { baseNo: boolean; secCode: boolean; partName: boolean; qtyAlways: boolean };
@@ -72,9 +78,12 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
   const [method, setMethod] = useState<'partNo' | 'keyword' | 'advanced'>('partNo');
   const [q1, setQ1] = useState(''); // 料號 / 品名 / 廠牌
   const [q2, setQ2] = useState(''); // 車型 / 族群
-  const [results, setResults] = useState<PartSearchRow[]>([]);
+  const [searchRes, setSearchRes] = useState<PartSearchResult | null>(null);
   const [resSel, setResSel] = useState(0);
   const [searching, setSearching] = useState(false);
+  // S2-3 進階查法聯想主檔（廠牌/族群、載一次）
+  const [brands, setBrands] = useState<MasterOpt[]>([]);
+  const [partGroups, setPartGroups] = useState<MasterOpt[]>([]);
   // 階段 3 檢查庫存
   const [currentPartId, setCurrentPartId] = useState<string | null>(null);
   const [detail, setDetail] = useState<PartDetailDto | null>(null);
@@ -242,7 +251,7 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
     if (confirmOpen) confirmRef.current?.focus();
   }, [confirmOpen]);
 
-  // ── 階段 2：查詢 ──
+  // ── 階段 2：查詢（S2-2：groupByCompat=true 回通用件群組樹）──
   const runSearch = useCallback(async () => {
     setSearching(true);
     try {
@@ -250,17 +259,109 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
         ...(method === 'partNo' ? { partNo: q1.trim() || undefined } : {}),
         ...(method === 'keyword' ? { keyword: q1.trim() || undefined, modelQuery: q2.trim() || undefined } : {}),
         ...(method === 'advanced' ? { brandQuery: q1.trim() || undefined, partGroupQuery: q2.trim() || undefined } : {}),
+        groupByCompat: true,
         pageSize: 50,
       });
-      setResults(r.rows);
+      setSearchRes(r);
       setResSel(0);
       setTimeout(() => resListRef.current?.focus(), 30);
     } catch {
-      setResults([]);
+      setSearchRes(null);
     } finally {
       setSearching(false);
     }
   }, [method, q1, q2]);
+
+  // 群組樹 → 扁平列（主件在前、替代品縮排掛底、散件視為主件）
+  const flatRows = useMemo<FlatRow[]>(() => {
+    if (!searchRes) return [];
+    const acc: FlatRow[] = [];
+    for (const g of searchRes.groups ?? []) {
+      if (g.primary) acc.push({ kind: 'primary', member: g.primary });
+      for (const a of g.alts) acc.push({ kind: 'alt', member: a });
+    }
+    for (const u of searchRes.ungrouped ?? []) acc.push({ kind: 'single', member: u });
+    return acc;
+  }, [searchRes]);
+
+  // 選中列捲入可視
+  useEffect(() => {
+    resListRef.current?.querySelector(`[data-f2res="${resSel}"]`)?.scrollIntoView({ block: 'nearest' });
+  }, [resSel]);
+
+  // S2-1：[ ] 左右循環切三查法（頁籤仍可點）；只在階段 2 生效
+  useEffect(() => {
+    if (stage !== 2) return;
+    const h = (e: KeyboardEvent) => {
+      if ((e.key !== '[' && e.key !== ']') || e.ctrlKey || e.altKey || e.metaKey || e.isComposing) return;
+      e.preventDefault();
+      e.stopPropagation();
+      setMethod((m) => {
+        const i = SEARCH_METHODS.indexOf(m);
+        return SEARCH_METHODS[(i + (e.key === ']' ? 1 : SEARCH_METHODS.length - 1)) % SEARCH_METHODS.length];
+      });
+      setTimeout(() => searchInputRef.current?.focus(), 30);
+    };
+    window.addEventListener('keydown', h, true);
+    return () => window.removeEventListener('keydown', h, true);
+  }, [stage]);
+
+  // S2-3 聯想主檔（廠牌/族群）載一次
+  useEffect(() => {
+    void getPartSearchMasterOptions()
+      .then((o) => {
+        setBrands(o.brands);
+        setPartGroups(o.partGroups);
+      })
+      .catch(() => {
+        /* 撈不到不擋 */
+      });
+  }, []);
+
+  // S2-3 即打即出聯想（料號 / 品名+注音碼 / 廠牌 / 族群）
+  const fetchPartNoSuggestions = useCallback(async (q: string): Promise<PartSearchRow[]> => {
+    const t = q.trim();
+    if (!t) return [];
+    const r = await quickSearchParts({ partNo: t, page: 1, pageSize: 8 });
+    return r.rows.slice(0, 8);
+  }, []);
+  const fetchNameSuggestions = useCallback(async (q: string): Promise<string[]> => {
+    const t = q.trim();
+    if (!t) return [];
+    // 中文直查品名；英數視為注音鍵盤碼（例 cvn→ㄏㄒㄙ→火星塞）再查一輪、兩路合併去重
+    const [byName, byPhonetic] = await Promise.all([
+      quickSearchParts({ keyword: t, page: 1, pageSize: 30 }).catch(() => null),
+      /[a-z0-9;,./-]/i.test(t)
+        ? quickSearchParts({ keyword: keyToBopomofo(t), page: 1, pageSize: 30 }).catch(() => null)
+        : Promise.resolve(null),
+    ]);
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (const row of [...(byName?.rows ?? []), ...(byPhonetic?.rows ?? [])]) {
+      const n = row.name.trim();
+      if (!n || seen.has(n)) continue;
+      seen.add(n);
+      out.push(n);
+      if (out.length >= 8) break;
+    }
+    return out;
+  }, []);
+  const fetchBrandSuggestions = useCallback(
+    async (q: string): Promise<MasterOpt[]> => {
+      const lower = q.trim().toLowerCase();
+      if (!lower) return brands.slice(0, 8);
+      return brands.filter((b) => b.code.toLowerCase().includes(lower) || b.name.toLowerCase().includes(lower)).slice(0, 8);
+    },
+    [brands],
+  );
+  const fetchPartGroupSuggestions = useCallback(
+    async (q: string): Promise<MasterOpt[]> => {
+      const lower = q.trim().toLowerCase();
+      if (!lower) return partGroups.slice(0, 8);
+      return partGroups.filter((g) => g.code.toLowerCase().includes(lower) || g.name.toLowerCase().includes(lower)).slice(0, 8);
+    },
+    [partGroups],
+  );
 
   // ── 階段 3：載明細＋通用件（候選帶建議售價；散客退回通用件群組）──
   useEffect(() => {
@@ -428,7 +529,8 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
     setCustCands([]);
     setCustCandSel(0);
     setCustPicked(false);
-    setResults([]);
+    setSearchRes(null);
+    setResSel(0);
     setQ1('');
     setQ2('');
     setCurrentPartId(null);
@@ -520,7 +622,7 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
               const active = s.n === stage;
               const done =
                 (s.n === 1 && !!customer) ||
-                (s.n === 2 && results.length > 0) ||
+                (s.n === 2 && flatRows.length > 0) ||
                 (s.n === 3 && !!currentPartId) ||
                 (s.n === 4 && lines.length > 0) ||
                 (s.n === 5 && saved !== null);
@@ -629,20 +731,51 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                     </button>
                   ))}
                 </div>
-                <input
-                  ref={searchInputRef}
-                  value={q1}
-                  onChange={(e) => setQ1(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      void runSearch();
-                    }
-                  }}
-                  placeholder={method === 'partNo' ? '料號（如 021 115 562）' : method === 'keyword' ? '品名關鍵字（如 機油芯）' : '廠牌（如 BOSCH）'}
-                  className="w-full rounded border bg-background px-3 py-2 text-sm"
-                />
-                {method !== 'partNo' && (
+                {/* S2-3：即打即出聯想（客戶欄範式；F1 Combobox 搬用）*/}
+                {method === 'partNo' && (
+                  <Combobox<PartSearchRow>
+                    label="料號"
+                    value={q1}
+                    onChange={setQ1}
+                    placeholder="料號（如 021 115 562）"
+                    inputRef={searchInputRef}
+                    fetchSuggestions={fetchPartNoSuggestions}
+                    getKey={(r) => r.id}
+                    getLabel={(r) => r.code}
+                    getDescription={(r) => r.name}
+                    onSelect={(r) => setQ1(r.code)}
+                    onSubmit={() => void runSearch()}
+                  />
+                )}
+                {method === 'keyword' && (
+                  <Combobox<string>
+                    label="品名（英數自動當注音鍵盤碼、例 cvn→火星塞）"
+                    value={q1}
+                    onChange={setQ1}
+                    placeholder="品名關鍵字（如 機油芯）"
+                    inputRef={searchInputRef}
+                    fetchSuggestions={fetchNameSuggestions}
+                    getKey={(n) => n}
+                    getLabel={(n) => n}
+                    onSelect={(n) => setQ1(n)}
+                    onSubmit={() => void runSearch()}
+                  />
+                )}
+                {method === 'advanced' && (
+                  <Combobox<MasterOpt>
+                    label="廠牌"
+                    value={q1}
+                    onChange={setQ1}
+                    placeholder="空白=展開、或打字篩選（如 BOSCH）"
+                    inputRef={searchInputRef}
+                    fetchSuggestions={fetchBrandSuggestions}
+                    getKey={(b) => b.id}
+                    getLabel={(b) => `${b.code} · ${b.name}`}
+                    onSelect={(b) => setQ1(b.name)}
+                    onSubmit={() => void runSearch()}
+                  />
+                )}
+                {method === 'keyword' && (
                   <input
                     value={q2}
                     onChange={(e) => setQ2(e.target.value)}
@@ -652,11 +785,26 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                         void runSearch();
                       }
                     }}
-                    placeholder={method === 'keyword' ? '車型（選填、如 GOLF）' : '族群（選填、如 引擎）'}
+                    placeholder="車型（選填、如 GOLF）"
                     className="w-full rounded border bg-background px-3 py-2 text-sm"
                   />
                 )}
-                <div className="text-[11px] text-muted-foreground/70">{searching ? '查詢中…' : `找到 ${results.length} 筆`}</div>
+                {method === 'advanced' && (
+                  <Combobox<MasterOpt>
+                    label="族群"
+                    value={q2}
+                    onChange={setQ2}
+                    placeholder="空白=展開、或打字篩選（如 引擎）"
+                    fetchSuggestions={fetchPartGroupSuggestions}
+                    getKey={(g) => g.id}
+                    getLabel={(g) => `${g.code} · ${g.name}`}
+                    onSelect={(g) => setQ2(g.name)}
+                    onSubmit={() => void runSearch()}
+                  />
+                )}
+                <div className="text-[11px] text-muted-foreground/70">
+                  {searching ? '查詢中…' : searchRes ? `找到 ${searchRes.total} 筆` : ''}
+                </div>
               </div>
             )}
 
@@ -1009,50 +1157,99 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
 
             {stage === 2 && (
               <div className="flex min-h-0 flex-1 flex-col">
-                <div className={secHead}>搜尋結果</div>
+                <div className={secHead}>
+                  搜尋結果
+                  {searchRes ? (
+                    <span className="ml-2 normal-case tracking-normal text-muted-foreground/70">
+                      群組 {searchRes.groups?.length ?? 0}・散件 {searchRes.ungrouped?.length ?? 0}
+                    </span>
+                  ) : null}
+                </div>
                 <div
                   ref={resListRef}
                   tabIndex={0}
                   onKeyDown={(e) => {
-                    if (results.length === 0) return;
+                    if (flatRows.length === 0) return;
                     if (e.key === 'ArrowDown') {
                       e.preventDefault();
-                      setResSel((i) => Math.min(results.length - 1, i + 1));
+                      setResSel((i) => Math.min(flatRows.length - 1, i + 1));
                     } else if (e.key === 'ArrowUp') {
                       e.preventDefault();
                       setResSel((i) => Math.max(0, i - 1));
                     } else if (e.key === 'Enter') {
                       e.preventDefault();
-                      const r = results[resSel];
+                      const r = flatRows[resSel];
                       if (r) {
-                        setCurrentPartId(r.id);
+                        setCurrentPartId(r.member.id);
                         setStage(3);
                       }
                     }
                   }}
-                  className="mt-1 min-h-0 flex-1 space-y-1 overflow-auto outline-none"
+                  className="mt-1 min-h-0 flex-1 space-y-1.5 overflow-auto outline-none"
                 >
-                  {results.map((r, i) => (
-                    <div
-                      key={r.id}
-                      onClick={() => {
-                        setCurrentPartId(r.id);
-                        setStage(3);
-                      }}
-                      className={`flex cursor-pointer items-baseline justify-between gap-2 rounded-md border px-3 py-1.5 text-[13px] ${
-                        i === resSel ? 'border-primary bg-primary/10' : 'border-border/30 hover:border-primary/40'
-                      }`}
-                    >
-                      <span className="min-w-0 truncate">
-                        <span className="font-mono text-primary/90">{r.code}</span>
-                        <span className="ml-2">{r.name}</span>
-                      </span>
-                      <span className="shrink-0 font-mono text-[12px] tabular-nums">
-                        <span className={Number(r.availableTotal) > 0 ? 'text-[#22D88F]' : 'text-destructive'}>{Number(r.availableTotal)}</span>
-                      </span>
+                  {/* S2-2：F1 搜尋窗同款群組樹卡片（主件金邊+替代縮排、正/副廠徽章、庫存三數）*/}
+                  {flatRows.map((row, i) => {
+                    const m = row.member;
+                    const isAlt = row.kind === 'alt';
+                    return (
+                      <div
+                        key={`${m.id}-${i}`}
+                        data-f2res={i}
+                        onClick={() => {
+                          setCurrentPartId(m.id);
+                          setStage(3);
+                        }}
+                        className={`relative flex cursor-pointer items-stretch gap-2.5 rounded-xl border-2 px-3 py-2 ${isAlt ? 'ml-5' : ''} ${
+                          i === resSel
+                            ? 'border-primary bg-primary/10'
+                            : isAlt
+                              ? 'border-border/35 bg-secondary/30 hover:border-primary/45'
+                              : 'border-primary/30 bg-secondary/40 hover:border-primary/55'
+                        } ${!m.isActive ? 'opacity-55' : ''}`}
+                      >
+                        {!isAlt && (
+                          <span
+                            aria-hidden
+                            className={`pointer-events-none absolute bottom-2 left-0 top-2 rounded-r ${i === resSel ? 'w-1.5 bg-primary' : 'w-1 bg-primary/55'}`}
+                          />
+                        )}
+                        <div className="min-w-0 flex-1 space-y-0.5">
+                          <div className="flex items-baseline justify-between gap-2">
+                            <span className={`min-w-0 break-all font-mono font-semibold ${isAlt ? 'text-[13px] text-primary/80' : 'text-[13.5px] text-primary/95'}`}>
+                              {m.code}
+                            </span>
+                            <span className="flex shrink-0 items-center gap-1">
+                              {isAlt ? (
+                                <span className="rounded border border-border/55 bg-secondary/25 px-1.5 py-px text-[10px] text-muted-foreground">替代</span>
+                              ) : null}
+                              <span
+                                className={`rounded border px-1.5 py-px text-[10px] ${
+                                  m.isOem ? 'border-primary/55 bg-primary/15 text-primary' : 'border-border/50 bg-muted/30 text-muted-foreground/85'
+                                }`}
+                              >
+                                {m.isOem ? '正廠' : '副廠'}
+                              </span>
+                              {!m.isActive ? (
+                                <span className="rounded border border-destructive/40 bg-destructive/10 px-1.5 py-px text-[10px] text-destructive">停用</span>
+                              ) : null}
+                            </span>
+                          </div>
+                          <div className="break-words text-[13px] font-medium leading-snug text-foreground">{m.name}</div>
+                          <div className="text-[11px] text-muted-foreground">
+                            副廠 <span className="font-mono text-foreground/85">{m.secCode ?? '—'}</span>
+                            <span className="mx-1.5 text-muted-foreground/35">·</span>
+                            廠牌 <span className="text-foreground/85">{m.brandCode ?? m.brandName ?? '—'}</span>
+                          </div>
+                        </div>
+                        <StockTriple onHand={m.onHandTotal} available={m.availableTotal} />
+                      </div>
+                    );
+                  })}
+                  {flatRows.length === 0 ? (
+                    <div className="py-6 text-center text-[12px] text-muted-foreground">
+                      {searching ? '查詢中…' : searchRes && searchRes.total === 0 ? '查無符合料號——換個關鍵字' : '左欄輸入條件、Enter 查詢'}
                     </div>
-                  ))}
-                  {results.length === 0 ? <div className="py-6 text-center text-[12px] text-muted-foreground">左欄輸入條件、Enter 查詢</div> : null}
+                  ) : null}
                 </div>
               </div>
             )}
@@ -1164,6 +1361,26 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
   );
 }
 
+/** 結果卡右側庫存三數：總數量 / 可出量 / 不可出（＝總 − 可出；F1 StockCell 縮小版）*/
+function StockTriple({ onHand, available }: { onHand: string; available: string }) {
+  const total = Number(onHand) || 0;
+  const avail = Number(available) || 0;
+  const blocked = Math.max(0, total - avail);
+  const Line = ({ label, value, cls, strong }: { label: string; value: number; cls: string; strong?: boolean }) => (
+    <div className="flex items-baseline justify-between gap-1.5">
+      <span className="text-[9.5px] uppercase tracking-[0.08em] text-muted-foreground/60">{label}</span>
+      <span className={`font-mono tabular-nums ${strong ? 'text-[13.5px] font-semibold' : 'text-[11.5px]'} ${cls}`}>{value.toLocaleString()}</span>
+    </div>
+  );
+  return (
+    <div className="flex w-[86px] shrink-0 flex-col justify-center gap-0.5 self-center border-l border-border/30 pl-2.5">
+      <Line label="總數量" value={total} cls="text-foreground/80" />
+      <Line label="可出量" value={avail} strong cls={avail > 0 ? 'text-[#22D88F]' : 'text-destructive'} />
+      <Line label="不可出" value={blocked} cls={blocked > 0 ? 'text-amber-400' : 'text-muted-foreground/45'} />
+    </div>
+  );
+}
+
 function Kbd({ children }: { children: React.ReactNode }) {
   return (
     <kbd className="rounded border border-border/45 bg-background/45 px-1.5 py-px font-mono text-[11px] text-muted-foreground/90">
@@ -1225,8 +1442,9 @@ function QuoteHelpOverlay({ onClose }: { onClose: () => void }) {
             <Row k="F4" desc="注音首碼搜尋（例 we→太古）" />
             <Row k="Alt+N" desc="散客／新客戶、先跳過" />
             <Group title="② 搜尋" />
-            <Row k="Enter" desc="查詢（結果在右欄）" />
-            <Row k="↑↓ / Enter" desc="右欄選結果 → 進檢查庫存" />
+            <Row k="[ ]" desc="左右循環切三查法（料號／品名+車型／進階）" />
+            <Row k="Enter" desc="查詢；下拉建議開著時＝選定建議" />
+            <Row k="↑↓ / Enter" desc="右欄群組樹選結果 → 進檢查庫存" />
             <Group title="③ 檢查庫存" />
             <Row k="↑↓" desc="選通用零件（右欄庫存即時跟隨）" />
             <Row k="Space" desc="加入／移除報價清單" />
