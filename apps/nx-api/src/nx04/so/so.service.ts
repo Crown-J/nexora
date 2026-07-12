@@ -1064,10 +1064,11 @@ export class SoService {
         dto.qty !== undefined ||
         dto.unitPriceSnapshot !== undefined ||
         dto.locationId !== undefined ||
-        dto.actualPartId !== undefined // 偉盟設計檢視 P1-5：出貨後替代料號亦鎖
+        dto.actualPartId !== undefined || // 偉盟設計檢視 P1-5：出貨後替代料號亦鎖
+        dto.transferSourceType !== undefined // 調貨詢價軌 2026-07-12：出貨後補貨來源亦鎖
       ) {
         throw new ForbiddenException(
-          'SO is SHIPPED (配送中)：qty / unitPrice / locationId / actualPartId 已鎖、只允許改 remark',
+          'SO is SHIPPED (配送中)：qty / unitPrice / locationId / actualPartId / transferSourceType 已鎖、只允許改 remark',
         );
       }
       // 純改 remark → 跳過 assertSoItemsEditable、允許更新
@@ -1082,6 +1083,21 @@ export class SoService {
         select: { id: true },
       });
       if (!loc) throw new BadRequestException('locationId must belong to item warehouse');
+    }
+    // 調貨詢價軌 2026-07-12：補貨來源改標（S/T/G/B）+ transferStatus 連動（同 create）
+    // 補貨中（transferStatus='I'、已開補貨單）禁改——tiId/stId/coId 綁定都走 I、一鎖全蓋
+    let transferData: { transferSourceType: string; transferStatus: string } | undefined;
+    if (dto.transferSourceType !== undefined) {
+      const t = dto.transferSourceType.trim().toUpperCase();
+      if (!['S', 'T', 'G', 'B'].includes(t)) {
+        throw new BadRequestException('transferSourceType must be S/T/G/B');
+      }
+      if (existing.transferStatus === 'I') {
+        throw new BadRequestException('此明細已在補貨中（已開補貨單）、不可改補貨來源');
+      }
+      if (t !== existing.transferSourceType) {
+        transferData = { transferSourceType: t, transferStatus: deriveTransferStatus(t) };
+      }
     }
     // 偉盟設計檢視 P1-5：實際出貨料號（替代出貨）— 驗證 + code 快照；null/空字串=清除（照下單料號出）
     let actualPartData: { actualPartId: string | null; actualPartNo: string | null } | undefined;
@@ -1128,6 +1144,8 @@ export class SoService {
           lineAmount: this.lineAmount(qty, unit),
           // 偉盟設計檢視 P1-5：實際出貨料號（替代出貨）
           ...(actualPartData !== undefined ? actualPartData : {}),
+          // 調貨詢價軌 2026-07-12：補貨來源改標 + transferStatus 連動
+          ...(transferData !== undefined ? transferData : {}),
           ...(dto.remark !== undefined ? { remark: dto.remark?.trim() || null } : {}),
           // F1-E 2026-06-09：改價低於 cost/minPrice 時的理由 patch
           ...(dto.belowMinReason !== undefined

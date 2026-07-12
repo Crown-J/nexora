@@ -43,7 +43,9 @@ import {
 import { getQuotePriceIntel } from '@data/endpoints/nx04/quote/api/quote';
 import { lookupStockBalance } from '@data/endpoints/nx03/stock-balance/api/lookup';
 import type { OpenQuoteLine, So, SoItem } from '@data/types/nx04/so';
-import { SO_STATUS_LABEL, type SoStatus } from '@data/types/nx04/so';
+import { SO_STATUS_LABEL, TRANSFER_SOURCE_LABEL, type SoStatus } from '@data/types/nx04/so';
+
+import { combinedStatusLabel } from '../utils';
 
 import { CustomerPicker, type PickedCustomer } from '../../quote/ui/CustomerPicker';
 import { PartPicker, type PickedPart } from '../../quote/ui/PartPicker';
@@ -698,6 +700,12 @@ function SoInlineItemRow({
   const [pickerKey, setPickerKey] = useState(0);
   // 加行缺貨軟提示（執行長 2026-07-11）：選料後查該料在出貨倉的可用量；null=未查/查不到。不擋單、只提醒要標補貨來源。
   const [availInWh, setAvailInWh] = useState<number | null>(null);
+  // 調貨詢價軌 2026-07-12：補貨來源標記（S 本倉/T 自倉調撥/G 同行調貨/B 客訂）。
+  // 缺貨時單價 Enter 先跳來源選擇再存；補貨中（transferStatus='I'）鎖定不可改。
+  const [srcType, setSrcType] = useState(editItem ? editItem.transferSourceType : 'S');
+  const [srcTouched, setSrcTouched] = useState(false);
+  const srcLocked = isEdit && editItem!.transferStatus === 'I';
+  const srcRef = useRef<HTMLSelectElement>(null);
   // 偉盟設計檢視 P1-5：替代出貨（編輯模式限定）。undefined=未動、null=清除、string=新選料 id
   const [actualTouch, setActualTouch] = useState<string | null | undefined>(undefined);
   const [actualKey, setActualKey] = useState(0);
@@ -737,6 +745,8 @@ function SoInlineItemRow({
     setQty('1');
     setPrice('');
     setAvailInWh(null);
+    setSrcType('S');
+    setSrcTouched(false);
     setPickerKey((k) => k + 1);
     setTimeout(() => partRef.current?.focus(), 0);
   };
@@ -754,6 +764,8 @@ function SoInlineItemRow({
           unitPriceSnapshot: Number(price),
           // 偉盟設計檢視 P1-5：替代出貨有動才送（null=清除）
           ...(actualTouch !== undefined ? { actualPartId: actualTouch } : {}),
+          // 調貨詢價軌 2026-07-12：補貨來源有改才送（後端連動 transferStatus）
+          ...(!srcLocked && srcType !== editItem.transferSourceType ? { transferSourceType: srcType } : {}),
         });
         await onSaved();
         onExit();
@@ -763,6 +775,8 @@ function SoInlineItemRow({
           warehouseId: so.warehouseId,
           qty: Number(qty),
           unitPriceSnapshot: Number(price),
+          // 調貨詢價軌 2026-07-12：補貨來源標記（預設 S、後端 default 同）
+          ...(srcType !== 'S' ? { transferSourceType: srcType } : {}),
         });
         await onSaved();
         reset();
@@ -827,7 +841,7 @@ function SoInlineItemRow({
               <div className="flex items-center gap-1 text-[11px] text-amber-600">
                 <AlertTriangle className="size-3.5 shrink-0" aria-hidden />
                 <span>
-                  本倉可用 {availInWh}、下單 {Number(qty)}、不足 {Number(qty) - (availInWh ?? 0)}——記得標補貨來源（同行調貨／自倉調撥）
+                  本倉可用 {availInWh}、下單 {Number(qty)}、不足 {Number(qty) - (availInWh ?? 0)}——單價按 Enter 後選補貨來源（同行調貨／自倉調撥）
                 </span>
               </div>
             ) : null}
@@ -856,7 +870,14 @@ function SoInlineItemRow({
           value={price}
           onFocus={selectAll}
           onChange={(e) => setPrice(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void commit(); } }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              // 缺貨且來源還沒動過 → 先跳補貨來源選擇（↑↓ 選、Enter 存）、不直接存
+              if (short && !srcTouched) srcRef.current?.focus();
+              else void commit();
+            }
+          }}
           disabled={busy}
           className={`${cell} text-right font-medium`}
         />
@@ -864,6 +885,33 @@ function SoInlineItemRow({
       <td className="px-3 py-1 text-right tabular-nums text-muted-foreground">{fmt(lineSub)}</td>
       <td className="px-3 py-1 text-right tabular-nums text-muted-foreground">{fmt(lineTax)}</td>
       <td className="px-3 py-1 text-right tabular-nums text-muted-foreground">{fmt(lineSub + lineTax)}</td>
+      <td className="px-2 py-1">
+        {/* 調貨詢價軌 2026-07-12：補貨來源（缺貨時單價 Enter 自動跳來；補貨中鎖定） */}
+        <select
+          ref={srcRef}
+          value={srcType}
+          disabled={busy || srcLocked}
+          title={srcLocked ? '補貨中（已開補貨單）、不可改補貨來源' : '補貨來源'}
+          onChange={(e) => {
+            setSrcType(e.target.value);
+            setSrcTouched(true);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              setSrcTouched(true);
+              void commit();
+            }
+          }}
+          className={`w-full rounded border bg-background px-1 py-1 text-xs ${
+            short && srcType === 'S' ? 'border-amber-500 text-amber-700' : 'border-primary/40'
+          } disabled:opacity-50`}
+        >
+          {Object.entries(TRANSFER_SOURCE_LABEL).map(([v, label]) => (
+            <option key={v} value={v}>{label}</option>
+          ))}
+        </select>
+      </td>
       <td className="px-2 py-1 text-center text-[11px] text-muted-foreground">Enter↵ / Esc</td>
     </tr>
   );
@@ -898,7 +946,7 @@ function SoItemsTable({
   renderEditRow?: (it: SoItem) => React.ReactNode;
 }) {
   const rate = taxRate;
-  const colCount = editable ? 10 : 9;
+  const colCount = editable ? 11 : 10;
   const scrollRef = useRef<HTMLDivElement>(null);
   const [fitRows, setFitRows] = useState(12);
   useEffect(() => {
@@ -926,6 +974,7 @@ function SoItemsTable({
             <th className="px-3 py-2 text-right">小計</th>
             <th className="px-3 py-2 text-right">稅額</th>
             <th className="px-3 py-2 text-right">總價</th>
+            <th className="px-3 py-2 text-left">狀態</th>
             {editable ? <th className="px-3 py-2"></th> : null}
           </tr>
         </thead>
@@ -967,6 +1016,22 @@ function SoItemsTable({
                 <td className="px-3 py-2 text-right tabular-nums">{fmt(lineSub)}</td>
                 <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">{fmt(lineTax)}</td>
                 <td className="px-3 py-2 text-right font-medium tabular-nums">{fmt(lineTotal)}</td>
+                {/* 調貨詢價軌 2026-07-12：雙段狀態徽章（等貨/補貨中/等撿貨…）+ 非本倉來源標示 */}
+                <td className="px-3 py-2">
+                  {(() => {
+                    const st = combinedStatusLabel(it.transferStatus, it.fulfillStatus);
+                    return (
+                      <>
+                        <span className={`rounded px-1.5 py-0.5 text-[11px] ${st.badgeClass}`}>{st.label}</span>
+                        {it.transferSourceType !== 'S' ? (
+                          <span className="ml-1 text-[10px] text-muted-foreground">
+                            {TRANSFER_SOURCE_LABEL[it.transferSourceType] ?? it.transferSourceType}
+                          </span>
+                        ) : null}
+                      </>
+                    );
+                  })()}
+                </td>
                 {editable ? (
                   <td className="px-3 py-2 text-right">
                     <button
@@ -999,6 +1064,7 @@ function SoItemsTable({
             <td className="px-3 py-2 text-right font-medium tabular-nums">{fmt(subtotal)}</td>
             <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">{fmt(taxAmount)}</td>
             <td className="px-3 py-2 text-right text-base font-semibold tabular-nums">{fmt(totalAmount)}</td>
+            <td />
             {editable ? <td /> : null}
           </tr>
         </tfoot>

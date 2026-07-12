@@ -188,6 +188,8 @@ export interface PatchSoItemPayload {
   remark?: string;
   /** 偉盟設計檢視 P1-5：實際出貨料號（null=清除、照下單料號出） */
   actualPartId?: string | null;
+  /** 調貨詢價軌 2026-07-12：補貨來源改標（S/T/G/B）；補貨中禁改（後端擋） */
+  transferSourceType?: string;
 }
 
 /// 拉報價 picker 回傳行（GET /nx04/so/quote-lines/open）

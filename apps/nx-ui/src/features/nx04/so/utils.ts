@@ -1,4 +1,4 @@
-// apps/nx-ui/src/features/sale/so/utils.ts
+// apps/nx-ui/src/features/nx04/so/utils.ts
 // NX04-M3 C2：雙段狀態組合顯示（給業務員看得懂的中文標籤）
 //
 // 規則來自 Alex M3 §A C2：

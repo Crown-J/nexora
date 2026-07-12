@@ -206,6 +206,13 @@ export class PatchSoItemDto {
   @MaxLength(15)
   actualPartId?: string | null;
 
+  /// 補貨來源改標（S/T/G/B）。調貨詢價軌 2026-07-12：SO UI 補標入口、
+  /// 服務層連動 transferStatus（同 create）；補貨中（transferStatus='I'）禁改
+  @IsOptional()
+  @IsString()
+  @MaxLength(1)
+  transferSourceType?: string;
+
   @IsOptional()
   @IsString()
   @MaxLength(200)
