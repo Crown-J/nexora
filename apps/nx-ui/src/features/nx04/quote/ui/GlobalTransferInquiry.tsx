@@ -15,6 +15,7 @@ import type { InquiryRecord } from '@data/types/nx04/record';
 import { FocusLockedDialog } from '@design/primitives/focus-locked-dialog';
 
 import {
+  addTransferItems,
   clearTransferItems,
   listTransferItems,
   removeTransferItem,
@@ -30,6 +31,8 @@ type PartInquirySummary = { total: number; recs: InquiryRecord[] };
 
 export function GlobalTransferInquiry() {
   const [open, setOpen] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const noticeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // F5 toggle（capture＋preventDefault：攔瀏覽器整頁重新整理）
   useEffect(() => {
@@ -44,8 +47,36 @@ export function GlobalTransferInquiry() {
     return () => document.removeEventListener('keydown', h, true);
   }, []);
 
-  if (!open) return null;
-  return <TransferInquiryDialog onClose={() => setOpen(false)} />;
+  // F1 主視窗 Alt+D 發 nx-transfer-add（design 層不 import nx04 的解耦範式）→ 這裡入清單
+  useEffect(() => {
+    const h = (e: Event) => {
+      const items = (e as CustomEvent<{ items?: Omit<TransferInquiryItem, 'addedAt'>[] }>).detail?.items;
+      if (!items?.length) return;
+      const added = addTransferItems(items);
+      const total = listTransferItems().length;
+      setNotice(added > 0 ? `已加入調貨詢價清單（${added} 顆、清單共 ${total} 顆）——F5 開清單` : '已在調貨詢價清單——F5 開清單');
+      if (noticeTimerRef.current) clearTimeout(noticeTimerRef.current);
+      noticeTimerRef.current = setTimeout(() => setNotice(null), 2600);
+    };
+    window.addEventListener('nx-transfer-add', h);
+    return () => {
+      window.removeEventListener('nx-transfer-add', h);
+      if (noticeTimerRef.current) clearTimeout(noticeTimerRef.current);
+    };
+  }, []);
+
+  return (
+    <>
+      {/* Alt+D 回饋 chip（視窗沒開也看得到有加進去）*/}
+      {notice ? (
+        <div className="fixed bottom-6 right-6 z-[1200] rounded-lg border border-primary/50 bg-popover px-4 py-2 text-[13px] text-foreground shadow-[0_10px_30px_rgba(0,0,0,0.45)] animate-in fade-in slide-in-from-bottom-2 duration-200">
+          <span className="mr-1.5 inline-block size-1.5 rounded-full bg-primary align-middle shadow-[0_0_8px_#02EDAB]" />
+          {notice}
+        </div>
+      ) : null}
+      {open ? <TransferInquiryDialog onClose={() => setOpen(false)} /> : null}
+    </>
+  );
 }
 
 function TransferInquiryDialog({ onClose }: { onClose: () => void }) {

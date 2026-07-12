@@ -171,6 +171,15 @@ export function GlobalPartQuickSearch() {
           entryContext={entryContext}
           onBack={backToSearch}
           onClose={closeAll}
+          // Alt+D 加入調貨詢價清單（調貨詢價軌 2026-07-12 接通、執行長拍板 a 案）：
+          // design 層不 import nx04、dispatch 事件由 GlobalTransferInquiry（F5）接
+          onTransferMarked={(rows) =>
+            window.dispatchEvent(
+              new CustomEvent('nx-transfer-add', {
+                detail: { items: rows.map((r) => ({ partId: r.id, code: r.code, name: r.name })) },
+              }),
+            )
+          }
         />
       )}
     </>

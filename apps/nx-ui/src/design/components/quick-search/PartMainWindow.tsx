@@ -103,8 +103,9 @@ type Props = {
   compatExtras?: Record<string, { suggested: string | null }>;
   /** Alt+Q 報價環節（F2 報價流）：帶 Space 標記列、無標記帶目前選中列 */
   onQuoteMarked?: (rows: PartCompatMemberDto[]) => void;
-  /** Alt+D 加入調貨清單（F2 報價流）：帶 Space 標記列、無標記帶目前選中列 */
-  onTransferMarked?: (rows: PartCompatMemberDto[]) => void;
+  /** Alt+D 加入調貨清單：帶 Space 標記列、無標記帶目前選中列；
+   *  右欄空（本料不屬任何通用件群組）退回主件本身——F1 查到缺貨料直接記調貨（2026-07-12 接通）*/
+  onTransferMarked?: (rows: Array<Pick<PartCompatMemberDto, 'id' | 'code' | 'name'>>) => void;
   /** Alt+1/2/3 價格細節窗（F2 報價流：1=ABCD 價 2=該客戶紀錄 3=其他客戶紀錄）；ctx＝目前預覽件 */
   onAltDigit?: (n: 1 | 2 | 3, ctx: { partId: string; code: string }) => void;
 };
@@ -585,11 +586,12 @@ export function PartMainWindow({
           const rows = markedOrCurrent();
           if (rows.length > 0) onQuoteMarked(rows);
         } else if (k === 'd' && onTransferMarked) {
-          // Alt+D 加入調貨清單（F2 報價流）
+          // Alt+D 加入調貨清單；右欄空（無通用件群組）退回主件本身
           e.preventDefault();
           e.stopPropagation();
           const rows = markedOrCurrent();
           if (rows.length > 0) onTransferMarked(rows);
+          else if (detail) onTransferMarked([{ id: effectivePartId, code: detail.code, name: detail.name }]);
         } else if ((k === '1' || k === '2' || k === '3') && onAltDigit) {
           // Alt+1/2/3 價格細節窗（F2 報價流：ABCD／該客戶紀錄／其他客戶紀錄）
           e.preventDefault();
