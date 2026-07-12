@@ -145,11 +145,16 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
   const [stockWarn, setStockWarn] = useState<string[]>([]);
   // S4-2 C 欄五列屬性面板
   const [propSel, setPropSel] = useState(0);
-  const [propOpen, setPropOpen] = useState<null | 'abcd' | 'history' | 'wh'>(null);
+  const [propOpen, setPropOpen] = useState<null | 'abcd' | 'wh'>(null);
   const [whSel, setWhSel] = useState(0);
   const [editingProp, setEditingProp] = useState<null | 'qty' | 'price'>(null);
   const [abcd, setAbcd] = useState<PartDetailDto | null>(null); // 展開 ABCD 價 lazy 載
-  const [history, setHistory] = useState<QuotePriceHistoryRow[] | null>(null); // 展開歷史 lazy 載
+  const [history, setHistory] = useState<QuotePriceHistoryRow[] | null>(null); // 聚焦行即載（前價顯示+彈窗共用）
+  // 回饋 4-2：歷史改彈出視窗（↑↓ 選、Enter 帶價入報價欄）
+  const [histModalOpen, setHistModalOpen] = useState(false);
+  const [histSel, setHistSel] = useState(0);
+  // 回饋 4-1：主（items）／副（props）容器誰在操作——非操作側變暗+操作側徽章
+  const [quotePane, setQuotePane] = useState<'items' | 'props'>('items');
   const [msgOpts, setMsgOpts] = useState<MsgOpts>(() => {
     try {
       const raw = typeof window !== 'undefined' ? localStorage.getItem(MSG_OPTS_KEY) : null;
@@ -184,6 +189,7 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
   const linesListRef = useRef<HTMLDivElement>(null);
   const propPanelRef = useRef<HTMLDivElement>(null);
   const propEditRef = useRef<HTMLInputElement>(null);
+  const histListRef = useRef<HTMLDivElement>(null);
   const msgRef = useRef<HTMLTextAreaElement>(null);
   const confirmRef = useRef<HTMLButtonElement>(null);
   const reqRef = useRef(0);
@@ -596,42 +602,53 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
   // ── S4-2 屬性面板（C 欄五列、跟著 B 欄聚焦卡片）──
   const curLine = lines[lineSel] ?? null;
   const curLinePartId = curLine?.partId ?? null;
-  // 換聚焦項目 / 階段 → 面板收合回第一列
+  // 換聚焦項目 / 階段 → 面板收合回第一列、操作側回主容器
   useEffect(() => {
     setPropSel(0);
     setPropOpen(null);
     setEditingProp(null);
+    setHistModalOpen(false);
+    setQuotePane('items');
   }, [lineSel, stage]);
-  // 展開 ABCD 價（屬性 1）/ 歷史列表（屬性 2）lazy 載
+  // 展開 ABCD 價（屬性 1）lazy 載
   useEffect(() => {
-    if (stage !== 4 || !curLinePartId) return;
-    if (propOpen === 'abcd') {
-      let alive = true;
-      setAbcd(null);
-      void getPartDetail(curLinePartId)
-        .then((d) => alive && setAbcd(d))
-        .catch(() => alive && setAbcd(null));
-      return () => {
-        alive = false;
-      };
-    }
-    if (propOpen === 'history' && customer) {
-      let alive = true;
+    if (stage !== 4 || !curLinePartId || propOpen !== 'abcd') return;
+    let alive = true;
+    setAbcd(null);
+    void getPartDetail(curLinePartId)
+      .then((d) => alive && setAbcd(d))
+      .catch(() => alive && setAbcd(null));
+    return () => {
+      alive = false;
+    };
+  }, [propOpen, curLinePartId, stage]);
+  // 回饋 4-2：歷史改聚焦行即載（屬性 2 顯示「該客戶前價」、Enter 彈窗看全列表）
+  useEffect(() => {
+    if (stage !== 4 || !curLinePartId || !customer) {
       setHistory(null);
-      void getQuotePriceHistory(customer.id, curLinePartId, 12)
-        .then((r) => alive && setHistory(r.rows))
-        .catch(() => alive && setHistory([]));
-      return () => {
-        alive = false;
-      };
+      return;
     }
-  }, [propOpen, curLinePartId, customer, stage]);
+    let alive = true;
+    setHistory(null);
+    void getQuotePriceHistory(customer.id, curLinePartId, 12)
+      .then((r) => alive && setHistory(r.rows))
+      .catch(() => alive && setHistory([]));
+    return () => {
+      alive = false;
+    };
+  }, [curLinePartId, customer, stage]);
+  // 該客戶前價＝歷史裡 scope=CUSTOMER 的最近一筆（報價/成交看哪個近就哪個；rows 已日期倒序）
+  const custPrev = history?.find((h) => h.scope === 'CUSTOMER') ?? null;
   // 出貨倉庫選項（屬性 3）＝該料有可出量的倉（stock 已跟聚焦行載入）
   const whOptions = useMemo(() => (stock?.warehouses ?? []).filter((w) => Number(w.available) > 0), [stock]);
   // 聚焦項目卡捲入可視
   useEffect(() => {
     linesListRef.current?.querySelector(`[data-f2line="${lineSel}"]`)?.scrollIntoView({ block: 'nearest' });
   }, [lineSel]);
+  // 歷史彈窗選中列捲入可視
+  useEffect(() => {
+    histListRef.current?.querySelector(`[data-f2hist="${histSel}"]`)?.scrollIntoView({ block: 'nearest' });
+  }, [histSel]);
   const patchLine = useCallback((idx: number, patch: Partial<QuoteLine>) => {
     setLines((p) => p.map((x, xi) => (xi === idx ? { ...x, ...patch } : x)));
   }, []);
@@ -1125,8 +1142,23 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
             )}
 
             {stage === 4 && (
-              <div className="flex min-h-0 flex-1 flex-col gap-3">
-                <div className={secHead}>報價清單（可跨搜尋輪累加）</div>
+              /* 回饋 4-1：操作側指示——B 聚焦時 C 變暗、反之亦然（onFocus 冒泡自動追）*/
+              <div
+                onFocus={() => setQuotePane('items')}
+                className={`flex min-h-0 flex-1 flex-col gap-3 transition-opacity duration-150 ${
+                  quotePane === 'props' ? 'opacity-45' : ''
+                }`}
+              >
+                <div className={secHead}>
+                  報價清單（可跨搜尋輪累加）
+                  {quotePane === 'items' ? (
+                    <span className="ml-2 rounded border border-primary/50 bg-primary/12 px-1.5 py-px text-[10px] normal-case tracking-normal text-primary">
+                      操作中
+                    </span>
+                  ) : (
+                    <span className="ml-2 text-[10px] normal-case tracking-normal text-muted-foreground/60">Esc 回這裡</span>
+                  )}
+                </div>
                 {stockWarn.length > 0 && (
                   <div className="rounded border border-amber-500/50 bg-amber-500/10 px-3 py-2 text-[12px] text-amber-600">
                     ⚠️ {stockWarn.join('、')} 全公司無庫存、近一個月也沒問過同行——報了可能交不出來
@@ -1542,10 +1574,22 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
             )}
 
             {stage === 4 && (
-              <div className="flex min-h-0 flex-1 flex-col space-y-2">
+              <div
+                onFocus={() => setQuotePane('props')}
+                className={`flex min-h-0 flex-1 flex-col space-y-2 transition-opacity duration-150 ${
+                  quotePane === 'items' ? 'opacity-45' : ''
+                }`}
+              >
                 <div className={secHead}>
                   報價屬性
                   {curLine ? <span className="ml-2 font-mono normal-case tracking-normal text-primary/80">{curLine.code}</span> : null}
+                  {quotePane === 'props' ? (
+                    <span className="ml-2 rounded border border-primary/50 bg-primary/12 px-1.5 py-px text-[10px] normal-case tracking-normal text-primary">
+                      操作中
+                    </span>
+                  ) : (
+                    <span className="ml-2 text-[10px] normal-case tracking-normal text-muted-foreground/60">Enter 進來</span>
+                  )}
                 </div>
                 {!curLine ? (
                   <div className="text-[12px] text-muted-foreground">左欄選一個報價項目、Enter 進來調屬性</div>
@@ -1594,7 +1638,7 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                         return;
                       }
                       if (propOpen) {
-                        // abcd / history 展開中：Enter 或 Esc 收合
+                        // abcd 展開中：Enter 或 Esc 收合
                         if (e.key === 'Enter' || e.key === 'Escape') {
                           e.preventDefault();
                           e.stopPropagation();
@@ -1611,8 +1655,11 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                       } else if (e.key === 'Enter') {
                         e.preventDefault();
                         if (propSel === 0) setPropOpen('abcd');
-                        else if (propSel === 1) setPropOpen('history');
-                        else if (propSel === 2) {
+                        else if (propSel === 1) {
+                          // 回饋 4-2：歷史改彈出視窗（不向下擠版面）
+                          setHistSel(0);
+                          setHistModalOpen(true);
+                        } else if (propSel === 2) {
                           setWhSel(0);
                           setPropOpen('wh');
                         } else {
@@ -1639,7 +1686,13 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                             ? `NT$ ${formatNt(Number(curLine.suggested))}`
                             : '—'
                           : i === 1
-                            ? 'Enter 展開'
+                            ? history === null
+                              ? customer
+                                ? '…'
+                                : '—（散客）'
+                              : custPrev
+                                ? `${custPrev.kind === 'SALE' ? '成交' : '報價'} NT$ ${formatNt(Number(custPrev.amount))}（${custPrev.date.slice(5, 10)}）`
+                                : '—（無前價）'
                             : i === 2
                               ? curLine.transfer
                                 ? '調貨詢價（F5）'
@@ -1695,38 +1748,6 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                                   </div>
                                 );
                               })}
-                            </div>
-                          ) : null}
-                          {i === 1 && propOpen === 'history' ? (
-                            <div className="mt-1.5 max-h-56 space-y-1 overflow-auto px-1">
-                              {history === null ? (
-                                <div className="py-2 text-center text-[11px] text-muted-foreground">載入中…</div>
-                              ) : history.length === 0 ? (
-                                <div className="py-2 text-center text-[11px] text-muted-foreground">
-                                  {customer ? '沒有歷史紀錄' : '散客——不帶歷史（先補客戶）'}
-                                </div>
-                              ) : (
-                                history.map((h, hi) => (
-                                  <div
-                                    key={hi}
-                                    className="flex items-baseline gap-2 rounded border border-border/25 bg-background/30 px-2 py-1 text-[11.5px]"
-                                  >
-                                    <span className="shrink-0 font-mono text-muted-foreground/80">{h.date.slice(0, 10)}</span>
-                                    {/* 顏色區分：成交綠 / 報價金 */}
-                                    <span className={`shrink-0 font-medium ${h.kind === 'SALE' ? 'text-[#22D88F]' : 'text-primary'}`}>
-                                      {h.kind === 'SALE' ? '成交' : '報價'}
-                                    </span>
-                                    <span className="shrink-0 text-muted-foreground/70">{h.scope === 'CUSTOMER' ? '該客戶' : '同級距'}</span>
-                                    <span className="min-w-0 flex-1 truncate text-muted-foreground/60">
-                                      {h.scope === 'GRADE' ? (h.customerName ?? h.customerCode ?? '') : ''}
-                                    </span>
-                                    <span className="shrink-0 font-mono tabular-nums">
-                                      {Number(h.qty ?? 1) > 1 ? `×${Number(h.qty)} ` : ''}
-                                      <span className={h.kind === 'SALE' ? 'text-[#22D88F]' : 'text-primary'}>NT$ {formatNt(Number(h.amount))}</span>
-                                    </span>
-                                  </div>
-                                ))
-                              )}
                             </div>
                           ) : null}
                           {i === 2 && propOpen === 'wh' ? (
@@ -1878,6 +1899,94 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
               </div>
             </div>
           </div>
+        ) : null}
+
+        {/* 回饋 4-2：報價/成交歷史彈窗——↑↓ 選、Enter 帶價入報價欄（續編出貨倉庫）、Esc 關 */}
+        {histModalOpen && curLine ? (
+          <FocusLockedDialog
+            open
+            onClose={() => setHistModalOpen(false)}
+            initialFocusRef={histListRef}
+            ariaLabel="報價/成交歷史"
+            backdropClassName="bg-black/55 backdrop-blur-[2px] animate-in fade-in duration-150"
+            dialogClassName="flex flex-col rounded-xl border border-border/60 bg-popover text-foreground shadow-[0_18px_50px_rgba(0,0,0,0.5),0_0_36px_-14px_rgba(232,160,32,0.25)] animate-in fade-in zoom-in-95 duration-150"
+            dialogStyle={{ width: 'min(640px, 92vw)', maxHeight: 'min(560px, 88vh)' }}
+          >
+            <>
+              <div className="flex items-center gap-2.5 border-b border-border/40 px-5 py-2.5">
+                <h3 className="text-sm font-bold tracking-wide">報價/成交歷史</h3>
+                <span className="font-mono text-[12px] text-primary/85">{curLine.code}</span>
+                <span className="text-[11px] text-muted-foreground/70">成交綠・報價金｜含該客戶與同級距</span>
+                <button
+                  type="button"
+                  onClick={() => setHistModalOpen(false)}
+                  className="ml-auto rounded-md border border-border/40 bg-background/40 p-1 text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
+                  aria-label="關閉"
+                >
+                  <X className="size-3.5" />
+                </button>
+              </div>
+              <div
+                ref={histListRef}
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  const rows = history ?? [];
+                  if (rows.length === 0) return;
+                  if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    setHistSel((i) => Math.min(rows.length - 1, i + 1));
+                  } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    setHistSel((i) => Math.max(0, i - 1));
+                  } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const h = rows[histSel];
+                    if (h) {
+                      // 帶該筆價格入報價欄 → 關窗 → 屬性跳到出貨倉庫續編
+                      patchLine(lineSel, { price: String(Number(h.amount)) });
+                      setHistModalOpen(false);
+                      setPropSel(2);
+                      setTimeout(() => propPanelRef.current?.focus(), 50);
+                    }
+                  }
+                }}
+                className="min-h-0 flex-1 space-y-1 overflow-auto px-4 py-3 outline-none"
+              >
+                {history === null ? (
+                  <div className="py-6 text-center text-[12px] text-muted-foreground">載入中…</div>
+                ) : history.length === 0 ? (
+                  <div className="py-6 text-center text-[12px] text-muted-foreground">沒有歷史紀錄</div>
+                ) : (
+                  history.map((h, hi) => (
+                    <div
+                      key={hi}
+                      data-f2hist={hi}
+                      onClick={() => setHistSel(hi)}
+                      className={`flex cursor-pointer items-baseline gap-2.5 rounded-lg border-2 px-3 py-1.5 text-[12.5px] ${
+                        hi === histSel ? 'border-primary bg-primary/10' : 'border-border/30 bg-secondary/25 hover:border-primary/40'
+                      }`}
+                    >
+                      <span className="shrink-0 font-mono text-muted-foreground/80">{h.date.slice(0, 10)}</span>
+                      <span className={`shrink-0 font-medium ${h.kind === 'SALE' ? 'text-[#22D88F]' : 'text-primary'}`}>
+                        {h.kind === 'SALE' ? '成交' : '報價'}
+                      </span>
+                      <span className="shrink-0 text-muted-foreground/70">{h.scope === 'CUSTOMER' ? '該客戶' : '同級距'}</span>
+                      <span className="min-w-0 flex-1 truncate text-muted-foreground/60">
+                        {h.scope === 'GRADE' ? (h.customerName ?? h.customerCode ?? '') : ''}
+                      </span>
+                      <span className="shrink-0 font-mono tabular-nums">
+                        {Number(h.qty ?? 1) > 1 ? `×${Number(h.qty)} ` : ''}
+                        <span className={h.kind === 'SALE' ? 'text-[#22D88F]' : 'text-primary'}>NT$ {formatNt(Number(h.amount))}</span>
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+              <div className="border-t border-border/35 bg-background/35 px-5 py-1.5 text-right text-[11px] text-muted-foreground/65">
+                <Kbd>↑↓</Kbd> 選　<Kbd>Enter</Kbd> 帶入報價、續編出貨倉庫　<Kbd>Esc</Kbd> 關閉
+              </div>
+            </>
+          </FocusLockedDialog>
         ) : null}
 
         {/* S3-2 圖片放大 Lightbox（Alt+P、F1 同款）*/}
