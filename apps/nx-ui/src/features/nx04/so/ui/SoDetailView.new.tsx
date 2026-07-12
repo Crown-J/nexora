@@ -13,6 +13,7 @@ import {
   ChevronsRight,
   Download,
   FileClock,
+  History,
   Pencil,
   Handshake,
   Plus,
@@ -49,6 +50,9 @@ import { combinedStatusLabel } from '../utils';
 
 import { CustomerPicker, type PickedCustomer } from '../../quote/ui/CustomerPicker';
 import { PartPicker, type PickedPart } from '../../quote/ui/PartPicker';
+// TRANSFER-INQ 8（2026-07-12）：SO「從報價紀錄拉入」回補（舊 C2b 在單據新殼改版時掉了）
+//   共用報價單同款 picker；紀錄掛調貨旗標 → 行自動標補貨來源 G（F2 決策最後一哩接上）
+import { QuoteRecordPickerDialog } from '../../quote/ui/QuoteRecordPickerDialog';
 // NX02-TI-SHELL 2026-07-11：同行調貨入口接回新殼（缺貨行群組建 TI、建完跳 TI 詳情）
 import { CreateTiFromSoModal } from './CreateTiFromSoModal';
 // W5-ISSUE-CHAIN Step 5 2026-07-11：問題回報孤兒按鈕復活（單據外殼改版時掉的掛載點）
@@ -103,6 +107,7 @@ export function SoDetailPanel({
   const [addMode, setAddMode] = useState(false);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [quotePickerOpen, setQuotePickerOpen] = useState(false);
+  const [recordPickerOpen, setRecordPickerOpen] = useState(false);
   const [selItem, setSelItem] = useState<string | null>(null);
 
   // 表頭可編欄位
@@ -168,7 +173,7 @@ export function SoDetailPanel({
   // 明細 ↑↓ 選列
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (quotePickerOpen) return;
+      if (quotePickerOpen || recordPickerOpen) return;
       const t = e.target as HTMLElement | null;
       if (t && ['INPUT', 'SELECT', 'TEXTAREA'].includes(t.tagName)) return;
       if (e.altKey || e.ctrlKey || e.metaKey) return;
@@ -187,7 +192,7 @@ export function SoDetailPanel({
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [so, selItem, quotePickerOpen]);
+  }, [so, selItem, quotePickerOpen, recordPickerOpen]);
 
   // 編輯明細 Alt 快捷
   useEffect(() => {
@@ -206,6 +211,7 @@ export function SoDetailPanel({
           setAddMode(true);
         },
         f: () => setQuotePickerOpen(true),
+        r: () => setRecordPickerOpen(true),
         e: () => {
           if (selItem) {
             setAddMode(false);
@@ -358,6 +364,8 @@ export function SoDetailPanel({
               <ToolbarButton icon={Save} letter="S" label="存檔" enabled={!busy} accent onClick={() => setMode('browse')} />
               <ToolbarButton icon={Plus} letter="A" label="新增項目" enabled={itemsEditable} pressed={addMode} onClick={() => { setEditingItemId(null); setAddMode(true); }} />
               <ToolbarButton icon={FileClock} letter="F" label="從報價" enabled={itemsEditable} onClick={() => setQuotePickerOpen(true)} />
+              {/* TRANSFER-INQ 8：從報價紀錄（F2 即時報價存的紀錄；調貨旗標行自動標 G） */}
+              <ToolbarButton icon={History} letter="R" label="從報價紀錄" enabled={itemsEditable} onClick={() => setRecordPickerOpen(true)} />
               <ToolbarButton icon={Pencil} letter="E" label="編輯項目" enabled={itemsEditable && !!selItem} pressed={!!editingItemId} onClick={() => { if (selItem) { setAddMode(false); setEditingItemId(selItem); } }} />
               <ToolbarButton icon={Trash2} letter="D" label="移除項目" enabled={itemsEditable && !!selItem} variant="danger" onClick={() => void removeSelectedItem()} />
               <ToolbarButton icon={X} letter="C" label="取消" enabled={!busy} onClick={() => setMode('browse')} />
@@ -460,6 +468,33 @@ export function SoDetailPanel({
                   qty: Number(l.remainQty) || Number(l.qty) || 1,
                   unitPriceSnapshot: Number(l.unitPrice) || 0,
                   quoteItemId: l.quoteItemId,
+                });
+              }
+              await reloadAll();
+            } catch (e) {
+              alert(e instanceof Error ? e.message : '帶入失敗');
+            }
+          }}
+        />
+      ) : null}
+
+      {/* TRANSFER-INQ 8：從報價紀錄拉入（共用報價單同款 picker）。
+          倉別跟紀錄走（F2 ④項目自選倉、無則 SO 表頭倉）；調貨旗標 → 補貨來源自動標 G。 */}
+      {recordPickerOpen ? (
+        <QuoteRecordPickerDialog
+          customerId={so.customerId}
+          customerName={so.customerName}
+          onClose={() => setRecordPickerOpen(false)}
+          onConfirm={async (recs) => {
+            setRecordPickerOpen(false);
+            try {
+              for (const r of recs) {
+                await addSoItem(so.id, {
+                  partId: r.partId,
+                  warehouseId: r.warehouseId ?? so.warehouseId,
+                  qty: Number(r.qty) || 1,
+                  unitPriceSnapshot: Number(r.unitPrice) || 0,
+                  ...(r.isTransfer ? { transferSourceType: 'G' } : {}),
                 });
               }
               await reloadAll();
