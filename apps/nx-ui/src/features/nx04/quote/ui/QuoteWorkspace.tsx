@@ -672,10 +672,14 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
         if (msgOpts.baseNo) parts.push(l.code);
         if (msgOpts.secCode && l.secCode) parts.push(l.secCode);
         const qtyPart = msgOpts.qtyAlways || Number(l.qty) > 1 ? `　數量 ${Number(l.qty)}` : '';
-        // 回饋 5-1：出貨倉庫（項目自選倉 → 調貨 → 客戶預設倉、都沒有就不顯示）
-        const whLabel = l.transfer ? '調貨' : (l.warehouseLabel ?? customer?.defaultWarehouseName ?? null);
-        const whPart = msgOpts.warehouse && whLabel ? `　出貨 ${whLabel}` : '';
-        return `${parts.filter(Boolean).join(' ')}${qtyPart}${whPart}　報價 NT$ ${formatNt(Number(l.price))}`.trim();
+        // 回饋 5-1（二修）：出貨倉庫放行尾括號、只帶倉名（例：(恆迎-新莊)）；項目自選倉 → 調貨 → 客戶預設倉
+        const whName = l.transfer
+          ? '調貨'
+          : l.warehouseLabel
+            ? (l.warehouseLabel.split(' ').slice(1).join(' ') || l.warehouseLabel) // 「Z00 恆迎-總倉」去倉碼留名
+            : (customer?.defaultWarehouseName ?? null);
+        const whPart = msgOpts.warehouse && whName ? ` (${whName})` : '';
+        return `${parts.filter(Boolean).join(' ')}${qtyPart}　報價 NT$ ${formatNt(Number(l.price))}${whPart}`.trim();
       });
       blocks.push([name, ...rows].join('\n'));
     }
@@ -1696,7 +1700,7 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                                 ? '…'
                                 : '—（散客）'
                               : custPrev
-                                ? `${custPrev.kind === 'SALE' ? '成交' : '報價'} NT$ ${formatNt(Number(custPrev.amount))}（${custPrev.date.slice(5, 10)}）`
+                                ? `${custPrev.kind === 'SALE' ? '成交' : '報價'} NT$ ${formatNt(Number(custPrev.amount))}`
                                 : '—（無前價）'
                             : i === 2
                               ? curLine.transfer
