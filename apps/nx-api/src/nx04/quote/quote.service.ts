@@ -952,6 +952,119 @@ export class QuoteService {
   }
 
   /**
+   * F2 工作台階段④屬性 2「報價/成交歷史」展開列表（F2-TUNING S4-2、2026-07-12）：
+   * 報價（正式報價單行＋報價紀錄）＋成交（銷貨單行）整合一張表、含該客戶與同級距他客。
+   * 各源各取最近 limit 筆 → 合併 → 日期倒序 → 取前 limit×2（前端顏色區分成交/報價）。
+   */
+  async getPriceHistory(user: RequestUser, customerId: string, partId: string, limit = 12) {
+    const tenantId = requireTenantId(user);
+    const pid = partId.trim();
+    const customer = await this.prisma.nx01Partner.findFirst({
+      where: { id: customerId.trim(), tenantId },
+      select: { id: true, customerGradeId: true },
+    });
+    if (!customer) throw new NotFoundException('Customer not found');
+    const gradeId = customer.customerGradeId;
+    const take = Math.min(Math.max(Math.trunc(limit), 1), 50);
+
+    type HistoryRow = {
+      kind: 'QUOTE' | 'SALE';
+      scope: 'CUSTOMER' | 'GRADE';
+      date: string;
+      amount: string;
+      qty: string | null;
+      customerCode: string | null;
+      customerName: string | null;
+    };
+
+    const quoteRows = async (
+      scope: HistoryRow['scope'],
+      quoteWhere: Prisma.Nx04QuoteWhereInput,
+      recWhere: Prisma.Nx04QuoteRecordWhereInput,
+    ): Promise<HistoryRow[]> => {
+      const [qis, qrs] = await Promise.all([
+        this.prisma.nx04QuoteItem.findMany({
+          where: { partId: pid, quote: { tenantId, voidedAt: null, ...quoteWhere } },
+          orderBy: { quote: { quoteDate: 'desc' } },
+          take,
+          select: {
+            unitPrice: true,
+            qty: true,
+            quote: { select: { quoteDate: true, customer: { select: { code: true, name: true } } } },
+          },
+        }),
+        this.prisma.nx04QuoteRecord.findMany({
+          where: { tenantId, partId: pid, ...recWhere },
+          orderBy: { recordDate: 'desc' },
+          take,
+          select: { unitPrice: true, qty: true, recordDate: true, customer: { select: { code: true, name: true } } },
+        }),
+      ]);
+      return [
+        ...qis.map((r) => ({
+          kind: 'QUOTE' as const,
+          scope,
+          date: r.quote.quoteDate.toISOString(),
+          amount: r.unitPrice.toString(),
+          qty: r.qty.toString(),
+          customerCode: r.quote.customer?.code ?? null,
+          customerName: r.quote.customer?.name ?? null,
+        })),
+        ...qrs.map((r) => ({
+          kind: 'QUOTE' as const,
+          scope,
+          date: r.recordDate.toISOString(),
+          amount: r.unitPrice.toString(),
+          qty: r.qty.toString(),
+          customerCode: r.customer?.code ?? null,
+          customerName: r.customer?.name ?? null,
+        })),
+      ];
+    };
+    const saleRows = async (scope: HistoryRow['scope'], soWhere: Prisma.Nx04SoWhereInput): Promise<HistoryRow[]> => {
+      const rows = await this.prisma.nx04SoItem.findMany({
+        where: { partId: pid, so: { tenantId, ...soWhere } },
+        orderBy: { so: { soDate: 'desc' } },
+        take,
+        select: {
+          unitPrice: true,
+          qty: true,
+          so: { select: { soDate: true, customer: { select: { code: true, name: true } } } },
+        },
+      });
+      return rows.map((r) => ({
+        kind: 'SALE' as const,
+        scope,
+        date: r.so.soDate.toISOString(),
+        amount: r.unitPrice.toString(),
+        qty: r.qty.toString(),
+        customerCode: r.so.customer?.code ?? null,
+        customerName: r.so.customer?.name ?? null,
+      }));
+    };
+
+    const [cq, cs, gq, gs] = await Promise.all([
+      quoteRows('CUSTOMER', { customerId: customer.id }, { customerId: customer.id }),
+      saleRows('CUSTOMER', { customerId: customer.id }),
+      gradeId
+        ? quoteRows(
+            'GRADE',
+            { customerId: { not: customer.id }, customerGradeId: gradeId },
+            { customerId: { not: customer.id }, customerGradeId: gradeId },
+          )
+        : Promise.resolve([] as HistoryRow[]),
+      gradeId
+        ? saleRows('GRADE', { customerId: { not: customer.id }, customer: { customerGradeId: gradeId } })
+        : Promise.resolve([] as HistoryRow[]),
+    ]);
+
+    const rows = [...cq, ...cs, ...gq, ...gs]
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .slice(0, take * 2);
+    return { rows };
+  }
+
+  /**
    * 報價候選清單（批次報價 picker）：給 客戶 + 主件料號 + 出貨倉 →
    * 回傳該料的通用件群組全員（含自己），每列帶：
    *   · 該倉可出量

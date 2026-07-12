@@ -178,6 +178,17 @@ export interface QuotePriceIntel {
   sameGradeSale: QuotePriceRef | null; // ⑤ 同級距他客最近成交
 }
 
+/** F2 工作台階段④屬性 2：報價/成交歷史整合列（成交綠/報價金；該客戶+同級距）*/
+export interface QuotePriceHistoryRow {
+  kind: 'QUOTE' | 'SALE';
+  scope: 'CUSTOMER' | 'GRADE';
+  date: string;
+  amount: string;
+  qty: string | null;
+  customerCode: string | null;
+  customerName: string | null;
+}
+
 export interface QuoteCandidatesResult {
   warehouseId: string;
   warehouseCode: string;

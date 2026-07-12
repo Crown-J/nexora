@@ -46,6 +46,19 @@ export class QuoteController {
     return this.svc.getPriceIntel(user, customerId, partId);
   }
 
+  /// F2 工作台階段④屬性 2：報價/成交歷史整合列表（該客戶+同級距、F2-TUNING S4-2）
+  @Get('price-history')
+  @Permission('sale.quote.create', 'sale.quote.edit')
+  priceHistory(
+    @CurrentUser() user: RequestUser,
+    @Query('customerId') customerId: string,
+    @Query('partId') partId: string,
+    @Query('limit') limit?: string,
+  ) {
+    const n = limit ? Number(limit) : undefined;
+    return this.svc.getPriceHistory(user, customerId, partId, Number.isFinite(n) ? n : undefined);
+  }
+
   /// 批次報價 picker：整組替代料候選 + 各列可出量/歷史價/建議價
   @Get('candidates')
   @Permission('sale.quote.create', 'sale.quote.edit')

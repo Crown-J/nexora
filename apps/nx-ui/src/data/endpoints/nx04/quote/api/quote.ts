@@ -10,6 +10,7 @@ import type {
   PatchQuoteItemPayload,
   Quote,
   QuoteCandidatesResult,
+  QuotePriceHistoryRow,
   QuotePriceIntel,
   QuoteHistoricalPrice,
   QuoteItem,
@@ -119,6 +120,16 @@ export function getQuoteHistoricalPrices(
     limit: limit ? String(limit) : undefined,
   });
   return apiJson(`/nx04/quote/history${qs}`);
+}
+
+/// F2 工作台階段④屬性 2：報價/成交歷史整合列表（該客戶+同級距、F2-TUNING S4-2）
+export function getQuotePriceHistory(
+  customerId: string,
+  partId: string,
+  limit?: number,
+): Promise<{ rows: QuotePriceHistoryRow[] }> {
+  const qs = buildQueryString({ customerId, partId, limit: limit ? String(limit) : undefined });
+  return apiJson(`/nx04/quote/price-history${qs}`);
 }
 
 /// 報價比價面板（5 格）：建議售價 + 同客戶/同級距 × 報價/成交（近一個月）
