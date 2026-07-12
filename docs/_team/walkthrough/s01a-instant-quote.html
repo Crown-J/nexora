@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<!-- docs/_team/walkthrough/s01a-instant-quote.html -->
+<!-- 位置：docs/_team/walkthrough/（情境攻略測試本、一情境一本） -->
+<!-- 版本：v1.0（2026-07-12、Hank；F2 即時報價工作台專用本、拆自 S01 關卡三。
+     依 f2-workspace-tuning-2026-07-12.md 七步＋執行長三輪回饋的最終版、鍵位全數實測過再寫。） -->
+<!-- 說明：一關卡＝工作台一個階段、跟畫面左側階段軌一一對應。
+     勾選進度存 localStorage（key: nx-wt-s01a）、總覽頁 index.html 會讀摘要。
+     調貨詢價（F5 清單→詢價→調貨單）另開 S01B、等功能完工再開本。 -->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXORA 情境本 S01A｜即時報價工作台</title>
+<style>
+  :root{--bg:#0f1115;--card:#171a21;--card2:#1d2129;--fg:#e8e8eb;--mut:#9a9aa5;--line:#2c313c;
+        --gold:#e8a020;--green:#22d88f;--red:#e24b4a;--blue:#378add;--purple:#7f77dd;}
+  @media (prefers-color-scheme: light){
+    :root{--bg:#f4f3ef;--card:#ffffff;--card2:#f0efe9;--fg:#22242a;--mut:#6b6b74;--line:#ddd9d0;}
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.75 "Noto Sans TC",system-ui,sans-serif;padding:24px 16px 80px;}
+  .wrap{max-width:880px;margin:0 auto;}
+  h1{font-size:24px;margin:0 0 4px;} h1 .v{font-size:12px;color:var(--mut);font-weight:400;}
+  .sub{color:var(--mut);font-size:13px;margin-bottom:20px;}
+  .rules{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:13.5px;margin-bottom:16px;}
+  .rules b{color:var(--gold);}
+  .map{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:13px;margin-bottom:24px;color:var(--mut);}
+  .map .t{color:var(--fg);font-weight:700;margin-bottom:4px;}
+  .map code{color:var(--gold);background:var(--card2);border-radius:4px;padding:0 6px;font:600 12px/1.8 Consolas,monospace;white-space:nowrap;}
+  kbd{display:inline-block;background:var(--card2);border:1px solid var(--line);border-bottom-width:3px;
+      border-radius:6px;padding:1px 8px;font:600 12.5px/1.6 Consolas,monospace;color:var(--gold);margin:0 1px;white-space:nowrap;}
+  .lv{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:26px;overflow:hidden;}
+  .lv-head{padding:14px 20px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+  .lv-head h2{font-size:17px;margin:0;} .lv-head .who{font-size:12px;color:var(--mut);}
+  .lv-head .prog{margin-left:auto;font:600 12px/1 Consolas,monospace;color:var(--green);}
+  .scene{padding:10px 20px;background:var(--card2);font-size:13.5px;color:var(--mut);border-bottom:1px solid var(--line);}
+  .scene b{color:var(--fg);}
+  ol.steps{margin:0;padding:6px 0 14px;list-style:none;counter-reset:st;}
+  ol.steps>li{counter-increment:st;padding:10px 20px 10px 58px;position:relative;border-bottom:1px dashed var(--line);}
+  ol.steps>li:last-child{border-bottom:none;}
+  ol.steps>li::before{content:counter(st);position:absolute;left:20px;top:12px;width:24px;height:24px;
+      border-radius:50%;background:var(--card2);border:1px solid var(--line);color:var(--gold);
+      font:600 12px/22px Consolas,monospace;text-align:center;}
+  .exp{color:var(--mut);font-size:13px;}
+  .checks{margin-top:6px;display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--mut);}
+  .checks label{cursor:pointer;user-select:none;display:inline-flex;align-items:center;gap:4px;}
+  .checks input{accent-color:var(--green);}
+  .checks label.done{color:var(--green);}
+  .enc{margin:12px 20px;background:color-mix(in srgb,var(--red) 8%,var(--card));border:1px solid color-mix(in srgb,var(--red) 45%,transparent);
+       border-radius:10px;padding:10px 14px;font-size:13.5px;}
+  .enc .t{color:var(--red);font-weight:700;font-size:13px;}
+  .tip{margin:12px 20px;background:color-mix(in srgb,var(--blue) 8%,var(--card));border:1px solid color-mix(in srgb,var(--blue) 45%,transparent);
+       border-radius:10px;padding:10px 14px;font-size:13.5px;}
+  .tip .t{color:var(--blue);font-weight:700;font-size:13px;}
+  .gap{margin:12px 20px;background:color-mix(in srgb,var(--gold) 9%,var(--card));border:1px solid color-mix(in srgb,var(--gold) 50%,transparent);
+       border-radius:10px;padding:10px 14px;font-size:13.5px;}
+  .gap .t{color:var(--gold);font-weight:700;font-size:13px;}
+  .gap .checks{margin-top:8px;}
+  .totals{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);
+          padding:10px 16px;text-align:center;font:600 13px/1 Consolas,monospace;color:var(--green);}
+  a{color:var(--blue);}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>⚡ 情境本 S01A｜即時報價工作台 <span class="v">v1.0（2026-07-12、F2 五階段最終版）</span></h1>
+<div class="sub">客戶來電 → <kbd>F2</kbd> 一個視窗走完：對象 → 搜尋 → 檢查庫存 → 報價 → 發送訊息。一關卡＝一階段、對照畫面左側階段軌。　<a href="index.html">← 回總覽</a>｜情境主線在 <a href="s01-instant-sales.html">S01</a></div>
+
+<div class="rules">
+  每一步四個勾：<b>①在</b>＝功能真的存在　<b>②清</b>＝排版清楚不複雜　<b>③鍵</b>＝不碰滑鼠能完成　<b>④手</b>＝快捷鍵順手好按<br>
+  <span style="color:var(--mut)">③④只勾「這一步有按鍵」的項目。⚠️ 格＝實走後給設計判斷、勾「判」表示意見已記下。</span><br>
+  🧰 準備：dev server 起著、Y0001 登入、<b>硬重整一次（Ctrl+Shift+R）</b>再開始。卡住記「S01A-關卡-步驟」丟給 Hank。<br>
+  🧙 迷路就按 <kbd>Alt</kbd>+<kbd>H</kbd>（或右上「?」）——本功能全部快捷鍵都在引導精靈裡。
+</div>
+
+<div class="map" style="border-color:var(--gold)">
+  <div class="t" style="color:var(--gold)">🎬 本本測試資料（都在你 dev DB、可直接照著打）</div>
+  <b>客戶</b>：<code>C0049</code> 源明汽車修護廠（主角：預設倉 Z02 新莊、取貨方式=配送、B 級、有 12 筆種好的報價歷史）<br>
+  　　　<code>C2250</code> 穩發汽車（取貨方式=自取）　<code>C0048</code> 凱富興業／<code>C0020</code> 重慶避震器（跟 C0049 同級距 B、歷史彈窗的「他客」列）<br>
+  <b>料號</b>：<code>021 115 562</code> 機油芯（P9103 主件＋P9142 替代、同群組、都有庫存有歷史）　注音碼示範：品名欄打 <code>cvn</code> → 火星塞<br>
+  <span style="color:var(--mut);font-size:12px">歷史彈窗目前只有金色「報價」列＝正常——綠色「成交」列要等系統有實際銷貨單（S01 關卡四開了第一張就會出現）。</span>
+</div>
+
+<!-- ═══════════ 關卡零 ═══════════ -->
+<div class="lv" data-lv="0">
+  <div class="lv-head"><h2>關卡零｜開窗與引導精靈</h2><span class="who">30 秒</span><span class="prog"></span></div>
+  <div class="scene">📞 電話響了。任何頁面按 <kbd>F2</kbd>。</div>
+  <ol class="steps">
+    <li><kbd>F2</kbd> 開工作台 → <b>直接打字</b>（不用先點任何地方）
+      <div class="exp">預期：焦點已在客戶輸入框；左側階段軌五個圖示（對象/搜尋/檢查庫存/報價/發送訊息）、目前亮在①</div>
+      <div class="checks"></div></li>
+    <li><kbd>Alt</kbd>+<kbd>H</kbd>（或右上「?」）開引導精靈 → 掃一眼五階段全部鍵位 → <kbd>Esc</kbd> 關
+      <div class="exp">預期：右上角沒有英文角標了、只有「?」鈕；精靈分組列出通用＋①~⑤所有快捷鍵；畫面上不再有行內快捷鍵小字</div>
+      <div class="checks"></div></li>
+    <li><kbd>Alt</kbd>+<kbd>1</kbd>~<kbd>5</kbd> 隨意跳幾個階段再跳回①
+      <div class="exp">預期：完成過的階段圖示有綠勾；上方一直看得到 客戶徽章＋已選數＋調貨數</div>
+      <div class="checks"></div></li>
+  </ol>
+</div>
+
+<!-- ═══════════ 關卡一 ═══════════ -->
+<div class="lv" data-lv="1">
+  <div class="lv-head"><h2>關卡一｜①對象：左打字、右選人</h2><span class="who">B→C→B 選人流</span><span class="prog"></span></div>
+  <div class="scene">📞 <b>「源明修護廠你好…」</b>——先錨定客戶、後面每一顆報價都掛在他身上。</div>
+  <ol class="steps">
+    <li>輸入框打 <code>C004</code>（不用按 Enter）
+      <div class="exp">預期：<b>打字即出</b>——右欄候選清單即時更新、焦點還留在輸入框繼續打不中斷</div>
+      <div class="checks"></div></li>
+    <li><kbd>Enter</kbd> 跳右欄 → <kbd>↑</kbd><kbd>↓</kbd> 選 <code>C0049 源明汽車修護廠</code> → <kbd>Enter</kbd> 選定（<kbd>Esc</kbd>＝回輸入框重打）
+      <div class="exp">預期：選定的客戶卡出現在左欄下半（金框、客編+名稱）；焦點自動回輸入框</div>
+      <div class="checks"></div></li>
+    <li>看右欄「客戶基本資料」八欄：客編／名稱／地址／電話／備註／<b>交易條件</b>／<b>取貨方式</b>／<b>預設倉庫</b>
+      <div class="exp">預期：C0049 → 交易條件「月結30天」、取貨方式「配送」、預設倉庫「Z02 恆迎-新莊」（07/12 新欄位、換 C2250 應顯示「自取」）</div>
+      <div class="checks"></div></li>
+    <li>輸入框再按一次 <kbd>Enter</kbd> → 進②搜尋
+      <div class="exp">預期：選定狀態下 Enter＝前進、不會又跳一次候選</div>
+      <div class="checks"></div></li>
+    <li>加試：<kbd>F4</kbd> 注音首碼查客戶（輸入框打注音鍵盤碼再按 F4）；散客來電＝<kbd>Alt</kbd>+<kbd>N</kbd> 直接跳過
+      <div class="exp">預期：F4 出注音對應候選；Alt+N 不選客戶直接進②（訊息照產、存檔前補客戶就好）</div>
+      <div class="checks"></div></li>
+  </ol>
+  <div class="gap"><span class="t">⚠️ 現況差異（實走後給判斷）</span><br>
+    ①「地址」欄目前顯示佔位字——結構化地址（衛星表）還沒接進工作台。<br>
+    ②「取貨方式」欄位後端和 F2 顯示都好了、但<b>客戶主檔的編輯畫面還沒有這一欄</b>——目前要改值只能請 Hank 下資料庫指令。判斷題：主檔編輯表單補這欄（後端現成、純前端小案）要不要排？
+    <div class="checks"></div></div>
+</div>
+
+<!-- ═══════════ 關卡二 ═══════════ -->
+<div class="lv" data-lv="2">
+  <div class="lv-head"><h2>關卡二｜②搜尋：[ ] 切法、打字出建議、群組樹選料</h2><span class="who">左輸入、右結果</span><span class="prog"></span></div>
+  <div class="scene">📞 <b>「機油芯 021 115 562 有嗎？」</b></div>
+  <ol class="steps">
+    <li>按 <kbd>]</kbd> <kbd>[</kbd> 左右循環切三查法（料號／品名+車型／進階）、頁籤也仍可點
+      <div class="exp">預期：切完焦點自動落輸入欄、直接打字</div>
+      <div class="checks"></div></li>
+    <li>料號查法打 <code>021 115 562</code>——打字即出下拉建議（料號＋品名）、<kbd>↑</kbd><kbd>↓</kbd> <kbd>Enter</kbd> 可選定建議
+      <div class="exp">預期：跟客戶欄同一套「即打即出」手感</div>
+      <div class="checks"></div></li>
+    <li>切品名查法、打 <code>cvn</code> 看下拉
+      <div class="exp">預期：英數自動當<b>注音鍵盤碼</b>（cvn→ㄏㄒㄙ）→ 建議出「火星塞」；打中文「機油」也直接出品名建議</div>
+      <div class="checks"></div></li>
+    <li>回料號查法、<kbd>Enter</kbd> 查詢 → 右欄出<b>群組樹卡片</b>（F1 搜尋窗同款）
+      <div class="exp">預期：主件卡帶金邊條、替代品縮排掛底＋「替代」徽章；每卡有正/副廠徽章、副廠料號、廠牌、右側庫存三數（總數量/可出量/不可出）</div>
+      <div class="checks"></div></li>
+    <li><kbd>↑</kbd><kbd>↓</kbd> 選 <code>021 115 562 *</code>（P9103）→ <kbd>Enter</kbd> 進③檢查庫存
+      <div class="exp">預期：選中列金框、清單自動捲動跟著走</div>
+      <div class="checks"></div></li>
+    <li>加試進階查法：廠牌欄<b>空白鍵</b>展開全部廠牌、打 <code>BOSCH</code> 篩選；族群欄同理
+      <div class="exp">預期：主檔選項下拉、選定帶入</div>
+      <div class="checks"></div></li>
+  </ol>
+</div>
+
+<!-- ═══════════ 關卡三 ═══════════ -->
+<div class="lv" data-lv="3">
+  <div class="lv-head"><h2>關卡三｜③檢查庫存：看圖看料看倉、Space 挑進報價</h2><span class="who">B 看料、C 看倉</span><span class="prog"></span></div>
+  <div class="scene">📞 客戶在等。左欄認料、右欄answer「有沒有貨」、Space 把要報的挑起來。</div>
+  <ol class="steps">
+    <li>左欄上半：產品圖＋基本資料六列（基準料號/品名/廠牌料號/廠牌/正副廠/規格）
+      <div class="exp">預期：標籤/值兩欄<b>對齊</b>（07/12 你點名的排版已修）；沒圖顯示「無產品圖」佔位</div>
+      <div class="checks"></div></li>
+    <li><kbd>Alt</kbd>+<kbd>P</kbd> 放大圖（有圖的料才有感）→ <kbd>←</kbd><kbd>→</kbd> 切圖 → <kbd>Esc</kbd> 關
+      <div class="exp">預期：跟 F1 主視窗同一顆鍵、同一個放大視窗</div>
+      <div class="checks"></div></li>
+    <li>右欄上半＝<b>出貨狀態大卡</b>（有貨可出／低於安全／缺貨）＋三指標（總庫存/可出量/不可出量）；下半＝<b>各倉一張卡</b>（倉碼+名、可出大字、本倉徽章）
+      <div class="exp">預期：↑↓ 換選通用零件、右欄整組即時跟著換；在途有貨時下方一行小字另示</div>
+      <div class="checks"></div></li>
+    <li>左欄下半通用零件 <kbd>↑</kbd><kbd>↓</kbd> 選、<kbd>Space</kbd> 把 P9103 和 P9142 都加入
+      <div class="exp">預期：加入的卡變<b>實心綠邊綠底＋「✓ 已加入」綠徽章</b>（07/12 你點名的不明顯已修）；再按 Space＝移除；列上帶建議售價</div>
+      <div class="checks"></div></li>
+    <li><kbd>Enter</kbd> 進④報價
+      <div class="exp">預期：有加入項目才會前進</div>
+      <div class="checks"></div></li>
+  </ol>
+  <div class="tip"><span class="t">💡 這關沒有 Alt+D 了</span><br>
+    「加調貨」已照你 07/12 定案退場、統一收到④報價的「出貨倉庫」屬性裡（缺貨那顆到④再決定調貨）——測下一關就會遇到。</div>
+</div>
+
+<!-- ═══════════ 關卡四 ═══════════ -->
+<div class="lv" data-lv="4">
+  <div class="lv-head"><h2>關卡四｜④報價：卡片＋五列屬性面板（本本重頭戲）</h2><span class="who">左卡片、右屬性</span><span class="prog"></span></div>
+  <div class="scene">📞 <b>「上次跟你拿多少？」</b>——每顆項目一張卡、Enter 進右欄調五個屬性、全程不碰滑鼠。</div>
+  <ol class="steps">
+    <li>看左右「操作中」指示：左欄卡片區聚焦時、右欄整欄變暗＋標題掛「Enter 進來」；按 <kbd>Enter</kbd> 進右欄屬性面板後反過來（左暗＋「Esc 回這裡」）
+      <div class="exp">預期：<b>一眼分得出現在控制哪一邊</b>（07/12 你點名的切換不明顯已修）；「操作中」金徽章跟著焦點跑</div>
+      <div class="checks"></div></li>
+    <li>屬性面板 <kbd>↑</kbd><kbd>↓</kbd> 走五列：<b>建議售價 → 報價/成交歷史 → 出貨倉庫 → 數量 → 報價</b>；<kbd>Esc</kbd> 回左欄卡片
+      <div class="exp">預期：五列一屏放得下、選中列金框</div>
+      <div class="checks"></div></li>
+    <li>「建議售價」<kbd>Enter</kbd> → 展開 ABCD 四級價 → 再 <kbd>Enter</kbd> 收合
+      <div class="exp">預期：A/B/C/D 四格、無值顯示 —</div>
+      <div class="checks"></div></li>
+    <li>「報價/成交歷史」列直接顯示<b>該客戶前價</b>（例「報價 NT$ 315」、報價/成交取最近）→ <kbd>Enter</kbd> 開<b>彈出視窗</b>：表頭 日期/類別/客戶/數量/單價、客名金字＝該客戶、價差 <b style="color:var(--green)">▲綠</b><b style="color:var(--red)">▼紅</b>（對建議售價）
+      <div class="exp">預期：C0049 有 12 筆種好的歷史；<kbd>↑</kbd><kbd>↓</kbd> 選一筆 <kbd>Enter</kbd> → <b>價格直接帶進報價欄</b>、視窗關閉、屬性自動跳到「出貨倉庫」讓你續編；<kbd>Esc</kbd>＝不帶價關閉</div>
+      <div class="checks"></div></li>
+    <li>「出貨倉庫」<kbd>Enter</kbd> → 列出<b>有可出量的倉</b>（帶各倉可出數）＋最後一項「調貨（同行詢價）」→ 選一個倉
+      <div class="exp">預期：選完項目卡上的倉別徽章跟著換；選「調貨」時若公司有現貨會先跳確認防呆、確認後入 F5 調貨詢價清單、卡上掛橘色「調貨詢價（F5）」徽章</div>
+      <div class="checks"></div></li>
+    <li>「數量」「報價」<kbd>Enter</kbd> 行內編輯 → 打字 → <kbd>Enter</kbd> 存回
+      <div class="exp">預期：編輯框自動全選、改完值即時反映在左欄卡片（× 數量、NT$ 價）</div>
+      <div class="checks"></div></li>
+    <li><kbd>Esc</kbd> 回左欄 → <kbd>Alt</kbd>+<kbd>2</kbd> 回②搜尋、再挑一顆料加進來（跨搜尋輪<b>累加</b>）→ <kbd>Alt</kbd>+<kbd>4</kbd> 回報價看清單變長
+      <div class="exp">預期：先前的項目和量價都還在、一通電話報好幾顆不用重來</div>
+      <div class="checks"></div></li>
+    <li>試 <kbd>Alt</kbd>+<kbd>D</kbd> 移除聚焦項目（有確認提示）→ <kbd>Alt</kbd>+<kbd>S</kbd> 結案 → 確認 → 進⑤發送訊息
+      <div class="exp">預期：Alt+S 會先告知有效筆數再確認；沒填量價的項目不算有效、不會進訊息</div>
+      <div class="checks"></div></li>
+  </ol>
+  <div class="enc"><span class="t">💥 遭遇戰：全缺貨又沒問過同行</span><br>
+    挑一顆全公司無庫存、近一個月也沒同行詢價紀錄的料進到④ → 上方亮黃色警示條「報了可能交不出來」。測：警示時機和文案 OK 嗎？</div>
+</div>
+
+<!-- ═══════════ 關卡五 ═══════════ -->
+<div class="lv" data-lv="5">
+  <div class="lv-head"><h2>關卡五｜⑤發送訊息：右欄設定、左欄滿版訊息、存檔即收工</h2><span class="who">焦點預設在右欄</span><span class="prog"></span></div>
+  <div class="scene">📱 報完價、產一段文字貼 Line 給客戶、存檔、掛電話。</div>
+  <ol class="steps">
+    <li>左欄整版＝訊息框（尺寸固定、內容多了內部捲動）；右欄五張設定卡：<b>廠牌識別／基準料號／副廠料號／數量恆顯／出貨倉庫</b>
+      <div class="exp">預期：訊息<b>同品名分組</b>——品名當組標題、組內每行＝識別＋料號＋數量＋報價；出貨倉庫開啟後行尾括號如 <code>(恆迎-新莊)</code>、調貨項顯示 <code>(調貨)</code></div>
+      <div class="checks"></div></li>
+    <li><kbd>↑</kbd><kbd>↓</kbd> 選設定卡、<kbd>Space</kbd> 開關（ON/OFF 徽章）
+      <div class="exp">預期：切一下左側訊息<b>即時重生成</b>；設定會記住（下次開還在）</div>
+      <div class="checks"></div></li>
+    <li><kbd>Alt</kbd>+<kbd>E</kbd> 進左欄<b>編輯模式</b>（框變金邊、可自由改字、Ctrl+A 全選）→ <kbd>Shift</kbd>+<kbd>Enter</kbd> 換行 → <kbd>Enter</kbd> 回右欄
+      <div class="exp">預期：手動改完再動任何設定卡＝重新生成蓋掉手動稿（以最後動作為準、07/12 你的定案）</div>
+      <div class="checks"></div></li>
+    <li>「複製訊息」鈕（右欄下方）→ 貼到記事本看格式
+      <div class="exp">預期：跟畫面一字不差、可直接貼 Line</div>
+      <div class="checks"></div></li>
+    <li>右欄按 <kbd>Enter</kbd> 存檔 → 確認視窗 <kbd>Enter</kbd> → <b>整個工作台關閉</b>
+      <div class="exp">預期：沒有「下一通」了、存檔即收工（要接著報下一通再按 F2 就是乾淨的新一輪）；存的報價紀錄倉別＝你在④選的那個倉、之後開報價單 Alt+F 拉得到</div>
+      <div class="checks"></div></li>
+    <li>加試散客：重開 F2 → <kbd>Alt</kbd>+<kbd>N</kbd> 跳過客戶 → 走到⑤ → 訊息可複製、但存檔前要在右欄補客戶
+      <div class="exp">預期：散客擋存檔不擋複製、補客戶的搜尋框就在右欄</div>
+      <div class="checks"></div></li>
+  </ol>
+  <div class="tip"><span class="t">💡 下一本預告</span><br>
+    ④裡選「調貨」堆進 F5 清單之後的事——開清單、記同行詢價、比價、接調貨單——是 <b>S01B 調貨詢價</b> 的範圍、功能完工後開本。</div>
+</div>
+
+<div class="totals"></div>
+</div>
+
+<script>
+(function(){
+  var KEY='nx-wt-s01a';
+  var saved={};
+  try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){}
+  var labels=[['在','功能在'],['清','排版清楚'],['鍵','全鍵盤'],['手','鍵位順手']];
+  function bind(cb,lab,id){
+    cb.checked=!!saved[id];
+    if(cb.checked)lab.classList.add('done');
+    cb.addEventListener('change',function(){
+      saved[id]=cb.checked;lab.classList.toggle('done',cb.checked);
+      localStorage.setItem(KEY,JSON.stringify(saved));refresh();
+    });
+  }
+  document.querySelectorAll('.lv').forEach(function(lv){
+    var lvId=lv.getAttribute('data-lv');
+    lv.querySelectorAll('ol.steps>li').forEach(function(li,si){
+      var box=li.querySelector('.checks');
+      labels.forEach(function(pair){
+        var id=lvId+'-'+si+'-'+pair[0];
+        var lab=document.createElement('label');
+        var cb=document.createElement('input');
+        cb.type='checkbox';
+        lab.appendChild(cb);lab.appendChild(document.createTextNode(pair[0]+' '+pair[1]));
+        bind(cb,lab,id);
+        box.appendChild(lab);
+      });
+    });
+    lv.querySelectorAll('.gap').forEach(function(g,gi){
+      var box=g.querySelector('.checks');
+      var id=lvId+'-gap'+gi;
+      var lab=document.createElement('label');
+      var cb=document.createElement('input');
+      cb.type='checkbox';
+      lab.appendChild(cb);lab.appendChild(document.createTextNode('判 已實走、判斷意見記下了'));
+      bind(cb,lab,id);
+      box.appendChild(lab);
+    });
+  });
+  function refresh(){
+    var total=0,done=0;
+    document.querySelectorAll('.lv').forEach(function(lv){
+      var t=0,d=0;
+      lv.querySelectorAll('.checks input').forEach(function(cb){t++;if(cb.checked)d++;});
+      lv.querySelector('.prog').textContent=d+'/'+t;
+      total+=t;done+=d;
+    });
+    document.querySelector('.totals').textContent='🏆 S01A 進度 '+done+'/'+total+(done===total?'　全破！':'');
+    try{localStorage.setItem(KEY+'-sum',done+'/'+total)}catch(e){}
+  }
+  refresh();
+})();
+</script>
+</body>
+</html>

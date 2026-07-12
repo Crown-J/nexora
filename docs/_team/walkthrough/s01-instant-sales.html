@@ -2,9 +2,8 @@
 <html lang="zh-Hant">
 <!-- docs/_team/walkthrough/s01-instant-sales.html -->
 <!-- 位置：docs/_team/walkthrough/（情境攻略測試本、一情境一本） -->
-<!-- 版本：v2.3（2026-07-12、Hank；依執行長「即時銷售情境」五步稿改寫、鍵位/入口/欄位全部 grep 實掛核對；
-     v2.1 嵌入 dev DB 真實料號/客戶/同行；v2.2 主視窗改版鍵位；v2.3 F1/F2 分流
-     （F1=即時庫存查詢・原 F2 整組；F2=即時報價查詢工作台・客戶錨定連續報價）） -->
+<!-- 版本：v2.7（2026-07-12、Hank；關卡三 F2 工作台細節拆出獨立本 S01A、本本只留情境主線與指路；
+     v2.1 嵌入 dev DB 真實資料；v2.2 主視窗改版鍵位；v2.3 F1/F2 分流；v2.6 F2 五階段） -->
 <!-- 說明：即時銷售情境本。含分歧路線（🧭）與系統現況差異（⚠️ 請執行長實走後給設計判斷）。
      勾選進度存 localStorage（key: nx-wt-s01）、總覽頁 index.html 會讀摘要。 -->
 <head>
@@ -70,7 +69,7 @@
 </head>
 <body>
 <div class="wrap">
-<h1>📞 情境本 S01｜即時銷售 <span class="v">v2.6（2026-07-12、F2 工作台 A/B/C 三區五階段版）</span></h1>
+<h1>📞 情境本 S01｜即時銷售 <span class="v">v2.7（2026-07-12、F2 工作台細節移駕 S01A 專用本）</span></h1>
 <div class="sub">客戶來電 → 查庫存 → 替代品 → 同行詢價比價 → 報價 → 銷貨單 → 調貨單 → 交棒出貨。分歧照實際電話節奏走。　<a href="index.html">← 回總覽</a></div>
 
 <div class="rules">
@@ -86,7 +85,7 @@
   <code>①來電查庫存</code> ─有貨→ <code>③報價</code> ─成交→ <code>④銷貨單</code> → 交棒出貨<br>
   　└ 沒貨 → 替代品（有→③）→ 都沒 → 問急迫性：很急→轉介別間｜可等一下→<code>②同行詢價</code>→③→④→<code>⑤調貨單</code>｜願等到貨→③→④行標客訂<br>
   <span style="font-size:12px">⚠️ 唯一跟你稿子順序不同的是 ④⑤（系統要先有銷貨單才能開調貨單）——關卡五有專門的判斷題。</span><br>
-  <span style="font-size:12px;color:var(--green)">🆕 07/11 夜你點名的 F1/F2 分流已上：<code>F1</code>＝即時庫存查詢（原 F2 整組、純查庫存不綁客戶）、<code>F2</code>＝即時報價查詢（先選客戶一次→連續查料報價→產訊息複製）。關卡三主線直接用新 F2。</span>
+  <span style="font-size:12px;color:var(--green)">🆕 F1/F2 分流：<code>F1</code>＝即時庫存查詢（純查庫存不綁客戶）、<code>F2</code>＝即時報價工作台（五階段、07/12 三輪調整後最終版）。F2 的逐階段攻略拆到專用本 <a href="s01a-instant-quote.html">S01A</a>、關卡三只指路。</span>
 </div>
 
 <div class="map" style="border-color:var(--gold)">
@@ -168,20 +167,11 @@
   <div class="lv-head"><h2>關卡三｜即時報價：「上次跟你拿多少」馬上答</h2><span class="who">角色：業務（回到電話上）</span><span class="prog"></span></div>
   <div class="scene">📞 <b>「有貨（調得到／等到貨約幾天）。價格是——」</b>報價根據：過去報價、過去成交、建議售價。</div>
   <ol class="steps">
-    <li>🆕 主線・<kbd>F2</kbd> 即時報價工作台（07/12 深夜改版：左階段軌／中主容器／右副容器、單一視窗）：左軌五個圖示＝<b>對象→搜尋→檢查庫存→報價→發送訊息</b>、<kbd>Alt</kbd>+<kbd>1</kbd>~<kbd>5</kbd> 直跳
-      <div class="exp">預期：階段軌純圖示不佔空間、完成的階段有綠勾；上方客戶徽章＋已選數＋調貨數一直看得到</div>
+    <li>🆕 主線・<kbd>F2</kbd> 即時報價工作台（五階段：對象→搜尋→檢查庫存→報價→發送訊息）——<b>逐階段攻略走專用本 <a href="s01a-instant-quote.html">S01A</a></b>、五關全破再回來接下面的路線二
+      <div class="exp">預期：一通電話在一個視窗走完、存檔即關窗；本步驟走完 S01A 就算過</div>
       <div class="checks"></div></li>
-    <li>①對象：搜 <code>C0048</code>（右欄顯示客戶資訊、散客 Alt+N 跳過）→ ②搜尋：三查法（料號/品名+車型/進階）查 <code>021 115 562</code>、右欄結果 <kbd>↑</kbd><kbd>↓</kbd><kbd>Enter</kbd> → ③檢查庫存：上基本資訊、下通用零件（右欄＝該件庫存分倉）
-      <div class="exp">預期：通用件列表帶庫存＋<b>建議售價</b>（依客戶等級＝地板價）；↑↓ 選件右欄庫存跟著換</div>
-      <div class="checks"></div></li>
-    <li>③按 <kbd>Space</kbd> 勾 2 顆（P9103＋替代 P9142、綠框✓）→ <kbd>Enter</kbd> 進 ④報價：量 <kbd>Enter</kbd> 價 <kbd>Enter</kbd> 鏈（右欄＝該件歷史價五格）→ 末欄 <kbd>Enter</kbd> 進 ⑤發送訊息
-      <div class="exp">預期：每顆自動帶價；<b>防呆</b>：全公司無庫存且近月沒問過同行 → 報價頁亮黃色警示條</div>
-      <div class="checks"></div></li>
-    <li>⑤發送訊息：<kbd>Alt</kbd>+<kbd>A</kbd> 全選自己 Ctrl+C → <kbd>Enter</kbd> 存檔 → 確認（Enter）→ ✅；右欄「訊息內容設定」勾基準料號/副廠料號/品名/數量（會記住）
-      <div class="exp">預期：勾選即時反映訊息內容；散客＝可複製、存前補客戶；存完可「下一通」回對象重來</div>
-      <div class="checks"></div></li>
-    <li>調貨清單：③檢查庫存選缺貨料 <kbd>Alt</kbd>+<kbd>D</kbd> 加入（公司有現貨會提示確認）→ 任何頁面 <kbd>F5</kbd> 開「即時調貨詢價」：↑↓ 選料、<kbd>Enter</kbd> 記同行詢價、<kbd>Delete</kbd> 移除
-      <div class="exp">預期：清單跨視窗同步（徽章「調N」）；選中料帶近期同行詢價可比價；F5 攔掉瀏覽器重新整理</div>
+    <li>調貨清單（銜接關卡二/五）：④報價屬性面板「出貨倉庫」選<b>調貨</b>（公司有現貨會提示確認、③的 Alt+D 已退場）→ 任何頁面 <kbd>F5</kbd> 開「即時調貨詢價」：↑↓ 選料、<kbd>Enter</kbd> 記同行詢價、<kbd>Delete</kbd> 移除
+      <div class="exp">預期：清單跨視窗同步（徽章「調N」）；選中料帶近期同行詢價可比價；F5 攔掉瀏覽器重新整理（後續深化＝S01B、規劃中）</div>
       <div class="checks"></div></li>
     <li>路線二（要留正式文件）：回首頁按 <kbd>1</kbd> 開報價單 → 加行：<kbd>Alt</kbd>+<kbd>A</kbd> 新增、<kbd>Alt</kbd>+<kbd>F</kbd> 從報價紀錄拉入（剛剛 F2 存的紀錄就在這）、填量價 <kbd>Enter</kbd> 一路跳格到底
       <div class="exp">預期：F2 工作台（快、留紀錄）vs 報價單（正式文件）分工清楚、紀錄接得上單</div>
@@ -197,7 +187,7 @@
       <div class="checks"></div></li>
   </ol>
   <div class="tip"><span class="t">🆕 07/11 新增：給客戶的訊息（一鍵複製貼 Line）— 三個報價入口都有了</span><br>
-    執行長要求「報價要快、生成文字複製直接貼通訊軟體」。三處皆可：①銷貨與成交作業報價頁（原有）②即時報價 F4（填完量價下方出現訊息框＋複製鈕）③正式報價單詳情（工具列「複製訊息」鈕、複製整張單每行＋含稅合計）。格式：「料號 品名〔數量 N〕報價 NT$ X」。測：對客戶讀得順嗎？要不要加招呼語／交期／有效期？（改文字很快、用了跟 Hank 說）</div>
+    執行長要求「報價要快、生成文字複製直接貼通訊軟體」。三處皆可：①銷貨與成交作業報價頁（原有）②F2 工作台⑤發送訊息（07/12 改<b>同品名分組</b>格式＋出貨倉庫選項、詳 S01A 關卡五）③正式報價單詳情（工具列「複製訊息」鈕、複製整張單每行＋含稅合計）。測：對客戶讀得順嗎？要不要加招呼語／交期／有效期？（改文字很快、用了跟 Hank 說）</div>
   <div class="enc"><span class="t">💥 遭遇戰：報價低於底價</span><br>
     給熟客殺到最低售價以下 → 系統要求<b>必填理由</b>才放行。測：理由欄好不好找？填完流程順嗎？</div>
   <div class="route"><span class="t">🧭 分歧點②：客戶說「好、要了」</span>
