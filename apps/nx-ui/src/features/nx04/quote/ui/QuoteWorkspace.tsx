@@ -4,7 +4,8 @@
 //   B 主容器／C 副容器 各階段內容：
 //     1 對象：B 輸入 Enter（Alt+N 散客跳過）→ C 候選清單 ↑↓ Enter 選定 → 回 B 下半顯示＋C 基本資料八欄
 //     2 搜尋：B 三查法輸入（[ ] 循環切、即打即出聯想、英數當注音碼）｜C 群組樹卡片（↑↓ Enter 選定）
-//     3 檢查庫存：B 上基本資訊、下通用零件（↑↓ 選、Space 加入報價、Alt+D 加調貨）｜C 該件庫存
+//     3 檢查庫存：B 上基本資料+圖片（Alt+P 放大）、下通用零件（↑↓ 選、Space 加入報價）
+//       ｜C 出貨狀態大卡+三指標（總庫存/可出/不可出）+各倉卡片（Alt+D 加調貨已退場→④出貨倉庫）
 //     4 報價：B 已選零件量價（Enter 鏈、末欄 → 階段5）｜C 該件歷史價五格
 //     5 發送訊息：B 訊息（Alt+A 全選、Enter 存檔→確認）｜C 訊息內容設定（記憶）
 //   防呆沿用：無庫存且近月無同行詢價→報價前提示；公司有貨→加調貨前提示。
@@ -14,6 +15,7 @@ import {
   Check,
   FilePlus,
   HelpCircle,
+  Image as ImageIcon,
   MessageSquareText,
   PackageSearch,
   UserRound,
@@ -24,25 +26,36 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { listPartner } from '@data/endpoints/shared/master/partner/api/partner';
 import {
+  buildPartSearchPhotoUrl,
   getPartCompatGroup,
   getPartDetail,
   getPartSearchMasterOptions,
+  getPartStockSettings,
   getPartStockSummary,
+  listPartSearchPhotos,
   quickSearchParts,
+  type PartPhotoMeta,
 } from '@data/endpoints/nx01/part-search/api/part-search';
 import { getQuoteCandidates } from '@data/endpoints/nx04/quote/api/quote';
 import {
   createQuoteRecord,
   listInquiryRecords,
 } from '@data/endpoints/nx04/record/api/record';
-import type { PartDetailDto, PartSearchResult, PartSearchRow, PartStockSummaryDto } from '@data/types/nx01/part-search';
+import type {
+  PartDetailDto,
+  PartSearchResult,
+  PartSearchRow,
+  PartStockSettingRow,
+  PartStockSummaryDto,
+} from '@data/types/nx01/part-search';
 import type { PartnerDto } from '@data/types/shared/master/partner';
 import { Combobox } from '@design/components/quick-search/Combobox';
+import { PhotoZoomOverlay } from '@design/components/quick-search/PartMainWindow';
 import { FocusLockedDialog } from '@design/primitives/focus-locked-dialog';
 
 import { CustomerPicker, keyToBopomofo, type PickedCustomer } from './CustomerPicker';
 import { PriceIntelPanel } from './PriceIntelPanel';
-import { addTransferItems, listTransferItems, TRANSFER_LIST_EVENT } from './transfer-inquiry-store';
+import { listTransferItems, TRANSFER_LIST_EVENT } from './transfer-inquiry-store';
 
 type Stage = 1 | 2 | 3 | 4 | 5;
 // S2-2 群組樹卡片扁平列（primary=群組主件 / alt=替代品縮排 / single=散件）
@@ -90,6 +103,11 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
   const [compat, setCompat] = useState<CompatRow[]>([]);
   const [compatSel, setCompatSel] = useState(0);
   const [stock, setStock] = useState<PartStockSummaryDto | null>(null);
+  // S3-3 大狀態卡「低於安全」判定用（各倉安全量加總、F1 同法）
+  const [stockSettings, setStockSettings] = useState<PartStockSettingRow[]>([]);
+  // S3-1/S3-2 產品圖片（跟 currentPartId、Alt+P 放大）
+  const [photos, setPhotos] = useState<PartPhotoMeta[]>([]);
+  const [photoZoom, setPhotoZoom] = useState(false);
   // 階段 4/5
   const [lines, setLines] = useState<QuoteLine[]>([]);
   const [lineSel, setLineSel] = useState(0);
@@ -146,6 +164,11 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
         e.preventDefault();
         e.stopPropagation();
         setHelpOpen((v) => !v);
+      } else if (k === 'p') {
+        // S3-2 圖片放大（F1 同鍵位；無圖時 overlay 不會渲染）
+        e.preventDefault();
+        e.stopPropagation();
+        setPhotoZoom((v) => !v);
       } else if (k === 'n') {
         // 散客／新客戶先跳過（原本只有鈕沒接鍵——T1 補上）
         e.preventDefault();
@@ -370,9 +393,10 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
     setDetail(null);
     setCompat([]);
     setCompatSel(0);
+    setPhotos([]);
     void (async () => {
       try {
-        const [d, rows] = await Promise.all([
+        const [d, rows, ph] = await Promise.all([
           getPartDetail(currentPartId),
           customer
             ? getQuoteCandidates(customer.id, currentPartId, customer.defaultWarehouseId ?? undefined).then((r) =>
@@ -399,9 +423,12 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                   prefill: '',
                 }));
               }),
+          // S3-1 產品圖片（撈不到不擋）
+          listPartSearchPhotos(currentPartId).catch(() => ({ rows: [] as PartPhotoMeta[] })),
         ]);
         if (reqRef.current !== myReq) return;
         setDetail(d);
+        setPhotos(ph.rows);
         // 群組空（單一料）→ 至少列自己
         setCompat(
           rows.length > 0
@@ -421,15 +448,25 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
     if (!focusPartId || (stage !== 3 && stage !== 4)) return;
     let alive = true;
     setStock(null);
-    void getPartStockSummary(focusPartId)
-      .then((s) => alive && setStock(s))
+    setStockSettings([]);
+    void Promise.all([
+      getPartStockSummary(focusPartId),
+      // 安全量（S3-3 低於安全判定；未設定或失敗 → 空、退化成 有貨/缺貨 二態）
+      getPartStockSettings(focusPartId).catch(() => ({ rows: [] as PartStockSettingRow[] })),
+    ])
+      .then(([s, st]) => {
+        if (!alive) return;
+        setStock(s);
+        setStockSettings(st.rows);
+      })
       .catch(() => alive && setStock(null));
     return () => {
       alive = false;
     };
   }, [focusPartId, stage]);
 
-  // ── Space 加入/移除報價、Alt+D 加調貨 ──
+  // ── Space 加入/移除報價 ──
+  // 階段③ Alt+D 加調貨已退場（執行長 07/12 定案 2）：調貨統一走階段④出貨倉庫屬性
   const toggleLine = useCallback(
     (row: CompatRow) => {
       setLines((prev) => {
@@ -440,10 +477,6 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
     },
     [],
   );
-  const addTransfer = useCallback((row: CompatRow) => {
-    if (row.avail > 0 && !window.confirm(`⚠️ ${row.code} 公司有現貨（可出 ${row.avail}）——確定加入調貨詢價清單？`)) return;
-    addTransferItems([{ partId: row.partId, code: row.code, name: row.name }]);
-  }, []);
 
   // 進階段 4 → 防呆檢查（無庫存且近月無同行詢價）
   useEffect(() => {
@@ -810,15 +843,46 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
 
             {stage === 3 && (
               <div className="flex min-h-0 flex-1 flex-col gap-3">
+                {/* S3-1 上半加大：產品圖片 + 基本資料（通用零件不多、下半可縮）*/}
                 <div>
-                  <div className={secHead}>基本資訊</div>
+                  <div className={secHead}>基本資料</div>
                   {detail ? (
-                    <div className="mt-1 space-y-1 text-[13.5px]">
-                      <div className="font-mono text-[15px] font-semibold text-primary">{detail.code}</div>
-                      <div className="text-foreground">{detail.name}</div>
-                      <div className="text-[12.5px] text-muted-foreground">
-                        廠牌 {detail.brand ? detail.brand.code : '—'}　·　{detail.isOem ? '正廠' : '副廠'}
-                        {detail.spec ? `　·　${detail.spec}` : ''}
+                    <div className="mt-1.5 flex gap-4">
+                      <button
+                        type="button"
+                        onClick={() => setPhotoZoom((v) => !v)}
+                        className="group relative flex aspect-square w-[190px] shrink-0 items-center justify-center overflow-hidden rounded-lg border-2 border-primary/35 bg-background/40 transition-colors hover:border-primary"
+                        title="Alt+P 放大"
+                      >
+                        {photos[0] ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={buildPartSearchPhotoUrl(detail.id, photos[0].id)}
+                            alt={photos[0].origFilename ?? detail.name}
+                            className="size-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center gap-1 text-muted-foreground/55">
+                            <ImageIcon className="size-7" />
+                            <span className="text-[10px]">無產品圖</span>
+                          </div>
+                        )}
+                        <span className="pointer-events-none absolute bottom-1.5 right-1.5 rounded border border-border/50 bg-background/80 px-2 py-0.5 font-mono text-[11px] text-foreground/90 opacity-0 transition-opacity group-hover:opacity-100">
+                          Alt+P 放大
+                        </span>
+                      </button>
+                      <div className="min-w-0 flex-1 space-y-1.5 text-[13.5px]">
+                        <div className="break-all font-mono text-[16px] font-semibold text-primary">{detail.code}</div>
+                        <div className="text-[15px] font-medium text-foreground">{detail.name}</div>
+                        <div className="text-[12.5px] text-muted-foreground">
+                          廠牌料號 <span className="font-mono text-foreground/85">{detail.secCode ?? '—'}</span>
+                        </div>
+                        <div className="text-[12.5px] text-muted-foreground">
+                          廠牌 <span className="text-foreground/85">{detail.brand ? detail.brand.code : '—'}</span>
+                          <span className="mx-1.5 text-muted-foreground/35">·</span>
+                          {detail.isOem ? '正廠' : '副廠'}
+                        </div>
+                        {detail.spec ? <div className="text-[12.5px] text-muted-foreground">規格 {detail.spec}</div> : null}
                       </div>
                     </div>
                   ) : (
@@ -845,10 +909,6 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                       } else if (e.key === 'Enter') {
                         e.preventDefault();
                         if (lines.length > 0) setStage(4);
-                      } else if (e.altKey && (e.key === 'd' || e.key === 'D')) {
-                        e.preventDefault();
-                        const r = compat[compatSel];
-                        if (r) addTransfer(r);
                       }
                     }}
                     className="mt-1 min-h-0 flex-1 space-y-1.5 overflow-auto outline-none"
@@ -1254,13 +1314,107 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
               </div>
             )}
 
-            {(stage === 3 || stage === 4) && (
+            {stage === 3 && (
               <div className="space-y-3">
-                <div className={secHead}>{stage === 3 ? '庫存狀況（跟著選中件）' : '歷史價（跟著聚焦行）'}</div>
-                {stage === 4 && customer && focusPartId ? (
-                  <PriceIntelPanel customerId={customer.id} partId={focusPartId} />
-                ) : null}
-                {stage === 4 && !customer ? (
+                <div className={secHead}>出貨狀態（跟著選中件）</div>
+                {stock ? (
+                  (() => {
+                    const onHand = Number(stock.company.onHand);
+                    const avail = Number(stock.company.available);
+                    const blocked = Math.max(0, onHand - avail);
+                    const inTransit = Number(stock.company.inTransit);
+                    // 低於安全＝各倉安全量加總（F1 同法；未設定退化成 有貨/缺貨 二態）
+                    const safety = stockSettings.reduce((s, r) => s + Number(r.minQty || 0), 0);
+                    const meta =
+                      avail <= 0
+                        ? { label: '缺貨', sub: '公司無可出庫存', color: '#E26060' }
+                        : safety > 0 && avail < safety
+                          ? { label: '低於安全', sub: '可出量低於安全庫存', color: '#FFB347' }
+                          : { label: '有貨可出', sub: '公司可出量充足', color: '#22D88F' };
+                    return (
+                      <div className="space-y-3">
+                        {/* S3-3 大狀態卡（F1 STATUS_META 同款）*/}
+                        <div
+                          className="flex flex-col items-center gap-1 rounded-lg border-2 px-4 py-4"
+                          style={{
+                            borderColor: `${meta.color}88`,
+                            backgroundColor: `${meta.color}14`,
+                            boxShadow: `0 0 24px -8px ${meta.color}66`,
+                          }}
+                        >
+                          <span className="text-[24px] font-bold tracking-[0.12em]" style={{ color: meta.color }}>
+                            {meta.label}
+                          </span>
+                          <span className="text-[12px] text-muted-foreground/85">{meta.sub}</span>
+                        </div>
+                        {/* 三指標（執行長點名：總庫存/可出量/不可出量；在途退場、下方另示）*/}
+                        <div className="grid grid-cols-3 gap-2 text-center">
+                          {(
+                            [
+                              ['總庫存', onHand, 'var(--foreground)'],
+                              ['可出量', avail, '#22D88F'],
+                              ['不可出量', blocked, '#E26060'],
+                            ] as const
+                          ).map(([label, v, color]) => (
+                            <div key={label} className="rounded-md border border-border/50 bg-secondary px-2 py-1.5">
+                              <div className="text-[10.5px] text-foreground/60">{label}</div>
+                              <div className="font-mono text-[17px] font-semibold" style={{ color: v === 0 ? '#5A5A60' : color }}>
+                                {v}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        {inTransit > 0 ? (
+                          <p className="text-[12px] text-muted-foreground/75">
+                            另有 <span className="font-mono text-[#FFB347]">{inTransit}</span> 件在途（採購已下單未入庫）
+                          </p>
+                        ) : null}
+                        {/* S3-4 各倉卡片（取代細表格）*/}
+                        <div className="space-y-1.5">
+                          {stock.warehouses
+                            .filter((w) => Number(w.onHand) > 0 || w.isPrimary)
+                            .map((w) => {
+                              const wAvail = Number(w.available);
+                              const wBlocked = Math.max(0, Number(w.onHand) - wAvail);
+                              return (
+                                <div
+                                  key={w.warehouseId}
+                                  className="flex items-center gap-3 rounded-lg border border-border/40 bg-secondary/30 px-3 py-2"
+                                >
+                                  <div className="min-w-0 flex-1">
+                                    <span className="font-mono text-[13px] text-primary/90">{w.warehouseCode}</span>
+                                    <span className="ml-2 text-[12.5px] text-muted-foreground">{w.warehouseName}</span>
+                                    {w.isPrimary ? (
+                                      <span className="ml-2 rounded border border-primary/45 bg-primary/10 px-1.5 py-px text-[10px] text-primary">本倉</span>
+                                    ) : null}
+                                  </div>
+                                  <div className="flex shrink-0 items-baseline gap-3 font-mono tabular-nums">
+                                    <span className={`text-[16px] font-semibold ${wAvail > 0 ? 'text-[#22D88F]' : 'text-destructive'}`}>
+                                      {wAvail}
+                                    </span>
+                                    <span className="text-[11px] text-muted-foreground/70">
+                                      庫存 {Number(w.onHand)}
+                                      {wBlocked > 0 ? `・不可出 ${wBlocked}` : ''}
+                                    </span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                        </div>
+                      </div>
+                    );
+                  })()
+                ) : (
+                  <div className="text-[12px] text-muted-foreground">{focusPartId ? '載入中…' : '尚未選件'}</div>
+                )}
+              </div>
+            )}
+
+            {stage === 4 && (
+              <div className="space-y-3">
+                <div className={secHead}>歷史價（跟著聚焦行）</div>
+                {customer && focusPartId ? <PriceIntelPanel customerId={customer.id} partId={focusPartId} /> : null}
+                {!customer ? (
                   <div className="text-[12px] text-muted-foreground">散客——不帶歷史價（發送訊息前可補客戶）</div>
                 ) : null}
                 {stock ? (
@@ -1298,8 +1452,6 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                       </tbody>
                     </table>
                   </div>
-                ) : stage === 3 ? (
-                  <div className="text-[12px] text-muted-foreground">{focusPartId ? '載入中…' : '尚未選件'}</div>
                 ) : null}
               </div>
             )}
@@ -1352,6 +1504,11 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
               </div>
             </div>
           </div>
+        ) : null}
+
+        {/* S3-2 圖片放大 Lightbox（Alt+P、F1 同款）*/}
+        {photoZoom && photos.length > 0 && currentPartId ? (
+          <PhotoZoomOverlay partId={currentPartId} photos={photos} onClose={() => setPhotoZoom(false)} />
         ) : null}
 
         {/* T1 引導精靈（Alt+H / 右上「?」、本功能全部快捷鍵）*/}
@@ -1446,9 +1603,9 @@ function QuoteHelpOverlay({ onClose }: { onClose: () => void }) {
             <Row k="Enter" desc="查詢；下拉建議開著時＝選定建議" />
             <Row k="↑↓ / Enter" desc="右欄群組樹選結果 → 進檢查庫存" />
             <Group title="③ 檢查庫存" />
-            <Row k="↑↓" desc="選通用零件（右欄庫存即時跟隨）" />
+            <Row k="↑↓" desc="選通用零件（右欄出貨狀態即時跟隨）" />
             <Row k="Space" desc="加入／移除報價清單" />
-            <Row k="Alt+D" desc="加入調貨詢價清單（F5 開清單）" />
+            <Row k="Alt+P" desc="放大產品圖片（←→ 切圖）" />
             <Row k="Enter" desc="進報價（已有項目時）" />
             <Group title="④ 報價" />
             <Row k="Enter" desc="數量 → 單價 → 下一顆；末欄 → 發送訊息" />

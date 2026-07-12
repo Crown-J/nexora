@@ -2503,7 +2503,8 @@ function PanelEmpty({ msg, loading }: { msg: string; loading?: boolean }) {
 }
 
 // ─── 圖片放大 Lightbox ────────────────────────────────────
-function PhotoZoomOverlay({
+// export：F2 報價工作台階段③沿用（Alt+P 同鍵位、S3-2 2026-07-12）
+export function PhotoZoomOverlay({
   partId,
   photos,
   onClose,
