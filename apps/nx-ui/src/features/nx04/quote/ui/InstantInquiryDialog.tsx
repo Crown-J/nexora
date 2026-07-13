@@ -30,10 +30,12 @@ export function InstantInquiryDialog({
   const [partner, setPartner] = useState<PickedCustomer | null>(null);
   const [qty, setQty] = useState('1');
   const [price, setPrice] = useState('');
+  const [remark, setRemark] = useState(''); // 備註（如交期、規格、暫存條件）
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const qtyRef = useRef<HTMLInputElement>(null);
   const priceRef = useRef<HTMLInputElement>(null);
+  const remarkRef = useRef<HTMLInputElement>(null);
   // FocusLockedDialog 開窗會聚焦「第一個 focusable」（= 右上 ✕）——指定初始焦點在同行輸入框
   const partnerInputRef = useRef<HTMLInputElement>(null);
 
@@ -60,6 +62,7 @@ export function InstantInquiryDialog({
         partId,
         qty: Number(qty),
         unitPrice: Number(price),
+        remark: remark.trim() || undefined,
       });
       // F5 調貨詢價清單聽這個：刷新該料摘要 + 焦點回清單（連打下一家）
       window.dispatchEvent(new CustomEvent('nx-inquiry-recorded', { detail: { partId, recordId: rec.id } }));
@@ -145,10 +148,29 @@ export function InstantInquiryDialog({
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
-                    if (!busy) void submit();
+                    remarkRef.current?.focus();
+                    remarkRef.current?.select();
                   }
                 }}
                 className={`${inputCls} font-semibold tabular-nums`}
+              />
+            </label>
+            <label className="col-span-2 text-sm">
+              <span className="mb-1 block text-xs text-muted-foreground">備註（選填；如交期、規格、暫存條件）</span>
+              <input
+                ref={remarkRef}
+                type="text"
+                maxLength={100}
+                value={remark}
+                onChange={(e) => setRemark(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (!busy) void submit();
+                  }
+                }}
+                placeholder="按 Enter 存檔"
+                className={inputCls}
               />
             </label>
           </div>

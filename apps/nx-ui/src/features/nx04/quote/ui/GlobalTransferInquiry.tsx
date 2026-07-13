@@ -111,11 +111,14 @@ export function GlobalTransferInquiry() {
 function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
   const [items, setItems] = useState<TransferInquiryItem[]>(() => listTransferItems());
   const [sel, setSel] = useState(0);
-  const [stage, setStage] = useState(1); // 1 詢價（階段2）/ 2 報價 / 3 訊息（階段4）
+  const [stage, setStage] = useState(1); // 1 詢價 / 2 報價 / 3 訊息（階段4）
+  const [inqSel, setInqSel] = useState(0); // 副容器：選中的詢價紀錄 index（階段3）
+  const [picked, setPicked] = useState<InquiryRecord | null>(null); // 選定進報價的詢價（階段4 用底價）
   const [helpOpen, setHelpOpen] = useState(false);
   // partId → 摘要（undefined=載入中）
   const [sums, setSums] = useState<Map<string, PartInquirySummary>>(new Map());
   const listRef = useRef<HTMLDivElement>(null);
+  const subPanelRef = useRef<HTMLDivElement>(null); // 副容器（詢價）焦點
   const reqSeqRef = useRef(new Map<string, number>());
 
   const fetchPart = useCallback((partId: string, code: string) => {
@@ -152,7 +155,8 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
       const d = (e as CustomEvent<{ partId?: string }>).detail;
       const it = items.find((x) => x.partId === d?.partId);
       if (it) fetchPart(it.partId, it.code);
-      setTimeout(() => listRef.current?.focus(), 60);
+      // 記完詢價（Alt+A）→ 焦點回副容器詢價站，可續選/續加
+      setTimeout(() => subPanelRef.current?.focus(), 60);
     };
     window.addEventListener('nx-inquiry-recorded', h);
     return () => window.removeEventListener('nx-inquiry-recorded', h);
@@ -161,6 +165,13 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     if (sel >= items.length) setSel(Math.max(0, items.length - 1));
   }, [items.length, sel]);
+
+  // 換選料 → 副容器詢價選取歸零、回詢價站
+  useEffect(() => {
+    setInqSel(0);
+    setStage(1);
+    setPicked(null);
+  }, [sel]);
 
   // 選中卡捲入可視
   useEffect(() => {
@@ -196,11 +207,48 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
       e.preventDefault();
       setSel((i) => Math.max(0, i - 1));
     } else if (e.key === 'Enter') {
+      // 階段3：Enter 進副容器（詢價站）；不再直接開詢價彈窗（改 Alt+A）
       e.preventDefault();
-      if (cur) fireInquiry(cur);
+      if (cur) {
+        setInqSel(0);
+        setStage(1);
+        setTimeout(() => subPanelRef.current?.focus(), 0);
+      }
     } else if (e.key === 'Delete') {
       e.preventDefault();
       if (cur) removeTransferItem(cur.customerId, cur.partId);
+    }
+  };
+
+  // 副容器（詢價站）鍵盤：↑↓ 選詢價、Alt+A 新增詢價、Enter 選定進報價、Esc 回待辦
+  const onSubKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!cur) return;
+    if (e.altKey && !e.ctrlKey && !e.metaKey && e.key.toLowerCase() === 'a') {
+      e.preventDefault();
+      fireInquiry(cur);
+      return;
+    }
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      e.stopPropagation();
+      setTimeout(() => listRef.current?.focus(), 0);
+      return;
+    }
+    const recs = sums.get(cur.partId)?.recs ?? [];
+    if (recs.length === 0) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setInqSel((i) => Math.min(recs.length - 1, i + 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setInqSel((i) => Math.max(0, i - 1));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      const r = recs[Math.min(inqSel, recs.length - 1)];
+      if (r) {
+        setPicked(r);
+        setStage(2); // 進報價（階段4 建置中、已把選定詢價帶著）
+      }
     }
   };
 
@@ -348,17 +396,27 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
             )}
           </section>
 
-          {/* C 副容器：詢價（選中料近30天詢價＋記詢價；階段3做 ↑↓ 選 / Alt+A 新增）*/}
-          <aside className="flex min-h-0 flex-col overflow-auto bg-background/20 px-5 py-4">
+          {/* C 副容器：詢價站（↑↓ 選詢價・Alt+A 新增・Enter 帶去報價・Esc 回待辦）*/}
+          <aside
+            ref={subPanelRef}
+            tabIndex={0}
+            onKeyDown={onSubKey}
+            className="flex min-h-0 flex-col overflow-auto bg-background/20 px-5 py-4 outline-none transition-[background-color,box-shadow] focus-within:bg-primary/[0.03] focus-within:ring-1 focus-within:ring-inset focus-within:ring-primary/25"
+          >
             {stage !== 1 ? (
-              <div className="flex flex-1 flex-col items-center justify-center gap-1 text-center text-[12.5px] text-muted-foreground">
+              <div className="flex flex-1 flex-col items-center justify-center gap-2 px-2 text-center text-[12.5px] text-muted-foreground">
                 <span className="text-[13px] font-medium text-foreground/80">
                   {STAGE_DEFS.find((s) => s.n === stage)?.label}
                 </span>
+                {stage === 2 && picked ? (
+                  <span className="rounded-lg border border-primary/40 bg-primary/[0.06] px-3 py-2 font-mono text-primary">
+                    已選詢價：{picked.partnerName ?? picked.partnerCode ?? '同行'} NT$ {fmtNt(Number(picked.unitPrice))}
+                  </span>
+                ) : null}
                 <span>階段 4 建置中——報價→訊息會參考 F2</span>
               </div>
             ) : !cur ? (
-              <div className="text-[12px] text-muted-foreground">左側選一筆待辦、Enter 記詢價</div>
+              <div className="text-[12px] text-muted-foreground">左側選一筆待辦、Enter 進來詢價</div>
             ) : (
               <>
                 <div className={secHead}>詢價 · {cur.code}</div>
@@ -367,27 +425,41 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
                   onClick={() => fireInquiry(cur)}
                   className="mb-3 rounded-lg border border-primary/55 bg-primary/12 px-3 py-1.5 text-[12.5px] font-medium text-primary hover:bg-primary/20"
                 >
-                  ＋ 記一筆詢價（同行→量→價）
+                  ＋ 新增詢價（Alt+A：同行→量→價→備註）
                 </button>
                 <div className="mb-2">{summaryLine(cur.partId)}</div>
                 {(() => {
                   const s = sums.get(cur.partId);
-                  if (!s || s.recs.length === 0) return null;
+                  if (!s || s.recs.length === 0)
+                    return (
+                      <div className="rounded border border-dashed border-border/50 px-3 py-4 text-center text-[12px] text-muted-foreground">
+                        還沒詢過——Alt+A 記第一筆
+                      </div>
+                    );
+                  const recs = s.recs.slice(0, 8);
                   return (
-                    <table className="w-full border-collapse border-t border-border/30 text-[13px]">
-                      <tbody>
-                        {s.recs.slice(0, 8).map((r) => (
-                          <tr key={r.id} className="border-b border-border/15 last:border-b-0">
-                            <td className="py-1 pr-3 font-mono text-[12px] text-muted-foreground">{r.recordDate.slice(0, 10)}</td>
-                            <td className="py-1 pr-3">{r.partnerName ?? r.partnerCode ?? '—'}</td>
-                            <td className="py-1 pr-3 text-right font-mono tabular-nums">{Number(r.qty)}</td>
-                            <td className="py-1 text-right font-mono font-semibold tabular-nums text-primary">
-                              {fmtNt(Number(r.unitPrice))}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                    <div className="space-y-1">
+                      <div className="mb-1 text-[11px] text-muted-foreground/60">↑↓ 選一筆・Enter 帶去報價</div>
+                      {recs.map((r, ri) => {
+                        const on = ri === Math.min(inqSel, recs.length - 1);
+                        return (
+                          <div
+                            key={r.id}
+                            onClick={() => setInqSel(ri)}
+                            className={`grid cursor-pointer grid-cols-[76px_minmax(0,1fr)_36px_92px] items-baseline gap-x-2 rounded border-2 px-2 py-1 text-[12.5px] ${
+                              on ? 'border-primary bg-primary/10' : 'border-transparent hover:border-primary/30'
+                            }`}
+                          >
+                            <span className="font-mono text-[11px] text-muted-foreground">{r.recordDate.slice(0, 10)}</span>
+                            <span className="min-w-0 truncate">{r.partnerName ?? r.partnerCode ?? '—'}</span>
+                            <span className="text-right font-mono tabular-nums text-foreground/85">{Number(r.qty)}</span>
+                            <span className="text-right font-mono font-semibold tabular-nums text-primary">
+                              NT$ {fmtNt(Number(r.unitPrice))}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
                   );
                 })()}
               </>
@@ -396,7 +468,7 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
         </div>
 
         <div className="flex items-center justify-between border-t border-border/35 bg-background/35 px-6 py-2 text-[11px] text-muted-foreground/70">
-          <span>↑↓ 選料｜Enter 記詢價｜Delete 移除｜Alt+H 說明｜Esc 關閉</span>
+          <span>待辦：↑↓ 選・Enter 進詢價・Delete 移除｜詢價：↑↓ 選・Alt+A 新增・Enter 進報價・Esc 回｜Alt+H 說明</span>
           {items.length > 0 ? (
             <button
               type="button"
@@ -456,11 +528,12 @@ function TransferHelpOverlay({ onClose }: { onClose: () => void }) {
         <div className="min-h-0 flex-1 overflow-auto px-5 py-3">
           <div className="grid grid-cols-[88px_1fr] items-baseline gap-x-3 gap-y-1.5">
             <Row k="F5" desc="任何頁面開／關本視窗（瀏覽器重新整理改 Ctrl+R）" />
-            <Row k="↑↓" desc="選料（選中卡展開近 30 天內最近 5 筆同行詢價）" />
-            <Row k="Enter" desc="對選中料記一筆詢價（選同行→量→價、存檔即回清單）" />
-            <Row k="Delete" desc="移除選中料（已記的詢價紀錄不受影響）" />
+            <Row k="↑↓" desc="待辦：選料；詢價站：選一筆詢價" />
+            <Row k="Enter" desc="待辦→進詢價站；詢價站→帶選定詢價去報價（階段4）" />
+            <Row k="Alt+A" desc="詢價站新增一筆詢價（同行→量→價→備註）" />
+            <Row k="Delete" desc="待辦移除選中料（已記的詢價紀錄不受影響）" />
+            <Row k="Esc" desc="詢價站→回待辦；待辦→關視窗" />
             <Row k="Alt+H" desc="本說明（引導精靈通用鍵）" />
-            <Row k="Esc" desc="關閉視窗（清單保留、下次 F5 繼續）" />
           </div>
           <div className="mt-3 rounded border border-border/40 bg-muted/25 px-3 py-2 text-[12px] leading-relaxed text-muted-foreground">
             怎麼加料進來：F2 報價④出貨倉庫選「調貨」、或 F1 主視窗聚焦缺貨料按 Alt+D。
