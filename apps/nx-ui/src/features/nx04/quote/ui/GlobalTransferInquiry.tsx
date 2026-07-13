@@ -64,6 +64,15 @@ const STAGE_DEFS: { n: number; label: string; icon: React.ReactNode }[] = [
 const secHead = 'mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/70';
 // F5 調貨報價訊息：單筆調貨（料號＋數量＋報價＋(調貨)＋備註）；F5 不做設定卡、用固定組合
 const F5_MSG_OPTS: MsgOpts = { brand: false, baseNo: true, secCode: false, qtyAlways: true, warehouse: true, remark: true };
+// 報價站卡片列（對齊 F2 屬性面板：↑↓ 選、Enter 展開/編輯）；調貨成本/調貨對象純顯示不展開
+const Q_ROWS = ['建議售價', '調貨成本', '報價/成交歷史', '調貨對象', '數量', '報價', '備註'] as const;
+const QR_SUGGESTED = 0;
+const QR_COST = 1;
+const QR_HIST = 2;
+const QR_PARTNER = 3;
+const QR_QTY = 4;
+const QR_PRICE = 5;
+const QR_REMARK = 6;
 
 export function GlobalTransferInquiry() {
   const [open, setOpen] = useState(false);
@@ -124,9 +133,14 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
   const [quotePrice, setQuotePrice] = useState(''); // 報價站：給客戶售價
   const [quoteQty, setQuoteQty] = useState('1'); // 報價站：數量（預設帶客戶要的量）
   const [quoteRemark, setQuoteRemark] = useState(''); // 報價站：備註
-  const [abcdOpen, setAbcdOpen] = useState(false); // 報價站：建議售價 ABCD 展開
   const [abcd, setAbcd] = useState<PartDetailDto | null>(null); // 報價站：ABCD 建議售價
   const [priceHist, setPriceHist] = useState<QuotePriceHistoryRow[] | null>(null); // 報價站：該客戶報價/成交歷史
+  // 報價站卡片列鍵盤流（對齊 F2）：↑↓ 選卡、Enter 展開/編輯
+  const [qSel, setQSel] = useState(0);
+  const [qOpen, setQOpen] = useState<null | 'abcd' | 'hist'>(null);
+  const [qEdit, setQEdit] = useState<null | 'qty' | 'price' | 'remark'>(null);
+  const [qHistSel, setQHistSel] = useState(0);
+  const qEditRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
@@ -259,18 +273,77 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
     }
   };
 
-  // 副容器鍵盤：Esc 逐階段回退（訊息→報價→詢價→待辦）；詢價站 ↑↓/Alt+A/Enter，報價/訊息站交給欄位/按鈕
+  // 副容器鍵盤：Esc 逐階段回退（訊息→報價→詢價→待辦）；詢價站 ↑↓/Alt+A/Enter；
+  //   報價站卡片列（對齊 F2）：↑↓ 選卡、Enter 展開/編輯、←→ 回詢價/進訊息
   const onSubKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (!cur) return;
     if (e.key === 'Escape') {
       e.preventDefault();
       e.stopPropagation();
       if (stage === 3) setStage(2);
-      else if (stage === 2) setStage(1);
-      else setTimeout(() => listRef.current?.focus(), 0);
+      else if (stage === 2) {
+        if (qOpen) setQOpen(null); // 展開中：先收合
+        else setStage(1);
+      } else setTimeout(() => listRef.current?.focus(), 0);
       return;
     }
-    if (stage !== 1) return; // 報價/訊息站：其他鍵由欄位/按鈕處理，不跑詢價站邏輯
+    if (stage === 2 && cur.customerId) {
+      if (qEdit) return; // 編輯輸入框自己接鍵
+      if (qOpen === 'hist') {
+        const rows = (priceHist ?? []).slice(0, 8);
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          setQHistSel((i) => Math.min(rows.length - 1, i + 1));
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          setQHistSel((i) => Math.max(0, i - 1));
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          const p = rows[qHistSel];
+          if (p) setQuotePrice(String(p.amount));
+          setQOpen(null);
+        }
+        return;
+      }
+      if (qOpen === 'abcd') {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          setQOpen(null);
+        }
+        return;
+      }
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setQSel((i) => Math.min(Q_ROWS.length - 1, i + 1));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setQSel((i) => Math.max(0, i - 1));
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        setStage(3);
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        setStage(1);
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (qSel === QR_SUGGESTED) setQOpen('abcd');
+        else if (qSel === QR_HIST) {
+          if ((priceHist ?? []).length > 0) {
+            setQHistSel(0);
+            setQOpen('hist');
+          }
+        } else if (qSel === QR_QTY || qSel === QR_PRICE || qSel === QR_REMARK) {
+          setQEdit(qSel === QR_QTY ? 'qty' : qSel === QR_PRICE ? 'price' : 'remark');
+          setTimeout(() => {
+            qEditRef.current?.focus();
+            qEditRef.current?.select();
+          }, 30);
+        }
+        // 調貨成本／調貨對象：純顯示、不展開
+      }
+      return;
+    }
+    if (stage !== 1) return; // 訊息站：其他鍵由欄位/按鈕處理
     if (e.altKey && !e.ctrlKey && !e.metaKey && e.key.toLowerCase() === 'a') {
       e.preventDefault();
       fireInquiry(cur);
@@ -292,7 +365,9 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
         setQuotePrice(''); // 不自動帶成本（避免手滑用成本報出）；成本顯示成底價參考
         setQuoteQty(String(cur.qty || 1));
         setQuoteRemark('');
-        setAbcdOpen(false);
+        setQSel(0);
+        setQOpen(null);
+        setQEdit(null);
         setErr(null);
         setStage(2); // 進報價
       }
@@ -500,124 +575,144 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
                       　<span className="font-mono">{cur.code}</span> {cur.name}
                     </div>
 
-                    {/* 卡片式屬性列（對齊 F2）：建議售價／調貨成本／報價成交歷史／調貨對象／數量／報價／備註 */}
-                    {/* 1 建議售價（點擊展開 ABCD、點格帶入報價）*/}
-                    <div className="rounded-lg border-2 border-border/35 bg-secondary/30 px-3 py-2">
-                      <button
-                        type="button"
-                        onClick={() => setAbcdOpen((v) => !v)}
-                        className="flex w-full items-center justify-between gap-3"
-                      >
-                        <span className="text-[12.5px] text-foreground/70">建議售價</span>
-                        <span className="font-mono text-[13px] text-foreground/70">
-                          {abcd === null ? '…' : 'ABCD'} {abcdOpen ? '▴' : '▾'}
-                        </span>
-                      </button>
-                      {abcdOpen ? (
-                        <div className="mt-1.5 grid grid-cols-4 gap-1.5">
-                          {(['A', 'B', 'C', 'D'] as const).map((g) => {
-                            const v = abcd?.[`price${g}` as 'priceA' | 'priceB' | 'priceC' | 'priceD'];
-                            return (
-                              <button
-                                key={g}
-                                type="button"
-                                disabled={!v}
-                                onClick={() => v && setQuotePrice(String(v))}
-                                className="rounded-md border border-border/50 bg-background/40 px-1.5 py-1 text-center hover:border-primary/50 disabled:opacity-60 disabled:hover:border-border/50"
-                              >
-                                <div className="text-[10px] text-foreground/55">{g} 價</div>
-                                <div className="font-mono text-[13px] font-semibold tabular-nums">
-                                  {abcd ? (v ? fmtNt(Number(v)) : '—') : '…'}
-                                </div>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      ) : null}
+                    {/* 卡片式屬性列（對齊 F2 屬性面板）：↑↓ 選卡、Enter 展開/編輯、Esc 收合/回詢價 */}
+                    <div className="space-y-1.5">
+                      {Q_ROWS.map((label, i) => {
+                        const active = i === qSel;
+                        const value =
+                          i === QR_SUGGESTED
+                            ? abcd === null
+                              ? '…'
+                              : 'ABCD'
+                            : i === QR_COST
+                              ? picked
+                                ? `NT$ ${fmtNt(Number(picked.unitPrice))}（底價）`
+                                : '—'
+                              : i === QR_HIST
+                                ? (() => {
+                                    if (priceHist === null) return '…';
+                                    const p = priceHist.find((h) => h.scope === 'CUSTOMER') ?? priceHist[0];
+                                    return p
+                                      ? `${p.kind === 'SALE' ? '成交' : '報價'} NT$ ${fmtNt(Number(p.amount))}`
+                                      : '—（無前價）';
+                                  })()
+                                : i === QR_PARTNER
+                                  ? picked
+                                    ? (picked.partnerName ?? picked.partnerCode ?? '同行')
+                                    : '—'
+                                  : i === QR_QTY
+                                    ? quoteQty
+                                    : i === QR_PRICE
+                                      ? quotePrice || '未填'
+                                      : quoteRemark || '—';
+                        const editing =
+                          qEdit !== null &&
+                          active &&
+                          ((qEdit === 'qty' && i === QR_QTY) ||
+                            (qEdit === 'price' && i === QR_PRICE) ||
+                            (qEdit === 'remark' && i === QR_REMARK));
+                        return (
+                          <div key={label}>
+                            <div
+                              onClick={() => setQSel(i)}
+                              className={`flex items-center justify-between gap-3 rounded-lg border-2 px-3 py-2 ${
+                                active ? 'border-primary bg-primary/10' : 'border-border/35 bg-secondary/30'
+                              }`}
+                            >
+                              <span className="text-[12.5px] text-foreground/70">{label}</span>
+                              {editing ? (
+                                <input
+                                  ref={qEditRef}
+                                  type={qEdit === 'remark' ? 'text' : 'number'}
+                                  min="0"
+                                  step={qEdit === 'price' ? '0.01' : '1'}
+                                  maxLength={qEdit === 'remark' ? 100 : undefined}
+                                  value={qEdit === 'qty' ? quoteQty : qEdit === 'price' ? quotePrice : quoteRemark}
+                                  onChange={(e) => {
+                                    if (qEdit === 'qty') setQuoteQty(e.target.value);
+                                    else if (qEdit === 'price') setQuotePrice(e.target.value);
+                                    else setQuoteRemark(e.target.value);
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === 'Escape') {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      setQEdit(null);
+                                      setTimeout(() => subPanelRef.current?.focus(), 0);
+                                    }
+                                  }}
+                                  placeholder={qEdit === 'remark' ? '如：5個在新莊倉' : ''}
+                                  className={`rounded border bg-background px-2 py-1 text-sm ${
+                                    qEdit === 'remark' ? 'w-48 text-right' : 'w-28 text-right font-mono tabular-nums'
+                                  }`}
+                                />
+                              ) : (
+                                <span
+                                  className={`min-w-0 truncate text-right font-mono text-[13.5px] tabular-nums ${
+                                    i === QR_PRICE && quotePrice ? 'font-semibold text-primary' : 'text-foreground/95'
+                                  }`}
+                                >
+                                  {value}
+                                </span>
+                              )}
+                            </div>
+                            {/* 展開：建議售價 ABCD 四格 */}
+                            {i === QR_SUGGESTED && qOpen === 'abcd' ? (
+                              <div className="mt-1.5 grid grid-cols-4 gap-1.5 px-1">
+                                {(['A', 'B', 'C', 'D'] as const).map((g) => {
+                                  const v = abcd?.[`price${g}` as 'priceA' | 'priceB' | 'priceC' | 'priceD'];
+                                  return (
+                                    <button
+                                      key={g}
+                                      type="button"
+                                      disabled={!v}
+                                      onClick={() => {
+                                        if (v) setQuotePrice(String(v));
+                                        setQOpen(null);
+                                      }}
+                                      className="rounded-md border border-border/50 bg-secondary px-1.5 py-1 text-center hover:border-primary/50 disabled:opacity-60 disabled:hover:border-border/50"
+                                    >
+                                      <div className="text-[10px] text-foreground/60">{g} 價</div>
+                                      <div className="font-mono text-[13px] font-semibold tabular-nums">
+                                        {abcd ? (v ? fmtNt(Number(v)) : '—') : '…'}
+                                      </div>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            ) : null}
+                            {/* 展開：報價/成交歷史（↑↓ 選、Enter 帶入報價）*/}
+                            {i === QR_HIST && qOpen === 'hist' ? (
+                              <div className="mt-1.5 space-y-1 px-1">
+                                {(priceHist ?? []).slice(0, 8).map((h, hi) => (
+                                  <div
+                                    key={hi}
+                                    onClick={() => {
+                                      setQuotePrice(String(h.amount));
+                                      setQOpen(null);
+                                    }}
+                                    className={`flex cursor-pointer items-baseline gap-2 rounded border px-2 py-1 text-[12px] ${
+                                      hi === qHistSel ? 'border-primary bg-primary/10' : 'border-border/30'
+                                    }`}
+                                  >
+                                    <span className="font-mono text-[11px] text-muted-foreground">{h.date.slice(0, 10)}</span>
+                                    <span className={h.kind === 'SALE' ? 'text-[#22D88F]' : 'text-primary'}>
+                                      {h.kind === 'SALE' ? '成交' : '報價'}
+                                    </span>
+                                    {h.qty ? <span className="text-muted-foreground">× {Number(h.qty)}</span> : null}
+                                    <span className="ml-auto font-mono font-semibold tabular-nums">
+                                      NT$ {fmtNt(Number(h.amount))}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : null}
+                          </div>
+                        );
+                      })}
                     </div>
-
-                    {/* 2 調貨成本（底價、選定同行成本；不可點）*/}
-                    <div className="flex items-center justify-between gap-3 rounded-lg border-2 border-border/35 bg-secondary/30 px-3 py-2">
-                      <span className="text-[12.5px] text-foreground/70">調貨成本</span>
-                      <span className="font-mono text-[13px] tabular-nums text-foreground/95">
-                        {picked ? `NT$ ${fmtNt(Number(picked.unitPrice))}（底價）` : '—'}
-                      </span>
-                    </div>
-
-                    {/* 3 報價/成交歷史（本客戶、點擊帶入報價）*/}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const p = priceHist?.find((h) => h.scope === 'CUSTOMER') ?? priceHist?.[0];
-                        if (p) setQuotePrice(String(p.amount));
-                      }}
-                      className="flex items-center justify-between gap-3 rounded-lg border-2 border-border/35 bg-secondary/30 px-3 py-2 text-left hover:border-primary/45"
-                    >
-                      <span className="text-[12.5px] text-foreground/70">報價/成交歷史</span>
-                      <span className="font-mono text-[13px] tabular-nums text-foreground/95">
-                        {(() => {
-                          if (priceHist === null) return '…';
-                          const p = priceHist.find((h) => h.scope === 'CUSTOMER') ?? priceHist[0];
-                          return p ? `${p.kind === 'SALE' ? '成交' : '報價'} NT$ ${fmtNt(Number(p.amount))}` : '—（無前價）';
-                        })()}
-                      </span>
-                    </button>
-
-                    {/* 4 調貨對象（選定同行）*/}
-                    <div className="flex items-center justify-between gap-3 rounded-lg border-2 border-border/35 bg-secondary/30 px-3 py-2">
-                      <span className="text-[12.5px] text-foreground/70">調貨對象</span>
-                      <span className="text-[13px] text-foreground/95">
-                        {picked ? (picked.partnerName ?? picked.partnerCode ?? '同行') : '—'}
-                      </span>
-                    </div>
-
-                    {/* 5 數量 */}
-                    <div className="flex items-center justify-between gap-3 rounded-lg border-2 border-border/35 bg-secondary/30 px-3 py-2">
-                      <span className="text-[12.5px] text-foreground/70">數量</span>
-                      <input
-                        type="number"
-                        min="0"
-                        step="1"
-                        value={quoteQty}
-                        onFocus={(e) => e.target.select()}
-                        onChange={(e) => setQuoteQty(e.target.value)}
-                        className="w-24 rounded border bg-background px-2 py-1 text-right font-mono text-sm tabular-nums"
-                      />
-                    </div>
-
-                    {/* 6 報價（給客戶售價、主色框）*/}
-                    <div className="flex items-center justify-between gap-3 rounded-lg border-2 border-primary/45 bg-primary/[0.06] px-3 py-2">
-                      <span className="text-[12.5px] text-foreground/70">報價</span>
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        autoFocus
-                        value={quotePrice}
-                        onFocus={(e) => e.target.select()}
-                        onChange={(e) => setQuotePrice(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            setStage(3);
-                          }
-                        }}
-                        placeholder="給客戶售價"
-                        className="w-32 rounded border bg-background px-2 py-1 text-right font-mono text-sm font-semibold tabular-nums"
-                      />
-                    </div>
-
-                    {/* 7 備註 */}
-                    <div className="flex items-center justify-between gap-3 rounded-lg border-2 border-border/35 bg-secondary/30 px-3 py-2">
-                      <span className="text-[12.5px] text-foreground/70">備註</span>
-                      <input
-                        type="text"
-                        maxLength={100}
-                        value={quoteRemark}
-                        onChange={(e) => setQuoteRemark(e.target.value)}
-                        placeholder="選填"
-                        className="w-40 rounded border bg-background px-2 py-1 text-sm"
-                      />
+                    <div className="text-[11px] text-muted-foreground/60">
+                      ↑↓ 選卡・Enter 展開/編輯・← 回詢價・→ 下一步訊息
                     </div>
 
                     {err ? <div className="text-xs text-destructive">{err}</div> : null}
