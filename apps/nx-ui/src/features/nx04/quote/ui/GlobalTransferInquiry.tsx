@@ -8,7 +8,7 @@
 //   ⚠️ F5 攔掉瀏覽器重新整理（Ctrl+R 仍可用）——鍵盤優先 ERP 的取捨、執行長拍板。
 'use client';
 
-import { HelpCircle, PhoneCall, Trash2, X } from 'lucide-react';
+import { FileText, HelpCircle, MessageSquareText, PhoneCall, Trash2, UserRound, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { listInquiryRecords } from '@data/endpoints/nx04/record/api/record';
@@ -48,6 +48,15 @@ function summaryDateRange(): { dateFrom: string; dateTo: string } {
   from.setDate(from.getDate() - SUMMARY_DAYS);
   return { dateFrom: fmtDate(from), dateTo: fmtDate(to) };
 }
+
+// F5 重設計（2026-07-13）：左側 3 站流程軌（詢價→報價→訊息）。階段 2 只做「詢價」站與外殼、
+//   報價/訊息站為階段 4 佔位（點了顯施工中）。
+const STAGE_DEFS: { n: number; label: string; icon: React.ReactNode }[] = [
+  { n: 1, label: '詢價', icon: <PhoneCall className="size-[17px]" /> },
+  { n: 2, label: '報價', icon: <FileText className="size-[17px]" /> },
+  { n: 3, label: '訊息', icon: <MessageSquareText className="size-[17px]" /> },
+];
+const secHead = 'mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/70';
 
 export function GlobalTransferInquiry() {
   const [open, setOpen] = useState(false);
@@ -102,6 +111,7 @@ export function GlobalTransferInquiry() {
 function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
   const [items, setItems] = useState<TransferInquiryItem[]>(() => listTransferItems());
   const [sel, setSel] = useState(0);
+  const [stage, setStage] = useState(1); // 1 詢價（階段2）/ 2 報價 / 3 訊息（階段4）
   const [helpOpen, setHelpOpen] = useState(false);
   // partId → 摘要（undefined=載入中）
   const [sums, setSums] = useState<Map<string, PartInquirySummary>>(new Map());
@@ -217,14 +227,14 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
       ariaLabel="即時調貨詢價"
       backdropClassName="bg-black/55 backdrop-blur-sm animate-in fade-in duration-200"
       dialogClassName="flex flex-col rounded-2xl border border-border/60 bg-popover text-foreground shadow-[0_24px_70px_rgba(0,0,0,0.55),0_0_50px_-18px_rgba(232,160,32,0.22)] animate-in fade-in zoom-in-95 duration-200"
-      dialogStyle={{ width: 'min(860px, 96vw)', height: 'min(640px, 92vh)' }}
+      dialogStyle={{ width: 'min(1080px, 96vw)', height: 'min(680px, 92vh)' }}
     >
       <>
         <div className="flex items-center gap-2.5 border-b border-border/40 px-6 py-3">
           <span className="size-2 rounded-full bg-primary shadow-[0_0_10px_#02EDAB]" />
           <PhoneCall className="size-[18px] text-primary" />
           <h2 className="text-[15px] font-semibold tracking-wide">即時調貨詢價</h2>
-          <span className="text-[12px] text-muted-foreground">清單 {items.length} 顆・打給同行、問到價就記</span>
+          <span className="text-[12px] text-muted-foreground">缺貨待辦 {items.length} 筆・詢價紀錄全公司共享</span>
           <span className="ml-auto text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground/65">
             F5 · TRANSFER INQUIRY
           </span>
@@ -247,74 +257,126 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
           </button>
         </div>
 
-        <div
-          ref={listRef}
-          tabIndex={0}
-          onKeyDown={onKey}
-          className="min-h-0 flex-1 space-y-2 overflow-auto px-6 py-4 outline-none"
-        >
-          {items.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-border px-4 py-10 text-center text-sm text-muted-foreground">
-              調貨清單是空的——F2 報價④出貨倉庫選
-              <kbd className="mx-1 rounded border border-border/50 bg-muted/40 px-1 font-mono text-[11px]">調貨</kbd>、
-              或 F1 主視窗聚焦缺貨料按
-              <kbd className="mx-1 rounded border border-border/50 bg-muted/40 px-1 font-mono text-[11px]">Alt+D</kbd>
-              加進來
-            </div>
-          ) : (
-            items.map((it, i) => {
-              const isSel = i === sel;
-              const s = sums.get(it.partId);
+        <div className="grid min-h-0 flex-1 grid-cols-[52px_minmax(360px,1fr)_minmax(340px,1fr)]">
+          {/* A：3 站流程軌（詢價→報價→訊息；報價/訊息為階段4）*/}
+          <nav className="relative flex flex-col items-center justify-evenly border-r border-border/40 bg-background/30 py-6">
+            <span aria-hidden className="absolute bottom-12 left-1/2 top-12 w-[2px] -translate-x-1/2 bg-border/70" />
+            {STAGE_DEFS.map((s) => {
+              const active = s.n === stage;
               return (
-                <div
-                  key={transferItemKey(it.customerId, it.partId)}
-                  data-card={i}
-                  onClick={() => setSel(i)}
-                  className={`cursor-pointer rounded-lg border px-4 py-2.5 transition-colors ${
-                    isSel
-                      ? 'border-primary/55 bg-primary/[0.07] shadow-[inset_3px_0_0_var(--primary)]'
-                      : 'border-border/50 bg-background/40 hover:bg-accent/10'
+                <button
+                  key={s.n}
+                  type="button"
+                  onClick={() => setStage(s.n)}
+                  title={s.n === 1 ? s.label : `${s.label}（階段4 施工中）`}
+                  className={`relative z-10 grid size-10 place-items-center rounded-full border-2 transition-colors ${
+                    active
+                      ? 'border-primary bg-primary/20 text-primary shadow-[0_0_10px_-2px_rgba(232,160,32,0.6)]'
+                      : 'border-border/60 bg-popover text-muted-foreground hover:border-primary/45'
                   }`}
                 >
-                  <div className="flex items-baseline gap-2.5">
-                    <span className="font-mono text-[14px] font-semibold tracking-wide text-primary/90">{it.code}</span>
-                    <span className="text-[15px] font-medium">{it.name}</span>
-                    <span className="ml-auto font-mono text-[11px] text-muted-foreground/70">
-                      {it.addedAt.slice(5, 16).replace('T', ' ')} 加入
-                    </span>
-                  </div>
-                  <div className="mt-1 flex items-center gap-2">
-                    {summaryLine(it.partId)}
-                    <span className="ml-auto flex shrink-0 items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSel(i);
-                          fireInquiry(it);
-                        }}
-                        className="rounded border border-primary/55 bg-primary/12 px-2 py-0.5 text-[11px] text-primary hover:bg-primary/20"
-                      >
-                        記詢價
-                      </button>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeTransferItem(it.customerId, it.partId);
-                        }}
-                        className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                        aria-label="移除"
-                      >
-                        <Trash2 className="size-3.5" />
-                      </button>
-                    </span>
-                  </div>
-                  {/* 選中卡展開：近 30 天內最近 5 筆同行詢價（比價參考）*/}
-                  {isSel && s && s.recs.length > 0 ? (
-                    <table className="mt-2 w-full border-collapse border-t border-border/30 text-[13px]">
+                  {s.icon}
+                  <span className="absolute -bottom-1 -right-1 rounded bg-popover px-0.5 font-mono text-[9px] opacity-70">{s.n}</span>
+                </button>
+              );
+            })}
+          </nav>
+
+          {/* B 主容器：缺貨待辦列表（每筆＝客戶＋料＋量）*/}
+          <section
+            ref={listRef}
+            tabIndex={0}
+            onKeyDown={onKey}
+            className="flex min-h-0 flex-col overflow-auto border-r border-border/40 px-5 py-4 outline-none transition-[background-color,box-shadow] focus-within:bg-primary/[0.03] focus-within:ring-1 focus-within:ring-inset focus-within:ring-primary/25"
+          >
+            <div className={secHead}>缺貨待辦（{items.length}）</div>
+            {items.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-border px-4 py-10 text-center text-sm text-muted-foreground">
+                待辦是空的——F2 報價④出貨倉庫選
+                <kbd className="mx-1 rounded border border-border/50 bg-muted/40 px-1 font-mono text-[11px]">調貨</kbd>、
+                或 F1 主視窗聚焦缺貨料按
+                <kbd className="mx-1 rounded border border-border/50 bg-muted/40 px-1 font-mono text-[11px]">Alt+D</kbd>
+                加進來
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {items.map((it, i) => {
+                  const isSel = i === sel;
+                  return (
+                    <div
+                      key={transferItemKey(it.customerId, it.partId)}
+                      data-card={i}
+                      onClick={() => setSel(i)}
+                      className={`cursor-pointer rounded-lg border-2 px-3.5 py-2.5 transition-colors ${
+                        isSel ? 'border-primary bg-primary/10' : 'border-border/40 bg-background/40 hover:border-primary/45'
+                      }`}
+                    >
+                      {/* 客戶 + 數量 */}
+                      <div className="flex items-center gap-1.5 text-[11.5px] text-muted-foreground">
+                        <UserRound className="size-3.5 shrink-0" />
+                        <span className="min-w-0 truncate">
+                          {it.customerName
+                            ? `${it.customerName}${it.customerCode ? `（${it.customerCode}）` : ''}`
+                            : '未指定客戶'}
+                        </span>
+                        <span className="ml-auto shrink-0 font-mono text-foreground/80">× {it.qty}</span>
+                      </div>
+                      {/* 料 */}
+                      <div className="mt-0.5 flex items-baseline gap-2">
+                        <span className="font-mono text-[13.5px] font-semibold text-primary/90">{it.code}</span>
+                        <span className="min-w-0 truncate text-[13.5px]">{it.name}</span>
+                      </div>
+                      {/* 詢價摘要 + 移除 */}
+                      <div className="mt-1 flex items-center gap-2">
+                        {summaryLine(it.partId)}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeTransferItem(it.customerId, it.partId);
+                          }}
+                          className="ml-auto shrink-0 rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                          aria-label="移除"
+                        >
+                          <Trash2 className="size-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+
+          {/* C 副容器：詢價（選中料近30天詢價＋記詢價；階段3做 ↑↓ 選 / Alt+A 新增）*/}
+          <aside className="flex min-h-0 flex-col overflow-auto bg-background/20 px-5 py-4">
+            {stage !== 1 ? (
+              <div className="flex flex-1 flex-col items-center justify-center gap-1 text-center text-[12.5px] text-muted-foreground">
+                <span className="text-[13px] font-medium text-foreground/80">
+                  {STAGE_DEFS.find((s) => s.n === stage)?.label}
+                </span>
+                <span>階段 4 建置中——報價→訊息會參考 F2</span>
+              </div>
+            ) : !cur ? (
+              <div className="text-[12px] text-muted-foreground">左側選一筆待辦、Enter 記詢價</div>
+            ) : (
+              <>
+                <div className={secHead}>詢價 · {cur.code}</div>
+                <button
+                  type="button"
+                  onClick={() => fireInquiry(cur)}
+                  className="mb-3 rounded-lg border border-primary/55 bg-primary/12 px-3 py-1.5 text-[12.5px] font-medium text-primary hover:bg-primary/20"
+                >
+                  ＋ 記一筆詢價（同行→量→價）
+                </button>
+                <div className="mb-2">{summaryLine(cur.partId)}</div>
+                {(() => {
+                  const s = sums.get(cur.partId);
+                  if (!s || s.recs.length === 0) return null;
+                  return (
+                    <table className="w-full border-collapse border-t border-border/30 text-[13px]">
                       <tbody>
-                        {s.recs.slice(0, 5).map((r) => (
+                        {s.recs.slice(0, 8).map((r) => (
                           <tr key={r.id} className="border-b border-border/15 last:border-b-0">
                             <td className="py-1 pr-3 font-mono text-[12px] text-muted-foreground">{r.recordDate.slice(0, 10)}</td>
                             <td className="py-1 pr-3">{r.partnerName ?? r.partnerCode ?? '—'}</td>
@@ -326,11 +388,11 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
                         ))}
                       </tbody>
                     </table>
-                  ) : null}
-                </div>
-              );
-            })
-          )}
+                  );
+                })()}
+              </>
+            )}
+          </aside>
         </div>
 
         <div className="flex items-center justify-between border-t border-border/35 bg-background/35 px-6 py-2 text-[11px] text-muted-foreground/70">
