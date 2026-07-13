@@ -9,7 +9,7 @@
 'use client';
 
 import { FileText, HelpCircle, MessageSquareText, PhoneCall, Trash2, UserRound, X } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { getPartDetail } from '@data/endpoints/nx01/part-search/api/part-search';
 import { getQuotePriceHistory } from '@data/endpoints/nx04/quote/api/quote';
@@ -19,7 +19,7 @@ import type { QuotePriceHistoryRow } from '@data/types/nx04/quote';
 import type { InquiryRecord } from '@data/types/nx04/record';
 import { FocusLockedDialog } from '@design/primitives/focus-locked-dialog';
 
-import { buildQuoteMessage, type MsgOpts } from './quote-message';
+import { buildQuoteMessage, MSG_OPT_DEFS, type MsgOpts } from './quote-message';
 import {
   addTransferItems,
   clearTransferItems,
@@ -62,8 +62,9 @@ const STAGE_DEFS: { n: number; label: string; icon: React.ReactNode }[] = [
   { n: 3, label: '訊息', icon: <MessageSquareText className="size-[17px]" /> },
 ];
 const secHead = 'mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/70';
-// F5 調貨報價訊息：單筆調貨（料號＋數量＋報價＋(調貨)＋備註）；F5 不做設定卡、用固定組合
+// F5 調貨報價訊息預設選項（訊息站設定卡可調、存本機、與 F2 分開記）
 const F5_MSG_OPTS: MsgOpts = { brand: false, baseNo: true, secCode: false, qtyAlways: true, warehouse: true, remark: true };
+const F5_MSG_OPTS_KEY = 'nx-f5-msg-opts';
 // 報價站卡片列（對齊 F2 屬性面板：↑↓ 選、Enter 展開/編輯）；調貨成本/調貨對象純顯示不展開
 const Q_ROWS = ['建議售價', '調貨成本', '報價/成交歷史', '調貨對象', '數量', '報價', '備註'] as const;
 const QR_SUGGESTED = 0;
@@ -141,6 +142,30 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
   const [qEdit, setQEdit] = useState<null | 'qty' | 'price' | 'remark'>(null);
   const [qHistSel, setQHistSel] = useState(0);
   const qEditRef = useRef<HTMLInputElement>(null);
+  // 訊息站（對齊 F2 stage5）：左訊息框、右設定卡（↑↓ 選、Space 開關、Enter 存檔結案、Alt+E 編輯訊息）
+  const [msgOpts, setMsgOpts] = useState<MsgOpts>(() => {
+    try {
+      const raw = typeof window !== 'undefined' ? localStorage.getItem(F5_MSG_OPTS_KEY) : null;
+      if (raw) return { ...F5_MSG_OPTS, ...(JSON.parse(raw) as Partial<MsgOpts>) };
+    } catch {
+      /* 走預設 */
+    }
+    return F5_MSG_OPTS;
+  });
+  const [optSel, setOptSel] = useState(0);
+  const [editMode, setEditMode] = useState(false);
+  const [msgDraft, setMsgDraft] = useState<string | null>(null);
+  const msgRef = useRef<HTMLTextAreaElement>(null);
+  const setOpt = (patch: Partial<MsgOpts>) =>
+    setMsgOpts((prev) => {
+      const next = { ...prev, ...patch };
+      try {
+        localStorage.setItem(F5_MSG_OPTS_KEY, JSON.stringify(next));
+      } catch {
+        /* 存不了不擋 */
+      }
+      return next;
+    });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
@@ -191,19 +216,29 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
     return () => window.removeEventListener('nx-inquiry-recorded', h);
   }, [items, fetchPart]);
 
-  // 全域鍵（開窗時、對齊 F2 範式）：Alt+1~3 切站、Alt+S 進訊息、Alt+H 說明
+  // 全域鍵（開窗時、對齊 F2 範式）：Alt+1~3 切站、Alt+S 進訊息、Alt+E 編輯訊息、Alt+H 說明
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if (!e.altKey || e.ctrlKey || e.metaKey) return;
       const k = e.key.toLowerCase();
-      if (k !== '1' && k !== '2' && k !== '3' && k !== 's' && k !== 'h') return;
+      if (k !== '1' && k !== '2' && k !== '3' && k !== 's' && k !== 'h' && k !== 'e') return;
+      if (k === 'e' && stage !== 3) return; // Alt+E 只在訊息站
       e.preventDefault();
       e.stopPropagation();
       if (k === 'h') {
         setHelpOpen((v) => !v);
         return;
       }
+      if (k === 'e') {
+        setEditMode((v) => {
+          const next = !v;
+          setTimeout(() => (next ? msgRef.current?.focus() : subPanelRef.current?.focus()), 0);
+          return next;
+        });
+        return;
+      }
       const n = k === 's' ? 3 : Number(k);
+      setEditMode(false);
       if (n === 2 || n === 3) {
         setQOpen(null);
         setQEdit(null);
@@ -217,7 +252,7 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
     };
     document.addEventListener('keydown', h, true);
     return () => document.removeEventListener('keydown', h, true);
-  }, []);
+  }, [stage]);
 
   useEffect(() => {
     if (sel >= items.length) setSel(Math.max(0, items.length - 1));
@@ -228,6 +263,8 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
     setInqSel(0);
     setStage(1);
     setPicked(null);
+    setEditMode(false);
+    setMsgDraft(null);
   }, [sel]);
 
   // 報價站：載入 ABCD 建議售價 + 該客戶報價/成交歷史（幫業務定售價的參考）
@@ -265,6 +302,32 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
 
   const cur = items[sel];
 
+  // 訊息生成（共用 buildQuoteMessage）；手動編輯稿以最後動作為準、設定/內容變更即重生成（F2 定案 5a）
+  const f5MsgText = useMemo(() => {
+    if (!cur) return '';
+    return buildQuoteMessage(
+      [
+        {
+          name: cur.name,
+          code: cur.code,
+          secCode: null,
+          brand: null,
+          brandName: null,
+          isOem: false,
+          qty: Number(quoteQty) || cur.qty,
+          price: quotePrice || 0,
+          transfer: true,
+          remark: quoteRemark,
+        },
+      ],
+      msgOpts,
+    );
+  }, [cur, quoteQty, quotePrice, quoteRemark, msgOpts]);
+  useEffect(() => {
+    setMsgDraft(null);
+  }, [f5MsgText]);
+  const msgText = msgDraft ?? f5MsgText;
+
   const fireInquiry = (it: TransferInquiryItem) => {
     window.dispatchEvent(
       new CustomEvent('nx-instant-inquiry', {
@@ -280,6 +343,7 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
       setHelpOpen((v) => !v);
       return;
     }
+    if (stage === 3) return; // 訊息站：主容器＝訊息框（textarea 自己接鍵）、清單導航停用
     if (items.length === 0) return;
     if (e.key === 'ArrowDown') {
       e.preventDefault();
@@ -308,8 +372,10 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
     if (e.key === 'Escape') {
       e.preventDefault();
       e.stopPropagation();
-      if (stage === 3) setStage(2);
-      else if (stage === 2) {
+      if (stage === 3) {
+        setEditMode(false);
+        setStage(2);
+      } else if (stage === 2) {
         if (qOpen) setQOpen(null); // 展開中：先收合
         else setStage(1);
       } else setTimeout(() => listRef.current?.focus(), 0);
@@ -371,7 +437,25 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
       }
       return;
     }
-    if (stage !== 1) return; // 訊息站：其他鍵由欄位/按鈕處理
+    if (stage === 3 && cur.customerId) {
+      // 訊息站設定卡（對齊 F2 stage5）：↑↓ 選卡、Space 開關、Enter 存檔結案
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setOptSel((i) => Math.min(MSG_OPT_DEFS.length - 1, i + 1));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setOptSel((i) => Math.max(0, i - 1));
+      } else if (e.key === ' ') {
+        e.preventDefault();
+        const def = MSG_OPT_DEFS[optSel];
+        if (def) setOpt({ [def.key]: !msgOpts[def.key] });
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (!busy) void closeOut();
+      }
+      return;
+    }
+    if (stage !== 1) return; // 無客戶的訊息站等：其他鍵由欄位/按鈕處理
     if (e.altKey && !e.ctrlKey && !e.metaKey && e.key.toLowerCase() === 'a') {
       e.preventDefault();
       fireInquiry(cur);
@@ -424,6 +508,8 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
       removeTransferItem(cur.customerId, cur.partId); // 結案＝移出缺貨待辦
       setStage(1);
       setPicked(null);
+      setEditMode(false);
+      setMsgDraft(null);
       setTimeout(() => listRef.current?.focus(), 60);
     } catch (e) {
       setErr(e instanceof Error ? e.message : '結案失敗');
@@ -511,15 +597,47 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
             })}
           </nav>
 
-          {/* B 主容器：缺貨待辦列表（每筆＝客戶＋料＋量）*/}
+          {/* B 主容器：缺貨待辦列表；訊息站＝給客戶的訊息（對齊 F2 stage5：左訊息框、右設定卡）*/}
           <section
             ref={listRef}
             tabIndex={0}
             onKeyDown={onKey}
             className="flex min-h-0 flex-col overflow-auto border-r border-border/40 px-5 py-4 outline-none transition-[background-color,box-shadow] focus-within:bg-primary/[0.03] focus-within:ring-1 focus-within:ring-inset focus-within:ring-primary/25"
           >
-            <div className={secHead}>缺貨待辦（{items.length}）</div>
-            {items.length === 0 ? (
+            {stage === 3 && cur ? (
+              <div className="flex min-h-0 flex-1 flex-col gap-2">
+                <div className={secHead}>
+                  給客戶的訊息
+                  {editMode ? <span className="ml-2 normal-case tracking-normal text-primary">編輯模式</span> : null}
+                </div>
+                <textarea
+                  ref={msgRef}
+                  readOnly={!editMode}
+                  value={msgText || '（沒有報價內容——回報價站填價）'}
+                  onChange={(e) => setMsgDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (!editMode) return;
+                    // 同 F2 定案 4：編輯模式 Enter＝回副容器、換行走 Shift+Enter
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      setEditMode(false);
+                      setTimeout(() => subPanelRef.current?.focus(), 0);
+                    } else if (e.key === 'Escape') {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setEditMode(false);
+                      setTimeout(() => subPanelRef.current?.focus(), 0);
+                    }
+                  }}
+                  className={`min-h-0 w-full flex-1 resize-none overflow-auto rounded-md border px-3 py-2 font-mono text-[13px] leading-relaxed text-foreground ${
+                    editMode ? 'border-primary/60 bg-background' : 'border-border bg-muted/20'
+                  }`}
+                />
+              </div>
+            ) : (
+              <>
+                <div className={secHead}>缺貨待辦（{items.length}）</div>
+                {items.length === 0 ? (
               <div className="rounded-lg border border-dashed border-border px-4 py-10 text-center text-sm text-muted-foreground">
                 待辦是空的——F2 報價④出貨倉庫選
                 <kbd className="mx-1 rounded border border-border/50 bg-muted/40 px-1 font-mono text-[11px]">調貨</kbd>、
@@ -574,6 +692,8 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
                   );
                 })}
               </div>
+                )}
+              </>
             )}
           </section>
 
@@ -749,64 +869,63 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
                 )}
               </div>
             ) : stage === 3 && cur ? (
-              /* 訊息站：共用 buildQuoteMessage（單筆調貨）＋結案 */
-              (() => {
-                const msg = buildQuoteMessage(
-                  [
-                    {
-                      name: cur.name,
-                      code: cur.code,
-                      secCode: null,
-                      brand: null,
-                      brandName: null,
-                      isOem: false,
-                      qty: Number(quoteQty) || cur.qty,
-                      price: quotePrice || 0,
-                      transfer: true,
-                      remark: quoteRemark,
-                    },
-                  ],
-                  F5_MSG_OPTS,
-                );
-                return (
-                  <div className="flex min-h-0 flex-1 flex-col gap-3">
-                    <div className={secHead}>訊息 · 給 {cur.customerName ?? '客戶'}</div>
-                    <textarea
-                      readOnly
-                      value={msg}
-                      className="min-h-0 flex-1 resize-none rounded-md border border-border bg-muted/20 px-3 py-2 font-mono text-[13px] leading-relaxed"
-                      style={{ minHeight: '110px' }}
-                    />
-                    {err ? <div className="text-xs text-destructive">{err}</div> : null}
-                    <div className="flex items-center justify-between gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setStage(2)}
-                        className="rounded border px-3 py-1 text-[12px] hover:border-primary/50"
+              /* 訊息站副容器（對齊 F2 stage5）：設定卡 ↑↓ 選、Space 開關、Enter 存檔結案；Alt+E 編輯訊息 */
+              <div className="flex min-h-0 flex-1 flex-col gap-3">
+                <div className={secHead}>訊息內容設定（會記住）</div>
+                <div className="space-y-1.5">
+                  {MSG_OPT_DEFS.map((def, i) => {
+                    const on = msgOpts[def.key];
+                    return (
+                      <div
+                        key={def.key}
+                        onClick={() => {
+                          setOptSel(i);
+                          setOpt({ [def.key]: !on });
+                        }}
+                        className={`flex cursor-pointer items-center justify-between gap-3 rounded-lg border-2 px-3 py-2 text-[13px] ${
+                          i === optSel ? 'border-primary bg-primary/10' : 'border-border/35 bg-secondary/30 hover:border-primary/45'
+                        }`}
                       >
-                        ← 回報價
-                      </button>
-                      <span className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => void navigator.clipboard.writeText(msg)}
-                          className="rounded border px-3 py-1.5 text-[12.5px] hover:border-primary/50"
+                        <span className="text-foreground/85">{def.label}</span>
+                        <span
+                          className={`shrink-0 rounded border px-1.5 py-px font-mono text-[10px] ${
+                            on ? 'border-[#22D88F]/60 bg-[#22D88F]/12 text-[#22D88F]' : 'border-border/50 text-muted-foreground/60'
+                          }`}
                         >
-                          複製
-                        </button>
-                        <button
-                          type="button"
-                          disabled={busy}
-                          onClick={() => void closeOut()}
-                          className="rounded bg-primary px-4 py-1.5 text-[12.5px] text-primary-foreground disabled:opacity-50"
-                        >
-                          {busy ? '結案中…' : '存報價＋結案'}
-                        </button>
-                      </span>
-                    </div>
+                          {on ? 'ON' : 'OFF'}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="text-[11px] text-muted-foreground/70">
+                  ↑↓ 選卡・Space 開關・Enter 存檔結案・Alt+E 編輯訊息（變更設定會重新生成、手動編輯以最後動作為準）
+                </div>
+                {!cur.customerId ? (
+                  <div className="rounded-lg border border-amber-500/50 bg-amber-500/10 px-3 py-2 text-[12px] text-amber-600">
+                    此筆未指定客戶——訊息可複製、無法存報價結案
                   </div>
-                );
-              })()
+                ) : null}
+                {err ? <div className="text-xs text-destructive">{err}</div> : null}
+                <div className="mt-auto flex items-center justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => void navigator.clipboard.writeText(msgText)}
+                    disabled={!msgText}
+                    className="rounded border px-4 py-1.5 text-sm disabled:opacity-50"
+                  >
+                    複製訊息
+                  </button>
+                  <button
+                    type="button"
+                    disabled={busy || !cur.customerId}
+                    onClick={() => void closeOut()}
+                    className="rounded bg-primary px-4 py-1.5 text-sm text-primary-foreground disabled:opacity-50"
+                  >
+                    {busy ? '結案中…' : '存報價＋結案'}
+                  </button>
+                </div>
+              </div>
             ) : !cur ? (
               <div className="text-[12px] text-muted-foreground">左側選一筆待辦、Enter 進來詢價</div>
             ) : (
@@ -925,8 +1044,10 @@ function TransferHelpOverlay({ onClose }: { onClose: () => void }) {
             <HelpRow k="F5" desc="任何頁面開／關本視窗（瀏覽器重新整理改 Ctrl+R）" />
             <HelpRow k="Alt+1~3" desc="切三站：詢價／報價／訊息" />
             <HelpRow k="Alt+S" desc="進訊息站（同 F2 結案鍵）" />
-            <HelpRow k="↑↓" desc="待辦：選料；詢價站：選詢價；報價站：選卡片" />
-            <HelpRow k="Enter" desc="待辦→進詢價站；詢價站→帶詢價去報價；報價站→展開/編輯卡片" />
+            <HelpRow k="↑↓" desc="待辦：選料；詢價站：選詢價；報價站：選卡片；訊息站：選設定卡" />
+            <HelpRow k="Enter" desc="待辦→進詢價站；詢價站→帶詢價去報價；報價站→展開/編輯；訊息站→存檔結案" />
+            <HelpRow k="Space" desc="訊息站：設定卡開/關" />
+            <HelpRow k="Alt+E" desc="訊息站：編輯訊息（Enter 回、Shift+Enter 換行）" />
             <HelpRow k="Alt+A" desc="詢價站新增一筆詢價（同行→量→價→備註）" />
             <HelpRow k="Delete" desc="待辦移除選中料（已記的詢價紀錄不受影響）" />
             <HelpRow k="Esc" desc="展開→收合；報價→詢價→待辦 逐層回；待辦→關視窗" />
