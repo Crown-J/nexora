@@ -191,6 +191,34 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
     return () => window.removeEventListener('nx-inquiry-recorded', h);
   }, [items, fetchPart]);
 
+  // 全域鍵（開窗時、對齊 F2 範式）：Alt+1~3 切站、Alt+S 進訊息、Alt+H 說明
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => {
+      if (!e.altKey || e.ctrlKey || e.metaKey) return;
+      const k = e.key.toLowerCase();
+      if (k !== '1' && k !== '2' && k !== '3' && k !== 's' && k !== 'h') return;
+      e.preventDefault();
+      e.stopPropagation();
+      if (k === 'h') {
+        setHelpOpen((v) => !v);
+        return;
+      }
+      const n = k === 's' ? 3 : Number(k);
+      if (n === 2 || n === 3) {
+        setQOpen(null);
+        setQEdit(null);
+        if (n === 2) setQSel(0);
+        setStage(n);
+        setTimeout(() => subPanelRef.current?.focus(), 0);
+      } else {
+        setStage(1);
+        setTimeout(() => listRef.current?.focus(), 0);
+      }
+    };
+    document.addEventListener('keydown', h, true);
+    return () => document.removeEventListener('keydown', h, true);
+  }, []);
+
   useEffect(() => {
     if (sel >= items.length) setSel(Math.max(0, items.length - 1));
   }, [items.length, sel]);
@@ -424,6 +452,7 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
     <FocusLockedDialog
       open
       onClose={onClose}
+      initialFocusRef={listRef}
       ariaLabel="即時調貨詢價"
       backdropClassName="bg-black/55 backdrop-blur-sm animate-in fade-in duration-200"
       dialogClassName="flex flex-col rounded-2xl border border-border/60 bg-popover text-foreground shadow-[0_24px_70px_rgba(0,0,0,0.55),0_0_50px_-18px_rgba(232,160,32,0.22)] animate-in fade-in zoom-in-95 duration-200"
@@ -712,29 +741,10 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
                       })}
                     </div>
                     <div className="text-[11px] text-muted-foreground/60">
-                      ↑↓ 選卡・Enter 展開/編輯・← 回詢價・→ 下一步訊息
+                      ↑↓ 選卡・Enter 展開/編輯・Alt+S 進訊息・Alt+1 回詢價
                     </div>
 
                     {err ? <div className="text-xs text-destructive">{err}</div> : null}
-                    <div className="mt-1 flex items-center justify-between">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setStage(1);
-                          setTimeout(() => subPanelRef.current?.focus(), 0);
-                        }}
-                        className="rounded border px-3 py-1 text-[12px] hover:border-primary/50"
-                      >
-                        ← 回詢價
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setStage(3)}
-                        className="rounded bg-primary px-4 py-1.5 text-[12.5px] text-primary-foreground"
-                      >
-                        下一步：訊息 →
-                      </button>
-                    </div>
                   </>
                 )}
               </div>
@@ -850,7 +860,7 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
         </div>
 
         <div className="flex items-center justify-between border-t border-border/35 bg-background/35 px-6 py-2 text-[11px] text-muted-foreground/70">
-          <span>待辦：↑↓ 選・Enter 進詢價・Delete 移除｜詢價：↑↓ 選・Alt+A 新增・Enter 進報價・Esc 回｜Alt+H 說明</span>
+          <span>待辦：↑↓ 選・Enter 進詢價・Delete 移除｜詢價：↑↓ 選・Alt+A 新增・Enter 進報價｜Alt+1~3 切站・Alt+S 訊息・Esc 回・Alt+H 說明</span>
           {items.length > 0 ? (
             <button
               type="button"
@@ -913,11 +923,13 @@ function TransferHelpOverlay({ onClose }: { onClose: () => void }) {
         <div className="min-h-0 flex-1 overflow-auto px-5 py-3">
           <div className="grid grid-cols-[88px_1fr] items-baseline gap-x-3 gap-y-1.5">
             <HelpRow k="F5" desc="任何頁面開／關本視窗（瀏覽器重新整理改 Ctrl+R）" />
-            <HelpRow k="↑↓" desc="待辦：選料；詢價站：選一筆詢價" />
-            <HelpRow k="Enter" desc="待辦→進詢價站；詢價站→帶選定詢價去報價（階段4）" />
+            <HelpRow k="Alt+1~3" desc="切三站：詢價／報價／訊息" />
+            <HelpRow k="Alt+S" desc="進訊息站（同 F2 結案鍵）" />
+            <HelpRow k="↑↓" desc="待辦：選料；詢價站：選詢價；報價站：選卡片" />
+            <HelpRow k="Enter" desc="待辦→進詢價站；詢價站→帶詢價去報價；報價站→展開/編輯卡片" />
             <HelpRow k="Alt+A" desc="詢價站新增一筆詢價（同行→量→價→備註）" />
             <HelpRow k="Delete" desc="待辦移除選中料（已記的詢價紀錄不受影響）" />
-            <HelpRow k="Esc" desc="詢價站→回待辦；待辦→關視窗" />
+            <HelpRow k="Esc" desc="展開→收合；報價→詢價→待辦 逐層回；待辦→關視窗" />
             <HelpRow k="Alt+H" desc="本說明（引導精靈通用鍵）" />
           </div>
           <div className="mt-3 rounded border border-border/40 bg-muted/25 px-3 py-2 text-[12px] leading-relaxed text-muted-foreground">
