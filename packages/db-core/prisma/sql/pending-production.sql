@@ -73,6 +73,20 @@ ALTER TABLE "nx01_partner" ADD COLUMN IF NOT EXISTS "default_delivery_type" VARC
 -- F2 報價④出貨倉庫選「調貨」＝報這顆時已決定走同行調貨、旗標落進紀錄
 ALTER TABLE "nx04_quote_record" ADD COLUMN IF NOT EXISTS "is_transfer" BOOLEAN NOT NULL DEFAULT FALSE;
 
+-- ---- 6) F2 搜尋效能（2026-07-13 問題3）：pg_trgm 函式索引 ----
+-- 料號搜尋原 regexp_replace(...) LIKE '%…%' 全表掃 11 萬筆 ~356ms；
+--   後端 part-search.service 同步把 OR 改 UNION（OR 讓 planner 放棄索引）→ ~1ms。
+-- ⚠️ 索引運算式必須與 part-search.service 查詢逐字一致，否則不會被使用。
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE INDEX IF NOT EXISTS idx_nx01_part_code_norm_trgm ON nx01_part
+  USING gin (regexp_replace(lower(code), '[ #\-*.]', '', 'g') gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_nx01_part_sec_code_norm_trgm ON nx01_part
+  USING gin (regexp_replace(lower(coalesce(sec_code, '')), '[ #\-*.]', '', 'g') gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_nx01_part_oem_code_norm_trgm ON nx01_part_oem_code
+  USING gin (regexp_replace(lower(oem_code), '[ #\-*.]', '', 'g') gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_nx01_part_name_trgm ON nx01_part
+  USING gin (name gin_trgm_ops);
+
 -- ============================================================
 -- 【已套用歷史】（production 套完把段落移到這、標套用日期）
 -- ============================================================
