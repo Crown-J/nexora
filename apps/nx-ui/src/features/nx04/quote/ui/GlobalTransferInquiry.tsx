@@ -11,10 +11,11 @@
 import { FileText, HelpCircle, MessageSquareText, PhoneCall, Trash2, UserRound, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { listInquiryRecords } from '@data/endpoints/nx04/record/api/record';
+import { createQuoteRecord, listInquiryRecords } from '@data/endpoints/nx04/record/api/record';
 import type { InquiryRecord } from '@data/types/nx04/record';
 import { FocusLockedDialog } from '@design/primitives/focus-locked-dialog';
 
+import { buildQuoteMessage, type MsgOpts } from './quote-message';
 import {
   addTransferItems,
   clearTransferItems,
@@ -57,6 +58,8 @@ const STAGE_DEFS: { n: number; label: string; icon: React.ReactNode }[] = [
   { n: 3, label: '訊息', icon: <MessageSquareText className="size-[17px]" /> },
 ];
 const secHead = 'mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/70';
+// F5 調貨報價訊息：單筆調貨（料號＋數量＋報價＋(調貨)＋備註）；F5 不做設定卡、用固定組合
+const F5_MSG_OPTS: MsgOpts = { brand: false, baseNo: true, secCode: false, qtyAlways: true, warehouse: true, remark: true };
 
 export function GlobalTransferInquiry() {
   const [open, setOpen] = useState(false);
@@ -113,7 +116,11 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
   const [sel, setSel] = useState(0);
   const [stage, setStage] = useState(1); // 1 詢價 / 2 報價 / 3 訊息（階段4）
   const [inqSel, setInqSel] = useState(0); // 副容器：選中的詢價紀錄 index（階段3）
-  const [picked, setPicked] = useState<InquiryRecord | null>(null); // 選定進報價的詢價（階段4 用底價）
+  const [picked, setPicked] = useState<InquiryRecord | null>(null); // 選定進報價的詢價（底價）
+  const [quotePrice, setQuotePrice] = useState(''); // 報價站：給客戶售價
+  const [quoteRemark, setQuoteRemark] = useState(''); // 報價站：備註
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
   // partId → 摘要（undefined=載入中）
   const [sums, setSums] = useState<Map<string, PartInquirySummary>>(new Map());
@@ -220,18 +227,21 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
     }
   };
 
-  // 副容器（詢價站）鍵盤：↑↓ 選詢價、Alt+A 新增詢價、Enter 選定進報價、Esc 回待辦
+  // 副容器鍵盤：Esc 逐階段回退（訊息→報價→詢價→待辦）；詢價站 ↑↓/Alt+A/Enter，報價/訊息站交給欄位/按鈕
   const onSubKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (!cur) return;
-    if (e.altKey && !e.ctrlKey && !e.metaKey && e.key.toLowerCase() === 'a') {
-      e.preventDefault();
-      fireInquiry(cur);
-      return;
-    }
     if (e.key === 'Escape') {
       e.preventDefault();
       e.stopPropagation();
-      setTimeout(() => listRef.current?.focus(), 0);
+      if (stage === 3) setStage(2);
+      else if (stage === 2) setStage(1);
+      else setTimeout(() => listRef.current?.focus(), 0);
+      return;
+    }
+    if (stage !== 1) return; // 報價/訊息站：其他鍵由欄位/按鈕處理，不跑詢價站邏輯
+    if (e.altKey && !e.ctrlKey && !e.metaKey && e.key.toLowerCase() === 'a') {
+      e.preventDefault();
+      fireInquiry(cur);
       return;
     }
     const recs = sums.get(cur.partId)?.recs ?? [];
@@ -247,8 +257,41 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
       const r = recs[Math.min(inqSel, recs.length - 1)];
       if (r) {
         setPicked(r);
-        setStage(2); // 進報價（階段4 建置中、已把選定詢價帶著）
+        setQuotePrice(String(r.unitPrice)); // 底價＝選定同行成本、業務加價
+        setQuoteRemark('');
+        setErr(null);
+        setStage(2); // 進報價
       }
+    }
+  };
+
+  // 結案：存報價紀錄（客戶＋料＋量＋售價＋調貨旗標）→ 移出待辦 → 回列表
+  const closeOut = async () => {
+    if (!cur || !cur.customerId) return;
+    if (quotePrice.trim() === '' || Number(quotePrice) < 0) {
+      setErr('請填報價（給客戶售價）');
+      return;
+    }
+    setBusy(true);
+    setErr(null);
+    try {
+      await createQuoteRecord({
+        customerId: cur.customerId,
+        partId: cur.partId,
+        qty: cur.qty,
+        unitPrice: Number(quotePrice),
+        source: 'INSTANT',
+        isTransfer: true,
+        remark: quoteRemark.trim() || undefined,
+      });
+      removeTransferItem(cur.customerId, cur.partId); // 結案＝移出缺貨待辦
+      setStage(1);
+      setPicked(null);
+      setTimeout(() => listRef.current?.focus(), 60);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : '結案失敗');
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -403,18 +446,145 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
             onKeyDown={onSubKey}
             className="flex min-h-0 flex-col overflow-auto bg-background/20 px-5 py-4 outline-none transition-[background-color,box-shadow] focus-within:bg-primary/[0.03] focus-within:ring-1 focus-within:ring-inset focus-within:ring-primary/25"
           >
-            {stage !== 1 ? (
-              <div className="flex flex-1 flex-col items-center justify-center gap-2 px-2 text-center text-[12.5px] text-muted-foreground">
-                <span className="text-[13px] font-medium text-foreground/80">
-                  {STAGE_DEFS.find((s) => s.n === stage)?.label}
-                </span>
-                {stage === 2 && picked ? (
-                  <span className="rounded-lg border border-primary/40 bg-primary/[0.06] px-3 py-2 font-mono text-primary">
-                    已選詢價：{picked.partnerName ?? picked.partnerCode ?? '同行'} NT$ {fmtNt(Number(picked.unitPrice))}
-                  </span>
-                ) : null}
-                <span>階段 4 建置中——報價→訊息會參考 F2</span>
+            {stage === 2 ? (
+              /* 報價站：給客戶售價（底價＝選定同行成本）*/
+              <div className="flex min-h-0 flex-col gap-3">
+                <div className={secHead}>報價 · {cur?.code}</div>
+                {!cur?.customerId ? (
+                  <div className="rounded-lg border border-amber-500/50 bg-amber-500/10 px-3 py-3 text-[12.5px] text-amber-600">
+                    此筆未指定客戶（F1 通用缺貨）——只能詢價、無法報價結案。Esc 回、Alt+A 續詢價。
+                  </div>
+                ) : (
+                  <>
+                    <div className="rounded-lg border border-border/40 bg-secondary/25 px-3 py-2 text-[12.5px]">
+                      <div>
+                        客戶：
+                        <span className="font-medium text-foreground">
+                          {cur.customerName}
+                          {cur.customerCode ? `（${cur.customerCode}）` : ''}
+                        </span>
+                      </div>
+                      <div className="mt-0.5">
+                        料號：<span className="font-mono">{cur.code}</span>　{cur.name}　× {cur.qty}
+                      </div>
+                      {picked ? (
+                        <div className="mt-0.5 text-muted-foreground">
+                          調貨成本：<span className="font-mono text-primary">NT$ {fmtNt(Number(picked.unitPrice))}</span>（
+                          {picked.partnerName ?? picked.partnerCode ?? '同行'}）
+                        </div>
+                      ) : null}
+                    </div>
+                    <label className="text-[12.5px]">
+                      <span className="mb-1 block text-xs text-muted-foreground">報價（給客戶售價，底價已帶入調貨成本）</span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        autoFocus
+                        value={quotePrice}
+                        onFocus={(e) => e.target.select()}
+                        onChange={(e) => setQuotePrice(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            setStage(3);
+                          }
+                        }}
+                        className="w-full rounded border bg-background px-2 py-1.5 text-right font-mono text-sm font-semibold tabular-nums"
+                      />
+                    </label>
+                    <label className="text-[12.5px]">
+                      <span className="mb-1 block text-xs text-muted-foreground">備註（選填；如「5個在新莊倉」）</span>
+                      <input
+                        type="text"
+                        maxLength={100}
+                        value={quoteRemark}
+                        onChange={(e) => setQuoteRemark(e.target.value)}
+                        className="w-full rounded border bg-background px-2 py-1.5 text-sm"
+                      />
+                    </label>
+                    {err ? <div className="text-xs text-destructive">{err}</div> : null}
+                    <div className="flex items-center justify-between">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setStage(1);
+                          setTimeout(() => subPanelRef.current?.focus(), 0);
+                        }}
+                        className="rounded border px-3 py-1 text-[12px] hover:border-primary/50"
+                      >
+                        ← 回詢價
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setStage(3)}
+                        className="rounded bg-primary px-4 py-1.5 text-[12.5px] text-primary-foreground"
+                      >
+                        下一步：訊息 →
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
+            ) : stage === 3 && cur ? (
+              /* 訊息站：共用 buildQuoteMessage（單筆調貨）＋結案 */
+              (() => {
+                const msg = buildQuoteMessage(
+                  [
+                    {
+                      name: cur.name,
+                      code: cur.code,
+                      secCode: null,
+                      brand: null,
+                      brandName: null,
+                      isOem: false,
+                      qty: cur.qty,
+                      price: quotePrice || 0,
+                      transfer: true,
+                      remark: quoteRemark,
+                    },
+                  ],
+                  F5_MSG_OPTS,
+                );
+                return (
+                  <div className="flex min-h-0 flex-1 flex-col gap-3">
+                    <div className={secHead}>訊息 · 給 {cur.customerName ?? '客戶'}</div>
+                    <textarea
+                      readOnly
+                      value={msg}
+                      className="min-h-0 flex-1 resize-none rounded-md border border-border bg-muted/20 px-3 py-2 font-mono text-[13px] leading-relaxed"
+                      style={{ minHeight: '110px' }}
+                    />
+                    {err ? <div className="text-xs text-destructive">{err}</div> : null}
+                    <div className="flex items-center justify-between gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setStage(2)}
+                        className="rounded border px-3 py-1 text-[12px] hover:border-primary/50"
+                      >
+                        ← 回報價
+                      </button>
+                      <span className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => void navigator.clipboard.writeText(msg)}
+                          className="rounded border px-3 py-1.5 text-[12.5px] hover:border-primary/50"
+                        >
+                          複製
+                        </button>
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={() => void closeOut()}
+                          className="rounded bg-primary px-4 py-1.5 text-[12.5px] text-primary-foreground disabled:opacity-50"
+                        >
+                          {busy ? '結案中…' : '存報價＋結案'}
+                        </button>
+                      </span>
+                    </div>
+                  </div>
+                );
+              })()
             ) : !cur ? (
               <div className="text-[12px] text-muted-foreground">左側選一筆待辦、Enter 進來詢價</div>
             ) : (
@@ -488,8 +658,8 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
   );
 }
 
-function TransferHelpOverlay({ onClose }: { onClose: () => void }) {
-  const Row = ({ k, desc }: { k: string; desc: string }) => (
+function HelpRow({ k, desc }: { k: string; desc: string }) {
+  return (
     <>
       <span className="text-right">
         <kbd className="rounded border border-border/45 bg-background/45 px-1.5 py-px font-mono text-[11px] text-muted-foreground/90">
@@ -499,6 +669,9 @@ function TransferHelpOverlay({ onClose }: { onClose: () => void }) {
       <span className="text-[13px] text-foreground/90">{desc}</span>
     </>
   );
+}
+
+function TransferHelpOverlay({ onClose }: { onClose: () => void }) {
   return (
     <FocusLockedDialog
       open
@@ -527,13 +700,13 @@ function TransferHelpOverlay({ onClose }: { onClose: () => void }) {
         </div>
         <div className="min-h-0 flex-1 overflow-auto px-5 py-3">
           <div className="grid grid-cols-[88px_1fr] items-baseline gap-x-3 gap-y-1.5">
-            <Row k="F5" desc="任何頁面開／關本視窗（瀏覽器重新整理改 Ctrl+R）" />
-            <Row k="↑↓" desc="待辦：選料；詢價站：選一筆詢價" />
-            <Row k="Enter" desc="待辦→進詢價站；詢價站→帶選定詢價去報價（階段4）" />
-            <Row k="Alt+A" desc="詢價站新增一筆詢價（同行→量→價→備註）" />
-            <Row k="Delete" desc="待辦移除選中料（已記的詢價紀錄不受影響）" />
-            <Row k="Esc" desc="詢價站→回待辦；待辦→關視窗" />
-            <Row k="Alt+H" desc="本說明（引導精靈通用鍵）" />
+            <HelpRow k="F5" desc="任何頁面開／關本視窗（瀏覽器重新整理改 Ctrl+R）" />
+            <HelpRow k="↑↓" desc="待辦：選料；詢價站：選一筆詢價" />
+            <HelpRow k="Enter" desc="待辦→進詢價站；詢價站→帶選定詢價去報價（階段4）" />
+            <HelpRow k="Alt+A" desc="詢價站新增一筆詢價（同行→量→價→備註）" />
+            <HelpRow k="Delete" desc="待辦移除選中料（已記的詢價紀錄不受影響）" />
+            <HelpRow k="Esc" desc="詢價站→回待辦；待辦→關視窗" />
+            <HelpRow k="Alt+H" desc="本說明（引導精靈通用鍵）" />
           </div>
           <div className="mt-3 rounded border border-border/40 bg-muted/25 px-3 py-2 text-[12px] leading-relaxed text-muted-foreground">
             怎麼加料進來：F2 報價④出貨倉庫選「調貨」、或 F1 主視窗聚焦缺貨料按 Alt+D。
