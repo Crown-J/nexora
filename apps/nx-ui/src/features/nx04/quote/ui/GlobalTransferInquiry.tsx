@@ -122,7 +122,9 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
   const [inqSel, setInqSel] = useState(0); // 副容器：選中的詢價紀錄 index（階段3）
   const [picked, setPicked] = useState<InquiryRecord | null>(null); // 選定進報價的詢價（底價）
   const [quotePrice, setQuotePrice] = useState(''); // 報價站：給客戶售價
+  const [quoteQty, setQuoteQty] = useState('1'); // 報價站：數量（預設帶客戶要的量）
   const [quoteRemark, setQuoteRemark] = useState(''); // 報價站：備註
+  const [abcdOpen, setAbcdOpen] = useState(false); // 報價站：建議售價 ABCD 展開
   const [abcd, setAbcd] = useState<PartDetailDto | null>(null); // 報價站：ABCD 建議售價
   const [priceHist, setPriceHist] = useState<QuotePriceHistoryRow[] | null>(null); // 報價站：該客戶報價/成交歷史
   const [busy, setBusy] = useState(false);
@@ -288,7 +290,9 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
       if (r) {
         setPicked(r);
         setQuotePrice(''); // 不自動帶成本（避免手滑用成本報出）；成本顯示成底價參考
+        setQuoteQty(String(cur.qty || 1));
         setQuoteRemark('');
+        setAbcdOpen(false);
         setErr(null);
         setStage(2); // 進報價
       }
@@ -308,7 +312,7 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
       await createQuoteRecord({
         customerId: cur.customerId,
         partId: cur.partId,
-        qty: cur.qty,
+        qty: Number(quoteQty) || cur.qty,
         unitPrice: Number(quotePrice),
         source: 'INSTANT',
         isTransfer: true,
@@ -486,77 +490,104 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
                   </div>
                 ) : (
                   <>
-                    <div className="rounded-lg border border-border/40 bg-secondary/25 px-3 py-2 text-[12.5px]">
-                      <div>
-                        客戶：
-                        <span className="font-medium text-foreground">
-                          {cur.customerName}
-                          {cur.customerCode ? `（${cur.customerCode}）` : ''}
+                    {/* 客戶列 */}
+                    <div className="text-[12px] text-muted-foreground">
+                      客戶：
+                      <span className="font-medium text-foreground">
+                        {cur.customerName}
+                        {cur.customerCode ? `（${cur.customerCode}）` : ''}
+                      </span>
+                      　<span className="font-mono">{cur.code}</span> {cur.name}
+                    </div>
+
+                    {/* 卡片式屬性列（對齊 F2）：建議售價／調貨成本／報價成交歷史／調貨對象／數量／報價／備註 */}
+                    {/* 1 建議售價（點擊展開 ABCD、點格帶入報價）*/}
+                    <div className="rounded-lg border-2 border-border/35 bg-secondary/30 px-3 py-2">
+                      <button
+                        type="button"
+                        onClick={() => setAbcdOpen((v) => !v)}
+                        className="flex w-full items-center justify-between gap-3"
+                      >
+                        <span className="text-[12.5px] text-foreground/70">建議售價</span>
+                        <span className="font-mono text-[13px] text-foreground/70">
+                          {abcd === null ? '…' : 'ABCD'} {abcdOpen ? '▴' : '▾'}
                         </span>
-                      </div>
-                      <div className="mt-0.5">
-                        料號：<span className="font-mono">{cur.code}</span>　{cur.name}　× {cur.qty}
-                      </div>
-                      {picked ? (
-                        <div className="mt-0.5 text-muted-foreground">
-                          調貨成本：<span className="font-mono text-primary">NT$ {fmtNt(Number(picked.unitPrice))}</span>（
-                          {picked.partnerName ?? picked.partnerCode ?? '同行'}）
+                      </button>
+                      {abcdOpen ? (
+                        <div className="mt-1.5 grid grid-cols-4 gap-1.5">
+                          {(['A', 'B', 'C', 'D'] as const).map((g) => {
+                            const v = abcd?.[`price${g}` as 'priceA' | 'priceB' | 'priceC' | 'priceD'];
+                            return (
+                              <button
+                                key={g}
+                                type="button"
+                                disabled={!v}
+                                onClick={() => v && setQuotePrice(String(v))}
+                                className="rounded-md border border-border/50 bg-background/40 px-1.5 py-1 text-center hover:border-primary/50 disabled:opacity-60 disabled:hover:border-border/50"
+                              >
+                                <div className="text-[10px] text-foreground/55">{g} 價</div>
+                                <div className="font-mono text-[13px] font-semibold tabular-nums">
+                                  {abcd ? (v ? fmtNt(Number(v)) : '—') : '…'}
+                                </div>
+                              </button>
+                            );
+                          })}
                         </div>
                       ) : null}
                     </div>
-                    {/* ABCD 建議售價（參考、點擊帶入報價）*/}
-                    <div className="rounded-lg border border-border/40 bg-secondary/20 px-3 py-2">
-                      <div className="mb-1 text-[11px] text-muted-foreground/70">建議售價（ABCD·點擊帶入）</div>
-                      <div className="grid grid-cols-4 gap-1.5">
-                        {(['A', 'B', 'C', 'D'] as const).map((g) => {
-                          const v = abcd?.[`price${g}` as 'priceA' | 'priceB' | 'priceC' | 'priceD'];
-                          return (
-                            <button
-                              key={g}
-                              type="button"
-                              disabled={!v}
-                              onClick={() => v && setQuotePrice(String(v))}
-                              className="rounded-md border border-border/50 bg-background/40 px-1.5 py-1 text-center hover:border-primary/50 disabled:cursor-default disabled:opacity-60 disabled:hover:border-border/50"
-                            >
-                              <div className="text-[10px] text-foreground/55">{g} 價</div>
-                              <div className="font-mono text-[13px] font-semibold tabular-nums">
-                                {abcd ? (v ? fmtNt(Number(v)) : '—') : '…'}
-                              </div>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                    {/* 報價/成交歷史（本客戶、參考、點擊帶入）*/}
-                    <div className="rounded-lg border border-border/40 bg-secondary/20 px-3 py-2 text-[12px]">
-                      <div className="mb-1 text-[11px] text-muted-foreground/70">報價/成交歷史（本客戶·點擊帶入）</div>
-                      {priceHist === null ? (
-                        <span className="text-muted-foreground">…</span>
-                      ) : priceHist.length === 0 ? (
-                        <span className="text-muted-foreground">—（無前價）</span>
-                      ) : (
-                        <div className="space-y-0.5">
-                          {priceHist.slice(0, 3).map((h, hi) => (
-                            <button
-                              key={hi}
-                              type="button"
-                              onClick={() => setQuotePrice(String(h.amount))}
-                              className="flex w-full items-baseline gap-2 rounded px-1 py-0.5 text-left hover:bg-primary/10"
-                            >
-                              <span className="font-mono text-[11px] text-muted-foreground">{h.date.slice(0, 10)}</span>
-                              <span className={h.kind === 'SALE' ? 'text-[#22D88F]' : 'text-primary'}>
-                                {h.kind === 'SALE' ? '成交' : '報價'}
-                              </span>
-                              <span className="ml-auto font-mono font-semibold tabular-nums">NT$ {fmtNt(Number(h.amount))}</span>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <label className="text-[12.5px]">
-                      <span className="mb-1 block text-xs text-muted-foreground">
-                        報價（給客戶售價；點上方 ABCD／歷史帶入、調貨成本 {picked ? `NT$ ${fmtNt(Number(picked.unitPrice))}` : '—'} 為底價）
+
+                    {/* 2 調貨成本（底價、選定同行成本；不可點）*/}
+                    <div className="flex items-center justify-between gap-3 rounded-lg border-2 border-border/35 bg-secondary/30 px-3 py-2">
+                      <span className="text-[12.5px] text-foreground/70">調貨成本</span>
+                      <span className="font-mono text-[13px] tabular-nums text-foreground/95">
+                        {picked ? `NT$ ${fmtNt(Number(picked.unitPrice))}（底價）` : '—'}
                       </span>
+                    </div>
+
+                    {/* 3 報價/成交歷史（本客戶、點擊帶入報價）*/}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const p = priceHist?.find((h) => h.scope === 'CUSTOMER') ?? priceHist?.[0];
+                        if (p) setQuotePrice(String(p.amount));
+                      }}
+                      className="flex items-center justify-between gap-3 rounded-lg border-2 border-border/35 bg-secondary/30 px-3 py-2 text-left hover:border-primary/45"
+                    >
+                      <span className="text-[12.5px] text-foreground/70">報價/成交歷史</span>
+                      <span className="font-mono text-[13px] tabular-nums text-foreground/95">
+                        {(() => {
+                          if (priceHist === null) return '…';
+                          const p = priceHist.find((h) => h.scope === 'CUSTOMER') ?? priceHist[0];
+                          return p ? `${p.kind === 'SALE' ? '成交' : '報價'} NT$ ${fmtNt(Number(p.amount))}` : '—（無前價）';
+                        })()}
+                      </span>
+                    </button>
+
+                    {/* 4 調貨對象（選定同行）*/}
+                    <div className="flex items-center justify-between gap-3 rounded-lg border-2 border-border/35 bg-secondary/30 px-3 py-2">
+                      <span className="text-[12.5px] text-foreground/70">調貨對象</span>
+                      <span className="text-[13px] text-foreground/95">
+                        {picked ? (picked.partnerName ?? picked.partnerCode ?? '同行') : '—'}
+                      </span>
+                    </div>
+
+                    {/* 5 數量 */}
+                    <div className="flex items-center justify-between gap-3 rounded-lg border-2 border-border/35 bg-secondary/30 px-3 py-2">
+                      <span className="text-[12.5px] text-foreground/70">數量</span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={quoteQty}
+                        onFocus={(e) => e.target.select()}
+                        onChange={(e) => setQuoteQty(e.target.value)}
+                        className="w-24 rounded border bg-background px-2 py-1 text-right font-mono text-sm tabular-nums"
+                      />
+                    </div>
+
+                    {/* 6 報價（給客戶售價、主色框）*/}
+                    <div className="flex items-center justify-between gap-3 rounded-lg border-2 border-primary/45 bg-primary/[0.06] px-3 py-2">
+                      <span className="text-[12.5px] text-foreground/70">報價</span>
                       <input
                         type="number"
                         min="0"
@@ -571,21 +602,26 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
                             setStage(3);
                           }
                         }}
-                        className="w-full rounded border bg-background px-2 py-1.5 text-right font-mono text-sm font-semibold tabular-nums"
+                        placeholder="給客戶售價"
+                        className="w-32 rounded border bg-background px-2 py-1 text-right font-mono text-sm font-semibold tabular-nums"
                       />
-                    </label>
-                    <label className="text-[12.5px]">
-                      <span className="mb-1 block text-xs text-muted-foreground">備註（選填；如「5個在新莊倉」）</span>
+                    </div>
+
+                    {/* 7 備註 */}
+                    <div className="flex items-center justify-between gap-3 rounded-lg border-2 border-border/35 bg-secondary/30 px-3 py-2">
+                      <span className="text-[12.5px] text-foreground/70">備註</span>
                       <input
                         type="text"
                         maxLength={100}
                         value={quoteRemark}
                         onChange={(e) => setQuoteRemark(e.target.value)}
-                        className="w-full rounded border bg-background px-2 py-1.5 text-sm"
+                        placeholder="選填"
+                        className="w-40 rounded border bg-background px-2 py-1 text-sm"
                       />
-                    </label>
+                    </div>
+
                     {err ? <div className="text-xs text-destructive">{err}</div> : null}
-                    <div className="flex items-center justify-between">
+                    <div className="mt-1 flex items-center justify-between">
                       <button
                         type="button"
                         onClick={() => {
@@ -619,7 +655,7 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
                       brand: null,
                       brandName: null,
                       isOem: false,
-                      qty: cur.qty,
+                      qty: Number(quoteQty) || cur.qty,
                       price: quotePrice || 0,
                       transfer: true,
                       remark: quoteRemark,
