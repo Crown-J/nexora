@@ -85,6 +85,9 @@ type QuoteLine = CompatRow & {
   warehouseId?: string | null;
   warehouseLabel?: string | null;
   transfer?: boolean;
+  // 問題2（2026-07-13）：調貨就地選同行——若已跟某同行詢過價，直接指定該同行（純前端顯示/帶底價、不進 DB）
+  transferPartnerId?: string | null;
+  transferPartnerName?: string | null;
 };
 // S4-2 C 欄屬性列（↑↓ 移動、Enter 展開/編輯）
 // TRANSFER-INQ 11（執行長 2026-07-13）：加「調貨詢價歷史」列在報價/成交歷史上面——
@@ -1292,7 +1295,7 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                             </span>
                             {l.transfer ? (
                               <span className="rounded border border-amber-500/50 bg-amber-500/10 px-1.5 py-px text-[10px] text-amber-500">
-                                調貨詢價（F5）
+                                {l.transferPartnerName ? `調貨·${l.transferPartnerName}` : '調貨詢價（F5）'}
                               </span>
                             ) : l.warehouseLabel ? (
                               <span className="rounded border border-border/50 bg-muted/30 px-1.5 py-px text-[10px]">{l.warehouseLabel}</span>
@@ -1673,7 +1676,9 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                     onKeyDown={(e) => {
                       if (editingProp) return; // 編輯輸入框自己接鍵
                       if (propOpen === 'wh') {
-                        const total = whOptions.length + 1; // +1 = 調貨
+                        // 問題2：倉庫選項 + 調貨(泛用) + 已詢價同行清單（可就地指定同行、直接帶底價）
+                        const peers = inqHistory ?? [];
+                        const total = whOptions.length + 1 + peers.length;
                         if (e.key === 'ArrowDown') {
                           e.preventDefault();
                           setWhSel((i) => Math.min(total - 1, i + 1));
@@ -1688,9 +1693,11 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                               warehouseId: w.warehouseId,
                               warehouseLabel: `${w.warehouseCode} ${w.warehouseName}`,
                               transfer: false,
+                              transferPartnerId: null,
+                              transferPartnerName: null,
                             });
-                          } else {
-                            // 調貨：公司有現貨 → 確認防呆（沿用）；入 F5 調貨詢價清單、決策跟著項目走
+                          } else if (whSel === whOptions.length) {
+                            // 調貨（泛用）：公司有現貨 → 確認防呆（沿用）；入 F5 調貨詢價清單、決策跟著項目走
                             if (
                               curLine.avail > 0 &&
                               !window.confirm(`⚠️ ${curLine.code} 公司有現貨（可出 ${curLine.avail}）——確定改走調貨詢價？`)
@@ -1699,7 +1706,20 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                               return;
                             }
                             addTransferItems([{ partId: curLine.partId, code: curLine.code, name: curLine.name }]);
-                            patchLine(lineSel, { transfer: true, warehouseId: null, warehouseLabel: null });
+                            patchLine(lineSel, { transfer: true, warehouseId: null, warehouseLabel: null, transferPartnerId: null, transferPartnerName: null });
+                          } else {
+                            // 問題2：指定「已詢過價的同行」——transfer + 記同行；報價欄若還沒填就帶入該同行成本當底價
+                            const peer = peers[whSel - whOptions.length - 1];
+                            if (peer) {
+                              patchLine(lineSel, {
+                                transfer: true,
+                                warehouseId: null,
+                                warehouseLabel: null,
+                                transferPartnerId: peer.sourcePartnerId,
+                                transferPartnerName: peer.partnerName ?? peer.partnerCode ?? '同行',
+                                price: curLine.price ? curLine.price : String(peer.unitPrice),
+                              });
+                            }
                           }
                           setPropOpen(null);
                         } else if (e.key === 'Escape') {
@@ -1777,7 +1797,9 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                                   : '—（無前價）'
                               : i === P_WAREHOUSE
                                 ? curLine.transfer
-                                  ? '調貨詢價（F5）'
+                                  ? curLine.transferPartnerName
+                                    ? `調貨·${curLine.transferPartnerName}`
+                                    : '調貨詢價（F5）'
                                   : (curLine.warehouseLabel ??
                                     `客戶預設${customer?.defaultWarehouseName ? `（${customer.defaultWarehouseName}）` : '倉'}`)
                                 : i === P_QTY
@@ -1855,6 +1877,29 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                               >
                                 調貨（同行詢價、入 F5 清單）
                               </div>
+                              {/* 問題2：已詢過價的同行——就地挑一家，直接帶成本當底價、不用再進 F5 */}
+                              {(inqHistory ?? []).length > 0 ? (
+                                <div className="mt-1 border-t border-border/30 pt-1">
+                                  <div className="px-1 pb-0.5 text-[10px] text-muted-foreground/60">已詢價同行（選一家直接報）</div>
+                                  {(inqHistory ?? []).map((p, pi) => {
+                                    const sel = whSel === whOptions.length + 1 + pi;
+                                    return (
+                                      <div
+                                        key={p.id}
+                                        className={`flex items-baseline justify-between gap-2 rounded border px-2 py-1 text-[12px] ${
+                                          sel ? 'border-primary bg-primary/10 text-primary' : 'border-border/30'
+                                        }`}
+                                      >
+                                        <span className="min-w-0 truncate">
+                                          <span className="font-mono text-[10px] text-muted-foreground/70">{p.recordDate.slice(5, 10)}</span>
+                                          <span className="ml-1.5">{p.partnerName ?? p.partnerCode ?? '同行'}</span>
+                                        </span>
+                                        <span className="shrink-0 font-mono tabular-nums">NT$ {formatNt(Number(p.unitPrice))}</span>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              ) : null}
                               {whOptions.length === 0 ? (
                                 <div className="px-1 text-[11px] text-muted-foreground/70">各倉都沒可出量——只剩調貨一途</div>
                               ) : null}
