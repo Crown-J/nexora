@@ -20,6 +20,7 @@ import {
   clearTransferItems,
   listTransferItems,
   removeTransferItem,
+  transferItemKey,
   TRANSFER_LIST_EVENT,
   type TransferInquiryItem,
 } from './transfer-inquiry-store';
@@ -189,7 +190,7 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
       if (cur) fireInquiry(cur);
     } else if (e.key === 'Delete') {
       e.preventDefault();
-      if (cur) removeTransferItem(cur.partId);
+      if (cur) removeTransferItem(cur.customerId, cur.partId);
     }
   };
 
@@ -266,7 +267,7 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
               const s = sums.get(it.partId);
               return (
                 <div
-                  key={it.partId}
+                  key={transferItemKey(it.customerId, it.partId)}
                   data-card={i}
                   onClick={() => setSel(i)}
                   className={`cursor-pointer rounded-lg border px-4 py-2.5 transition-colors ${
@@ -300,7 +301,7 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          removeTransferItem(it.partId);
+                          removeTransferItem(it.customerId, it.partId);
                         }}
                         className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                         aria-label="移除"

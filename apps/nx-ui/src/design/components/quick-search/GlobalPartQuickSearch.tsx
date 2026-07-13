@@ -176,7 +176,18 @@ export function GlobalPartQuickSearch() {
           onTransferMarked={(rows) =>
             window.dispatchEvent(
               new CustomEvent('nx-transfer-add', {
-                detail: { items: rows.map((r) => ({ partId: r.id, code: r.code, name: r.name })) },
+                // 缺貨待辦重設計（2026-07-13）：待辦每筆帶客戶+數量；F1 通用查詢無客戶情境 → null、量預設 1
+                detail: {
+                  items: rows.map((r) => ({
+                    customerId: null,
+                    customerCode: null,
+                    customerName: null,
+                    partId: r.id,
+                    code: r.code,
+                    name: r.name,
+                    qty: 1,
+                  })),
+                },
               }),
             )
           }

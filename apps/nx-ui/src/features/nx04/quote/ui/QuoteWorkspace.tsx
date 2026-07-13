@@ -1719,7 +1719,17 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                               setPropOpen(null);
                               return;
                             }
-                            addTransferItems([{ partId: curLine.partId, code: curLine.code, name: curLine.name }]);
+                            addTransferItems([
+                              {
+                                customerId: customer?.id ?? null,
+                                customerCode: customer?.code ?? null,
+                                customerName: customer?.name ?? null,
+                                partId: curLine.partId,
+                                code: curLine.code,
+                                name: curLine.name,
+                                qty: Number(curLine.qty) || 1,
+                              },
+                            ]);
                             patchLine(lineSel, { transfer: true, warehouseId: null, warehouseLabel: null, transferPartnerId: null, transferPartnerName: null });
                           } else {
                             // 問題2：指定「已詢過價的同行」——transfer + 記同行；報價欄若還沒填就帶入該同行成本當底價
