@@ -18,6 +18,7 @@ import {
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import { useDashboardPalette, type DashboardPalette } from '@/features/nx00/context/DashboardPaletteContext';
 import { listBulletins, type BulletinDto } from '@data/endpoints/nx01/api/bulletin';
+import { getVersionDisplay } from '@data/config/version';
 import { PlanetSlot } from '@design/home/SharedPlanetRoot';
 
 type BulletinVm = BulletinDto & { unread: boolean };
@@ -343,7 +344,7 @@ export function UnifiedTopBar({ displayName, employeeNo, onLogout, onDockToggle,
               <div className="h-px bg-border/30" />
               <div className="flex items-center gap-2.5 px-4 py-2.5 text-[12.5px] text-muted-foreground">
                 <span className="flex-1">版本</span>
-                <span className="font-mono text-[11px]">v1.5.1 beta</span>
+                <span className="font-mono text-[11px]">{getVersionDisplay()}</span>
               </div>
             </div>
           )}

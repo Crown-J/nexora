@@ -16,8 +16,10 @@
  * 版本歷史：
  *   1.5.0  V1（TASK-AUTH-UI-ITERATE-01：字級 + ❌ + padding + 蘋果版本範式首落地）
  *   1.5.1  V2（TASK-AUTH-UI-ITERATE-01-V2：warning 橙色 4 主題 + 版本號位置校正 + NEXORA GRID 品牌格式）
+ *   2.8.0  對齊工程 tag v2.8.0（2026-07-13 Crown 拍板：版號補追至現版 + beta 後綴清空；
+ *          同時把 UnifiedTopBar / WorkbenchStatusBar 兩處寫死版號接回本檔統一來源）
  */
-export const NEXORA_VERSION = '1.5.1';
+export const NEXORA_VERSION = '2.8.0';
 
 /** 品牌名稱（規範 v1.3 §13.4 版本號完整格式：'NEXORA GRID | v1.5.1 beta'）。 */
 export const NEXORA_BRAND = 'NEXORA GRID';

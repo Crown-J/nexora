@@ -5,6 +5,7 @@
 
 import { useEffect, useState } from 'react';
 import { Building2, User } from 'lucide-react';
+import { NEXORA_BRAND, getVersionDisplay } from '@data/config/version';
 
 type Props = {
   tenantName: string;
@@ -38,7 +39,7 @@ export function WorkbenchStatusBar({ tenantName, displayName, employeeNo }: Prop
       </span>
       <div className="flex-1" />
       <span className="font-mono tabular-nums">{stamp}</span>
-      <span className="text-muted-foreground/60">NEXORA GRID v1.5.1</span>
+      <span className="text-muted-foreground/60">{NEXORA_BRAND} {getVersionDisplay()}</span>
     </div>
   );
 }
