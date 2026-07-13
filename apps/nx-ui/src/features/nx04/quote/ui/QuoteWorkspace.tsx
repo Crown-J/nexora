@@ -719,6 +719,9 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
 
   // ── 訊息（S5-6：同品名分組——品名固定組標題、組內每行＝識別＋報價）──
   const validLines = lines.filter((l) => l.price !== '' && Number(l.qty) > 0 && Number(l.price) >= 0);
+  // 修（2026-07-13）：只有調貨待辦項（無報價）時也要能收掉 F2——調貨項選調貨當下已進 F5、
+  //   不需存報價紀錄；否則單一調貨料會卡在存檔（validLines=0）永遠關不掉。
+  const transferQueued = lines.some((l) => l.transfer);
   // 訊息生成抽到共用 './quote-message'（A 案、與 F5 共用；QuoteLine 為 QuoteMsgLine 超集可直傳）
   const copyText = useMemo(
     () => buildQuoteMessage(validLines, msgOpts, customer?.defaultWarehouseName),
@@ -1945,9 +1948,12 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                       const def = MSG_OPT_DEFS[optSel];
                       if (def) setOpt({ [def.key]: !msgOpts[def.key] });
                     } else if (e.key === 'Enter') {
-                      // S5-4：副容器 Enter＝存檔 → 確認 → 關窗
+                      // S5-4：副容器 Enter＝存檔 → 確認 → 關窗；只有調貨待辦項則直接完成關窗（已進 F5）
                       e.preventDefault();
-                      if (customer && validLines.length > 0 && !busy) setConfirmOpen(true);
+                      if (!busy) {
+                        if (customer && validLines.length > 0) setConfirmOpen(true);
+                        else if (validLines.length === 0 && transferQueued) onClose();
+                      }
                     }
                   }}
                   className="space-y-1.5 outline-none"
@@ -2001,11 +2007,14 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                   </button>
                   <button
                     type="button"
-                    disabled={busy || !customer || validLines.length === 0}
-                    onClick={() => setConfirmOpen(true)}
+                    disabled={busy || (validLines.length > 0 ? !customer : !transferQueued)}
+                    onClick={() => {
+                      if (validLines.length > 0) setConfirmOpen(true);
+                      else onClose(); // 只有調貨待辦項：已進 F5、直接完成關窗
+                    }}
                     className="rounded bg-primary px-4 py-1.5 text-sm text-primary-foreground disabled:opacity-50"
                   >
-                    存檔
+                    {validLines.length > 0 ? '存檔' : '完成（調貨待辦已進 F5）'}
                   </button>
                 </div>
               </div>
