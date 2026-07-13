@@ -1304,6 +1304,12 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                                 客戶預設倉
                               </span>
                             )}
+                            {/* 問題1（2026-07-13）：報量>公司可出 → 短缺提示（非阻擋、調貨項不算短缺）*/}
+                            {!l.transfer && Number(l.qty) > l.avail ? (
+                              <span className="rounded border border-amber-500/60 bg-amber-500/10 px-1.5 py-px text-[10px] font-medium text-amber-600">
+                                缺 {Number(l.qty) - l.avail}，需調貨/採購
+                              </span>
+                            ) : null}
                           </div>
                         </div>
                         <div className="shrink-0 text-right font-mono tabular-nums">
