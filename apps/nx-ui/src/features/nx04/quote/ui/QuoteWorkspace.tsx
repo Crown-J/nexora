@@ -928,8 +928,8 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
             })}
           </nav>
 
-          {/* B 主容器 */}
-          <section className="flex min-h-0 flex-col overflow-auto border-r border-border/40 px-5 py-4">
+          {/* B 主容器（focus-within：有焦點時亮主色內框+淡底，明確標示「正在編輯這一側」——問題1）*/}
+          <section className="flex min-h-0 flex-col overflow-auto border-r border-border/40 px-5 py-4 transition-[background-color,box-shadow] duration-150 focus-within:bg-primary/[0.04] focus-within:ring-1 focus-within:ring-inset focus-within:ring-primary/30">
             {stage === 1 && (
               <div ref={custBoxRef} className="mx-auto flex w-full max-w-md flex-col gap-3 pt-8">
                 <div>
@@ -1350,8 +1350,8 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
             )}
           </section>
 
-          {/* C 副容器 */}
-          <aside className="flex min-h-0 flex-col overflow-auto bg-background/20 px-5 py-4">
+          {/* C 副容器（focus-within：同 B，有焦點時亮主色內框+淡底——問題1）*/}
+          <aside className="flex min-h-0 flex-col overflow-auto bg-background/20 px-5 py-4 transition-[background-color,box-shadow] duration-150 focus-within:bg-primary/[0.04] focus-within:ring-1 focus-within:ring-inset focus-within:ring-primary/30">
             {stage === 1 && (
               <div className="flex min-h-0 flex-1 flex-col space-y-2">
                 {customer && custCands.length === 0 ? (
