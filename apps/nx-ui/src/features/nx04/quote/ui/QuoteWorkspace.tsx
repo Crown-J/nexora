@@ -59,6 +59,14 @@ import { FocusLockedDialog } from '@design/primitives/focus-locked-dialog';
 
 import { CustomerPicker, keyToBopomofo, type PickedCustomer } from './CustomerPicker';
 import { addTransferItems, listTransferItems, TRANSFER_LIST_EVENT } from './transfer-inquiry-store';
+import {
+  buildQuoteMessage,
+  defaultMsgOpts as defaultOpts,
+  formatNt,
+  MSG_OPT_DEFS,
+  MSG_OPTS_KEY,
+  type MsgOpts,
+} from './quote-message';
 
 type Stage = 1 | 2 | 3 | 4 | 5;
 // S2-2 群組樹卡片扁平列（primary=群組主件 / alt=替代品縮排 / single=散件）
@@ -114,7 +122,7 @@ function recent30Range(): { dateFrom: string; dateTo: string } {
 }
 // S5-6（執行長 07/12 定案）：品名固定當組標題（不再是每行開關）、新增「廠牌」識別選項
 // 回饋 5-1（07/12 二輪）：加「出貨倉庫」選項
-type MsgOpts = { brand: boolean; baseNo: boolean; secCode: boolean; qtyAlways: boolean; warehouse: boolean; remark: boolean };
+// MsgOpts / MSG_OPTS_KEY / defaultOpts / MSG_OPT_DEFS / formatNt / buildQuoteMessage → 移到共用 './quote-message'（A 案、與 F5 共用）
 
 const STAGES: { n: Stage; label: string; icon: React.ReactNode }[] = [
   { n: 1, label: '對象', icon: <UserRound className="size-[18px]" /> },
@@ -124,24 +132,10 @@ const STAGES: { n: Stage; label: string; icon: React.ReactNode }[] = [
   { n: 5, label: '發送訊息', icon: <MessageSquareText className="size-[18px]" /> },
 ];
 
-function formatNt(n: number): string {
-  if (n < 100 && n !== Math.floor(n)) return n.toFixed(2);
-  return n.toLocaleString('zh-TW', { maximumFractionDigits: 0 });
-}
 // 階段① C 欄八欄用標籤（值域對齊系統真相：NX03 包貨 IsIn D/P/C/T、寄貨代碼是 C 不是 SO UI 漂移的 S）
 const PAY_TERM_LABEL: Record<string, string> = { PREPAY: '先付款', NET30: '月結30天', NET60: '月結60天', NET90: '月結90天' };
 const DELIVERY_LABEL: Record<string, string> = { D: '配送', P: '自取', C: '寄送' };
-const MSG_OPTS_KEY = 'nx-f2-msg-opts';
-const defaultOpts: MsgOpts = { brand: true, baseNo: true, secCode: false, qtyAlways: false, warehouse: false, remark: false };
-// C 欄設定卡（S5-3 卡片設計、↑↓ Space 操作）
-const MSG_OPT_DEFS: { key: keyof MsgOpts; label: string }[] = [
-  { key: 'brand', label: '廠牌識別（正廠／廠牌名）' },
-  { key: 'baseNo', label: '顯示基準料號' },
-  { key: 'secCode', label: '顯示副廠料號' },
-  { key: 'qtyAlways', label: '數量恆顯示（否則 >1 才顯示）' },
-  { key: 'warehouse', label: '顯示出貨倉庫' },
-  { key: 'remark', label: '顯示備註文字（如「5個在新莊倉」）' },
-];
+// MSG_OPTS_KEY / defaultOpts / MSG_OPT_DEFS → 共用 './quote-message'（已 import）
 
 export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
   const [stage, setStage] = useState<Stage>(1);
@@ -725,36 +719,11 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
 
   // ── 訊息（S5-6：同品名分組——品名固定組標題、組內每行＝識別＋報價）──
   const validLines = lines.filter((l) => l.price !== '' && Number(l.qty) > 0 && Number(l.price) >= 0);
-  const copyText = useMemo(() => {
-    const groups = new Map<string, QuoteLine[]>();
-    for (const l of validLines) {
-      const arr = groups.get(l.name);
-      if (arr) arr.push(l);
-      else groups.set(l.name, [l]);
-    }
-    const blocks: string[] = [];
-    for (const [name, ls] of groups) {
-      const rows = ls.map((l) => {
-        const parts: string[] = [];
-        if (msgOpts.brand) parts.push(l.isOem ? '正廠' : (l.brandName ?? l.brand ?? ''));
-        if (msgOpts.baseNo) parts.push(l.code);
-        if (msgOpts.secCode && l.secCode) parts.push(l.secCode);
-        const qtyPart = msgOpts.qtyAlways || Number(l.qty) > 1 ? `　數量 ${Number(l.qty)}` : '';
-        // 回饋 5-1（二修）：出貨倉庫放行尾括號、只帶倉名（例：(恆迎-新莊)）；項目自選倉 → 調貨 → 客戶預設倉
-        const whName = l.transfer
-          ? '調貨'
-          : l.warehouseLabel
-            ? (l.warehouseLabel.split(' ').slice(1).join(' ') || l.warehouseLabel) // 「Z00 恆迎-總倉」去倉碼留名
-            : (customer?.defaultWarehouseName ?? null);
-        const whPart = msgOpts.warehouse && whName ? ` (${whName})` : '';
-        // 問題2 追加：備註（如「5個在新莊倉」）——選項開啟且該行有填才帶
-        const remarkPart = msgOpts.remark && l.remark?.trim() ? `　備註：${l.remark.trim()}` : '';
-        return `${parts.filter(Boolean).join(' ')}${qtyPart}　報價 NT$ ${formatNt(Number(l.price))}${whPart}${remarkPart}`.trim();
-      });
-      blocks.push([name, ...rows].join('\n'));
-    }
-    return blocks.join('\n\n');
-  }, [validLines, msgOpts, customer]);
+  // 訊息生成抽到共用 './quote-message'（A 案、與 F5 共用；QuoteLine 為 QuoteMsgLine 超集可直傳）
+  const copyText = useMemo(
+    () => buildQuoteMessage(validLines, msgOpts, customer?.defaultWarehouseName),
+    [validLines, msgOpts, customer],
+  );
   // S5-4 編輯模式（Alt+E）＋手動編輯稿；定案 5(a)：copyText 重生成（設定卡/項目變更）即蓋掉手動稿
   const [editMode, setEditMode] = useState(false);
   const [msgDraft, setMsgDraft] = useState<string | null>(null);
