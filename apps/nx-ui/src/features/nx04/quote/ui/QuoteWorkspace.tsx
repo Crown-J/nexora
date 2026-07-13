@@ -88,11 +88,13 @@ type QuoteLine = CompatRow & {
   // 問題2（2026-07-13）：調貨就地選同行——若已跟某同行詢過價，直接指定該同行（純前端顯示/帶底價、不進 DB）
   transferPartnerId?: string | null;
   transferPartnerName?: string | null;
+  // 問題2 追加（2026-07-13）：每行備註（如「5個在新莊倉」）——可選擇帶進訊息、存進報價紀錄 remark 欄
+  remark?: string;
 };
 // S4-2 C 欄屬性列（↑↓ 移動、Enter 展開/編輯）
 // TRANSFER-INQ 11（執行長 2026-07-13）：加「調貨詢價歷史」列在報價/成交歷史上面——
 //   同行詢價的價＝調貨成本＝報價底價；平常顯示近30天最低成本、Enter 開彈窗純看（不帶價）。
-const PROP_ROWS = ['建議售價', '調貨詢價歷史', '報價/成交歷史', '出貨倉庫', '數量', '報價'] as const;
+const PROP_ROWS = ['建議售價', '調貨詢價歷史', '報價/成交歷史', '出貨倉庫', '數量', '報價', '備註'] as const;
 // 屬性列 index（插一列後全欄位後移、用具名常數避免 off-by-one）
 const P_SUGGESTED = 0;
 const P_INQUIRY = 1;
@@ -100,6 +102,7 @@ const P_HISTORY = 2;
 const P_WAREHOUSE = 3;
 const P_QTY = 4;
 const P_PRICE = 5;
+const P_REMARK = 6; // 問題2 追加：每行備註（如「5個在新莊倉」）
 
 // TRANSFER-INQ 11：近30天詢價窗——起訖都帶（後端 dateRange「只填起=查該日當天」、
 //   只帶 dateFrom 會漏掉整個區間、幾乎永遠 0 筆；本地時區、避免 UTC 差一天漏今天的詢價）
@@ -111,7 +114,7 @@ function recent30Range(): { dateFrom: string; dateTo: string } {
 }
 // S5-6（執行長 07/12 定案）：品名固定當組標題（不再是每行開關）、新增「廠牌」識別選項
 // 回饋 5-1（07/12 二輪）：加「出貨倉庫」選項
-type MsgOpts = { brand: boolean; baseNo: boolean; secCode: boolean; qtyAlways: boolean; warehouse: boolean };
+type MsgOpts = { brand: boolean; baseNo: boolean; secCode: boolean; qtyAlways: boolean; warehouse: boolean; remark: boolean };
 
 const STAGES: { n: Stage; label: string; icon: React.ReactNode }[] = [
   { n: 1, label: '對象', icon: <UserRound className="size-[18px]" /> },
@@ -129,7 +132,7 @@ function formatNt(n: number): string {
 const PAY_TERM_LABEL: Record<string, string> = { PREPAY: '先付款', NET30: '月結30天', NET60: '月結60天', NET90: '月結90天' };
 const DELIVERY_LABEL: Record<string, string> = { D: '配送', P: '自取', C: '寄送' };
 const MSG_OPTS_KEY = 'nx-f2-msg-opts';
-const defaultOpts: MsgOpts = { brand: true, baseNo: true, secCode: false, qtyAlways: false, warehouse: false };
+const defaultOpts: MsgOpts = { brand: true, baseNo: true, secCode: false, qtyAlways: false, warehouse: false, remark: false };
 // C 欄設定卡（S5-3 卡片設計、↑↓ Space 操作）
 const MSG_OPT_DEFS: { key: keyof MsgOpts; label: string }[] = [
   { key: 'brand', label: '廠牌識別（正廠／廠牌名）' },
@@ -137,6 +140,7 @@ const MSG_OPT_DEFS: { key: keyof MsgOpts; label: string }[] = [
   { key: 'secCode', label: '顯示副廠料號' },
   { key: 'qtyAlways', label: '數量恆顯示（否則 >1 才顯示）' },
   { key: 'warehouse', label: '顯示出貨倉庫' },
+  { key: 'remark', label: '顯示備註文字（如「5個在新莊倉」）' },
 ];
 
 export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
@@ -171,7 +175,7 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
   const [propSel, setPropSel] = useState(0);
   const [propOpen, setPropOpen] = useState<null | 'abcd' | 'wh'>(null);
   const [whSel, setWhSel] = useState(0);
-  const [editingProp, setEditingProp] = useState<null | 'qty' | 'price'>(null);
+  const [editingProp, setEditingProp] = useState<null | 'qty' | 'price' | 'remark'>(null);
   const [abcd, setAbcd] = useState<PartDetailDto | null>(null); // 展開 ABCD 價 lazy 載
   const [history, setHistory] = useState<QuotePriceHistoryRow[] | null>(null); // 聚焦行即載（前價顯示+彈窗共用）
   // 回饋 4-2：歷史改彈出視窗（↑↓ 選、Enter 帶價入報價欄）
@@ -743,7 +747,9 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
             ? (l.warehouseLabel.split(' ').slice(1).join(' ') || l.warehouseLabel) // 「Z00 恆迎-總倉」去倉碼留名
             : (customer?.defaultWarehouseName ?? null);
         const whPart = msgOpts.warehouse && whName ? ` (${whName})` : '';
-        return `${parts.filter(Boolean).join(' ')}${qtyPart}　報價 NT$ ${formatNt(Number(l.price))}${whPart}`.trim();
+        // 問題2 追加：備註（如「5個在新莊倉」）——選項開啟且該行有填才帶
+        const remarkPart = msgOpts.remark && l.remark?.trim() ? `　備註：${l.remark.trim()}` : '';
+        return `${parts.filter(Boolean).join(' ')}${qtyPart}　報價 NT$ ${formatNt(Number(l.price))}${whPart}${remarkPart}`.trim();
       });
       blocks.push([name, ...rows].join('\n'));
     }
@@ -786,6 +792,8 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
           source: 'INSTANT',
           // 調貨詢價軌 2026-07-12：④選「調貨」的決策落進紀錄（之後拉單看得到、不用重判）
           isTransfer: !!l.transfer,
+          // 問題2 追加：每行備註存進報價紀錄 remark 欄（既有欄位、無 schema 變更）
+          remark: l.remark?.trim() || undefined,
         });
       }
       setSaved(validLines.length);
@@ -1765,7 +1773,7 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                           setWhSel(0);
                           setPropOpen('wh');
                         } else {
-                          setEditingProp(propSel === P_QTY ? 'qty' : 'price');
+                          setEditingProp(propSel === P_QTY ? 'qty' : propSel === P_PRICE ? 'price' : 'remark');
                           setTimeout(() => {
                             propEditRef.current?.focus();
                             propEditRef.current?.select();
@@ -1810,7 +1818,9 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                                     `客戶預設${customer?.defaultWarehouseName ? `（${customer.defaultWarehouseName}）` : '倉'}`)
                                 : i === P_QTY
                                   ? curLine.qty
-                                  : curLine.price || '未填';
+                                  : i === P_PRICE
+                                    ? curLine.price || '未填'
+                                    : curLine.remark || '—';
                       return (
                         <div key={label}>
                           <div
@@ -1820,7 +1830,25 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                             }`}
                           >
                             <span className="text-[12.5px] text-foreground/70">{label}</span>
-                            {editingProp && active && (i === P_QTY || i === P_PRICE) ? (
+                            {editingProp && active && i === P_REMARK ? (
+                              <input
+                                ref={propEditRef}
+                                type="text"
+                                maxLength={100}
+                                value={curLine.remark ?? ''}
+                                onChange={(e) => patchLine(lineSel, { remark: e.target.value })}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' || e.key === 'Escape') {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setEditingProp(null);
+                                    setTimeout(() => propPanelRef.current?.focus(), 0);
+                                  }
+                                }}
+                                placeholder="如：5個在新莊倉"
+                                className="w-48 rounded border bg-background px-2 py-1 text-right text-sm"
+                              />
+                            ) : editingProp && active && (i === P_QTY || i === P_PRICE) ? (
                               <input
                                 ref={propEditRef}
                                 type="number"
@@ -1839,7 +1867,7 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                                 className="w-28 rounded border bg-background px-2 py-1 text-right font-mono text-sm tabular-nums"
                               />
                             ) : (
-                              <span className={`font-mono text-[13.5px] tabular-nums ${i === P_PRICE && curLine.price ? 'font-semibold text-primary' : 'text-foreground/95'}`}>
+                              <span className={`min-w-0 truncate text-right font-mono text-[13.5px] tabular-nums ${i === P_PRICE && curLine.price ? 'font-semibold text-primary' : i === P_REMARK && curLine.remark ? 'text-foreground/95' : 'text-foreground/95'}`}>
                                 {value}
                               </span>
                             )}
