@@ -11,7 +11,11 @@
 import { FileText, HelpCircle, MessageSquareText, PhoneCall, Trash2, UserRound, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { getPartDetail } from '@data/endpoints/nx01/part-search/api/part-search';
+import { getQuotePriceHistory } from '@data/endpoints/nx04/quote/api/quote';
 import { createQuoteRecord, listInquiryRecords } from '@data/endpoints/nx04/record/api/record';
+import type { PartDetailDto } from '@data/types/nx01/part-search';
+import type { QuotePriceHistoryRow } from '@data/types/nx04/quote';
 import type { InquiryRecord } from '@data/types/nx04/record';
 import { FocusLockedDialog } from '@design/primitives/focus-locked-dialog';
 
@@ -119,6 +123,8 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
   const [picked, setPicked] = useState<InquiryRecord | null>(null); // 選定進報價的詢價（底價）
   const [quotePrice, setQuotePrice] = useState(''); // 報價站：給客戶售價
   const [quoteRemark, setQuoteRemark] = useState(''); // 報價站：備註
+  const [abcd, setAbcd] = useState<PartDetailDto | null>(null); // 報價站：ABCD 建議售價
+  const [priceHist, setPriceHist] = useState<QuotePriceHistoryRow[] | null>(null); // 報價站：該客戶報價/成交歷史
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
@@ -179,6 +185,30 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
     setStage(1);
     setPicked(null);
   }, [sel]);
+
+  // 報價站：載入 ABCD 建議售價 + 該客戶報價/成交歷史（幫業務定售價的參考）
+  useEffect(() => {
+    const c = items[sel];
+    if (stage !== 2 || !c) {
+      setAbcd(null);
+      setPriceHist(null);
+      return;
+    }
+    let alive = true;
+    setAbcd(null);
+    setPriceHist(null);
+    void getPartDetail(c.partId)
+      .then((d) => alive && setAbcd(d))
+      .catch(() => {});
+    if (c.customerId) {
+      void getQuotePriceHistory(c.customerId, c.partId, 12)
+        .then((r) => alive && setPriceHist(r.rows))
+        .catch(() => alive && setPriceHist([]));
+    }
+    return () => {
+      alive = false;
+    };
+  }, [stage, sel, items]);
 
   // 選中卡捲入可視
   useEffect(() => {
@@ -257,7 +287,7 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
       const r = recs[Math.min(inqSel, recs.length - 1)];
       if (r) {
         setPicked(r);
-        setQuotePrice(String(r.unitPrice)); // 底價＝選定同行成本、業務加價
+        setQuotePrice(''); // 不自動帶成本（避免手滑用成本報出）；成本顯示成底價參考
         setQuoteRemark('');
         setErr(null);
         setStage(2); // 進報價
@@ -474,8 +504,59 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
                         </div>
                       ) : null}
                     </div>
+                    {/* ABCD 建議售價（參考、點擊帶入報價）*/}
+                    <div className="rounded-lg border border-border/40 bg-secondary/20 px-3 py-2">
+                      <div className="mb-1 text-[11px] text-muted-foreground/70">建議售價（ABCD·點擊帶入）</div>
+                      <div className="grid grid-cols-4 gap-1.5">
+                        {(['A', 'B', 'C', 'D'] as const).map((g) => {
+                          const v = abcd?.[`price${g}` as 'priceA' | 'priceB' | 'priceC' | 'priceD'];
+                          return (
+                            <button
+                              key={g}
+                              type="button"
+                              disabled={!v}
+                              onClick={() => v && setQuotePrice(String(v))}
+                              className="rounded-md border border-border/50 bg-background/40 px-1.5 py-1 text-center hover:border-primary/50 disabled:cursor-default disabled:opacity-60 disabled:hover:border-border/50"
+                            >
+                              <div className="text-[10px] text-foreground/55">{g} 價</div>
+                              <div className="font-mono text-[13px] font-semibold tabular-nums">
+                                {abcd ? (v ? fmtNt(Number(v)) : '—') : '…'}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    {/* 報價/成交歷史（本客戶、參考、點擊帶入）*/}
+                    <div className="rounded-lg border border-border/40 bg-secondary/20 px-3 py-2 text-[12px]">
+                      <div className="mb-1 text-[11px] text-muted-foreground/70">報價/成交歷史（本客戶·點擊帶入）</div>
+                      {priceHist === null ? (
+                        <span className="text-muted-foreground">…</span>
+                      ) : priceHist.length === 0 ? (
+                        <span className="text-muted-foreground">—（無前價）</span>
+                      ) : (
+                        <div className="space-y-0.5">
+                          {priceHist.slice(0, 3).map((h, hi) => (
+                            <button
+                              key={hi}
+                              type="button"
+                              onClick={() => setQuotePrice(String(h.amount))}
+                              className="flex w-full items-baseline gap-2 rounded px-1 py-0.5 text-left hover:bg-primary/10"
+                            >
+                              <span className="font-mono text-[11px] text-muted-foreground">{h.date.slice(0, 10)}</span>
+                              <span className={h.kind === 'SALE' ? 'text-[#22D88F]' : 'text-primary'}>
+                                {h.kind === 'SALE' ? '成交' : '報價'}
+                              </span>
+                              <span className="ml-auto font-mono font-semibold tabular-nums">NT$ {fmtNt(Number(h.amount))}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                     <label className="text-[12.5px]">
-                      <span className="mb-1 block text-xs text-muted-foreground">報價（給客戶售價，底價已帶入調貨成本）</span>
+                      <span className="mb-1 block text-xs text-muted-foreground">
+                        報價（給客戶售價；點上方 ABCD／歷史帶入、調貨成本 {picked ? `NT$ ${fmtNt(Number(picked.unitPrice))}` : '—'} 為底價）
+                      </span>
                       <input
                         type="number"
                         min="0"
