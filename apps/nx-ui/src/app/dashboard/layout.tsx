@@ -18,25 +18,20 @@ import type { ReactNode } from 'react';
 import { Suspense } from 'react';
 // 2026-06-27 大改版：太空風 DashboardShell 封存、改傳統 ERP 外殼 WorkbenchShell
 import { WorkbenchShell } from '@design/layout/workbench/WorkbenchShell';
-import { GlobalPartQuickSearch } from '@design/components/quick-search/GlobalPartQuickSearch';
 import { GlobalInstantQuote } from '@/features/nx04/quote/ui/GlobalInstantQuote';
 import { GlobalInstantInquiry } from '@/features/nx04/quote/ui/GlobalInstantInquiry';
-import { GlobalQuoteSession } from '@/features/nx04/quote/ui/GlobalQuoteSession';
-import { GlobalTransferInquiry } from '@/features/nx04/quote/ui/GlobalTransferInquiry';
+import { InstantWorkbench } from '@/features/shared/instant-workbench/InstantWorkbench';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <WorkbenchShell>
       <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">載入中...</div>}>{children}</Suspense>
-      {/* F1 全域即時庫存查詢（原 F2、執行長 2026-07-11 夜 F1/F2 分流）*/}
-      <GlobalPartQuickSearch />
-      {/* F2 即時報價查詢工作台（客戶錨定連續報價、執行長 2026-07-11 夜拍板）*/}
-      <GlobalQuoteSession />
-      {/* F5 即時調貨詢價視窗（吃 F2 Alt+D 的調貨清單、執行長 2026-07-12 拍板）*/}
-      <GlobalTransferInquiry />
-      {/* 即時報價（單顆/批次）：聽 F1 主視窗發的 nx-instant-quote 事件（Step5B）*/}
+      {/* F2 即時工作檯（執行長 2026-07-14 收殼拍板）：站1 庫存查詢（原 F1）＋站2 即時報價（原 F2）
+          ＋站3 調貨詢價（原 F5、F1/F5 已釋出還瀏覽器）、裸數字切站、站4 補貨 C 期 */}
+      <InstantWorkbench />
+      {/* 即時報價（單顆/批次）：聽站 1 主視窗發的 nx-instant-quote 事件（Step5B）*/}
       <GlobalInstantQuote />
-      {/* 即時詢價：聽 F1 主視窗發的 nx-instant-inquiry 事件（調貨側 B1）*/}
+      {/* 即時詢價：聽站 1 主視窗發的 nx-instant-inquiry 事件（調貨側 B1）*/}
       <GlobalInstantInquiry />
     </WorkbenchShell>
   );

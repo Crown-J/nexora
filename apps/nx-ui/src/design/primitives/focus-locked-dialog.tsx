@@ -42,6 +42,13 @@ type Props = {
   open: boolean;
   onClose?: () => void;
 
+  /**
+   * 暫停（instant-workbench 收殼 2026-07-14）：隱藏保活的站（如即時報價切走不丟 session）
+   * 設 true → 本層 pop 出 modal-stack（不然 stack 頂端是隱形層、背景鍵盤被 guard 吃光）、
+   * 恢復時重新 push（成為新的最上層——恢復的站本來就該是最上層）。視覺隱藏由 caller 包 hidden div。
+   */
+  suspended?: boolean;
+
   /** Esc 是否關閉（預設 true、給 onClose 即啟用）*/
   closeOnEscape?: boolean;
   /** 背景 click 是否關閉（預設 true、給 onClose 即啟用）*/
@@ -70,6 +77,7 @@ const Z_BASE = 1000; // 起始 z-index、每層 +10 (10 層內足夠)
 export function FocusLockedDialog({
   open,
   onClose,
+  suspended = false,
   closeOnEscape = true,
   closeOnBackdropClick = true,
   initialFocusRef,
@@ -89,10 +97,10 @@ export function FocusLockedDialog({
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
 
-  // mount: push stack + 記前焦點 + 移焦點進 dialog
+  // mount: push stack + 記前焦點 + 移焦點進 dialog（suspended 時視同關閉：pop 層、還原焦點）
   const hasClose = !!onClose;
   useEffect(() => {
-    if (!open) return;
+    if (!open || suspended) return;
     const el = layerRef.current;
     if (!el) return;
     const prevFocus = (document.activeElement instanceof HTMLElement
@@ -121,7 +129,7 @@ export function FocusLockedDialog({
       }
       layerIdRef.current = null;
     };
-  }, [open, closeOnBackdropClick, closeOnEscape, hasClose, initialFocusRef]);
+  }, [open, suspended, closeOnBackdropClick, closeOnEscape, hasClose, initialFocusRef]);
 
   // Esc 處理：layer 內部 onKeyDown（target 在 layer 內、guard 已放行）
   // 只有最上層 layer 才接 Esc（驗收條件 6 多層 Esc 逐層回退）

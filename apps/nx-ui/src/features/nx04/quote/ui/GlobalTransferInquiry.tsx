@@ -1,11 +1,13 @@
 // apps/nx-ui/src/features/nx04/quote/ui/GlobalTransferInquiry.tsx
-// F5 全域即時調貨詢價視窗（執行長 2026-07-12 拍板；同日鍵盤流升級 2/7）：
-//   F2 報價④選「調貨」／F1 主視窗 Alt+D 加進來的清單在這消化——掛掉客戶電話後、
+// 即時工作檯・站 3（調貨詢價）（執行長 2026-07-12 拍板；同日鍵盤流升級 2/7）：
+//   報價站④選「調貨」／站 1 主視窗 Alt+D 加進來的清單在這消化——掛掉客戶電話後、
 //   照卡片打給同行、Enter 對選中料記一筆詢價（nx-instant-inquiry → InstantInquiryDialog）。
 //   每張卡帶「近30天 N 筆・最低 X（同行）」摘要（口徑=近 30 天、執行長 07/13 拍板）、
 //   選中卡展開窗內最近 5 筆明細（比價在 Line 上完成、系統只記錄——S01 關卡二定案、
 //   不做並排比價視圖）。Delete 移除、清單存本機（localStorage）。
-//   ⚠️ F5 攔掉瀏覽器重新整理（Ctrl+R 仍可用）——鍵盤優先 ERP 的取捨、執行長拍板。
+//   ⚠️ 收殼改版（執行長 2026-07-14 拍板、instant-workbench-keymap-plan.md）：
+//     F5 釋出還瀏覽器重整、本元件改受控（InstantWorkbench open prop 開關）。
+//     wrapper 常駐掛載：nx-transfer-add 清單事件＋回饋 chip 不論站開沒開都要收。
 'use client';
 
 import { ArrowLeftRight, FileText, HelpCircle, MessageSquareText, PackagePlus, PhoneCall, Trash2, UserRound, X } from 'lucide-react';
@@ -92,32 +94,26 @@ const QR_QTY = 5;
 const QR_PRICE = 6;
 const QR_REMARK = 7;
 
-export function GlobalTransferInquiry() {
-  const [open, setOpen] = useState(false);
+export function GlobalTransferInquiry({
+  open,
+  onClosed,
+}: {
+  /** 殼控開關（InstantWorkbench 站 3；F5 已釋出還瀏覽器）*/
+  open: boolean;
+  /** 使用者自己關（X / Esc）→ 通知殼收檯 */
+  onClosed: () => void;
+}) {
   const [notice, setNotice] = useState<string | null>(null);
   const noticeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // F5 toggle（capture＋preventDefault：攔瀏覽器整頁重新整理）
-  useEffect(() => {
-    const h = (e: KeyboardEvent) => {
-      if (e.key === 'F5' && !e.ctrlKey && !e.metaKey) {
-        e.preventDefault();
-        e.stopPropagation();
-        setOpen((v) => !v);
-      }
-    };
-    document.addEventListener('keydown', h, true);
-    return () => document.removeEventListener('keydown', h, true);
-  }, []);
-
-  // F1 主視窗 Alt+D 發 nx-transfer-add（design 層不 import nx04 的解耦範式）→ 這裡入清單
+  // 站 1 主視窗 Alt+D 發 nx-transfer-add（design 層不 import nx04 的解耦範式）→ 這裡入清單
   useEffect(() => {
     const h = (e: Event) => {
       const items = (e as CustomEvent<{ items?: Omit<TransferInquiryItem, 'addedAt'>[] }>).detail?.items;
       if (!items?.length) return;
       const added = addTransferItems(items);
       const total = listTransferItems().length;
-      setNotice(added > 0 ? `已加入調貨詢價清單（${added} 顆、清單共 ${total} 顆）——F5 開清單` : '已在調貨詢價清單——F5 開清單');
+      setNotice(added > 0 ? `已加入調貨詢價清單（${added} 顆、清單共 ${total} 顆）——F2→3 開清單` : '已在調貨詢價清單——F2→3 開清單');
       if (noticeTimerRef.current) clearTimeout(noticeTimerRef.current);
       noticeTimerRef.current = setTimeout(() => setNotice(null), 2600);
     };
@@ -137,7 +133,7 @@ export function GlobalTransferInquiry() {
           {notice}
         </div>
       ) : null}
-      {open ? <TransferInquiryDialog onClose={() => setOpen(false)} /> : null}
+      {open ? <TransferInquiryDialog onClose={onClosed} /> : null}
     </>
   );
 }

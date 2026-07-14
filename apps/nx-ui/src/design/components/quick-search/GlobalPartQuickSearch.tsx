@@ -1,17 +1,17 @@
 // apps/nx-ui/src/design/components/quick-search/GlobalPartQuickSearch.tsx
-// F1 全域 hotkey + 視窗 1（搜尋窗）/ 視窗 2（主視窗）管理（執行長 2026-06-25 視窗 2 任務單）
+// 即時工作檯・站 1（庫存查詢）：視窗 1（搜尋窗）/ 視窗 2（主視窗）管理（執行長 2026-06-25 視窗 2 任務單）
 //
-// ⚠️ 執行長 2026-07-11 夜拍板・F1/F2 分流（偉盟單一即時報價的解構）：
-//   · F1 = 即時庫存查詢（本檔、原 F2 整組改綁）：純查庫存/庫位/歷史、不綁客戶
-//   · F2 = 即時報價查詢（features/nx04/quote/ui/GlobalQuoteSession）：先選客戶一次
-//     → 連續查料連續報價 → 產訊息複製。解決「每報一顆要重選一次客戶」。
+// ⚠️ 收殼改版（執行長 2026-07-14 拍板、instant-workbench-keymap-plan.md）：
+//   F1 釋出還瀏覽器、本元件改受控：InstantWorkbench 給 open prop 開關、
+//   使用者自己關（X/Esc）→ onClosed 通知殼收檯。B 期升級庫存視角（異動/庫位/權限切欄）。
+//   歷史：原 F2（2026-06-25）→ F1（07-11 夜 F1/F2 分流）→ 站 1（07-14 收殼）。
 //
 // 流程：
-//   1. F1 → 搜尋窗開
+//   1. 站 1 開 → 搜尋窗開
 //   2. 搜尋窗 Enter selectRow → dispatch `nx-part-selected` event；搜尋窗仍 mounted
 //   3. 本元件接 event → setMainPartId、PartMainWindow 開（疊在搜尋窗上）
 //   4. 主視窗 Esc/退回搜尋 → setMainPartId(null)、自動回搜尋窗（搜尋條件保留）
-//   5. 主視窗 X 全關 → 兩窗都關
+//   5. 主視窗 X 全關 → 兩窗都關、onClosed 通知殼
 //
 // F2 改版 Step 5（docs/_team/f2-redesign-handoff.md §1 §4、執行長 2026-06-25 拍板）：
 //   一個模板、三種入口、銷售為錨。倉別＝情境決定（棄用全域開關）：
@@ -55,12 +55,24 @@ type ContextWarehouseDetail = {
 
 const DEFAULT_CONTEXT: F2EntryContext = { entry: 'sales' };
 
-/** 嵌入點開窗（採購需求單旁 / 倉管庫存管理）。features 層直接呼叫。*/
+/** 嵌入點開窗（採購需求單旁 / 倉管庫存管理）。features 層直接呼叫。
+ *  收殼後事件由 InstantWorkbench 接（開檯落站 1 帶情境）、呼叫端 API 不變。*/
 export function openPartQuickSearch(ctx?: Partial<F2EntryContext>) {
   window.dispatchEvent(new CustomEvent('nx-part-quick-search-open', { detail: ctx ?? {} }));
 }
 
-export function GlobalPartQuickSearch() {
+export function GlobalPartQuickSearch({
+  open: stationOpen,
+  entryCtx,
+  onClosed,
+}: {
+  /** 殼控開關（InstantWorkbench 站 1）*/
+  open: boolean;
+  /** 開站情境（嵌入點事件帶的 entry/倉別、殼轉交）*/
+  entryCtx?: Partial<F2EntryContext>;
+  /** 使用者自己關（X / Esc 鏈）→ 通知殼收檯 */
+  onClosed?: () => void;
+}) {
   const [mounted, setMounted] = useState(false);
   const [closing, setClosing] = useState(false);
   // 視窗 2：主視窗的 partId（null = 主視窗未開）
@@ -90,36 +102,30 @@ export function GlobalPartQuickSearch() {
     }, CLOSE_ANIMATION_MS);
   }, [mounted, closing]);
 
-  // F1 toggle（原 F2、2026-07-11 夜分流）：若主視窗開、F1 先關主視窗回搜尋窗；
-  // 否則 toggle 搜尋窗（銷售為錨、預設 sales）。preventDefault 攔瀏覽器 F1 說明頁。
+  // 殼控開關（收殼 2026-07-14）：open prop 驅動。F1 監聽已釋出還瀏覽器、
+  // nx-part-quick-search-open 事件改由 InstantWorkbench 接（開檯落站 1）。
+  // 走 ref 避免 open/closeAll 身分變動重跑（重跑 open() 會把事件累積的情境倉洗掉）。
+  const openFnRef = useRef(open);
+  const closeAllRef = useRef(closeAll);
+  const entryCtxRef = useRef(entryCtx);
+  const onClosedRef = useRef(onClosed);
   useEffect(() => {
-    const h = (e: KeyboardEvent) => {
-      if (e.key === 'F1') {
-        e.preventDefault();
-        e.stopPropagation();
-        if (mainPartId) {
-          // 主視窗開著 F1 → 回搜尋窗
-          setMainPartId(null);
-        } else if (mounted) {
-          closeAll();
-        } else {
-          open();
-        }
-      }
-    };
-    document.addEventListener('keydown', h);
-    return () => document.removeEventListener('keydown', h);
-  }, [mounted, mainPartId, open, closeAll]);
+    // latest-ref（effect 同步、react-hooks/refs 規範寫法）
+    openFnRef.current = open;
+    closeAllRef.current = closeAll;
+    entryCtxRef.current = entryCtx;
+    onClosedRef.current = onClosed;
+  }, [open, closeAll, entryCtx, onClosed]);
+  useEffect(() => {
+    if (stationOpen) openFnRef.current(entryCtxRef.current);
+    else closeAllRef.current();
+  }, [stationOpen]);
 
-  // 嵌入點開窗事件（採購 / 倉管入口、帶情境）
-  useEffect(() => {
-    const h = (e: Event) => {
-      const ce = e as CustomEvent<Partial<F2EntryContext>>;
-      open(ce.detail);
-    };
-    window.addEventListener('nx-part-quick-search-open', h);
-    return () => window.removeEventListener('nx-part-quick-search-open', h);
-  }, [open]);
+  // 使用者自己關（主視窗 X / 搜尋窗 Esc 鏈）：關窗 + 通知殼收檯
+  const userClose = useCallback(() => {
+    closeAllRef.current();
+    onClosedRef.current?.();
+  }, []);
 
   // 情境倉事件（銷售錨定：即時報價選客戶 → 客戶預設出貨倉）。
   // 掛本層而非視窗 2：視窗 2 退回搜尋窗再進、情境不丟。
@@ -164,13 +170,13 @@ export function GlobalPartQuickSearch() {
   if (!mounted) return null;
   return (
     <>
-      <PartQuickSearchModal closing={closing} onClose={closeAll} />
+      <PartQuickSearchModal closing={closing} onClose={userClose} />
       {mainPartId && (
         <PartMainWindow
           partId={mainPartId}
           entryContext={entryContext}
           onBack={backToSearch}
-          onClose={closeAll}
+          onClose={userClose}
           // Alt+D 加入調貨詢價清單（調貨詢價軌 2026-07-12 接通、執行長拍板 a 案）：
           // design 層不 import nx04、dispatch 事件由 GlobalTransferInquiry（F5）接
           onTransferMarked={(rows) =>

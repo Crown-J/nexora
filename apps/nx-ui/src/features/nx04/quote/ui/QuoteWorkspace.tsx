@@ -137,7 +137,7 @@ const PAY_TERM_LABEL: Record<string, string> = { PREPAY: '先付款', NET30: '�
 const DELIVERY_LABEL: Record<string, string> = { D: '配送', P: '自取', C: '寄送' };
 // MSG_OPTS_KEY / defaultOpts / MSG_OPT_DEFS → 共用 './quote-message'（已 import）
 
-export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
+export function QuoteWorkspace({ onClose, hidden = false }: { onClose: () => void; hidden?: boolean }) {
   const [stage, setStage] = useState<Stage>(1);
   const [customer, setCustomer] = useState<PickedCustomer | null>(null);
   // 階段 2 搜尋
@@ -223,9 +223,25 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
   const confirmRef = useRef<HTMLButtonElement>(null);
   const reqRef = useRef(0);
 
+  // ── instant-workbench 收殼（2026-07-14）：hidden＝切去別站、隱藏保活（session 不丟）──
+  // window 層監聽保持掛載（客戶/報價清單 state 都在）、但 hidden 時三支鍵盤 handler 全閘門，
+  // 不然切到站 1/3 按 Alt+S 會誤觸這裡的結案。暫態彈窗（歷史/詢價/放大/確認/說明）切走即收，
+  // 避免它們的 modal layer 在隱藏期間卡在 stack 頂端。
+  const hiddenRef = useRef(hidden);
+  hiddenRef.current = hidden;
+  useEffect(() => {
+    if (!hidden) return;
+    setHistModalOpen(false);
+    setInqModalOpen(false);
+    setPhotoZoom(false);
+    setConfirmOpen(false);
+    setHelpOpen(false);
+  }, [hidden]);
+
   // ── 全域鍵：Alt+1~5 切階段、Alt+H 引導精靈、Alt+N 散客跳過（階段 1）──
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
+      if (hiddenRef.current) return; // 收殼閘門：隱藏保活時不收鍵
       if (!e.altKey || e.ctrlKey || e.metaKey) return;
       if (['1', '2', '3', '4', '5'].includes(e.key)) {
         e.preventDefault();
@@ -422,6 +438,7 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     if (stage !== 2) return;
     const h = (e: KeyboardEvent) => {
+      if (hiddenRef.current) return; // 收殼閘門
       if ((e.key !== '[' && e.key !== ']') || e.ctrlKey || e.altKey || e.metaKey || e.isComposing) return;
       e.preventDefault();
       e.stopPropagation();
@@ -791,6 +808,7 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
   // S4-3 Alt+S 結案：確認提示 → 進⑤發送訊息（階段④限定；Alt+2 回搜尋累加由 Alt+1~5 既有鍵涵蓋）
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
+      if (hiddenRef.current) return; // 收殼閘門
       if (!e.altKey || e.ctrlKey || e.metaKey) return;
       if (e.key.toLowerCase() !== 's') return;
       e.preventDefault();
@@ -822,6 +840,7 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
   return (
     <FocusLockedDialog
       open
+      suspended={hidden}
       onClose={guardedClose}
       ariaLabel="即時報價工作台"
       backdropClassName="bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
