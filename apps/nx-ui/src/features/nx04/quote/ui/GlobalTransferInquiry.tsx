@@ -13,7 +13,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { listBrands } from '@data/endpoints/nx01/api/brand';
 import { createPart } from '@data/endpoints/nx01/api/part';
-import { getPartDetail } from '@data/endpoints/nx01/part-search/api/part-search';
+import { getPartDetail, quickSearchParts } from '@data/endpoints/nx01/part-search/api/part-search';
+import type { PartSearchRow } from '@data/types/nx01/part-search';
 import { getQuotePriceHistory } from '@data/endpoints/nx04/quote/api/quote';
 import { createQuoteRecord, listInquiryRecords } from '@data/endpoints/nx04/record/api/record';
 import type { PartDetailDto } from '@data/types/nx01/part-search';
@@ -21,7 +22,6 @@ import type { QuotePriceHistoryRow } from '@data/types/nx04/quote';
 import type { InquiryRecord } from '@data/types/nx04/record';
 import { FocusLockedDialog } from '@design/primitives/focus-locked-dialog';
 
-import { PartPicker } from './PartPicker';
 import { buildQuoteMessage, MSG_OPT_DEFS, type MsgOpts } from './quote-message';
 import {
   addTransferItems,
@@ -143,6 +143,24 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
   const [inqSel, setInqSel] = useState(0); // 副容器：選中的詢價紀錄 index
   const [picked, setPicked] = useState<InquiryRecord | null>(null); // 選定進報價的詢價（底價）
   const [swapPart, setSwapPart] = useState<SwapPart | null>(null); // 換料結果：null＝用原料號 A
+  // 換料站（07/14 規格）：主容器搜料（同 F2 查料：基準/廠牌/OEM 正規化比對）、副容器結果清單
+  const [swapQ, setSwapQ] = useState('');
+  const [swapRows, setSwapRows] = useState<PartSearchRow[]>([]);
+  const [swapSel, setSwapSel] = useState(0);
+  const [swapSearching, setSwapSearching] = useState(false);
+  const swapInputRef = useRef<HTMLInputElement>(null);
+  const runSwapSearch = useCallback((q: string) => {
+    const t = q.trim();
+    if (!t) return;
+    setSwapSearching(true);
+    void quickSearchParts({ partNo: t, page: 1, pageSize: 30 })
+      .then((r) => {
+        setSwapRows(r.rows);
+        setSwapSel(0);
+      })
+      .catch(() => setSwapRows([]))
+      .finally(() => setSwapSearching(false));
+  }, []);
   // 建檔站（快速建檔）：基準料號/品名 預帶原料 A、廠牌 picker、廠牌料號必填
   const [cpCode, setCpCode] = useState('');
   const [cpName, setCpName] = useState('');
@@ -293,6 +311,17 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
 
   // （報價站資料載入 effect 移到 activePart 定義後——換料後要載 B 料的 ABCD/歷史）
 
+  // 換料站：進站自動用原料基準料號搜一輪（同基準料號＝直接列出這顆料所有牌）
+  useEffect(() => {
+    if (stage !== 2) return;
+    const c = items[sel];
+    if (!c) return;
+    setSwapQ(c.code);
+    runSwapSearch(c.code);
+    setTimeout(() => swapInputRef.current?.focus(), 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stage]);
+
   // 建檔站：進站時預帶原料 A（同基準料號不同牌是最常見情境）
   useEffect(() => {
     if (stage !== 3) return;
@@ -426,7 +455,7 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
       setHelpOpen((v) => !v);
       return;
     }
-    if (stage === 5) return; // 訊息站：主容器＝訊息框（textarea 自己接鍵）、清單導航停用
+    if (stage === 5 || stage === 2) return; // 訊息站＝訊息框、換料站＝搜尋輸入（各自接鍵）、清單導航停用
     if (items.length === 0) return;
     if (e.key === 'ArrowDown') {
       e.preventDefault();
@@ -464,6 +493,30 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
       } else if (stage === 3 || stage === 2) {
         setStage(stage === 3 ? 2 : 1);
       } else setTimeout(() => listRef.current?.focus(), 0);
+      return;
+    }
+    if (stage === 2) {
+      // 換料站副容器：↑↓ 選結果、Enter 換料進報價、Alt+A 臨時建檔
+      if (e.altKey && !e.ctrlKey && !e.metaKey && e.key.toLowerCase() === 'a') {
+        e.preventDefault();
+        setStage(3);
+        return;
+      }
+      if (swapRows.length === 0) return;
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSwapSel((i) => Math.min(swapRows.length - 1, i + 1));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSwapSel((i) => Math.max(0, i - 1));
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        const r = swapRows[swapSel];
+        if (r) {
+          setSwapPart({ id: r.id, code: r.code, name: r.name, secCode: r.secCode, brandName: r.brandName, isOem: false });
+          goQuote();
+        }
+      }
       return;
     }
     if (stage === 4 && cur.customerId) {
@@ -735,7 +788,33 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
             onKeyDown={onKey}
             className="flex min-h-0 flex-col overflow-auto border-r border-border/40 px-5 py-4 outline-none transition-[background-color,box-shadow] focus-within:bg-primary/[0.03] focus-within:ring-1 focus-within:ring-inset focus-within:ring-primary/25"
           >
-            {stage === 5 && cur ? (
+            {stage === 2 && cur ? (
+              /* 換料站主容器：搜尋料號（同 F2 查料——基準/廠牌/OEM 正規化比對；進站已自動搜原基準料號）*/
+              <div className="flex min-h-0 flex-1 flex-col gap-3">
+                <div className={secHead}>查料 · 換料（原料號 {cur.code}）</div>
+                <input
+                  ref={swapInputRef}
+                  value={swapQ}
+                  onFocus={(e) => e.target.select()}
+                  onChange={(e) => setSwapQ(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      runSwapSearch(swapQ);
+                      setTimeout(() => subPanelRef.current?.focus(), 60);
+                    }
+                  }}
+                  placeholder="料號（基準/廠牌/OEM 皆可）、Enter 查"
+                  className="w-full rounded border bg-background px-3 py-2 font-mono text-sm"
+                />
+                <div className="text-[11px] text-muted-foreground/70">
+                  {swapSearching ? '查詢中…' : swapRows.length ? `找到 ${swapRows.length} 筆（右欄 ↑↓ 選、Enter 換料）` : '查無——右欄 Alt+A 臨時建檔'}
+                </div>
+                <div className="text-[12px] text-muted-foreground">
+                  同行報的牌跟原料號不同？搜出實際要報的料（進站已自動列出同基準料號的所有牌）。
+                </div>
+              </div>
+            ) : stage === 5 && cur ? (
               <div className="flex min-h-0 flex-1 flex-col gap-2">
                 <div className={secHead}>
                   給客戶的訊息
@@ -836,12 +915,12 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
             className="flex min-h-0 flex-col overflow-auto bg-background/20 px-5 py-4 outline-none transition-[background-color,box-shadow] focus-within:bg-primary/[0.03] focus-within:ring-1 focus-within:ring-inset focus-within:ring-primary/25"
           >
             {stage === 2 && cur ? (
-              /* 換料站：同行報的牌跟原料號不同 → 從主檔選 B 料替換（找不到 → 建檔站）*/
-              <div className="flex min-h-0 flex-col gap-3">
-                <div className={secHead}>換料 · 原料號 {cur.code}</div>
+              /* 換料站副容器：搜尋結果（↑↓ Enter 換料）＋臨時建檔（Alt+A）*/
+              <div className="flex min-h-0 flex-1 flex-col gap-2">
+                <div className={secHead}>搜尋結果（{swapRows.length}）</div>
                 {swapPart ? (
-                  <div className="flex items-center justify-between gap-2 rounded-lg border border-primary/45 bg-primary/[0.07] px-3 py-2 text-[12.5px]">
-                    <span>
+                  <div className="flex items-center justify-between gap-2 rounded-lg border border-primary/45 bg-primary/[0.07] px-3 py-1.5 text-[12px]">
+                    <span className="min-w-0 truncate">
                       已換：<span className="font-mono font-semibold text-primary">{swapPart.code}</span> {swapPart.name}
                       {swapPart.brandName ? <span className="ml-1 text-muted-foreground">· {swapPart.brandName}</span> : null}
                     </span>
@@ -850,47 +929,50 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
                       onClick={() => setSwapPart(null)}
                       className="shrink-0 rounded border border-border/50 px-2 py-0.5 text-[11px] hover:border-destructive/50 hover:text-destructive"
                     >
-                      取消換料
+                      取消
                     </button>
                   </div>
-                ) : (
-                  <div className="text-[12px] text-muted-foreground">
-                    同行報的牌跟原料號不同？搜主檔選出實際要報的料（例：問 BOSCH、對方只有 HEGNST）
-                  </div>
-                )}
-                <PartPicker
-                  autoFocus
-                  onPick={(p) => {
-                    setSwapPart({
-                      id: p.id,
-                      code: p.code,
-                      name: p.name,
-                      secCode: p.secCode,
-                      brandName: p.brandName,
-                      isOem: false,
-                    });
-                    goQuote();
-                  }}
-                />
-                <div className="flex items-center justify-between gap-2 pt-1">
-                  <button
-                    type="button"
-                    onClick={() => setStage(3)}
-                    className="rounded border border-amber-500/50 bg-amber-500/10 px-3 py-1.5 text-[12.5px] text-amber-600 hover:bg-amber-500/20"
-                  >
-                    主檔沒這顆 → 建檔（Alt+3）
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSwapPart(null);
-                      goQuote();
-                    }}
-                    className="rounded bg-primary px-4 py-1.5 text-[12.5px] text-primary-foreground"
-                  >
-                    用原料號報價（Alt+4）
-                  </button>
+                ) : null}
+                <div className="min-h-0 flex-1 space-y-1 overflow-auto">
+                  {swapRows.length === 0 ? (
+                    <div className="rounded border border-dashed border-border/50 px-3 py-6 text-center text-[12px] text-muted-foreground">
+                      {swapSearching ? '查詢中…' : '查無資料——同行報的料沒建檔 → 臨時建檔（Alt+A）'}
+                    </div>
+                  ) : (
+                    swapRows.map((r, ri) => {
+                      const on = ri === swapSel;
+                      return (
+                        <div
+                          key={r.id}
+                          onClick={() => {
+                            setSwapSel(ri);
+                            setSwapPart({ id: r.id, code: r.code, name: r.name, secCode: r.secCode, brandName: r.brandName, isOem: false });
+                            goQuote();
+                          }}
+                          className={`flex cursor-pointer items-baseline justify-between gap-2 rounded-lg border-2 px-2.5 py-1.5 text-[12.5px] ${
+                            on ? 'border-primary bg-primary/10' : 'border-border/35 bg-secondary/25 hover:border-primary/40'
+                          }`}
+                        >
+                          <span className="min-w-0 truncate">
+                            <span className="font-mono text-[12px] text-primary/90">{r.code}</span>
+                            <span className="ml-1.5">{r.name}</span>
+                            {r.brandName ? <span className="ml-1 text-[11px] text-muted-foreground">· {r.brandName}</span> : null}
+                          </span>
+                          <span className="shrink-0 font-mono text-[11.5px] tabular-nums text-muted-foreground">
+                            可出 <span className={Number(r.availableTotal) > 0 ? 'font-semibold text-[#22D88F]' : 'text-destructive'}>{Number(r.availableTotal)}</span>
+                          </span>
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setStage(3)}
+                  className="rounded-lg border border-amber-500/50 bg-amber-500/10 px-3 py-1.5 text-[12.5px] text-amber-600 hover:bg-amber-500/20"
+                >
+                  臨時建檔（Alt+A）——同行報的料主檔沒有
+                </button>
               </div>
             ) : stage === 3 && cur ? (
               /* 建檔站：快速建檔（後端鎖 SYSADMIN/OWNER）；無權限走「複製建檔需求」通知建檔人員 */
