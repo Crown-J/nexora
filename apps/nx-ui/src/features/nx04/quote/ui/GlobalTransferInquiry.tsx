@@ -72,6 +72,10 @@ const STAGE_DEFS: { n: number; label: string; icon: React.ReactNode }[] = [
 type SwapPart = { id: string; code: string; name: string; secCode: string | null; brandName: string | null; isOem: boolean };
 // 詢價站副容器動作卡數（新增詢價/更換零件/刪除零件）——↑↓ 導航＝三卡＋表格列
 const INQ_ACTIONS = 3;
+// 建檔站廠牌（含副容器基本資料顯示用欄位）
+type CpBrand = { id: string; code: string; name: string; nameEn?: string | null; remark?: string | null };
+// 廠牌顯示：代號＝名稱（如 BOSCH）只顯一次、不重複
+const brandLabel = (b: CpBrand) => (b.code === b.name ? b.name : `${b.code} ${b.name}`);
 const secHead = 'mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/70';
 // F5 調貨報價訊息預設選項（訊息站設定卡可調、存本機、與 F2 分開記）
 const F5_MSG_OPTS: MsgOpts = { brand: false, baseNo: true, secCode: false, qtyAlways: true, warehouse: true, remark: true };
@@ -169,9 +173,16 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
   const [cpSecCode, setCpSecCode] = useState('');
   const [cpIsOem, setCpIsOem] = useState(false);
   const [cpBrandQ, setCpBrandQ] = useState('');
-  const [cpBrandOpts, setCpBrandOpts] = useState<{ id: string; code: string; name: string }[]>([]);
-  const [cpBrand, setCpBrand] = useState<{ id: string; code: string; name: string } | null>(null);
+  const [cpBrandOpts, setCpBrandOpts] = useState<CpBrand[]>([]);
+  const [cpBrandNoHit, setCpBrandNoHit] = useState(false); // 搜不到 → 下拉顯「新增廠牌」選項
+  const [cpBrand, setCpBrand] = useState<CpBrand | null>(null);
   const [cpBusy, setCpBusy] = useState(false);
+  // 建檔站鍵盤流：基準料號(進站聚焦+反選、Enter 查重) → 廠牌 → 品名 → 廠牌料號 → Alt+S 存
+  const cpCodeRef = useRef<HTMLInputElement>(null);
+  const cpBrandInputRef = useRef<HTMLInputElement>(null);
+  const cpNameRef = useRef<HTMLInputElement>(null);
+  const cpSecRef = useRef<HTMLInputElement>(null);
+  const quickCreateRef = useRef<() => void>(() => {});
   // 建檔站副容器：新增廠牌（連廠牌都沒建時；必填＝代號+名稱）
   const [nbOpen, setNbOpen] = useState(false);
   const [nbCode, setNbCode] = useState('');
@@ -284,6 +295,11 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
         });
         return;
       }
+      if (k === 's' && stage === 3) {
+        // 建檔站 Alt+S＝存檔（建檔並用它報價）進下一環節
+        quickCreateRef.current();
+        return;
+      }
       const n = k === 's' ? 5 : Number(k);
       setEditMode(false);
       if (n === 1) {
@@ -344,21 +360,34 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
     setNbOpen(false);
     setNbCode('');
     setNbName('');
+    // 全鍵盤：進站聚焦基準料號＋反選（執行長 07/14 回饋 1）
+    setTimeout(() => {
+      cpCodeRef.current?.focus();
+      cpCodeRef.current?.select();
+    }, 60);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stage]);
 
-  // 建檔站：廠牌關鍵字搜尋（debounce）
+  // 建檔站：廠牌關鍵字搜尋（debounce）；搜不到 → 下拉顯「新增廠牌」（回饋 3）
   useEffect(() => {
     if (stage !== 3) return;
     const t = cpBrandQ.trim();
     if (!t || cpBrand) {
       setCpBrandOpts([]);
+      setCpBrandNoHit(false);
       return;
     }
     const h = setTimeout(() => {
       void listBrands({ q: t, isPart: true, isActive: true, pageSize: 10 })
-        .then((r) => setCpBrandOpts(r.items.map((b) => ({ id: b.id, code: b.code, name: b.name }))))
-        .catch(() => setCpBrandOpts([]));
+        .then((r) => {
+          const opts = r.items.map((b) => ({ id: b.id, code: b.code, name: b.name, nameEn: b.nameEn ?? null, remark: b.remark ?? null }));
+          setCpBrandOpts(opts);
+          setCpBrandNoHit(opts.length === 0);
+        })
+        .catch(() => {
+          setCpBrandOpts([]);
+          setCpBrandNoHit(true);
+        });
     }, 200);
     return () => clearTimeout(h);
   }, [cpBrandQ, cpBrand, stage]);
@@ -692,11 +721,34 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
     }
   };
 
+  // 建檔站：基準料號查重（去空白比對；重複＝主檔已有、提示回換料站選它——回饋 2）
+  const checkDupBase = async (): Promise<boolean> => {
+    const norm = cpCode.replace(/\s+/g, '');
+    if (!norm) return false;
+    try {
+      const r = await quickSearchParts({ partNo: cpCode.trim(), page: 1, pageSize: 10 });
+      const hit = r.rows.find((x) => x.code.replace(/\s+/g, '') === norm);
+      if (hit) {
+        setErr(`基準料號已存在：${hit.code} ${hit.name}——回換料站（Alt+2）直接選它`);
+        return true;
+      }
+      setErr(null);
+      return false;
+    } catch {
+      return false; // 查不到不擋（真重複後端也會擋）
+    }
+  };
+
   // 建檔站：快速建檔（後端鎖 SYSADMIN/OWNER；無權限 → 403 提示走「複製建檔需求」通知建檔人員）
+  // 必填＝基準料號+廠牌+品名；廠牌料號選填（業務不會去查副廠料號——回饋 5）、空＝帶基準料號（後端該欄必填）
   const quickCreate = async () => {
     if (!cur) return;
-    if (!cpCode.trim() || !cpName.trim() || !cpSecCode.trim()) {
-      setErr('基準料號／品名／廠牌料號必填');
+    if (!cpCode.trim() || !cpName.trim()) {
+      setErr('基準料號／品名必填');
+      return;
+    }
+    if (!cpBrand) {
+      setErr('廠牌必填——打字搜尋、沒建先「新增廠牌」（右欄）');
       return;
     }
     setCpBusy(true);
@@ -705,7 +757,7 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
       const p = await createPart({
         code: cpCode.trim(),
         name: cpName.trim(),
-        secCode: cpSecCode.trim(),
+        secCode: cpSecCode.trim() || cpCode.trim(), // 選填：空＝帶基準料號（後端該欄必填）
         isOem: cpIsOem,
         brandId: cpBrand?.id ?? null,
       });
@@ -713,7 +765,7 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
         id: p.id,
         code: p.code,
         name: p.name,
-        secCode: p.secCode ?? cpSecCode.trim(),
+        secCode: p.secCode ?? null,
         brandName: cpBrand?.name ?? null,
         isOem: cpIsOem,
       });
@@ -739,8 +791,9 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
     setErr(null);
     try {
       const b = await createBrand({ code: nbCode.trim(), name: nbName.trim(), isPart: true });
-      setCpBrand({ id: b.id, code: b.code, name: b.name });
+      setCpBrand({ id: b.id, code: b.code, name: b.name, nameEn: b.nameEn ?? null, remark: b.remark ?? null });
       setNbOpen(false);
+      setTimeout(() => cpNameRef.current?.focus(), 0); // 建好牌回零件表單、續填品名
     } catch (e) {
       const msg = e instanceof Error ? e.message : '新增廠牌失敗';
       setErr(/403|權限|forbidden/i.test(msg) ? '無建檔權限——廠牌一併寫進「複製建檔需求」通知建檔人員' : msg);
@@ -748,6 +801,8 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
       setNbBusy(false);
     }
   };
+  // Alt+S 在建檔站＝存檔進下一環節（回饋 6）；ref 取最新 closure（全域鍵 effect 只依賴 stage）
+  quickCreateRef.current = () => void quickCreate();
   const copyCreateRequest = () => {
     const txt = `【建檔需求】基準料號 ${cpCode || '—'}｜品名 ${cpName || '—'}｜廠牌 ${
       cpBrand ? `${cpBrand.code} ${cpBrand.name}` : cpBrandQ.trim() || '—'
@@ -872,26 +927,57 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
               <div className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-auto">
                 <div className={secHead}>快速建檔 · 零件基本資料（原料號 {cur.code}）</div>
                 <label className="text-[12.5px]">
-                  <span className="mb-1 block text-xs text-muted-foreground">基準料號 *（預帶原料、同料不同牌免改）</span>
+                  <span className="mb-1 block text-xs text-muted-foreground">基準料號 *（進站已反選；Enter 查重、無重複跳下一格）</span>
                   <input
+                    ref={cpCodeRef}
                     value={cpCode}
+                    onFocus={(e) => e.target.select()}
                     onChange={(e) => setCpCode(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        void checkDupBase().then((dup) => {
+                          if (!dup) cpBrandInputRef.current?.focus();
+                        });
+                      }
+                    }}
                     maxLength={50}
                     className="w-full rounded border bg-background px-2 py-1.5 font-mono text-sm"
                   />
                 </label>
                 <label className="relative block text-[12.5px]">
-                  <span className="mb-1 block text-xs text-muted-foreground">廠牌 *（打字搜尋；沒建 → 右欄「新增廠牌」）</span>
+                  <span className="mb-1 block text-xs text-muted-foreground">廠牌 *（打字搜尋；搜不到下拉直接「新增廠牌」）</span>
                   <input
-                    value={cpBrand ? `${cpBrand.code} ${cpBrand.name}` : cpBrandQ}
+                    ref={cpBrandInputRef}
+                    value={cpBrand ? brandLabel(cpBrand) : cpBrandQ}
                     onChange={(e) => {
                       setCpBrand(null);
                       setCpBrandQ(e.target.value);
                     }}
+                    onKeyDown={(e) => {
+                      if (e.key !== 'Enter') return;
+                      e.preventDefault();
+                      if (cpBrand) {
+                        cpNameRef.current?.focus();
+                        return;
+                      }
+                      const first = cpBrandOpts[0];
+                      if (first) {
+                        setCpBrand(first);
+                        setCpBrandOpts([]);
+                        setTimeout(() => cpNameRef.current?.focus(), 0);
+                      } else if (cpBrandNoHit && cpBrandQ.trim()) {
+                        // 搜不到 → 直接開右欄新增廠牌（帶入關鍵字）
+                        setNbCode(cpBrandQ.trim());
+                        setNbName('');
+                        setNbOpen(true);
+                        setTimeout(() => subPanelRef.current?.focus(), 0);
+                      }
+                    }}
                     placeholder="搜主檔廠牌（如 HEGNST）"
                     className="w-full rounded border bg-background px-2 py-1.5 text-sm"
                   />
-                  {cpBrandOpts.length > 0 ? (
+                  {cpBrandOpts.length > 0 || (cpBrandNoHit && cpBrandQ.trim()) ? (
                     <div className="absolute z-30 mt-1 max-h-44 w-full overflow-auto rounded-lg border border-border bg-card shadow-lg">
                       {cpBrandOpts.map((b) => (
                         <button
@@ -901,30 +987,61 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
                             e.preventDefault();
                             setCpBrand(b);
                             setCpBrandOpts([]);
+                            setTimeout(() => cpNameRef.current?.focus(), 0);
                           }}
                           className="block w-full px-2 py-1.5 text-left text-sm hover:bg-accent/15"
                         >
-                          <span className="font-mono text-xs text-muted-foreground">{b.code}</span>　{b.name}
+                          <span className="font-mono text-xs text-muted-foreground">{b.code}</span>
+                          {b.code === b.name ? null : <>　{b.name}</>}
                         </button>
                       ))}
+                      {cpBrandNoHit && cpBrandQ.trim() ? (
+                        <button
+                          type="button"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            setNbCode(cpBrandQ.trim());
+                            setNbName('');
+                            setNbOpen(true);
+                          }}
+                          className="block w-full px-2 py-1.5 text-left text-sm text-primary hover:bg-primary/10"
+                        >
+                          ＋ 新增廠牌「{cpBrandQ.trim()}」（Enter）
+                        </button>
+                      ) : null}
                     </div>
                   ) : null}
                 </label>
                 <label className="text-[12.5px]">
                   <span className="mb-1 block text-xs text-muted-foreground">品名 *</span>
                   <input
+                    ref={cpNameRef}
                     value={cpName}
+                    onFocus={(e) => e.target.select()}
                     onChange={(e) => setCpName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        cpSecRef.current?.focus();
+                      }
+                    }}
                     maxLength={200}
                     className="w-full rounded border bg-background px-2 py-1.5 text-sm"
                   />
                 </label>
                 <div className="grid grid-cols-[1fr_auto] items-end gap-2">
                   <label className="text-[12.5px]">
-                    <span className="mb-1 block text-xs text-muted-foreground">廠牌料號 *（同行報的那顆的料號）</span>
+                    <span className="mb-1 block text-xs text-muted-foreground">廠牌料號（選填、空＝同基準料號；Enter/Alt+S 存檔）</span>
                     <input
+                      ref={cpSecRef}
                       value={cpSecCode}
                       onChange={(e) => setCpSecCode(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          if (!cpBusy) void quickCreate();
+                        }
+                      }}
                       maxLength={50}
                       className="w-full rounded border bg-background px-2 py-1.5 font-mono text-sm"
                     />
@@ -1183,8 +1300,24 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
                       ＋ 新增廠牌{cpBrandQ.trim() ? `（帶入「${cpBrandQ.trim()}」）` : ''}
                     </button>
                     {cpBrand ? (
-                      <div className="rounded-lg border border-border/40 bg-secondary/25 px-3 py-2 text-[12px]">
-                        已選廠牌：<span className="font-mono">{cpBrand.code}</span> {cpBrand.name}
+                      /* 已選廠牌 → 顯示基本資料（回饋 4：不再 BOSCH BOSCH 重複字）*/
+                      <div className="rounded-lg border border-border/40 bg-secondary/25 px-3.5 py-2.5">
+                        <div className={secHead}>廠牌基本資料</div>
+                        <div className="space-y-1.5">
+                          {(
+                            [
+                              ['代號', cpBrand.code, true],
+                              ['名稱', cpBrand.name, false],
+                              ['英文名', cpBrand.nameEn ?? '—', false],
+                              ['備註', cpBrand.remark ?? '—', false],
+                            ] as const
+                          ).map(([label, value, mono]) => (
+                            <div key={label} className="flex items-baseline gap-3 border-b border-border/25 pb-1.5 text-[13px] last:border-b-0 last:pb-0">
+                              <span className="w-12 shrink-0 text-[11.5px] text-foreground/60">{label}</span>
+                              <span className={`min-w-0 flex-1 break-words ${mono ? 'font-mono text-primary' : 'text-foreground/90'}`}>{value}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     ) : null}
                   </>
