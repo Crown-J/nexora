@@ -70,6 +70,8 @@ const STAGE_DEFS: { n: number; label: string; icon: React.ReactNode }[] = [
 ];
 // 換料結果（生效料號）：null＝用原料號 A
 type SwapPart = { id: string; code: string; name: string; secCode: string | null; brandName: string | null; isOem: boolean };
+// 詢價站副容器動作卡數（新增詢價/更換零件/刪除零件）——↑↓ 導航＝三卡＋表格列
+const INQ_ACTIONS = 3;
 const secHead = 'mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/70';
 // F5 調貨報價訊息預設選項（訊息站設定卡可調、存本機、與 F2 分開記）
 const F5_MSG_OPTS: MsgOpts = { brand: false, baseNo: true, secCode: false, qtyAlways: true, warehouse: true, remark: true };
@@ -346,6 +348,17 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
     setStage(4);
     setTimeout(() => subPanelRef.current?.focus(), 0);
   }, []);
+  // 詢價表格點價格 → 帶該筆詢價（＝調貨對象+成本）直接進報價站
+  const pickInquiryToQuote = useCallback(
+    (r: InquiryRecord) => {
+      setPicked(r);
+      setQuotePrice('');
+      setQuoteQty(String(cur?.qty || 1));
+      setQuoteRemark('');
+      goQuote();
+    },
+    [cur?.qty, goQuote],
+  );
 
   // 報價站：載入生效料號的 ABCD 建議售價 + 該客戶報價/成交歷史（換料後＝B 料的參考）
   useEffect(() => {
@@ -533,28 +546,28 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
       fireInquiry(cur);
       return;
     }
+    // 詢價站副容器（執行長 07/14 規格）：上＝三張動作卡（新增詢價/更換零件/刪除零件）、
+    //   下＝詢價紀錄表格；↑↓ 走「三卡＋表格列」同一條導航、Enter 執行
     const recs = sums.get(cur.partId)?.recs ?? [];
-    if (recs.length === 0) return;
+    const total = INQ_ACTIONS + recs.length;
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      setInqSel((i) => Math.min(recs.length - 1, i + 1));
+      setInqSel((i) => Math.min(total - 1, i + 1));
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       setInqSel((i) => Math.max(0, i - 1));
     } else if (e.key === 'Enter') {
       e.preventDefault();
-      const r = recs[Math.min(inqSel, recs.length - 1)];
-      if (r) {
-        setPicked(r);
-        setQuotePrice(''); // 不自動帶成本（避免手滑用成本報出）；成本顯示成底價參考
-        setQuoteQty(String(cur.qty || 1));
-        setQuoteRemark('');
-        setQSel(0);
-        setQOpen(null);
-        setQEdit(null);
-        setErr(null);
-        setSwapPart(null);
-        setStage(2); // 進換料站（同行報別的牌→選 B；同牌→「用原料號報價」直進報價）
+      if (inqSel === 0) fireInquiry(cur); // 新增詢價 → 紀錄落下方表格
+      else if (inqSel === 1) setStage(2); // 更換零件 → 換料站
+      else if (inqSel === 2) {
+        // 刪除零件：移出待辦（要在 F2 重新報價才能加回來）
+        if (window.confirm(`刪除 ${cur.code}（${cur.customerName ?? '未指定客戶'}）？\n刪除後要在 F2 重新報價才能加回待辦。`)) {
+          removeTransferItem(cur.customerId, cur.partId);
+        }
+      } else {
+        const r = recs[inqSel - INQ_ACTIONS];
+        if (r) pickInquiryToQuote(r); // 點價格 → 直接進報價站
       }
     }
   };
@@ -1205,46 +1218,100 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
             ) : (
               <>
                 <div className={secHead}>詢價 · {cur.code}</div>
-                <button
-                  type="button"
-                  onClick={() => fireInquiry(cur)}
-                  className="mb-3 rounded-lg border border-primary/55 bg-primary/12 px-3 py-1.5 text-[12.5px] font-medium text-primary hover:bg-primary/20"
-                >
-                  ＋ 新增詢價（Alt+A：同行→量→價→備註）
-                </button>
-                <div className="mb-2">{summaryLine(cur.partId)}</div>
+                {/* 上：三張動作卡（↑↓ 0~2、Enter 執行；點擊同）*/}
+                <div className="mb-3 grid grid-cols-3 gap-1.5">
+                  {(
+                    [
+                      ['新增詢價', 'Alt+A', () => fireInquiry(cur)],
+                      ['更換零件', '進換料', () => setStage(2)],
+                      [
+                        '刪除零件',
+                        '出待辦',
+                        () => {
+                          if (
+                            window.confirm(
+                              `刪除 ${cur.code}（${cur.customerName ?? '未指定客戶'}）？\n刪除後要在 F2 重新報價才能加回待辦。`,
+                            )
+                          )
+                            removeTransferItem(cur.customerId, cur.partId);
+                        },
+                      ],
+                    ] as const
+                  ).map(([label, sub, act], ci) => (
+                    <button
+                      key={label}
+                      type="button"
+                      onClick={() => {
+                        setInqSel(ci);
+                        act();
+                      }}
+                      className={`rounded-lg border-2 px-2 py-2 text-center transition-colors ${
+                        inqSel === ci
+                          ? 'border-primary bg-primary/10'
+                          : ci === 2
+                            ? 'border-border/35 bg-secondary/30 hover:border-destructive/50'
+                            : 'border-border/35 bg-secondary/30 hover:border-primary/45'
+                      }`}
+                    >
+                      <div className={`text-[12.5px] font-medium ${ci === 2 ? 'text-destructive/80' : 'text-foreground/85'}`}>{label}</div>
+                      <div className="mt-0.5 text-[10px] text-muted-foreground/60">{sub}</div>
+                    </button>
+                  ))}
+                </div>
+                {/* 下：詢價紀錄表格（日期/編號/名稱/數量/價格；↑↓ 續接三卡、Enter 或點價格 → 報價站）*/}
+                <div className="mb-1.5">{summaryLine(cur.partId)}</div>
                 {(() => {
                   const s = sums.get(cur.partId);
                   if (!s || s.recs.length === 0)
                     return (
                       <div className="rounded border border-dashed border-border/50 px-3 py-4 text-center text-[12px] text-muted-foreground">
-                        還沒詢過——Alt+A 記第一筆
+                        還沒詢過——「新增詢價」（Alt+A）記第一筆
                       </div>
                     );
                   const recs = s.recs.slice(0, 8);
                   return (
-                    <div className="space-y-1">
-                      <div className="mb-1 text-[11px] text-muted-foreground/60">↑↓ 選一筆・Enter 帶去報價</div>
-                      {recs.map((r, ri) => {
-                        const on = ri === Math.min(inqSel, recs.length - 1);
-                        return (
-                          <div
-                            key={r.id}
-                            onClick={() => setInqSel(ri)}
-                            className={`grid cursor-pointer grid-cols-[76px_minmax(0,1fr)_36px_92px] items-baseline gap-x-2 rounded border-2 px-2 py-1 text-[12.5px] ${
-                              on ? 'border-primary bg-primary/10' : 'border-transparent hover:border-primary/30'
-                            }`}
-                          >
-                            <span className="font-mono text-[11px] text-muted-foreground">{r.recordDate.slice(0, 10)}</span>
-                            <span className="min-w-0 truncate">{r.partnerName ?? r.partnerCode ?? '—'}</span>
-                            <span className="text-right font-mono tabular-nums text-foreground/85">{Number(r.qty)}</span>
-                            <span className="text-right font-mono font-semibold tabular-nums text-primary">
-                              NT$ {fmtNt(Number(r.unitPrice))}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
+                    <table className="w-full border-collapse text-[12.5px]">
+                      <thead>
+                        <tr className="border-b border-border/40 text-[11px] text-muted-foreground/70">
+                          <th className="py-1 pr-2 text-left font-normal">日期</th>
+                          <th className="py-1 pr-2 text-left font-normal">編號</th>
+                          <th className="py-1 pr-2 text-left font-normal">名稱</th>
+                          <th className="py-1 pr-2 text-right font-normal">數量</th>
+                          <th className="py-1 text-right font-normal">價格</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {recs.map((r, ri) => {
+                          const on = inqSel === INQ_ACTIONS + ri;
+                          return (
+                            <tr
+                              key={r.id}
+                              onClick={() => setInqSel(INQ_ACTIONS + ri)}
+                              className={`cursor-pointer border-b border-border/15 last:border-b-0 ${
+                                on ? 'bg-primary/10' : 'hover:bg-accent/10'
+                              }`}
+                            >
+                              <td className="py-1.5 pr-2 font-mono text-[11px] text-muted-foreground">{r.recordDate.slice(0, 10)}</td>
+                              <td className="py-1.5 pr-2 font-mono text-[11.5px]">{r.partnerCode ?? '—'}</td>
+                              <td className="max-w-[110px] truncate py-1.5 pr-2">{r.partnerName ?? '—'}</td>
+                              <td className="py-1.5 pr-2 text-right font-mono tabular-nums">{Number(r.qty)}</td>
+                              <td
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  pickInquiryToQuote(r); // 點價格 → 直接報價
+                                }}
+                                className={`py-1.5 text-right font-mono font-semibold tabular-nums ${
+                                  on ? 'text-primary' : 'text-primary/80'
+                                } hover:underline`}
+                                title="點價格＝用這筆進報價"
+                              >
+                                NT$ {fmtNt(Number(r.unitPrice))}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
                   );
                 })()}
               </>
