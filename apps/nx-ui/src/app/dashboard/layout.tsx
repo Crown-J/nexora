@@ -18,6 +18,7 @@ import type { ReactNode } from 'react';
 import { Suspense } from 'react';
 // 2026-06-27 大改版：太空風 DashboardShell 封存、改傳統 ERP 外殼 WorkbenchShell
 import { WorkbenchShell } from '@design/layout/workbench/WorkbenchShell';
+import { GlobalKeymap } from '@design/keyboard/GlobalKeymap';
 import { GlobalInstantQuote } from '@/features/nx04/quote/ui/GlobalInstantQuote';
 import { GlobalInstantInquiry } from '@/features/nx04/quote/ui/GlobalInstantInquiry';
 import { InstantWorkbench } from '@/features/shared/instant-workbench/InstantWorkbench';
@@ -26,8 +27,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <WorkbenchShell>
       <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">載入中...</div>}>{children}</Suspense>
-      {/* F2 即時工作檯（執行長 2026-07-14 收殼拍板）：站1 庫存查詢（原 F1）＋站2 即時報價（原 F2）
-          ＋站3 調貨詢價（原 F5、F1/F5 已釋出還瀏覽器）、裸數字切站、站4 補貨 C 期 */}
+      {/* 全域保留鍵（keymap-registry SSOT）：Home 回首頁（欄位內讓原生）*/}
+      <GlobalKeymap />
+      {/* F2 即時工作檯（執行長 2026-07-14 收殼拍板）：F2 選單 → 數字直達
+          站1 庫存查詢（原 F1）＋站2 即時報價（原 F2）＋站3 調貨詢價（原 F5）、站4 補貨 C 期 */}
       <InstantWorkbench />
       {/* 即時報價（單顆/批次）：聽站 1 主視窗發的 nx-instant-quote 事件（Step5B）*/}
       <GlobalInstantQuote />

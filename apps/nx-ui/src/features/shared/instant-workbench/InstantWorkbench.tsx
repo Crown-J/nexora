@@ -54,6 +54,7 @@ export function InstantWorkbench() {
   }, []);
 
   // F2 = 選單 toggle（window capture：比照原 F5 範式、modal 開著也叫得出來）
+  // 鍵位宣告：design/keyboard/keymap-registry.ts『instant-workbench』（全域保留鍵 SSOT）
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if (e.key !== 'F2' || e.ctrlKey || e.metaKey || e.altKey) return;
