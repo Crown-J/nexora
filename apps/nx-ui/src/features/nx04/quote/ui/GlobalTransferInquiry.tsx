@@ -11,6 +11,8 @@
 import { ArrowLeftRight, FileText, HelpCircle, MessageSquareText, PackagePlus, PhoneCall, Trash2, UserRound, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { listBrands } from '@data/endpoints/nx01/api/brand';
+import { createPart } from '@data/endpoints/nx01/api/part';
 import { getPartDetail } from '@data/endpoints/nx01/part-search/api/part-search';
 import { getQuotePriceHistory } from '@data/endpoints/nx04/quote/api/quote';
 import { createQuoteRecord, listInquiryRecords } from '@data/endpoints/nx04/record/api/record';
@@ -139,6 +141,15 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
   const [inqSel, setInqSel] = useState(0); // 副容器：選中的詢價紀錄 index
   const [picked, setPicked] = useState<InquiryRecord | null>(null); // 選定進報價的詢價（底價）
   const [swapPart, setSwapPart] = useState<SwapPart | null>(null); // 換料結果：null＝用原料號 A
+  // 建檔站（快速建檔）：基準料號/品名 預帶原料 A、廠牌 picker、廠牌料號必填
+  const [cpCode, setCpCode] = useState('');
+  const [cpName, setCpName] = useState('');
+  const [cpSecCode, setCpSecCode] = useState('');
+  const [cpIsOem, setCpIsOem] = useState(false);
+  const [cpBrandQ, setCpBrandQ] = useState('');
+  const [cpBrandOpts, setCpBrandOpts] = useState<{ id: string; code: string; name: string }[]>([]);
+  const [cpBrand, setCpBrand] = useState<{ id: string; code: string; name: string } | null>(null);
+  const [cpBusy, setCpBusy] = useState(false);
   const [quotePrice, setQuotePrice] = useState(''); // 報價站：給客戶售價
   const [quoteQty, setQuoteQty] = useState('1'); // 報價站：數量（預設帶客戶要的量）
   const [quoteRemark, setQuoteRemark] = useState(''); // 報價站：備註
@@ -279,6 +290,36 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
   }, [sel]);
 
   // （報價站資料載入 effect 移到 activePart 定義後——換料後要載 B 料的 ABCD/歷史）
+
+  // 建檔站：進站時預帶原料 A（同基準料號不同牌是最常見情境）
+  useEffect(() => {
+    if (stage !== 3) return;
+    const c = items[sel];
+    if (!c) return;
+    setCpCode(c.code);
+    setCpName(c.name);
+    setCpSecCode('');
+    setCpIsOem(false);
+    setCpBrand(null);
+    setCpBrandQ('');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stage]);
+
+  // 建檔站：廠牌關鍵字搜尋（debounce）
+  useEffect(() => {
+    if (stage !== 3) return;
+    const t = cpBrandQ.trim();
+    if (!t || cpBrand) {
+      setCpBrandOpts([]);
+      return;
+    }
+    const h = setTimeout(() => {
+      void listBrands({ q: t, isPart: true, isActive: true, pageSize: 10 })
+        .then((r) => setCpBrandOpts(r.items.map((b) => ({ id: b.id, code: b.code, name: b.name }))))
+        .catch(() => setCpBrandOpts([]));
+    }, 200);
+    return () => clearTimeout(h);
+  }, [cpBrandQ, cpBrand, stage]);
 
   // 選中卡捲入可視
   useEffect(() => {
@@ -551,6 +592,50 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
     }
   };
 
+  // 建檔站：快速建檔（後端鎖 SYSADMIN/OWNER；無權限 → 403 提示走「複製建檔需求」通知建檔人員）
+  const quickCreate = async () => {
+    if (!cur) return;
+    if (!cpCode.trim() || !cpName.trim() || !cpSecCode.trim()) {
+      setErr('基準料號／品名／廠牌料號必填');
+      return;
+    }
+    setCpBusy(true);
+    setErr(null);
+    try {
+      const p = await createPart({
+        code: cpCode.trim(),
+        name: cpName.trim(),
+        secCode: cpSecCode.trim(),
+        isOem: cpIsOem,
+        brandId: cpBrand?.id ?? null,
+      });
+      setSwapPart({
+        id: p.id,
+        code: p.code,
+        name: p.name,
+        secCode: p.secCode ?? cpSecCode.trim(),
+        brandName: cpBrand?.name ?? null,
+        isOem: cpIsOem,
+      });
+      goQuote(); // 建好即當生效料號、直進報價
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : '建檔失敗';
+      setErr(
+        /403|權限|forbidden/i.test(msg)
+          ? '無建檔權限——用「複製建檔需求」通知建檔人員，建好後回換料站（Alt+2）選它'
+          : msg,
+      );
+    } finally {
+      setCpBusy(false);
+    }
+  };
+  const copyCreateRequest = () => {
+    const txt = `【建檔需求】基準料號 ${cpCode || '—'}｜品名 ${cpName || '—'}｜廠牌 ${
+      cpBrand ? `${cpBrand.code} ${cpBrand.name}` : cpBrandQ.trim() || '—'
+    }｜廠牌料號 ${cpSecCode || '—'}｜${cpIsOem ? '正廠' : '副廠'}（來源：F5 調貨詢價${cur ? `、原料號 ${cur.code}` : ''}）`;
+    void navigator.clipboard.writeText(txt);
+  };
+
   /** 卡片摘要行：近30天 N 筆・最低 X（同行）——掛電話前心裡有底價（最低算 30 天全窗）*/
   const summaryLine = (partId: string) => {
     const s = sums.get(partId);
@@ -795,12 +880,94 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
                 </div>
               </div>
             ) : stage === 3 && cur ? (
-              /* 建檔站：快速建檔（SYSADMIN/OWNER）／通知建檔人員——下一 commit 實作 */
-              <div className="flex flex-1 flex-col items-center justify-center gap-2 px-3 text-center text-[12.5px] text-muted-foreground">
-                <PackagePlus className="size-6 text-muted-foreground/60" />
-                <span className="text-[13px] font-medium text-foreground/80">快速建檔（建置中）</span>
-                <span>同行報的料主檔沒有時：有建檔權限在此快速建檔、無權限產通知文字給建檔人員。</span>
-                <span>先用主檔既有料（Alt+2 回換料）或通知建檔人員建好後再回來。</span>
+              /* 建檔站：快速建檔（後端鎖 SYSADMIN/OWNER）；無權限走「複製建檔需求」通知建檔人員 */
+              <div className="flex min-h-0 flex-col gap-2.5 overflow-auto">
+                <div className={secHead}>快速建檔 · 同行報的料（原料號 {cur.code}）</div>
+                <label className="text-[12.5px]">
+                  <span className="mb-1 block text-xs text-muted-foreground">基準料號 *（預帶原料、同料不同牌免改）</span>
+                  <input
+                    value={cpCode}
+                    onChange={(e) => setCpCode(e.target.value)}
+                    maxLength={50}
+                    className="w-full rounded border bg-background px-2 py-1.5 font-mono text-sm"
+                  />
+                </label>
+                <label className="text-[12.5px]">
+                  <span className="mb-1 block text-xs text-muted-foreground">品名 *</span>
+                  <input
+                    value={cpName}
+                    onChange={(e) => setCpName(e.target.value)}
+                    maxLength={200}
+                    className="w-full rounded border bg-background px-2 py-1.5 text-sm"
+                  />
+                </label>
+                <label className="relative block text-[12.5px]">
+                  <span className="mb-1 block text-xs text-muted-foreground">廠牌（打字搜尋、選定；如 HEGNST）</span>
+                  <input
+                    value={cpBrand ? `${cpBrand.code} ${cpBrand.name}` : cpBrandQ}
+                    onChange={(e) => {
+                      setCpBrand(null);
+                      setCpBrandQ(e.target.value);
+                    }}
+                    placeholder="搜主檔廠牌；查無＝廠牌也沒建、寫進通知"
+                    className="w-full rounded border bg-background px-2 py-1.5 text-sm"
+                  />
+                  {cpBrandOpts.length > 0 ? (
+                    <div className="absolute z-30 mt-1 max-h-44 w-full overflow-auto rounded-lg border border-border bg-card shadow-lg">
+                      {cpBrandOpts.map((b) => (
+                        <button
+                          key={b.id}
+                          type="button"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            setCpBrand(b);
+                            setCpBrandOpts([]);
+                          }}
+                          className="block w-full px-2 py-1.5 text-left text-sm hover:bg-accent/15"
+                        >
+                          <span className="font-mono text-xs text-muted-foreground">{b.code}</span>　{b.name}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                </label>
+                <div className="grid grid-cols-[1fr_auto] items-end gap-2">
+                  <label className="text-[12.5px]">
+                    <span className="mb-1 block text-xs text-muted-foreground">廠牌料號 *（同行報的那顆的料號）</span>
+                    <input
+                      value={cpSecCode}
+                      onChange={(e) => setCpSecCode(e.target.value)}
+                      maxLength={50}
+                      className="w-full rounded border bg-background px-2 py-1.5 font-mono text-sm"
+                    />
+                  </label>
+                  <label className="flex cursor-pointer items-center gap-1.5 pb-2 text-[12px] text-muted-foreground">
+                    <input type="checkbox" checked={cpIsOem} onChange={(e) => setCpIsOem(e.target.checked)} />
+                    正廠
+                  </label>
+                </div>
+                {err ? <div className="text-xs text-destructive">{err}</div> : null}
+                <div className="mt-1 flex items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    onClick={copyCreateRequest}
+                    className="rounded border px-3 py-1.5 text-[12px] hover:border-primary/50"
+                    title="無建檔權限時：複製這段丟給建檔人員"
+                  >
+                    複製建檔需求（通知建檔人員）
+                  </button>
+                  <button
+                    type="button"
+                    disabled={cpBusy}
+                    onClick={() => void quickCreate()}
+                    className="rounded bg-primary px-4 py-1.5 text-[12.5px] text-primary-foreground disabled:opacity-50"
+                  >
+                    {cpBusy ? '建檔中…' : '建檔並用它報價'}
+                  </button>
+                </div>
+                <div className="text-[11px] text-muted-foreground/60">
+                  建檔走主檔權限（SYSADMIN/OWNER）；無權限按左鈕通知建檔人員、建好後 Alt+2 回換料站選它
+                </div>
               </div>
             ) : stage === 4 ? (
               /* 報價站：給客戶售價（底價＝選定同行成本；換料後全走 B 料）*/
