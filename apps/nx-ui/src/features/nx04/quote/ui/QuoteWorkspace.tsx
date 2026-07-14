@@ -59,6 +59,14 @@ import { FocusLockedDialog } from '@design/primitives/focus-locked-dialog';
 
 import { CustomerPicker, keyToBopomofo, type PickedCustomer } from './CustomerPicker';
 import { addTransferItems, listTransferItems, TRANSFER_LIST_EVENT } from './transfer-inquiry-store';
+import {
+  buildQuoteMessage,
+  defaultMsgOpts as defaultOpts,
+  formatNt,
+  MSG_OPT_DEFS,
+  MSG_OPTS_KEY,
+  type MsgOpts,
+} from './quote-message';
 
 type Stage = 1 | 2 | 3 | 4 | 5;
 // S2-2 群組樹卡片扁平列（primary=群組主件 / alt=替代品縮排 / single=散件）
@@ -85,11 +93,16 @@ type QuoteLine = CompatRow & {
   warehouseId?: string | null;
   warehouseLabel?: string | null;
   transfer?: boolean;
+  // 問題2（2026-07-13）：調貨就地選同行——若已跟某同行詢過價，直接指定該同行（純前端顯示/帶底價、不進 DB）
+  transferPartnerId?: string | null;
+  transferPartnerName?: string | null;
+  // 問題2 追加（2026-07-13）：每行備註（如「5個在新莊倉」）——可選擇帶進訊息、存進報價紀錄 remark 欄
+  remark?: string;
 };
 // S4-2 C 欄屬性列（↑↓ 移動、Enter 展開/編輯）
 // TRANSFER-INQ 11（執行長 2026-07-13）：加「調貨詢價歷史」列在報價/成交歷史上面——
 //   同行詢價的價＝調貨成本＝報價底價；平常顯示近30天最低成本、Enter 開彈窗純看（不帶價）。
-const PROP_ROWS = ['建議售價', '調貨詢價歷史', '報價/成交歷史', '出貨倉庫', '數量', '報價'] as const;
+const PROP_ROWS = ['建議售價', '調貨詢價歷史', '報價/成交歷史', '出貨倉庫', '數量', '報價', '備註'] as const;
 // 屬性列 index（插一列後全欄位後移、用具名常數避免 off-by-one）
 const P_SUGGESTED = 0;
 const P_INQUIRY = 1;
@@ -97,6 +110,7 @@ const P_HISTORY = 2;
 const P_WAREHOUSE = 3;
 const P_QTY = 4;
 const P_PRICE = 5;
+const P_REMARK = 6; // 問題2 追加：每行備註（如「5個在新莊倉」）
 
 // TRANSFER-INQ 11：近30天詢價窗——起訖都帶（後端 dateRange「只填起=查該日當天」、
 //   只帶 dateFrom 會漏掉整個區間、幾乎永遠 0 筆；本地時區、避免 UTC 差一天漏今天的詢價）
@@ -108,7 +122,7 @@ function recent30Range(): { dateFrom: string; dateTo: string } {
 }
 // S5-6（執行長 07/12 定案）：品名固定當組標題（不再是每行開關）、新增「廠牌」識別選項
 // 回饋 5-1（07/12 二輪）：加「出貨倉庫」選項
-type MsgOpts = { brand: boolean; baseNo: boolean; secCode: boolean; qtyAlways: boolean; warehouse: boolean };
+// MsgOpts / MSG_OPTS_KEY / defaultOpts / MSG_OPT_DEFS / formatNt / buildQuoteMessage → 移到共用 './quote-message'（A 案、與 F5 共用）
 
 const STAGES: { n: Stage; label: string; icon: React.ReactNode }[] = [
   { n: 1, label: '對象', icon: <UserRound className="size-[18px]" /> },
@@ -118,23 +132,10 @@ const STAGES: { n: Stage; label: string; icon: React.ReactNode }[] = [
   { n: 5, label: '發送訊息', icon: <MessageSquareText className="size-[18px]" /> },
 ];
 
-function formatNt(n: number): string {
-  if (n < 100 && n !== Math.floor(n)) return n.toFixed(2);
-  return n.toLocaleString('zh-TW', { maximumFractionDigits: 0 });
-}
 // 階段① C 欄八欄用標籤（值域對齊系統真相：NX03 包貨 IsIn D/P/C/T、寄貨代碼是 C 不是 SO UI 漂移的 S）
 const PAY_TERM_LABEL: Record<string, string> = { PREPAY: '先付款', NET30: '月結30天', NET60: '月結60天', NET90: '月結90天' };
 const DELIVERY_LABEL: Record<string, string> = { D: '配送', P: '自取', C: '寄送' };
-const MSG_OPTS_KEY = 'nx-f2-msg-opts';
-const defaultOpts: MsgOpts = { brand: true, baseNo: true, secCode: false, qtyAlways: false, warehouse: false };
-// C 欄設定卡（S5-3 卡片設計、↑↓ Space 操作）
-const MSG_OPT_DEFS: { key: keyof MsgOpts; label: string }[] = [
-  { key: 'brand', label: '廠牌識別（正廠／廠牌名）' },
-  { key: 'baseNo', label: '顯示基準料號' },
-  { key: 'secCode', label: '顯示副廠料號' },
-  { key: 'qtyAlways', label: '數量恆顯示（否則 >1 才顯示）' },
-  { key: 'warehouse', label: '顯示出貨倉庫' },
-];
+// MSG_OPTS_KEY / defaultOpts / MSG_OPT_DEFS → 共用 './quote-message'（已 import）
 
 export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
   const [stage, setStage] = useState<Stage>(1);
@@ -168,7 +169,7 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
   const [propSel, setPropSel] = useState(0);
   const [propOpen, setPropOpen] = useState<null | 'abcd' | 'wh'>(null);
   const [whSel, setWhSel] = useState(0);
-  const [editingProp, setEditingProp] = useState<null | 'qty' | 'price'>(null);
+  const [editingProp, setEditingProp] = useState<null | 'qty' | 'price' | 'remark'>(null);
   const [abcd, setAbcd] = useState<PartDetailDto | null>(null); // 展開 ABCD 價 lazy 載
   const [history, setHistory] = useState<QuotePriceHistoryRow[] | null>(null); // 聚焦行即載（前價顯示+彈窗共用）
   // 回饋 4-2：歷史改彈出視窗（↑↓ 選、Enter 帶價入報價欄）
@@ -718,34 +719,14 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
 
   // ── 訊息（S5-6：同品名分組——品名固定組標題、組內每行＝識別＋報價）──
   const validLines = lines.filter((l) => l.price !== '' && Number(l.qty) > 0 && Number(l.price) >= 0);
-  const copyText = useMemo(() => {
-    const groups = new Map<string, QuoteLine[]>();
-    for (const l of validLines) {
-      const arr = groups.get(l.name);
-      if (arr) arr.push(l);
-      else groups.set(l.name, [l]);
-    }
-    const blocks: string[] = [];
-    for (const [name, ls] of groups) {
-      const rows = ls.map((l) => {
-        const parts: string[] = [];
-        if (msgOpts.brand) parts.push(l.isOem ? '正廠' : (l.brandName ?? l.brand ?? ''));
-        if (msgOpts.baseNo) parts.push(l.code);
-        if (msgOpts.secCode && l.secCode) parts.push(l.secCode);
-        const qtyPart = msgOpts.qtyAlways || Number(l.qty) > 1 ? `　數量 ${Number(l.qty)}` : '';
-        // 回饋 5-1（二修）：出貨倉庫放行尾括號、只帶倉名（例：(恆迎-新莊)）；項目自選倉 → 調貨 → 客戶預設倉
-        const whName = l.transfer
-          ? '調貨'
-          : l.warehouseLabel
-            ? (l.warehouseLabel.split(' ').slice(1).join(' ') || l.warehouseLabel) // 「Z00 恆迎-總倉」去倉碼留名
-            : (customer?.defaultWarehouseName ?? null);
-        const whPart = msgOpts.warehouse && whName ? ` (${whName})` : '';
-        return `${parts.filter(Boolean).join(' ')}${qtyPart}　報價 NT$ ${formatNt(Number(l.price))}${whPart}`.trim();
-      });
-      blocks.push([name, ...rows].join('\n'));
-    }
-    return blocks.join('\n\n');
-  }, [validLines, msgOpts, customer]);
+  // 修（2026-07-13）：只有調貨待辦項（無報價）時也要能收掉 F2——調貨項選調貨當下已進 F5、
+  //   不需存報價紀錄；否則單一調貨料會卡在存檔（validLines=0）永遠關不掉。
+  const transferQueued = lines.some((l) => l.transfer);
+  // 訊息生成抽到共用 './quote-message'（A 案、與 F5 共用；QuoteLine 為 QuoteMsgLine 超集可直傳）
+  const copyText = useMemo(
+    () => buildQuoteMessage(validLines, msgOpts, customer?.defaultWarehouseName),
+    [validLines, msgOpts, customer],
+  );
   // S5-4 編輯模式（Alt+E）＋手動編輯稿；定案 5(a)：copyText 重生成（設定卡/項目變更）即蓋掉手動稿
   const [editMode, setEditMode] = useState(false);
   const [msgDraft, setMsgDraft] = useState<string | null>(null);
@@ -783,6 +764,8 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
           source: 'INSTANT',
           // 調貨詢價軌 2026-07-12：④選「調貨」的決策落進紀錄（之後拉單看得到、不用重判）
           isTransfer: !!l.transfer,
+          // 問題2 追加：每行備註存進報價紀錄 remark 欄（既有欄位、無 schema 變更）
+          remark: l.remark?.trim() || undefined,
         });
       }
       setSaved(validLines.length);
@@ -928,8 +911,8 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
             })}
           </nav>
 
-          {/* B 主容器 */}
-          <section className="flex min-h-0 flex-col overflow-auto border-r border-border/40 px-5 py-4">
+          {/* B 主容器（focus-within：有焦點時亮主色內框+淡底，明確標示「正在編輯這一側」——問題1）*/}
+          <section className="flex min-h-0 flex-col overflow-auto border-r border-border/40 px-5 py-4 transition-[background-color,box-shadow] duration-150 focus-within:bg-primary/[0.04] focus-within:ring-1 focus-within:ring-inset focus-within:ring-primary/30">
             {stage === 1 && (
               <div ref={custBoxRef} className="mx-auto flex w-full max-w-md flex-col gap-3 pt-8">
                 <div>
@@ -1292,7 +1275,7 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                             </span>
                             {l.transfer ? (
                               <span className="rounded border border-amber-500/50 bg-amber-500/10 px-1.5 py-px text-[10px] text-amber-500">
-                                調貨詢價（F5）
+                                {l.transferPartnerName ? `調貨·${l.transferPartnerName}` : '調貨詢價（F5）'}
                               </span>
                             ) : l.warehouseLabel ? (
                               <span className="rounded border border-border/50 bg-muted/30 px-1.5 py-px text-[10px]">{l.warehouseLabel}</span>
@@ -1301,6 +1284,12 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                                 客戶預設倉
                               </span>
                             )}
+                            {/* 問題1（2026-07-13）：報量>公司可出 → 短缺提示（非阻擋、調貨項不算短缺）*/}
+                            {!l.transfer && Number(l.qty) > l.avail ? (
+                              <span className="rounded border border-amber-500/60 bg-amber-500/10 px-1.5 py-px text-[10px] font-medium text-amber-600">
+                                缺 {Number(l.qty) - l.avail}，需調貨/採購
+                              </span>
+                            ) : null}
                           </div>
                         </div>
                         <div className="shrink-0 text-right font-mono tabular-nums">
@@ -1350,8 +1339,8 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
             )}
           </section>
 
-          {/* C 副容器 */}
-          <aside className="flex min-h-0 flex-col overflow-auto bg-background/20 px-5 py-4">
+          {/* C 副容器（focus-within：同 B，有焦點時亮主色內框+淡底——問題1）*/}
+          <aside className="flex min-h-0 flex-col overflow-auto bg-background/20 px-5 py-4 transition-[background-color,box-shadow] duration-150 focus-within:bg-primary/[0.04] focus-within:ring-1 focus-within:ring-inset focus-within:ring-primary/30">
             {stage === 1 && (
               <div className="flex min-h-0 flex-1 flex-col space-y-2">
                 {customer && custCands.length === 0 ? (
@@ -1673,7 +1662,9 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                     onKeyDown={(e) => {
                       if (editingProp) return; // 編輯輸入框自己接鍵
                       if (propOpen === 'wh') {
-                        const total = whOptions.length + 1; // +1 = 調貨
+                        // 問題2：倉庫選項 + 調貨(泛用) + 已詢價同行清單（可就地指定同行、直接帶底價）
+                        const peers = inqHistory ?? [];
+                        const total = whOptions.length + 1 + peers.length;
                         if (e.key === 'ArrowDown') {
                           e.preventDefault();
                           setWhSel((i) => Math.min(total - 1, i + 1));
@@ -1688,9 +1679,11 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                               warehouseId: w.warehouseId,
                               warehouseLabel: `${w.warehouseCode} ${w.warehouseName}`,
                               transfer: false,
+                              transferPartnerId: null,
+                              transferPartnerName: null,
                             });
-                          } else {
-                            // 調貨：公司有現貨 → 確認防呆（沿用）；入 F5 調貨詢價清單、決策跟著項目走
+                          } else if (whSel === whOptions.length) {
+                            // 調貨（泛用）：公司有現貨 → 確認防呆（沿用）；入 F5 調貨詢價清單、決策跟著項目走
                             if (
                               curLine.avail > 0 &&
                               !window.confirm(`⚠️ ${curLine.code} 公司有現貨（可出 ${curLine.avail}）——確定改走調貨詢價？`)
@@ -1698,8 +1691,31 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                               setPropOpen(null);
                               return;
                             }
-                            addTransferItems([{ partId: curLine.partId, code: curLine.code, name: curLine.name }]);
-                            patchLine(lineSel, { transfer: true, warehouseId: null, warehouseLabel: null });
+                            addTransferItems([
+                              {
+                                customerId: customer?.id ?? null,
+                                customerCode: customer?.code ?? null,
+                                customerName: customer?.name ?? null,
+                                partId: curLine.partId,
+                                code: curLine.code,
+                                name: curLine.name,
+                                qty: Number(curLine.qty) || 1,
+                              },
+                            ]);
+                            patchLine(lineSel, { transfer: true, warehouseId: null, warehouseLabel: null, transferPartnerId: null, transferPartnerName: null });
+                          } else {
+                            // 問題2：指定「已詢過價的同行」——transfer + 記同行；報價欄若還沒填就帶入該同行成本當底價
+                            const peer = peers[whSel - whOptions.length - 1];
+                            if (peer) {
+                              patchLine(lineSel, {
+                                transfer: true,
+                                warehouseId: null,
+                                warehouseLabel: null,
+                                transferPartnerId: peer.sourcePartnerId,
+                                transferPartnerName: peer.partnerName ?? peer.partnerCode ?? '同行',
+                                price: curLine.price ? curLine.price : String(peer.unitPrice),
+                              });
+                            }
                           }
                           setPropOpen(null);
                         } else if (e.key === 'Escape') {
@@ -1739,7 +1755,7 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                           setWhSel(0);
                           setPropOpen('wh');
                         } else {
-                          setEditingProp(propSel === P_QTY ? 'qty' : 'price');
+                          setEditingProp(propSel === P_QTY ? 'qty' : propSel === P_PRICE ? 'price' : 'remark');
                           setTimeout(() => {
                             propEditRef.current?.focus();
                             propEditRef.current?.select();
@@ -1777,12 +1793,16 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                                   : '—（無前價）'
                               : i === P_WAREHOUSE
                                 ? curLine.transfer
-                                  ? '調貨詢價（F5）'
+                                  ? curLine.transferPartnerName
+                                    ? `調貨·${curLine.transferPartnerName}`
+                                    : '調貨詢價（F5）'
                                   : (curLine.warehouseLabel ??
                                     `客戶預設${customer?.defaultWarehouseName ? `（${customer.defaultWarehouseName}）` : '倉'}`)
                                 : i === P_QTY
                                   ? curLine.qty
-                                  : curLine.price || '未填';
+                                  : i === P_PRICE
+                                    ? curLine.price || '未填'
+                                    : curLine.remark || '—';
                       return (
                         <div key={label}>
                           <div
@@ -1792,7 +1812,25 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                             }`}
                           >
                             <span className="text-[12.5px] text-foreground/70">{label}</span>
-                            {editingProp && active && (i === P_QTY || i === P_PRICE) ? (
+                            {editingProp && active && i === P_REMARK ? (
+                              <input
+                                ref={propEditRef}
+                                type="text"
+                                maxLength={100}
+                                value={curLine.remark ?? ''}
+                                onChange={(e) => patchLine(lineSel, { remark: e.target.value })}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' || e.key === 'Escape') {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setEditingProp(null);
+                                    setTimeout(() => propPanelRef.current?.focus(), 0);
+                                  }
+                                }}
+                                placeholder="如：5個在新莊倉"
+                                className="w-48 rounded border bg-background px-2 py-1 text-right text-sm"
+                              />
+                            ) : editingProp && active && (i === P_QTY || i === P_PRICE) ? (
                               <input
                                 ref={propEditRef}
                                 type="number"
@@ -1811,7 +1849,7 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                                 className="w-28 rounded border bg-background px-2 py-1 text-right font-mono text-sm tabular-nums"
                               />
                             ) : (
-                              <span className={`font-mono text-[13.5px] tabular-nums ${i === P_PRICE && curLine.price ? 'font-semibold text-primary' : 'text-foreground/95'}`}>
+                              <span className={`min-w-0 truncate text-right font-mono text-[13.5px] tabular-nums ${i === P_PRICE && curLine.price ? 'font-semibold text-primary' : i === P_REMARK && curLine.remark ? 'text-foreground/95' : 'text-foreground/95'}`}>
                                 {value}
                               </span>
                             )}
@@ -1855,6 +1893,29 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                               >
                                 調貨（同行詢價、入 F5 清單）
                               </div>
+                              {/* 問題2：已詢過價的同行——就地挑一家，直接帶成本當底價、不用再進 F5 */}
+                              {(inqHistory ?? []).length > 0 ? (
+                                <div className="mt-1 border-t border-border/30 pt-1">
+                                  <div className="px-1 pb-0.5 text-[10px] text-muted-foreground/60">已詢價同行（選一家直接報）</div>
+                                  {(inqHistory ?? []).map((p, pi) => {
+                                    const sel = whSel === whOptions.length + 1 + pi;
+                                    return (
+                                      <div
+                                        key={p.id}
+                                        className={`flex items-baseline justify-between gap-2 rounded border px-2 py-1 text-[12px] ${
+                                          sel ? 'border-primary bg-primary/10 text-primary' : 'border-border/30'
+                                        }`}
+                                      >
+                                        <span className="min-w-0 truncate">
+                                          <span className="font-mono text-[10px] text-muted-foreground/70">{p.recordDate.slice(5, 10)}</span>
+                                          <span className="ml-1.5">{p.partnerName ?? p.partnerCode ?? '同行'}</span>
+                                        </span>
+                                        <span className="shrink-0 font-mono tabular-nums">NT$ {formatNt(Number(p.unitPrice))}</span>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              ) : null}
                               {whOptions.length === 0 ? (
                                 <div className="px-1 text-[11px] text-muted-foreground/70">各倉都沒可出量——只剩調貨一途</div>
                               ) : null}
@@ -1887,9 +1948,12 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                       const def = MSG_OPT_DEFS[optSel];
                       if (def) setOpt({ [def.key]: !msgOpts[def.key] });
                     } else if (e.key === 'Enter') {
-                      // S5-4：副容器 Enter＝存檔 → 確認 → 關窗
+                      // S5-4：副容器 Enter＝存檔 → 確認 → 關窗；只有調貨待辦項則直接完成關窗（已進 F5）
                       e.preventDefault();
-                      if (customer && validLines.length > 0 && !busy) setConfirmOpen(true);
+                      if (!busy) {
+                        if (customer && validLines.length > 0) setConfirmOpen(true);
+                        else if (validLines.length === 0 && transferQueued) onClose();
+                      }
                     }
                   }}
                   className="space-y-1.5 outline-none"
@@ -1943,11 +2007,14 @@ export function QuoteWorkspace({ onClose }: { onClose: () => void }) {
                   </button>
                   <button
                     type="button"
-                    disabled={busy || !customer || validLines.length === 0}
-                    onClick={() => setConfirmOpen(true)}
+                    disabled={busy || (validLines.length > 0 ? !customer : !transferQueued)}
+                    onClick={() => {
+                      if (validLines.length > 0) setConfirmOpen(true);
+                      else onClose(); // 只有調貨待辦項：已進 F5、直接完成關窗
+                    }}
                     className="rounded bg-primary px-4 py-1.5 text-sm text-primary-foreground disabled:opacity-50"
                   >
-                    存檔
+                    {validLines.length > 0 ? '存檔' : '完成（調貨待辦已進 F5）'}
                   </button>
                 </div>
               </div>

@@ -171,14 +171,17 @@ export class PartSearchService {
     }
 
     // 使用料號（正規化 raw query：code / secCode / oemCode）
+    // 效能（2026-07-13 問題3）：改 UNION（原 OR 讓 planner 放棄索引、全表掃 11 萬筆 ~356ms）——
+    //   每個 SELECT 各自吃 pg_trgm 函式索引（idx_nx01_part_*_norm_trgm、運算式須與此逐字一致）→ ~1ms。
+    //   索引 DDL 在 packages/db-core/prisma/sql/pending-production.sql。
     if (partNo) {
       const norm = `%${normalizeCode(partNo)}%`;
       const matched = await this.prisma.$queryRawUnsafe<{ id: string }[]>(
-        `SELECT id FROM nx01_part WHERE tenant_id = $1 AND (
-           regexp_replace(lower(code), '[ #\\-*.]', '', 'g') LIKE $2
-           OR regexp_replace(lower(coalesce(sec_code,'')), '[ #\\-*.]', '', 'g') LIKE $2
-           OR id IN (SELECT part_id FROM nx01_part_oem_code WHERE tenant_id = $1 AND regexp_replace(lower(oem_code), '[ #\\-*.]', '', 'g') LIKE $2)
-         )`,
+        `SELECT id FROM nx01_part WHERE tenant_id = $1 AND regexp_replace(lower(code), '[ #\\-*.]', '', 'g') LIKE $2
+         UNION
+         SELECT id FROM nx01_part WHERE tenant_id = $1 AND regexp_replace(lower(coalesce(sec_code,'')), '[ #\\-*.]', '', 'g') LIKE $2
+         UNION
+         SELECT part_id FROM nx01_part_oem_code WHERE tenant_id = $1 AND regexp_replace(lower(oem_code), '[ #\\-*.]', '', 'g') LIKE $2`,
         tenantId,
         norm,
       );
