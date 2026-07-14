@@ -8,7 +8,7 @@
 //   ⚠️ F5 攔掉瀏覽器重新整理（Ctrl+R 仍可用）——鍵盤優先 ERP 的取捨、執行長拍板。
 'use client';
 
-import { FileText, HelpCircle, MessageSquareText, PhoneCall, Trash2, UserRound, X } from 'lucide-react';
+import { ArrowLeftRight, FileText, HelpCircle, MessageSquareText, PackagePlus, PhoneCall, Trash2, UserRound, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { getPartDetail } from '@data/endpoints/nx01/part-search/api/part-search';
@@ -19,6 +19,7 @@ import type { QuotePriceHistoryRow } from '@data/types/nx04/quote';
 import type { InquiryRecord } from '@data/types/nx04/record';
 import { FocusLockedDialog } from '@design/primitives/focus-locked-dialog';
 
+import { PartPicker } from './PartPicker';
 import { buildQuoteMessage, MSG_OPT_DEFS, type MsgOpts } from './quote-message';
 import {
   addTransferItems,
@@ -54,13 +55,19 @@ function summaryDateRange(): { dateFrom: string; dateTo: string } {
   return { dateFrom: fmtDate(from), dateTo: fmtDate(to) };
 }
 
-// F5 重設計（2026-07-13）：左側 3 站流程軌（詢價→報價→訊息）。階段 2 只做「詢價」站與外殼、
-//   報價/訊息站為階段 4 佔位（點了顯施工中）。
+// F5 重設計（2026-07-14 執行長拍板五站）：詢價→換料→建檔→報價→訊息。
+//   換料＝同行報的可能是別的牌（如問 BOSCH 對方只有 HEGNST）→ 從主檔選 B 料替換；
+//   建檔＝B 料沒建檔時：有權限（SYSADMIN/OWNER）快速建檔、無權限產通知文字給建檔人員。
+//   詢價紀錄留在 A（問的是基準料）；報價/訊息/結案走換料後的生效料號。
 const STAGE_DEFS: { n: number; label: string; icon: React.ReactNode }[] = [
   { n: 1, label: '詢價', icon: <PhoneCall className="size-[17px]" /> },
-  { n: 2, label: '報價', icon: <FileText className="size-[17px]" /> },
-  { n: 3, label: '訊息', icon: <MessageSquareText className="size-[17px]" /> },
+  { n: 2, label: '換料', icon: <ArrowLeftRight className="size-[17px]" /> },
+  { n: 3, label: '建檔', icon: <PackagePlus className="size-[17px]" /> },
+  { n: 4, label: '報價', icon: <FileText className="size-[17px]" /> },
+  { n: 5, label: '訊息', icon: <MessageSquareText className="size-[17px]" /> },
 ];
+// 換料結果（生效料號）：null＝用原料號 A
+type SwapPart = { id: string; code: string; name: string; secCode: string | null; brandName: string | null; isOem: boolean };
 const secHead = 'mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/70';
 // F5 調貨報價訊息預設選項（訊息站設定卡可調、存本機、與 F2 分開記）
 const F5_MSG_OPTS: MsgOpts = { brand: false, baseNo: true, secCode: false, qtyAlways: true, warehouse: true, remark: true };
@@ -128,9 +135,10 @@ export function GlobalTransferInquiry() {
 function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
   const [items, setItems] = useState<TransferInquiryItem[]>(() => listTransferItems());
   const [sel, setSel] = useState(0);
-  const [stage, setStage] = useState(1); // 1 詢價 / 2 報價 / 3 訊息（階段4）
-  const [inqSel, setInqSel] = useState(0); // 副容器：選中的詢價紀錄 index（階段3）
+  const [stage, setStage] = useState(1); // 1 詢價 / 2 換料 / 3 建檔 / 4 報價 / 5 訊息
+  const [inqSel, setInqSel] = useState(0); // 副容器：選中的詢價紀錄 index
   const [picked, setPicked] = useState<InquiryRecord | null>(null); // 選定進報價的詢價（底價）
+  const [swapPart, setSwapPart] = useState<SwapPart | null>(null); // 換料結果：null＝用原料號 A
   const [quotePrice, setQuotePrice] = useState(''); // 報價站：給客戶售價
   const [quoteQty, setQuoteQty] = useState('1'); // 報價站：數量（預設帶客戶要的量）
   const [quoteRemark, setQuoteRemark] = useState(''); // 報價站：備註
@@ -216,13 +224,13 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
     return () => window.removeEventListener('nx-inquiry-recorded', h);
   }, [items, fetchPart]);
 
-  // 全域鍵（開窗時、對齊 F2 範式）：Alt+1~3 切站、Alt+S 進訊息、Alt+E 編輯訊息、Alt+H 說明
+  // 全域鍵（開窗時、對齊 F2 範式）：Alt+1~5 切站、Alt+S 進訊息、Alt+E 編輯訊息、Alt+H 說明
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if (!e.altKey || e.ctrlKey || e.metaKey) return;
       const k = e.key.toLowerCase();
-      if (k !== '1' && k !== '2' && k !== '3' && k !== 's' && k !== 'h' && k !== 'e') return;
-      if (k === 'e' && stage !== 3) return; // Alt+E 只在訊息站
+      if (!['1', '2', '3', '4', '5', 's', 'h', 'e'].includes(k)) return;
+      if (k === 'e' && stage !== 5) return; // Alt+E 只在訊息站
       e.preventDefault();
       e.stopPropagation();
       if (k === 'h') {
@@ -237,17 +245,19 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
         });
         return;
       }
-      const n = k === 's' ? 3 : Number(k);
+      const n = k === 's' ? 5 : Number(k);
       setEditMode(false);
-      if (n === 2 || n === 3) {
-        setQOpen(null);
-        setQEdit(null);
-        if (n === 2) setQSel(0);
-        setStage(n);
-        setTimeout(() => subPanelRef.current?.focus(), 0);
-      } else {
+      if (n === 1) {
         setStage(1);
         setTimeout(() => listRef.current?.focus(), 0);
+      } else {
+        if (n === 4) {
+          setQSel(0);
+          setQOpen(null);
+          setQEdit(null);
+        }
+        setStage(n);
+        setTimeout(() => subPanelRef.current?.focus(), 0);
       }
     };
     document.addEventListener('keydown', h, true);
@@ -263,33 +273,12 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
     setInqSel(0);
     setStage(1);
     setPicked(null);
+    setSwapPart(null);
     setEditMode(false);
     setMsgDraft(null);
   }, [sel]);
 
-  // 報價站：載入 ABCD 建議售價 + 該客戶報價/成交歷史（幫業務定售價的參考）
-  useEffect(() => {
-    const c = items[sel];
-    if (stage !== 2 || !c) {
-      setAbcd(null);
-      setPriceHist(null);
-      return;
-    }
-    let alive = true;
-    setAbcd(null);
-    setPriceHist(null);
-    void getPartDetail(c.partId)
-      .then((d) => alive && setAbcd(d))
-      .catch(() => {});
-    if (c.customerId) {
-      void getQuotePriceHistory(c.customerId, c.partId, 12)
-        .then((r) => alive && setPriceHist(r.rows))
-        .catch(() => alive && setPriceHist([]));
-    }
-    return () => {
-      alive = false;
-    };
-  }, [stage, sel, items]);
+  // （報價站資料載入 effect 移到 activePart 定義後——換料後要載 B 料的 ABCD/歷史）
 
   // 選中卡捲入可視
   useEffect(() => {
@@ -301,19 +290,59 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
   }, []);
 
   const cur = items[sel];
+  // 生效料號＝換料後的 B、沒換＝原料號 A（報價/訊息/結案都走這顆；詢價紀錄留在 A）
+  const activePart = useMemo<SwapPart | null>(() => {
+    if (swapPart) return swapPart;
+    if (!cur) return null;
+    return { id: cur.partId, code: cur.code, name: cur.name, secCode: null, brandName: null, isOem: false };
+  }, [swapPart, cur]);
+  // 進報價站（集中初始化：卡片列選取歸零）
+  const goQuote = useCallback(() => {
+    setQSel(0);
+    setQOpen(null);
+    setQEdit(null);
+    setErr(null);
+    setStage(4);
+    setTimeout(() => subPanelRef.current?.focus(), 0);
+  }, []);
 
-  // 訊息生成（共用 buildQuoteMessage）；手動編輯稿以最後動作為準、設定/內容變更即重生成（F2 定案 5a）
+  // 報價站：載入生效料號的 ABCD 建議售價 + 該客戶報價/成交歷史（換料後＝B 料的參考）
+  useEffect(() => {
+    const c = items[sel];
+    const p = swapPart ?? (c ? { id: c.partId } : null);
+    if (stage !== 4 || !c || !p) {
+      setAbcd(null);
+      setPriceHist(null);
+      return;
+    }
+    let alive = true;
+    setAbcd(null);
+    setPriceHist(null);
+    void getPartDetail(p.id)
+      .then((d) => alive && setAbcd(d))
+      .catch(() => {});
+    if (c.customerId) {
+      void getQuotePriceHistory(c.customerId, p.id, 12)
+        .then((r) => alive && setPriceHist(r.rows))
+        .catch(() => alive && setPriceHist([]));
+    }
+    return () => {
+      alive = false;
+    };
+  }, [stage, sel, items, swapPart]);
+
+  // 訊息生成（共用 buildQuoteMessage、走生效料號）；手動稿以最後動作為準、設定/內容變更即重生成（F2 定案 5a）
   const f5MsgText = useMemo(() => {
-    if (!cur) return '';
+    if (!cur || !activePart) return '';
     return buildQuoteMessage(
       [
         {
-          name: cur.name,
-          code: cur.code,
-          secCode: null,
+          name: activePart.name,
+          code: activePart.code,
+          secCode: activePart.secCode,
           brand: null,
-          brandName: null,
-          isOem: false,
+          brandName: activePart.brandName,
+          isOem: activePart.isOem,
           qty: Number(quoteQty) || cur.qty,
           price: quotePrice || 0,
           transfer: true,
@@ -322,7 +351,7 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
       ],
       msgOpts,
     );
-  }, [cur, quoteQty, quotePrice, quoteRemark, msgOpts]);
+  }, [cur, activePart, quoteQty, quotePrice, quoteRemark, msgOpts]);
   useEffect(() => {
     setMsgDraft(null);
   }, [f5MsgText]);
@@ -343,7 +372,7 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
       setHelpOpen((v) => !v);
       return;
     }
-    if (stage === 3) return; // 訊息站：主容器＝訊息框（textarea 自己接鍵）、清單導航停用
+    if (stage === 5) return; // 訊息站：主容器＝訊息框（textarea 自己接鍵）、清單導航停用
     if (items.length === 0) return;
     if (e.key === 'ArrowDown') {
       e.preventDefault();
@@ -372,16 +401,18 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
     if (e.key === 'Escape') {
       e.preventDefault();
       e.stopPropagation();
-      if (stage === 3) {
+      if (stage === 5) {
         setEditMode(false);
-        setStage(2);
-      } else if (stage === 2) {
+        setStage(4);
+      } else if (stage === 4) {
         if (qOpen) setQOpen(null); // 展開中：先收合
-        else setStage(1);
+        else setStage(2); // 回換料
+      } else if (stage === 3 || stage === 2) {
+        setStage(stage === 3 ? 2 : 1);
       } else setTimeout(() => listRef.current?.focus(), 0);
       return;
     }
-    if (stage === 2 && cur.customerId) {
+    if (stage === 4 && cur.customerId) {
       if (qEdit) return; // 編輯輸入框自己接鍵
       if (qOpen === 'hist') {
         const rows = (priceHist ?? []).slice(0, 8);
@@ -437,7 +468,7 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
       }
       return;
     }
-    if (stage === 3 && cur.customerId) {
+    if (stage === 5 && cur.customerId) {
       // 訊息站設定卡（對齊 F2 stage5）：↑↓ 選卡、Space 開關、Enter 存檔結案
       if (e.key === 'ArrowDown') {
         e.preventDefault();
@@ -481,7 +512,8 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
         setQOpen(null);
         setQEdit(null);
         setErr(null);
-        setStage(2); // 進報價
+        setSwapPart(null);
+        setStage(2); // 進換料站（同行報別的牌→選 B；同牌→「用原料號報價」直進報價）
       }
     }
   };
@@ -498,7 +530,7 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
     try {
       await createQuoteRecord({
         customerId: cur.customerId,
-        partId: cur.partId,
+        partId: swapPart?.id ?? cur.partId, // 生效料號（換料後＝B）
         qty: Number(quoteQty) || cur.qty,
         unitPrice: Number(quotePrice),
         source: 'INSTANT',
@@ -508,6 +540,7 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
       removeTransferItem(cur.customerId, cur.partId); // 結案＝移出缺貨待辦
       setStage(1);
       setPicked(null);
+      setSwapPart(null);
       setEditMode(false);
       setMsgDraft(null);
       setTimeout(() => listRef.current?.focus(), 60);
@@ -604,7 +637,7 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
             onKeyDown={onKey}
             className="flex min-h-0 flex-col overflow-auto border-r border-border/40 px-5 py-4 outline-none transition-[background-color,box-shadow] focus-within:bg-primary/[0.03] focus-within:ring-1 focus-within:ring-inset focus-within:ring-primary/25"
           >
-            {stage === 3 && cur ? (
+            {stage === 5 && cur ? (
               <div className="flex min-h-0 flex-1 flex-col gap-2">
                 <div className={secHead}>
                   給客戶的訊息
@@ -704,10 +737,82 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
             onKeyDown={onSubKey}
             className="flex min-h-0 flex-col overflow-auto bg-background/20 px-5 py-4 outline-none transition-[background-color,box-shadow] focus-within:bg-primary/[0.03] focus-within:ring-1 focus-within:ring-inset focus-within:ring-primary/25"
           >
-            {stage === 2 ? (
-              /* 報價站：給客戶售價（底價＝選定同行成本）*/
+            {stage === 2 && cur ? (
+              /* 換料站：同行報的牌跟原料號不同 → 從主檔選 B 料替換（找不到 → 建檔站）*/
               <div className="flex min-h-0 flex-col gap-3">
-                <div className={secHead}>報價 · {cur?.code}</div>
+                <div className={secHead}>換料 · 原料號 {cur.code}</div>
+                {swapPart ? (
+                  <div className="flex items-center justify-between gap-2 rounded-lg border border-primary/45 bg-primary/[0.07] px-3 py-2 text-[12.5px]">
+                    <span>
+                      已換：<span className="font-mono font-semibold text-primary">{swapPart.code}</span> {swapPart.name}
+                      {swapPart.brandName ? <span className="ml-1 text-muted-foreground">· {swapPart.brandName}</span> : null}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setSwapPart(null)}
+                      className="shrink-0 rounded border border-border/50 px-2 py-0.5 text-[11px] hover:border-destructive/50 hover:text-destructive"
+                    >
+                      取消換料
+                    </button>
+                  </div>
+                ) : (
+                  <div className="text-[12px] text-muted-foreground">
+                    同行報的牌跟原料號不同？搜主檔選出實際要報的料（例：問 BOSCH、對方只有 HEGNST）
+                  </div>
+                )}
+                <PartPicker
+                  autoFocus
+                  onPick={(p) => {
+                    setSwapPart({
+                      id: p.id,
+                      code: p.code,
+                      name: p.name,
+                      secCode: p.secCode,
+                      brandName: p.brandName,
+                      isOem: false,
+                    });
+                    goQuote();
+                  }}
+                />
+                <div className="flex items-center justify-between gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setStage(3)}
+                    className="rounded border border-amber-500/50 bg-amber-500/10 px-3 py-1.5 text-[12.5px] text-amber-600 hover:bg-amber-500/20"
+                  >
+                    主檔沒這顆 → 建檔（Alt+3）
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSwapPart(null);
+                      goQuote();
+                    }}
+                    className="rounded bg-primary px-4 py-1.5 text-[12.5px] text-primary-foreground"
+                  >
+                    用原料號報價（Alt+4）
+                  </button>
+                </div>
+              </div>
+            ) : stage === 3 && cur ? (
+              /* 建檔站：快速建檔（SYSADMIN/OWNER）／通知建檔人員——下一 commit 實作 */
+              <div className="flex flex-1 flex-col items-center justify-center gap-2 px-3 text-center text-[12.5px] text-muted-foreground">
+                <PackagePlus className="size-6 text-muted-foreground/60" />
+                <span className="text-[13px] font-medium text-foreground/80">快速建檔（建置中）</span>
+                <span>同行報的料主檔沒有時：有建檔權限在此快速建檔、無權限產通知文字給建檔人員。</span>
+                <span>先用主檔既有料（Alt+2 回換料）或通知建檔人員建好後再回來。</span>
+              </div>
+            ) : stage === 4 ? (
+              /* 報價站：給客戶售價（底價＝選定同行成本；換料後全走 B 料）*/
+              <div className="flex min-h-0 flex-col gap-3">
+                <div className={secHead}>
+                  報價 · {activePart?.code}
+                  {swapPart ? (
+                    <span className="ml-2 rounded border border-primary/50 bg-primary/12 px-1.5 py-px text-[10px] normal-case tracking-normal text-primary">
+                      已換料
+                    </span>
+                  ) : null}
+                </div>
                 {!cur?.customerId ? (
                   <div className="rounded-lg border border-amber-500/50 bg-amber-500/10 px-3 py-3 text-[12.5px] text-amber-600">
                     此筆未指定客戶（F1 通用缺貨）——只能詢價、無法報價結案。Esc 回、Alt+A 續詢價。
@@ -721,7 +826,9 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
                         {cur.customerName}
                         {cur.customerCode ? `（${cur.customerCode}）` : ''}
                       </span>
-                      　<span className="font-mono">{cur.code}</span> {cur.name}
+                      　<span className="font-mono">{activePart?.code}</span> {activePart?.name}
+                      {swapPart?.brandName ? <span className="ml-1 text-muted-foreground">· {swapPart.brandName}</span> : null}
+                      {swapPart ? <span className="ml-1 text-[11px] text-muted-foreground/70">（原 {cur.code}）</span> : null}
                     </div>
 
                     {/* 卡片式屬性列（對齊 F2 屬性面板）：↑↓ 選卡、Enter 展開/編輯、Esc 收合/回詢價 */}
@@ -868,7 +975,7 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
                   </>
                 )}
               </div>
-            ) : stage === 3 && cur ? (
+            ) : stage === 5 && cur ? (
               /* 訊息站副容器（對齊 F2 stage5）：設定卡 ↑↓ 選、Space 開關、Enter 存檔結案；Alt+E 編輯訊息 */
               <div className="flex min-h-0 flex-1 flex-col gap-3">
                 <div className={secHead}>訊息內容設定（會記住）</div>
@@ -979,7 +1086,7 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
         </div>
 
         <div className="flex items-center justify-between border-t border-border/35 bg-background/35 px-6 py-2 text-[11px] text-muted-foreground/70">
-          <span>待辦：↑↓ 選・Enter 進詢價・Delete 移除｜詢價：↑↓ 選・Alt+A 新增・Enter 進報價｜Alt+1~3 切站・Alt+S 訊息・Esc 回・Alt+H 說明</span>
+          <span>待辦：↑↓ 選・Enter 進詢價・Delete 移除｜詢價：↑↓ 選・Alt+A 新增・Enter 進換料｜Alt+1~5 切站（詢價/換料/建檔/報價/訊息）・Alt+S 訊息・Esc 回・Alt+H 說明</span>
           {items.length > 0 ? (
             <button
               type="button"
@@ -1042,10 +1149,10 @@ function TransferHelpOverlay({ onClose }: { onClose: () => void }) {
         <div className="min-h-0 flex-1 overflow-auto px-5 py-3">
           <div className="grid grid-cols-[88px_1fr] items-baseline gap-x-3 gap-y-1.5">
             <HelpRow k="F5" desc="任何頁面開／關本視窗（瀏覽器重新整理改 Ctrl+R）" />
-            <HelpRow k="Alt+1~3" desc="切三站：詢價／報價／訊息" />
+            <HelpRow k="Alt+1~5" desc="切五站：詢價／換料／建檔／報價／訊息" />
             <HelpRow k="Alt+S" desc="進訊息站（同 F2 結案鍵）" />
             <HelpRow k="↑↓" desc="待辦：選料；詢價站：選詢價；報價站：選卡片；訊息站：選設定卡" />
-            <HelpRow k="Enter" desc="待辦→進詢價站；詢價站→帶詢價去報價；報價站→展開/編輯；訊息站→存檔結案" />
+            <HelpRow k="Enter" desc="待辦→進詢價；詢價→帶詢價進換料；報價站→展開/編輯；訊息站→存檔結案" />
             <HelpRow k="Space" desc="訊息站：設定卡開/關" />
             <HelpRow k="Alt+E" desc="訊息站：編輯訊息（Enter 回、Shift+Enter 換行）" />
             <HelpRow k="Alt+A" desc="詢價站新增一筆詢價（同行→量→價→備註）" />
