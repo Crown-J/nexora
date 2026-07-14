@@ -188,6 +188,20 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
   const [nbCode, setNbCode] = useState('');
   const [nbName, setNbName] = useState('');
   const [nbBusy, setNbBusy] = useState(false);
+  const nbCodeRef = useRef<HTMLInputElement>(null);
+  const nbNameRef = useRef<HTMLInputElement>(null);
+  // 開新增廠牌表單（統一入口：關主容器下拉＋焦點直達副容器代號欄反選——執行長 07/14 回饋）
+  const openNewBrand = useCallback((prefillCode: string) => {
+    setCpBrandOpts([]);
+    setCpBrandNoHit(false);
+    setNbCode(prefillCode);
+    setNbName('');
+    setNbOpen(true);
+    setTimeout(() => {
+      nbCodeRef.current?.focus();
+      nbCodeRef.current?.select();
+    }, 30);
+  }, []);
   const [quotePrice, setQuotePrice] = useState(''); // 報價站：給客戶售價
   const [quoteQty, setQuoteQty] = useState('1'); // 報價站：數量（預設帶客戶要的量）
   const [quoteRemark, setQuoteRemark] = useState(''); // 報價站：備註
@@ -751,6 +765,8 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
       setErr('廠牌必填——打字搜尋、沒建先「新增廠牌」（右欄）');
       return;
     }
+    // 確認視窗（Enter＝確認）→ 建檔 → 進報價（執行長 07/14：Enter 到底一路走完）
+    if (!window.confirm(`建檔「${cpCode.trim()}　${cpName.trim()}」（${brandLabel(cpBrand)}）並用它報價？`)) return;
     setCpBusy(true);
     setErr(null);
     try {
@@ -787,6 +803,8 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
       setErr('廠牌代號／名稱必填');
       return;
     }
+    // 確認視窗（Enter＝確定）→ 建牌 → 回主容器續填（執行長 07/14）
+    if (!window.confirm(`新增廠牌「${nbCode.trim()}　${nbName.trim()}」？`)) return;
     setNbBusy(true);
     setErr(null);
     try {
@@ -803,12 +821,8 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
   };
   // Alt+S 在建檔站＝存檔進下一環節（回饋 6）；ref 取最新 closure（全域鍵 effect 只依賴 stage）
   quickCreateRef.current = () => void quickCreate();
-  const copyCreateRequest = () => {
-    const txt = `【建檔需求】基準料號 ${cpCode || '—'}｜品名 ${cpName || '—'}｜廠牌 ${
-      cpBrand ? `${cpBrand.code} ${cpBrand.name}` : cpBrandQ.trim() || '—'
-    }｜廠牌料號 ${cpSecCode || '—'}｜${cpIsOem ? '正廠' : '副廠'}（來源：F5 調貨詢價${cur ? `、原料號 ${cur.code}` : ''}）`;
-    void navigator.clipboard.writeText(txt);
-  };
+  // TODO(建檔補完流程)：執行長 2026-07-14 拍板——F5 建檔＝「初步建檔」（業務先建最小欄位），
+  //   之後要「通知有建檔權限的 USER 去補完整份主檔資料」；通知機制＋補完清單為後續軌（複製建檔需求鈕已依拍板移除）。
 
   /** 卡片摘要行：近30天 N 筆・最低 X（同行）——掛電話前心裡有底價（最低算 30 天全窗）*/
   const summaryLine = (partId: string) => {
@@ -967,11 +981,7 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
                         setCpBrandOpts([]);
                         setTimeout(() => cpNameRef.current?.focus(), 0);
                       } else if (cpBrandNoHit && cpBrandQ.trim()) {
-                        // 搜不到 → 直接開右欄新增廠牌（帶入關鍵字）
-                        setNbCode(cpBrandQ.trim());
-                        setNbName('');
-                        setNbOpen(true);
-                        setTimeout(() => subPanelRef.current?.focus(), 0);
+                        openNewBrand(cpBrandQ.trim()); // 搜不到 → 右欄新增廠牌（關下拉＋代號欄反選）
                       }
                     }}
                     placeholder="搜主檔廠牌（如 HEGNST）"
@@ -1000,9 +1010,7 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
                           type="button"
                           onMouseDown={(e) => {
                             e.preventDefault();
-                            setNbCode(cpBrandQ.trim());
-                            setNbName('');
-                            setNbOpen(true);
+                            openNewBrand(cpBrandQ.trim());
                           }}
                           className="block w-full px-2 py-1.5 text-left text-sm text-primary hover:bg-primary/10"
                         >
@@ -1052,26 +1060,18 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
                   </label>
                 </div>
                 {err ? <div className="text-xs text-destructive">{err}</div> : null}
-                <div className="mt-1 flex items-center justify-between gap-2">
-                  <button
-                    type="button"
-                    onClick={copyCreateRequest}
-                    className="rounded border px-3 py-1.5 text-[12px] hover:border-primary/50"
-                    title="無建檔權限時：複製這段丟給建檔人員"
-                  >
-                    複製建檔需求（通知建檔人員）
-                  </button>
+                <div className="mt-1 flex items-center justify-end gap-2">
                   <button
                     type="button"
                     disabled={cpBusy}
                     onClick={() => void quickCreate()}
                     className="rounded bg-primary px-4 py-1.5 text-[12.5px] text-primary-foreground disabled:opacity-50"
                   >
-                    {cpBusy ? '建檔中…' : '建檔並用它報價'}
+                    {cpBusy ? '建檔中…' : '建檔並用它報價（Alt+S）'}
                   </button>
                 </div>
                 <div className="text-[11px] text-muted-foreground/60">
-                  建檔走主檔權限（SYSADMIN/OWNER）；無權限按左鈕通知建檔人員、建好後 Alt+2 回換料站選它
+                  這是初步建檔（最小欄位）——之後通知有建檔權限的人補完整份主檔資料（通知/補完流程後續軌）
                 </div>
               </div>
             ) : stage === 5 && cur ? (
@@ -1241,18 +1241,26 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
                 {nbOpen ? (
                   <>
                     <label className="text-[12.5px]">
-                      <span className="mb-1 block text-xs text-muted-foreground">廠牌代號 *（如 HEGNST）</span>
+                      <span className="mb-1 block text-xs text-muted-foreground">廠牌代號 *（如 HEGNST；開窗已反選）</span>
                       <input
-                        autoFocus
+                        ref={nbCodeRef}
                         value={nbCode}
+                        onFocus={(e) => e.target.select()}
                         onChange={(e) => setNbCode(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            nbNameRef.current?.focus();
+                          }
+                        }}
                         maxLength={20}
                         className="w-full rounded border bg-background px-2 py-1.5 font-mono text-sm"
                       />
                     </label>
                     <label className="text-[12.5px]">
-                      <span className="mb-1 block text-xs text-muted-foreground">廠牌名稱 *</span>
+                      <span className="mb-1 block text-xs text-muted-foreground">廠牌名稱 *（Enter＝確認新增）</span>
                       <input
+                        ref={nbNameRef}
                         value={nbName}
                         onChange={(e) => setNbName(e.target.value)}
                         maxLength={100}
@@ -1290,11 +1298,7 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
                     </div>
                     <button
                       type="button"
-                      onClick={() => {
-                        setNbCode(cpBrandQ.trim());
-                        setNbName('');
-                        setNbOpen(true);
-                      }}
+                      onClick={() => openNewBrand(cpBrandQ.trim())}
                       className="rounded-lg border border-primary/55 bg-primary/12 px-3 py-2 text-[12.5px] font-medium text-primary hover:bg-primary/20"
                     >
                       ＋ 新增廠牌{cpBrandQ.trim() ? `（帶入「${cpBrandQ.trim()}」）` : ''}
