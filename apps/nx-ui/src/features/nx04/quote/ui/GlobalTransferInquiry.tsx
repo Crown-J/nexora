@@ -76,15 +76,17 @@ const secHead = 'mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text
 // F5 調貨報價訊息預設選項（訊息站設定卡可調、存本機、與 F2 分開記）
 const F5_MSG_OPTS: MsgOpts = { brand: false, baseNo: true, secCode: false, qtyAlways: true, warehouse: true, remark: true };
 const F5_MSG_OPTS_KEY = 'nx-f5-msg-opts';
-// 報價站卡片列（對齊 F2 屬性面板：↑↓ 選、Enter 展開/編輯）；調貨成本/調貨對象純顯示不展開
-const Q_ROWS = ['建議售價', '調貨成本', '報價/成交歷史', '調貨對象', '數量', '報價', '備註'] as const;
-const QR_SUGGESTED = 0;
-const QR_COST = 1;
-const QR_HIST = 2;
-const QR_PARTNER = 3;
-const QR_QTY = 4;
-const QR_PRICE = 5;
-const QR_REMARK = 6;
+// 報價站卡片列（執行長 07/14 順序）：報價對象/調貨對象/調貨成本/建議售價/報價成交歷史/數量/報價/備註
+//   調貨對象 Enter＝換詢價對象（最後一次為準、連動下方成本與建議售價）；報價對象/調貨成本純顯示
+const Q_ROWS = ['報價對象', '調貨對象', '調貨成本', '建議售價', '報價/成交歷史', '數量', '報價', '備註'] as const;
+const QR_CUST = 0;
+const QR_PARTNER = 1;
+const QR_COST = 2;
+const QR_SUGGESTED = 3;
+const QR_HIST = 4;
+const QR_QTY = 5;
+const QR_PRICE = 6;
+const QR_REMARK = 7;
 
 export function GlobalTransferInquiry() {
   const [open, setOpen] = useState(false);
@@ -182,9 +184,10 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
   const [priceHist, setPriceHist] = useState<QuotePriceHistoryRow[] | null>(null); // 報價站：該客戶報價/成交歷史
   // 報價站卡片列鍵盤流（對齊 F2）：↑↓ 選卡、Enter 展開/編輯
   const [qSel, setQSel] = useState(0);
-  const [qOpen, setQOpen] = useState<null | 'abcd' | 'hist'>(null);
+  const [qOpen, setQOpen] = useState<null | 'abcd' | 'hist' | 'peer'>(null);
   const [qEdit, setQEdit] = useState<null | 'qty' | 'price' | 'remark'>(null);
   const [qHistSel, setQHistSel] = useState(0);
+  const [qPeerSel, setQPeerSel] = useState(0); // 調貨對象展開：詢價紀錄選取
   const qEditRef = useRef<HTMLInputElement>(null);
   // 訊息站（對齊 F2 stage5）：左訊息框、右設定卡（↑↓ 選、Space 開關、Enter 存檔結案、Alt+E 編輯訊息）
   const [msgOpts, setMsgOpts] = useState<MsgOpts>(() => {
@@ -545,6 +548,23 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
         }
         return;
       }
+      if (qOpen === 'peer') {
+        // 調貨對象展開：↑↓ 選詢價、Enter 換對象（最後一次為準、連動成本/建議售價）
+        const rows = (sums.get(cur.partId)?.recs ?? []).slice(0, 8);
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          setQPeerSel((i) => Math.min(rows.length - 1, i + 1));
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          setQPeerSel((i) => Math.max(0, i - 1));
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          const p = rows[qPeerSel];
+          if (p) setPicked(p);
+          setQOpen(null);
+        }
+        return;
+      }
       if (qOpen === 'abcd') {
         if (e.key === 'Enter') {
           e.preventDefault();
@@ -560,13 +580,19 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
         setQSel((i) => Math.max(0, i - 1));
       } else if (e.key === 'ArrowRight') {
         e.preventDefault();
-        setStage(3);
+        setStage(5);
       } else if (e.key === 'ArrowLeft') {
         e.preventDefault();
         setStage(1);
       } else if (e.key === 'Enter') {
         e.preventDefault();
-        if (qSel === QR_SUGGESTED) setQOpen('abcd');
+        if (qSel === QR_PARTNER) {
+          // 換詢價對象（原料號 A 的同行詢價）
+          if ((sums.get(cur.partId)?.recs ?? []).length > 0) {
+            setQPeerSel(0);
+            setQOpen('peer');
+          }
+        } else if (qSel === QR_SUGGESTED) setQOpen('abcd');
         else if (qSel === QR_HIST) {
           if ((priceHist ?? []).length > 0) {
             setQHistSel(0);
@@ -579,7 +605,7 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
             qEditRef.current?.select();
           }, 30);
         }
-        // 調貨成本／調貨對象：純顯示、不展開
+        // 報價對象／調貨成本：純顯示、不展開
       }
       return;
     }
@@ -1198,31 +1224,33 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
                       {Q_ROWS.map((label, i) => {
                         const active = i === qSel;
                         const value =
-                          i === QR_SUGGESTED
-                            ? abcd === null
-                              ? '…'
-                              : 'ABCD'
-                            : i === QR_COST
+                          i === QR_CUST
+                            ? `${cur.customerName ?? '—'}${cur.customerCode ? `（${cur.customerCode}）` : ''}`
+                            : i === QR_PARTNER
                               ? picked
-                                ? `NT$ ${fmtNt(Number(picked.unitPrice))}（底價）`
-                                : '—'
-                              : i === QR_HIST
-                                ? (() => {
-                                    if (priceHist === null) return '…';
-                                    const p = priceHist.find((h) => h.scope === 'CUSTOMER') ?? priceHist[0];
-                                    return p
-                                      ? `${p.kind === 'SALE' ? '成交' : '報價'} NT$ ${fmtNt(Number(p.amount))}`
-                                      : '—（無前價）';
-                                  })()
-                                : i === QR_PARTNER
-                                  ? picked
-                                    ? (picked.partnerName ?? picked.partnerCode ?? '同行')
-                                    : '—'
-                                  : i === QR_QTY
-                                    ? quoteQty
-                                    : i === QR_PRICE
-                                      ? quotePrice || '未填'
-                                      : quoteRemark || '—';
+                                ? (picked.partnerName ?? picked.partnerCode ?? '同行')
+                                : '—（Enter 選詢價對象）'
+                              : i === QR_COST
+                                ? picked
+                                  ? `NT$ ${fmtNt(Number(picked.unitPrice))}`
+                                  : '—'
+                                : i === QR_SUGGESTED
+                                  ? // TODO(等級毛利)：建議售價＝報價對象的客戶等級毛利 × 調貨成本
+                                    //   （執行長 2026-07-14 拍板公式；等級毛利機制未完成、先顯示佔位＋ABCD 參考）
+                                    '—（待等級毛利×成本）'
+                                  : i === QR_HIST
+                                    ? (() => {
+                                        if (priceHist === null) return '…';
+                                        const p = priceHist.find((h) => h.scope === 'CUSTOMER') ?? priceHist[0];
+                                        return p
+                                          ? `${p.kind === 'SALE' ? '成交' : '報價'} NT$ ${fmtNt(Number(p.amount))}`
+                                          : '—（無前價）'; // 新建檔的料理論上就是空的
+                                      })()
+                                    : i === QR_QTY
+                                      ? quoteQty
+                                      : i === QR_PRICE
+                                        ? quotePrice || '未填'
+                                        : quoteRemark || '—';
                         const editing =
                           qEdit !== null &&
                           active &&
@@ -1274,7 +1302,28 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
                                 </span>
                               )}
                             </div>
-                            {/* 展開：建議售價 ABCD 四格 */}
+                            {/* 展開：調貨對象＝原料號的同行詢價（↑↓ 選、Enter 換對象；連動成本/建議售價）*/}
+                            {i === QR_PARTNER && qOpen === 'peer' ? (
+                              <div className="mt-1.5 space-y-1 px-1">
+                                {(sums.get(cur.partId)?.recs ?? []).slice(0, 8).map((p, pi) => (
+                                  <div
+                                    key={p.id}
+                                    onClick={() => {
+                                      setPicked(p);
+                                      setQOpen(null);
+                                    }}
+                                    className={`flex cursor-pointer items-baseline gap-2 rounded border px-2 py-1 text-[12px] ${
+                                      pi === qPeerSel ? 'border-primary bg-primary/10' : 'border-border/30'
+                                    }`}
+                                  >
+                                    <span className="font-mono text-[11px] text-muted-foreground">{p.recordDate.slice(5, 10)}</span>
+                                    <span className="min-w-0 truncate">{p.partnerName ?? p.partnerCode ?? '同行'}</span>
+                                    <span className="ml-auto font-mono font-semibold tabular-nums">NT$ {fmtNt(Number(p.unitPrice))}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : null}
+                            {/* 展開：建議售價 ABCD 四格（參考；正式公式＝等級毛利×調貨成本、待毛利機制） */}
                             {i === QR_SUGGESTED && qOpen === 'abcd' ? (
                               <div className="mt-1.5 grid grid-cols-4 gap-1.5 px-1">
                                 {(['A', 'B', 'C', 'D'] as const).map((g) => {
