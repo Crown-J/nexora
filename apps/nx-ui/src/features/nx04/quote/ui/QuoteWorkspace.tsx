@@ -179,7 +179,7 @@ export function QuoteWorkspace({ onClose, hidden = false }: { onClose: () => voi
   const [inqHistory, setInqHistory] = useState<InquiryRecord[] | null>(null);
   const [inqModalOpen, setInqModalOpen] = useState(false);
   const [inqSel, setInqSel] = useState(0);
-  // 記詢價存檔（F5/F7 發 nx-inquiry-recorded）→ 重算警示 + 重載當前列調貨詢價
+  // 記詢價存檔（站1 Alt+7／站3 發 nx-inquiry-recorded）→ 重算警示 + 重載當前列調貨詢價
   const [inqTick, setInqTick] = useState(0);
   // 回饋 4-1：主（items）／副（props）容器誰在操作——非操作側變暗+操作側徽章
   const [quotePane, setQuotePane] = useState<'items' | 'props'>('items');
@@ -333,7 +333,7 @@ export function QuoteWorkspace({ onClose, hidden = false }: { onClose: () => voi
     return () => clearTimeout(h);
   }, [custQ, custPicked]);
 
-  // ── 階段①：客戶搜尋（Enter 關鍵字 / F4 注音首碼）→ 候選進 C 欄 ──
+  // ── 階段①：客戶搜尋（Enter 關鍵字 / Alt+Z 注音首碼）→ 候選進 C 欄 ──
   const runCustSearch = useCallback(
     async (phonetic?: boolean) => {
       const t = custQ.trim();
@@ -621,7 +621,7 @@ export function QuoteWorkspace({ onClose, hidden = false }: { onClose: () => voi
   );
 
   // 進階段 4 → 防呆檢查（無庫存且近30天無同行詢價；詢過即不警示——執行長 07/13）
-  // inqTick 進依賴：F5/F7 記完詢價回來、即時重算（原本 lines 沒變、警示會過時掛著）
+  // inqTick 進依賴：站1/站3 記完詢價回來、即時重算（原本 lines 沒變、警示會過時掛著）
   useEffect(() => {
     if (stage !== 4) return;
     const zero = lines.filter((l) => l.avail <= 0);
@@ -646,7 +646,7 @@ export function QuoteWorkspace({ onClose, hidden = false }: { onClose: () => voi
     };
   }, [stage, lines, inqTick]);
 
-  // TRANSFER-INQ 11：記詢價存檔（F5/F7 → nx-inquiry-recorded）→ tick++ 觸發警示與詢價列重載
+  // TRANSFER-INQ 11：記詢價存檔（站1/站3 → nx-inquiry-recorded）→ tick++ 觸發警示與詢價列重載
   useEffect(() => {
     const h = () => setInqTick((t) => t + 1);
     window.addEventListener('nx-inquiry-recorded', h);
@@ -944,7 +944,8 @@ export function QuoteWorkspace({ onClose, hidden = false }: { onClose: () => voi
                       setCustPicked(false);
                     }}
                     onKeyDown={(e) => {
-                      if (e.key === 'F4') {
+                      if (e.altKey && !e.ctrlKey && !e.metaKey && e.key.toLowerCase() === 'z') {
+                        // Alt+Z 注音首碼（原 F4、2026-07-14 F 鍵清場）
                         e.preventDefault();
                         void runCustSearch(true);
                         return;
@@ -956,7 +957,7 @@ export function QuoteWorkspace({ onClose, hidden = false }: { onClose: () => voi
                         else void runCustSearch();
                       }
                     }}
-                    placeholder="輸入編號/名稱；注音首碼按 F4（例 we→太古）"
+                    placeholder="輸入編號/名稱；注音首碼按 Alt+Z（例 we→太古）"
                     className="mt-1 w-full rounded border bg-background px-3 py-2 text-sm"
                   />
                   <div className="mt-2 flex justify-end text-[11px] text-muted-foreground/70">
@@ -2356,7 +2357,7 @@ function QuoteHelpOverlay({ onClose }: { onClose: () => void }) {
             <Group title="① 對象" />
             <Row k="Enter" desc="查候選（右欄）；選定後再按 → 進搜尋" />
             <Row k="↑↓ / Enter" desc="右欄選候選客戶（Esc 回輸入框）" />
-            <Row k="F4" desc="注音首碼搜尋（例 we→太古）" />
+            <Row k="Alt+Z" desc="注音首碼搜尋（例 we→太古）" />
             <Row k="Alt+N" desc="散客／新客戶、先跳過" />
             <Group title="② 搜尋" />
             <Row k="[ ]" desc="左右循環切三查法（料號／品名+車型／進階）" />

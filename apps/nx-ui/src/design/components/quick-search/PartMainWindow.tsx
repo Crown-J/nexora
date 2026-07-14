@@ -12,12 +12,12 @@
 //
 // 核心連動（視窗 2 靈魂、執行長 2026-07-11 S01 走查改版）：
 //   · ↑↓（右欄）= 選件：左欄基本資料 + 中欄庫存「即時跟隨」選中列（主件只留「主」徽章、不再恆亮）
-//   · Space = 標記✓/取消（可多顆）；F4 報價：有標記＝批次報價、無標記＝報當前件
+//   · Space = 標記✓/取消（可多顆）；Alt+Q 報價：有標記＝批次報價、無標記＝報當前件
 //   · Alt+F（右欄）= 跳搜：以該件為新主件重來、原主件不保留
 //   · Alt+W = 各倉分布展開/收合（localStorage 記憶、換料不縮回）
 //   · Alt+P = 放大零件圖（原 Space、讓位給標記）
 //   · Alt+H = 快捷鍵說明（引導精靈通用鍵）；底部提示列已收進右上「?」
-//   · F3 = 聚焦右欄通用零件（＝可替代件；原 F3 小面板與右欄同資料、已合併退役）
+//   · Alt+G = 聚焦右欄通用零件（原 F3；2026-07-14 F 鍵清場：F3~F10 全改 Alt、F4 刪＝Alt+Q 重複）
 //   · Esc = 關視窗 2 → 退回搜尋窗（保留搜尋窗 state）
 //
 // 焦點地基：FocusLockedDialog 包殼、modal-stack 自動隔離背景。
@@ -95,7 +95,7 @@ type Props = {
   cornerBadge?: string;
   /** 開窗自動聚焦右欄第一列（F2 報價流傳 false：焦點給量價輸入）*/
   autoFocusCompat?: boolean;
-  /** F4／「即時報價」鈕的覆寫動作（F2 報價流：開報價環節、不再開選客戶的單顆對話框）*/
+  /** Alt+Q／「即時報價」鈕的覆寫動作（F2 報價流：開報價環節、不再開選客戶的單顆對話框）*/
   onQuoteAction?: () => void;
   /** 右欄卡片樣式（執行長 2026-07-12）：'quote'＝瘦身版（料號/品名/廠牌/庫存/建議售價）；預設 'stock' */
   compatVariant?: 'stock' | 'quote';
@@ -158,7 +158,7 @@ export function PartMainWindow({
   const compatListRef = useRef<HTMLDivElement>(null);
   const compatFirstRowRef = useRef<HTMLButtonElement>(null);
 
-  // 標記（Space、執行長 2026-07-11）：F4 報價時有標記＝批次
+  // 標記（Space、執行長 2026-07-11）：Alt+Q 報價時有標記＝批次
   const [markedIds, setMarkedIds] = useState<Set<string>>(new Set());
 
   // 圖片放大（Alt+P、原 Space 讓位給標記）
@@ -192,10 +192,11 @@ export function PartMainWindow({
     if (entryContext?.warehouseId || entryContext?.entry === 'warehouse') setWhExpanded(true);
   }, [entryContext?.warehouseId, entryContext?.entry]);
 
-  // F2 改版 Step 4（交接 §5）：快捷鍵面板（F5 周轉率 / F6 出入庫；F4 報價走全域事件）
-  // F3 可替代小面板已退役（與右欄同資料、2026-07-11 合併）；F2 下鑽：F8 銷貨比價
+  // F2 改版 Step 4（交接 §5）：快捷鍵面板（Alt+5 周轉率 / Alt+6 出入庫；Alt+Q 報價走全域事件）
+  // 可替代小面板已退役（與右欄同資料、2026-07-11 合併）；下鑽：Alt+8 銷貨比價
+  // （2026-07-14 F 鍵清場：原 F5~F10 整排平移 Alt+5~0）
   const [quickPanel, setQuickPanel] = useState<QuickPanelKind | null>(null);
-  // 出入庫紀錄 lazy 載（F6、換料件清空重抓）
+  // 出入庫紀錄 lazy 載（Alt+6、換料件清空重抓）
   const [historyRows, setHistoryRows] = useState<PartStockHistoryRow[] | null>(null);
   const [historyLoading, setHistoryLoading] = useState(false);
   const historyReqRef = useRef(0);
@@ -203,15 +204,15 @@ export function PartMainWindow({
   const [monthlyStats, setMonthlyStats] = useState<PartMonthlyStatsDto | null>(null);
   const [monthlyLoading, setMonthlyLoading] = useState(false);
   const monthlyReqRef = useRef(0);
-  // 銷貨比價 lazy 載（F8、換料件清空重抓）
+  // 銷貨比價 lazy 載（Alt+8、換料件清空重抓）
   const [salesData, setSalesData] = useState<PartSalesHistoryDto | null>(null);
   const [salesLoading, setSalesLoading] = useState(false);
   const salesReqRef = useRef(0);
-  // 進貨比價 lazy 載（F9、換料件清空重抓）
+  // 進貨比價 lazy 載（Alt+9、換料件清空重抓）
   const [purchaseRows, setPurchaseRows] = useState<PartPurchaseHistoryRow[] | null>(null);
   const [purchaseLoading, setPurchaseLoading] = useState(false);
   const purchaseReqRef = useRef(0);
-  // 相關零件 + 適用車型 lazy 載（F10 兩頁籤、開面板一次載齊、換料件清空重抓）
+  // 相關零件 + 適用車型 lazy 載（Alt+0 兩頁籤、開面板一次載齊、換料件清空重抓）
   const [relatedRows, setRelatedRows] = useState<PartRelatedRow[] | null>(null);
   const [modelRows, setModelRows] = useState<PartModelRow[] | null>(null);
   const [relatedLoading, setRelatedLoading] = useState(false);
@@ -262,7 +263,7 @@ export function PartMainWindow({
     setQuickPanel(null);
   }, [effectivePartId]);
 
-  // F6 面板開啟時 lazy 載出入庫紀錄（同料件共用快取；F5 已改吃 monthly-stats）
+  // Alt+6 面板開啟時 lazy 載出入庫紀錄（同料件共用快取；周轉率已改吃 monthly-stats）
   useEffect(() => {
     if (quickPanel !== 'history') return;
     if (historyRows !== null) return;
@@ -305,7 +306,7 @@ export function PartMainWindow({
     })();
   }, [quickPanel, monthlyStats, effectivePartId]);
 
-  // F8 面板開啟時 lazy 載銷貨比價（同料件共用快取）
+  // Alt+8 面板開啟時 lazy 載銷貨比價（同料件共用快取）
   useEffect(() => {
     if (quickPanel !== 'sales') return;
     if (salesData !== null) return;
@@ -329,7 +330,7 @@ export function PartMainWindow({
     })();
   }, [quickPanel, salesData, effectivePartId]);
 
-  // F9 面板開啟時 lazy 載進貨比價（同料件共用快取）
+  // Alt+9 面板開啟時 lazy 載進貨比價（同料件共用快取）
   useEffect(() => {
     if (quickPanel !== 'purchase') return;
     if (purchaseRows !== null) return;
@@ -349,7 +350,7 @@ export function PartMainWindow({
     })();
   }, [quickPanel, purchaseRows, effectivePartId]);
 
-  // F10 面板開啟時 lazy 載相關零件 + 適用車型（兩頁籤一次載齊、同料件共用快取）
+  // Alt+0 面板開啟時 lazy 載相關零件 + 適用車型（兩頁籤一次載齊、同料件共用快取）
   useEffect(() => {
     if (quickPanel !== 'related') return;
     if (relatedRows !== null && modelRows !== null) return;
@@ -490,7 +491,7 @@ export function PartMainWindow({
     [compatRows.length, compatMoveDown, compatMoveUp, compatEnter, compatJumpSearch],
   );
 
-  // 即時報價（F4 / 按鈕）：dispatch 事件，全域 GlobalInstantQuote 接（design 層不 import nx04）
+  // 即時報價（Alt+Q / 按鈕）：dispatch 事件，全域 GlobalInstantQuote 接（design 層不 import nx04）
   // 執行長 2026-07-11：右欄有 Space 標記 → 帶 items 陣列＝批次報價；無標記＝報當前件
   const fireInstantQuote = useCallback(() => {
     const marked = compatRows.filter((r) => markedIds.has(r.id));
@@ -514,7 +515,7 @@ export function PartMainWindow({
     );
   }, [compatRows, markedIds, effectivePartId, detail?.code, detail?.name]);
 
-  // 「即時報價」鈕＝與 F4 同路由：F2 流走報價環節（標記列/選中列）、F1 走單顆/批次對話框
+  // 「即時報價」鈕＝與 Alt+Q 同路由：F2 流走報價環節（標記列/選中列）、通用流走單顆/批次對話框
   const quoteButtonAction = useCallback(() => {
     if (onQuoteMarked) {
       const marked = compatRows.filter((r) => markedIds.has(r.id));
@@ -527,7 +528,7 @@ export function PartMainWindow({
     else fireInstantQuote();
   }, [onQuoteMarked, compatRows, markedIds, highlightIndex, onQuoteAction, fireInstantQuote]);
 
-  // 即時詢價（F3 / 按鈕）：dispatch 事件，全域 GlobalInstantInquiry 接（調貨側，挑同行）
+  // 即時詢價（Alt+7 / 按鈕）：dispatch 事件，全域 GlobalInstantInquiry 接（調貨側，挑同行）
   const fireInstantInquiry = useCallback(() => {
     window.dispatchEvent(
       new CustomEvent('nx-instant-inquiry', {
@@ -538,7 +539,7 @@ export function PartMainWindow({
 
   // 全域快捷鍵（任何地方按、除了 input/textarea）
   // 執行長 2026-07-11 S01 走查改版：Space=標記✓（原放大改 Alt+P）/ Alt+W 各倉分布 / Alt+H 說明
-  // F3 改聚焦右欄通用零件（原 F3 小面板與右欄同資料、合併退役）；F7 詢價（2026-07-10 拍板）。
+  // Alt+G 聚焦右欄通用零件（原 F3 小面板與右欄同資料、合併退役）；Alt+7 詢價（原 F7、2026-07-10 拍板）。
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if (e.isComposing) return;
@@ -550,7 +551,7 @@ export function PartMainWindow({
       if (isEditable) return;
       const togglePanel = (p: QuickPanelKind) =>
         setQuickPanel((cur) => (cur === p ? null : p));
-      // Space 標記列（無標記＝目前選中列）——Alt+Q／Alt+D／F4（F2 流）共用
+      // Space 標記列（無標記＝目前選中列）——Alt+Q／Alt+D 共用
       const markedOrCurrent = () => {
         const marked = compatRows.filter((r) => markedIds.has(r.id));
         if (marked.length > 0) return marked;
@@ -597,6 +598,33 @@ export function PartMainWindow({
           e.preventDefault();
           e.stopPropagation();
           onAltDigit(Number(k) as 1 | 2 | 3, { partId: effectivePartId, code: detail?.code ?? '' });
+        } else if (k === 'g') {
+          // Alt+G 聚焦右欄通用零件（原 F3、2026-07-14 F 鍵清場：F 鍵只留全域保留鍵）
+          e.preventDefault();
+          e.stopPropagation();
+          focusCompatRow(highlightIndex);
+        } else if (k === '6') {
+          // Alt+6~0 查價面板（原 F6~F10 整排平移、對齊 Alt+5 周轉率先例＝原 F5）
+          e.preventDefault();
+          e.stopPropagation();
+          togglePanel('history');
+        } else if (k === '7') {
+          // Alt+7 即時詢價（原 F7、2026-07-10 拍板的詢價鍵）
+          e.preventDefault();
+          e.stopPropagation();
+          fireInstantInquiry();
+        } else if (k === '8') {
+          e.preventDefault();
+          e.stopPropagation();
+          togglePanel('sales');
+        } else if (k === '9') {
+          e.preventDefault();
+          e.stopPropagation();
+          togglePanel('purchase');
+        } else if (k === '0') {
+          e.preventDefault();
+          e.stopPropagation();
+          togglePanel('related');
         }
         return; // 其他 Alt 組合放行（Alt+F 跳搜由右欄 row/zone 處理）
       }
@@ -604,38 +632,10 @@ export function PartMainWindow({
         // Space = 標記✓/取消（批次報價用）；只在這攔一次、row/zone 不再處理避免雙觸發
         e.preventDefault();
         compatToggleMark();
-      } else if (e.key === 'F4') {
-        e.preventDefault();
-        // F2 報價流：F4＝同 Alt+Q（開報價環節、不開要重選客戶的單顆對話框）
-        if (onQuoteMarked) {
-          const rows = markedOrCurrent();
-          if (rows.length > 0) onQuoteMarked(rows);
-        } else if (onQuoteAction) onQuoteAction();
-        else fireInstantQuote();
-      } else if (e.key === 'F3') {
-        // F3 = 聚焦右欄通用零件（＝可替代件）
-        e.preventDefault();
-        focusCompatRow(highlightIndex);
-      } else if (e.key === 'F6') {
-        // F5 已讓給全域調貨詢價視窗（執行長 2026-07-12）；周轉率改 Alt+5
-        e.preventDefault();
-        togglePanel('history');
-      } else if (e.key === 'F7') {
-        e.preventDefault();
-        fireInstantInquiry();
-      } else if (e.key === 'F8') {
-        e.preventDefault();
-        togglePanel('sales');
-      } else if (e.key === 'F9') {
-        e.preventDefault();
-        togglePanel('purchase');
-      } else if (e.key === 'F10') {
-        // ⚠ F10 瀏覽器預設聚焦選單列；capture 階段 preventDefault 攔（同 F5 手法、瀏覽器實測）
-        e.preventDefault();
-        togglePanel('related');
       }
+      // 2026-07-14 F 鍵清場：F4（=Alt+Q 重複鍵）刪除；F3→Alt+G；F6~F10→Alt+6~0。
+      // F 鍵全數還給瀏覽器／全域保留鍵（instant-workbench-keymap-plan.md §4.1）。
     };
-    // capture 階段：搶在焦點鎖定對話框冒泡攔截 + 瀏覽器默認（F3=找下一個/F5=重整）之前 preventDefault
     window.addEventListener('keydown', h, true);
     return () => window.removeEventListener('keydown', h, true);
   }, [
@@ -709,24 +709,24 @@ export function PartMainWindow({
               </span>
             </span>
           )}
-          {/* F3 依交接 §5 綁可替代零件；即時詢價改綁 F7（執行長 2026-07-10 拍板）*/}
+          {/* 即時詢價原 F7（2026-07-10 拍板）→ Alt+7（2026-07-14 F 鍵清場）*/}
           <button
             type="button"
             onClick={fireInstantInquiry}
             className="ml-auto inline-flex items-center gap-1.5 rounded-md border border-border/55 bg-background/40 px-2.5 py-1 text-xs font-medium text-foreground hover:border-primary/55 hover:bg-secondary/60"
-            title="即時詢價（調貨、F7）"
+            title="即時詢價（調貨、Alt+7）"
           >
             即時詢價
-            <kbd className="rounded border border-border/40 bg-muted/40 px-1 py-px font-mono text-[10px]">F7</kbd>
+            <kbd className="rounded border border-border/40 bg-muted/40 px-1 py-px font-mono text-[10px]">Alt+7</kbd>
           </button>
           <button
             type="button"
             onClick={quoteButtonAction}
             className="inline-flex items-center gap-1.5 rounded-md border border-primary/55 bg-primary/15 px-2.5 py-1 text-xs font-medium text-primary hover:bg-primary/25"
-            title="即時報價 (F4)"
+            title="即時報價 (Alt+Q)"
           >
             即時報價
-            <kbd className="rounded border border-primary/40 bg-primary/10 px-1 py-px font-mono text-[10px]">F4</kbd>
+            <kbd className="rounded border border-primary/40 bg-primary/10 px-1 py-px font-mono text-[10px]">Alt+Q</kbd>
           </button>
           {headerExtra}
           <span className="text-[10px] font-semibold uppercase tracking-[0.28em] text-muted-foreground/60">
@@ -825,8 +825,8 @@ export function PartMainWindow({
           />
         )}
 
-        {/* Step 4：快捷鍵面板（F3/F5/F6、疊在視窗 2 上、Esc 或同鍵關）
-            F2 下鑽：F8 銷貨比價 */}
+        {/* Step 4：快捷鍵面板（Alt+5~0、疊在視窗 2 上、Esc 或同鍵關）
+            下鑽：Alt+8 銷貨比價 */}
         {/* 快捷鍵說明（Alt+H / 右上「?」）*/}
         {helpOpen && <ShortcutHelpOverlay onClose={() => setHelpOpen(false)} />}
 
@@ -1822,19 +1822,18 @@ function ShortcutHelpOverlay({ onClose }: { onClose: () => void }) {
             <Row k="↑↓" desc="選件（左欄資料＋中欄庫存即時跟隨）" />
             <Row k="Space" desc="標記✓／取消（可標多顆、供批次報價）" />
             <Row k="Alt+F" desc="以選中件跳搜（換主件重來）" />
-            <Row k="F3" desc="聚焦右欄清單" />
+            <Row k="Alt+G" desc="聚焦右欄清單" />
             <Group title="報價・調貨" />
-            <Row k="Alt+Q" desc="報價環節（帶 ✓ 標記列；F2 報價流）" />
-            <Row k="Alt+D" desc="加入調貨清單（之後 F5 開調貨詢價視窗）" />
-            <Row k="Alt+1~3" desc="價格細節：ABCD 價／該客戶紀錄／其他客戶（F2）" />
-            <Row k="F4" desc="即時報價（F1＝單顆/批次；F2＝同 Alt+Q）" />
-            <Row k="F7" desc="即時詢價（同行調貨、記一家一筆）" />
+            <Row k="Alt+Q" desc="報價環節（帶 ✓ 標記列）" />
+            <Row k="Alt+D" desc="加入調貨清單（F2→3 開調貨詢價）" />
+            <Row k="Alt+1~3" desc="價格細節：ABCD 價／該客戶紀錄／其他客戶" />
+            <Row k="Alt+7" desc="即時詢價（同行調貨、記一家一筆）" />
             <Group title="查價面板" />
-            <Row k="Alt+5" desc="周轉率分析（原 F5、F5 讓給調貨詢價）" />
-            <Row k="F6" desc="出入庫紀錄" />
-            <Row k="F8" desc="銷貨比價（成本+A~D 價）" />
-            <Row k="F9" desc="進貨比價（歷史進價）" />
-            <Row k="F10" desc="相關零件＋適用車型（兩頁籤）" />
+            <Row k="Alt+5" desc="周轉率分析" />
+            <Row k="Alt+6" desc="出入庫紀錄" />
+            <Row k="Alt+8" desc="銷貨比價（成本+A~D 價）" />
+            <Row k="Alt+9" desc="進貨比價（歷史進價）" />
+            <Row k="Alt+0" desc="相關零件＋適用車型（兩頁籤）" />
             <Group title="視窗" />
             <Row k="Alt+W" desc="各倉分布展開／收合（會記憶、換料不縮回）" />
             <Row k="Alt+P" desc="放大零件圖" />
@@ -1967,7 +1966,7 @@ function MonthlyBar({ value, max, color }: { value: number; max: number; color: 
   );
 }
 
-/** F6 出入庫紀錄：近 100 筆異動表 */
+/** Alt+6 出入庫紀錄：近 100 筆異動表 */
 function StockHistoryPanel({
   rows,
   loading,
@@ -2030,7 +2029,7 @@ function StockHistoryPanel({
   );
 }
 
-// ─── F8 銷貨比價（F2 下鑽、交接 §7、執行長 2026-07-11 拍板）─────
+// ─── Alt+8 銷貨比價（原 F8；F2 下鑽、交接 §7、執行長 2026-07-11 拍板）─────
 // 銷售電話報價場景：建議售價列（成本+A~D、成本照露）→ 歷史銷貨 → 歷史報價。
 // 狀態字面對齊 @data/types/nx04 的 SO_STATUS_LABEL / QUOTE_STATUS_LABEL、
 // 比價表取精簡版（design 層不 import nx04、沿用本檔 DOC_TYPE_LABELS 局部映射前例）。
@@ -2188,7 +2187,7 @@ function SalesComparePanel({
   );
 }
 
-// ─── F9 進貨比價（F2 下鑽、交接 §7 第二優先）─────────────────
+// ─── Alt+9 進貨比價（原 F9；F2 下鑽、交接 §7 第二優先）─────────────
 // 採購比價場景：同一顆料歷次進貨的供應商/成本一表看。
 // 狀態字面對齊 @data/types/nx02/rr 的 RR_STATUS_LABEL（局部映射、同上）。
 const RR_STATUS_LABELS: Record<string, string> = {
@@ -2260,7 +2259,7 @@ function PurchaseComparePanel({
   );
 }
 
-// ─── F10 相關零件（F2 下鑽、交接 §7 第三優先：對應料 + 適用車型兩頁籤）──
+// ─── Alt+0 相關零件（原 F10；F2 下鑽、交接 §7 第三優先：對應料 + 適用車型兩頁籤）──
 // 對應料：執行長既拍板（見後端 getRelatedParts 註解）relationType 1~5 不分子類型、全部歸一區。
 // 適用車型：唯讀端點 :id/models（執行長 2026-07-11 拍板本線加）。
 function RelatedPartsPanel({

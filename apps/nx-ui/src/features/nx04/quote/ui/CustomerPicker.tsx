@@ -1,5 +1,5 @@
 // apps/nx-ui/src/features/nx04/quote/ui/CustomerPicker.tsx
-// 客戶選擇器：關鍵字下拉（編號/名稱）+ F4 注音首碼搜尋（例：we→ㄊㄍ→太古）
+// 客戶選擇器：關鍵字下拉（編號/名稱）+ Alt+Z 注音首碼搜尋（例：we→ㄊㄍ→太古；原 F4、2026-07-14 清場）
 // 後端：/nx01/partners 支援 search 與 phonetic（phonetic_index）查詢
 'use client';
 
@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { listPartner } from '@data/endpoints/shared/master/partner/api/partner';
 
-// 台灣標準注音鍵盤映射（沿用 PhoneticPicker）；F4 把英文鍵碼轉注音再查
+// 台灣標準注音鍵盤映射（沿用 PhoneticPicker）；Alt+Z 把英文鍵碼轉注音再查
 const KEY2BOPOMOFO: Record<string, string> = {
   '1': 'ㄅ', '2': 'ㄉ', '3': 'ˇ', '4': 'ˋ', '5': 'ㄓ', '6': 'ˊ', '7': '˙', '8': 'ㄚ', '9': 'ㄞ', '0': 'ㄢ', '-': 'ㄦ',
   q: 'ㄆ', w: 'ㄊ', e: 'ㄍ', r: 'ㄐ', t: 'ㄔ', y: 'ㄗ', u: 'ㄧ', i: 'ㄛ', o: 'ㄟ', p: 'ㄣ',
@@ -125,7 +125,8 @@ export function CustomerPicker({
           setText(e.target.value);
         }}
         onKeyDown={(e) => {
-          if (e.key === 'F4') {
+          if (e.altKey && !e.ctrlKey && !e.metaKey && e.key.toLowerCase() === 'z') {
+            // Alt+Z 注音首碼（原 F4、2026-07-14 F 鍵清場）
             e.preventDefault();
             void doPhonetic();
             return;
@@ -157,7 +158,7 @@ export function CustomerPicker({
             if (picked) onCommit();
           }
         }}
-        placeholder="輸入編號/名稱；注音首碼按 F4（例 we→太古）"
+        placeholder="輸入編號/名稱；注音首碼按 Alt+Z（例 we→太古）"
         className="w-full rounded border bg-background px-2 py-1 text-sm"
       />
       {open && rows.length ? (

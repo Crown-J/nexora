@@ -1,11 +1,12 @@
 // apps/nx-ui/src/design/components/quick-search/PhoneticPicker.tsx
-// 品名欄特殊輸入元件:支援注音鍵盤碼 + F4 觸發候選詞下拉（執行長 2026-06-17 拍板）
+// 品名欄特殊輸入元件:支援注音鍵盤碼 + Alt+Z 觸發候選詞下拉（執行長 2026-06-17 拍板；
+// 原 F4、2026-07-14 F 鍵清場改 Alt+Z）
 //
 // 使用情境：
-//   - 業務員不會打中文 → 用注音鍵盤打 CVN → 按 F4 → 下拉「火星塞」候選 → Enter 確認
+//   - 業務員不會打中文 → 用注音鍵盤打 CVN → 按 Alt+Z → 下拉「火星塞」候選 → Enter 確認
 //   - 或直接打中文「火星塞」→ Enter 跳下一欄（不出聯想）
 //
-// 範式：F4 trigger 之前一律純文字輸入、不自動 fetch、不閃跳。
+// 範式：Alt+Z trigger 之前一律純文字輸入、不自動 fetch、不閃跳。
 'use client';
 
 import { useCallback, useRef, useState } from 'react';
@@ -72,7 +73,7 @@ export function PhoneticPicker({
   const containerRef = useRef<HTMLDivElement>(null);
   const reqIdRef = useRef(0);
 
-  /** F4 觸發：把當前 input 視為注音鍵盤碼、轉注音字符、call API 找對應 part name 候選 */
+  /** Alt+Z 觸發（原 F4）：把當前 input 視為注音鍵盤碼、轉注音字符、call API 找對應 part name 候選 */
   const triggerPhoneticLookup = useCallback(async () => {
     const raw = value.trim();
     if (!raw) return;
@@ -130,7 +131,8 @@ export function PhoneticPicker({
     (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.nativeEvent.isComposing) return;
 
-      if (e.key === 'F4') {
+      if (e.altKey && !e.ctrlKey && !e.metaKey && e.key.toLowerCase() === 'z') {
+        // Alt+Z 注音查（原 F4、2026-07-14 F 鍵清場：F 鍵只留全域保留鍵）
         e.preventDefault();
         e.stopPropagation();
         void triggerPhoneticLookup();
@@ -210,7 +212,7 @@ export function PhoneticPicker({
           className="rounded border border-primary/40 bg-primary/10 px-1.5 py-px font-mono text-[9px] tracking-normal text-primary hover:bg-primary/20"
           title="把輸入視為注音鍵盤碼（如 CVN→ㄏㄒㄙ）查料號"
         >
-          F4 注音查
+          Alt+Z 注音查
         </button>
       </span>
       <input

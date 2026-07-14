@@ -9,7 +9,7 @@
 //
 // 全鍵盤（window listener）：
 //   Alt+1~5 直接切欄 / ← → 切欄 / ↑ ↓ 欄內移卡 / Enter cascade
-//   A 依當前欄新增（據點/倉庫/區域/貨架/庫位）/ [ ] 上下主檔 / F3 主檔切換 / ? 熱鍵
+//   A 依當前欄新增（據點/倉庫/區域/貨架/庫位）/ [ ] 上下主檔 / Alt+M 主檔切換 / ? 熱鍵
 
 'use client';
 
@@ -232,7 +232,8 @@ export function LocationStructurePage() {
         return;
       }
 
-      if (e.key === 'F3') {
+      // Alt+M 主檔切換 modal（原 F3、2026-07-14 F 鍵清場：F 鍵只留全域保留鍵）
+      if (e.altKey && e.key.toLowerCase() === 'm') {
         e.preventDefault();
         setSwitcherOpen(true);
         return;
@@ -883,7 +884,7 @@ function HelpOverlay({ onClose }: { onClose: () => void }) {
           <Row k="Enter / Space" desc="選定 + cascade 到下一欄" />
           <Row k="A" desc="依當前欄：新增 據點 / 倉庫 / 區域 / 貨架 / 庫位" />
           <Row k="[ / ]" desc="上 / 下個主檔" />
-          <Row k="F3" desc="主檔切換 modal" />
+          <Row k="Alt+M" desc="主檔切換 modal" />
           <Row k="?" desc="開 / 關 此指南" />
           <Row k="Esc" desc="關閉浮層" />
         </div>

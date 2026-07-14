@@ -611,7 +611,7 @@ const TOOLBAR_STYLE: React.CSSProperties = {
 
 /**
  * 新增報價單面板（內嵌、無彈窗）：鎖右編左
- * 單號/狀態/建單 自動；停客戶編號（picker + F4 注音）→ Enter 跳幣別 → Enter 存檔確認 → 確認建單。
+ * 單號/狀態/建單 自動；停客戶編號（picker + Alt+Z 注音）→ Enter 跳幣別 → Enter 存檔確認 → 確認建單。
  * 出貨倉庫：選客戶時預帶該客戶預設取貨倉，可改；未指定則後端自動帶（客戶預設→使用者隸屬倉→主倉）。
  */
 export function QuoteCreatePanel({

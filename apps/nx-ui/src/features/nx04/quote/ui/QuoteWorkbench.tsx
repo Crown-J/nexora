@@ -215,10 +215,10 @@ function QuoteSearchDialog({ initial, onApply, onClose }: DocSearchDialogProps<Q
       </SearchRow>
       <SearchRow label="客戶">
         <input value={c.customerCode ?? ''} onChange={(e) => set('customerCode', e.target.value)} placeholder="客戶編號" className={cls} />
-        <input value={c.customerName ?? ''} onChange={(e) => set('customerName', e.target.value)} placeholder="客戶名稱（F4 注音 待 Step4）" className={cls} />
+        <input value={c.customerName ?? ''} onChange={(e) => set('customerName', e.target.value)} placeholder="客戶名稱（Alt+Z 注音 待 Step4）" className={cls} />
       </SearchRow>
       <SearchRow label="建單人員">
-        <input value={c.creator ?? ''} onChange={(e) => set('creator', e.target.value)} placeholder="員編 或 姓名（F4 注音 待 Step4）" className={cls} />
+        <input value={c.creator ?? ''} onChange={(e) => set('creator', e.target.value)} placeholder="員編 或 姓名（Alt+Z 注音 待 Step4）" className={cls} />
       </SearchRow>
       <SearchRow label="零件料號">
         <input value={c.partNo ?? ''} onChange={(e) => set('partNo', e.target.value)} placeholder="料號" className={cls} />

@@ -13,7 +13,7 @@
 //   A       右上「指派員工」（成員欄目標 = 選中職務）
 //   Delete  移除成員（成員欄聚焦時）
 //   [ / ]   上 / 下個主檔（依 master-pages 順序）
-//   F3      開主檔切換 modal
+//   Alt+M   開主檔切換 modal（原 F3、2026-07-14 F 鍵清場）
 //   ?       顯示鍵盤指南
 //
 // 主檔切換：MasterPageHead 同款 MasterQuickNav 嵌在頂部右側
@@ -225,8 +225,8 @@ export function OrgStructurePage() {
         return;
       }
 
-      // F3：主檔切換 modal
-      if (e.key === 'F3') {
+      // Alt+M：主檔切換 modal（原 F3、2026-07-14 F 鍵清場：F 鍵只留全域保留鍵）
+      if (e.altKey && e.key.toLowerCase() === 'm') {
         e.preventDefault();
         setSwitcherOpen(true);
         return;
@@ -612,7 +612,7 @@ export function OrgStructurePage() {
         </ColumnPanel>
       </div>
 
-      {/* 主檔切換 modal（F3） */}
+      {/* 主檔切換 modal（Alt+M） */}
       <MasterSwitcher
         open={switcherOpen}
         currentPageId={CURRENT_PAGE_ID}
@@ -1112,7 +1112,7 @@ function HelpOverlay({ onClose }: { onClose: () => void }) {
           <Row k="A / Alt+A" desc="依當前欄：新增部門 / 組別 / 職務、或指派員工" />
           <Row k="Delete / Backspace" desc="移除成員（成員欄聚焦時）" />
           <Row k="[ / ]" desc="上 / 下個主檔" />
-          <Row k="F3" desc="主檔切換 modal" />
+          <Row k="Alt+M" desc="主檔切換 modal" />
           <Row k="?" desc="開 / 關 此指南" />
           <Row k="Esc" desc="關閉浮層" />
         </div>

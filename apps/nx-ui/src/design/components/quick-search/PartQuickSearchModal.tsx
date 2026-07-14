@@ -669,10 +669,10 @@ export function PartQuickSearchModal({
               )}
               {(method === 'name' || method === 'advanced') && (
                 <PhoneticPicker
-                  label="品名（F4 注音）"
+                  label="品名（Alt+Z 注音）"
                   value={keyword}
                   onChange={setKeyword}
-                  placeholder="打字或 F4 注音"
+                  placeholder="打字或 Alt+Z 注音"
                   inputRef={keywordInputRef}
                   onSelectName={(name) => setKeyword(name)}
                   onSubmit={handleInputEnter}

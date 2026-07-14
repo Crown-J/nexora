@@ -1,8 +1,8 @@
 // apps/nx-ui/src/features/nx04/quote/ui/InstantInquiryDialog.tsx
 // 即時詢價對話框（NX04 紀錄表 B1；2026-07-12 鍵盤流升級 3/7）：
-//   F1 F7／F5 清單 Enter → 選同行(partner O) → 量 → 價（同行報我的價）→ Enter 存為詢價紀錄。
+//   站1 Alt+7（原 F7）／站3 調貨清單 Enter → 選同行(partner O) → 量 → 價（同行報我的價）→ Enter 存為詢價紀錄。
 //   全鍵盤流：選定同行自動跳數量、Enter 逐欄、末欄 Enter 存檔、Esc 取消——
-//   電話夾肩膀上單手能操作。存檔發 nx-inquiry-recorded：F5 清單刷新該料摘要＋
+//   電話夾肩膀上單手能操作。存檔發 nx-inquiry-recorded：站3 清單刷新該料摘要＋
 //   焦點回清單、直接再 Enter 記下一家（連打三家不斷流）。餵調貨單成本帶入（B3）。
 'use client';
 
