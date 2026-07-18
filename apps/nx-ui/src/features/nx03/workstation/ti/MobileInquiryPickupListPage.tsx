@@ -1,186 +1,183 @@
-// apps/nx-ui/src/features/inventory/workstation/ti/MobileInquiryPickupListPage.tsx
+// apps/nx-ui/src/features/nx03/workstation/ti/MobileInquiryPickupListPage.tsx
 /**
- * 庫存中心 · 調貨取貨清單(TI)。
+ * 庫存中心 · 同行調貨取貨清單（手機版）。
  *
- * 入口:/dashboard/inventory/ti(Phase 9 從 /dashboard/inventory-mobile/ti 遷來)
+ * 入口：/dashboard/inventory/ti。
+ * MOCK-CLEAN 2026-07-19：棄 useSalesStore mock、接真 /nx02/ti（listTi）。
  *
- * 功能:
- *   - 狀態 chip:全部 / 等待取貨 / 已取回 / 已完成
- *   - TI Card:單號、向哪家同行取、明細、關聯 SO
- *   - 操作:
- *       pending_pickup → [出發取貨] pickupInquiry(TI → picked_up)
- *       picked_up      → [完成入庫] completeInquiry(TI → completed,
- *                        若 SO 其他供應條件達標則自動建 PK)
- *
- * 與「配送調度」頁的「順路取貨」關係:
- *   春酒 demo 可能由倉管組長從配送調度頁指派外務順路取;
- *   實際流程上外務完成取貨後回此頁點「完成入庫」;
- *   Phase 11 會加上拖拉排序 + TI 混入 DN 佇列的演示。
+ * 語意（對齊 TI 真狀態機、原 mock「取貨/完成」兩鍵改真流程導引）：
+ *   DRAFT/SENT/REPLIED＝待取貨（外務去同行拿貨的任務清單）
+ *   PENDING_RECEIPT ＝已轉進貨、待驗收（驗收工作站過帳後自動完成）
+ *   COMPLETED       ＝已完成（RR 過帳回寫、銷貨缺貨行同步解鎖）
+ * 「轉進貨驗收」需選倉＋逐項儲位 → 動作在桌機 TI 單據；本頁為外務行動清單（唯讀＋重整）。
  */
 
 'use client';
 
-import { useMemo, useState } from 'react';
-import { Handshake } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { RefreshCw, Store } from 'lucide-react';
 
+import { listTi } from '@data/endpoints/nx02/ti/api/ti';
+import type { Ti } from '@data/types/nx02/ti';
 import { cx } from '@design/utils/cx';
-
-import { useSalesStore } from '@/features/nx04/ui/fulfillment/store';
-import {
-  TI_STATUS_LABEL,
-  type TI,
-  type TIStatus,
-} from '@/features/nx04/ui/fulfillment/types';
 
 import { DocStatusBadge, type DocStatusTone } from '../shared/DocStatusBadge';
 
-type FilterValue = 'all' | TIStatus;
+type FilterValue = 'all' | 'pickup' | 'PENDING_RECEIPT' | 'COMPLETED';
 
-const FILTERS: ReadonlyArray<{ id: FilterValue; label: string }> = [
+const FILTERS: readonly { id: FilterValue; label: string }[] = [
   { id: 'all', label: '全部' },
-  { id: 'pending_pickup', label: '等待取貨' },
-  { id: 'picked_up', label: '已取回' },
-  { id: 'completed', label: '已完成' },
+  { id: 'pickup', label: '待取貨' },
+  { id: 'PENDING_RECEIPT', label: '待驗收' },
+  { id: 'COMPLETED', label: '已完成' },
 ];
 
-const TI_TONE: Record<TIStatus, DocStatusTone> = {
-  pending_pickup: 'warn',
-  picked_up: 'info',
-  completed: 'success',
-  cancelled: 'muted',
+const PICKUP_SET = new Set(['DRAFT', 'SENT', 'REPLIED']);
+
+const TI_TONE: Record<string, DocStatusTone> = {
+  DRAFT: 'warn',
+  SENT: 'warn',
+  REPLIED: 'warn',
+  PENDING_RECEIPT: 'info',
+  COMPLETED: 'success',
+  CANCELLED: 'muted',
+};
+const TI_LABEL: Record<string, string> = {
+  DRAFT: '待取貨',
+  SENT: '待取貨（已通知）',
+  REPLIED: '待取貨（已回覆）',
+  PENDING_RECEIPT: '待驗收',
+  COMPLETED: '已完成',
+  CANCELLED: '已取消',
 };
 
-function formatTimeAgo(d: Date): string {
-  const min = Math.max(0, Math.floor((Date.now() - d.getTime()) / 60_000));
-  if (min < 1) return '剛剛';
-  if (min < 60) return `${min} 分鐘前`;
-  const hr = Math.floor(min / 60);
-  if (hr < 24) return `${hr} 小時前`;
-  return `${Math.floor(hr / 24)} 天前`;
-}
+const money = (v: number | string) => `$${Number(v).toLocaleString('zh-TW')}`;
 
-function TICard({
-  ti,
-  onPickup,
-  onComplete,
-}: {
-  ti: TI;
-  onPickup: () => void;
-  onComplete: () => void;
-}) {
-  const vendors = Array.from(new Set(ti.items.map((i) => i.vendorName))).join(', ');
-  const totalQty = ti.items.reduce((s, i) => s + i.quantity, 0);
-
+function TiCard({ ti }: { ti: Ti }) {
   return (
     <div className="space-y-3 rounded-lg border border-white/10 bg-white/5 p-3">
       <div className="flex items-center justify-between gap-2">
-        <span className="font-mono text-sm text-white/80">{ti.tiNumber}</span>
-        <DocStatusBadge tone={TI_TONE[ti.status]}>{TI_STATUS_LABEL[ti.status]}</DocStatusBadge>
+        <span className="font-mono text-sm text-white/80">{ti.docNo}</span>
+        <DocStatusBadge tone={TI_TONE[ti.status] ?? 'muted'}>{TI_LABEL[ti.status] ?? ti.status}</DocStatusBadge>
       </div>
 
       <div className="flex items-center gap-2 text-sm">
-        <Handshake className="h-4 w-4 shrink-0 text-white/40" aria-hidden />
-        <span className="min-w-0 flex-1 truncate text-white/80">向 {vendors} 取貨</span>
-        <span className="shrink-0 text-xs text-white/50 tabular-nums">共 {totalQty} 個</span>
-      </div>
-
-      <div className="space-y-1 border-t border-white/10 pt-2 text-xs text-white/70">
-        {ti.items.map((i, idx) => (
-          <div key={`${i.sku}-${idx}`} className="flex items-center gap-2">
-            <span className="shrink-0 font-mono text-white/40">{i.sku}</span>
-            <span className="min-w-0 flex-1 truncate">{i.name}</span>
-            <span className="shrink-0 tabular-nums text-white/60">×{i.quantity}</span>
-          </div>
-        ))}
+        <Store className="h-4 w-4 shrink-0 text-white/40" aria-hidden />
+        <span className="min-w-0 flex-1 truncate text-white/80">
+          {ti.partnerCode}　{ti.partnerName}
+        </span>
+        <span className="shrink-0 text-xs text-white/50 tabular-nums">{ti.itemCount ?? 0} 項</span>
       </div>
 
       <div className="flex items-center justify-between border-t border-white/10 pt-2 text-xs">
         <span className="text-white/50">
-          關聯 <span className="font-mono text-white/70">{ti.relatedSoNumber}</span>
+          {ti.tiDate?.slice(0, 10)}・入 {ti.warehouseCode ?? ''} 倉
         </span>
-        {ti.status === 'pending_pickup' ? (
-          <button
-            type="button"
-            onClick={onPickup}
-            className="h-8 rounded border border-[#E8A020]/60 bg-[#E8A020]/5 px-3 text-xs text-[#E8A020] transition-colors hover:bg-[#E8A020]/10"
-          >
-            出發取貨
-          </button>
-        ) : ti.status === 'picked_up' ? (
-          <button
-            type="button"
-            onClick={onComplete}
-            className="h-8 rounded bg-[#1D9E75] px-3 text-xs text-black transition-colors hover:bg-[#1D9E75]/90"
-          >
-            完成入庫
-          </button>
-        ) : ti.status === 'completed' && ti.completedAt ? (
-          <span className="text-white/50">完成於 {formatTimeAgo(ti.completedAt)}</span>
-        ) : null}
+        <span className="tabular-nums text-white/70">{money(ti.totalAmount)}</span>
       </div>
+
+      {PICKUP_SET.has(ti.status) ? (
+        <div className="border-t border-white/10 pt-2 text-[11px] text-white/45">
+          取回後至桌機「同行調貨單」轉進貨驗收（選倉＋儲位）
+        </div>
+      ) : ti.status === 'PENDING_RECEIPT' ? (
+        <div className="border-t border-white/10 pt-2 text-[11px] text-white/45">
+          已轉進貨——驗收工作站過帳後自動完成、銷貨缺貨行同步解鎖
+        </div>
+      ) : null}
     </div>
   );
 }
 
 export function MobileInquiryPickupListPage() {
-  const tis = useSalesStore((s) => s.tis);
-  const pickupInquiry = useSalesStore((s) => s.pickupInquiry);
-  const completeInquiry = useSalesStore((s) => s.completeInquiry);
-
+  const [rows, setRows] = useState<Ti[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState<string | null>(null);
   const [filter, setFilter] = useState<FilterValue>('all');
 
-  const filtered = useMemo(() => {
-    const sorted = [...tis].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-    if (filter === 'all') return sorted;
-    return sorted.filter((ti) => ti.status === filter);
-  }, [tis, filter]);
+  const load = useCallback(async () => {
+    setLoading(true);
+    setErr(null);
+    try {
+      const r = await listTi({ page: 1, pageSize: 50 });
+      setRows(r.items);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : '調貨清單載入失敗');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const pendingCount = tis.filter(
-    (ti) => ti.status !== 'completed' && ti.status !== 'cancelled',
-  ).length;
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const filtered = useMemo(() => {
+    const alive = rows.filter((r) => r.status !== 'CANCELLED');
+    if (filter === 'all') return alive;
+    if (filter === 'pickup') return alive.filter((r) => PICKUP_SET.has(r.status));
+    return alive.filter((r) => r.status === filter);
+  }, [rows, filter]);
+  const pickupCount = rows.filter((r) => PICKUP_SET.has(r.status)).length;
 
   return (
     <div className="space-y-4 p-4 pb-[calc(env(safe-area-inset-bottom)+4rem)]">
-      <header className="space-y-1">
-        <h1 className="text-lg text-white">庫存中心 · 調貨取貨清單</h1>
-        <p className="text-xs text-white/50">向同行調貨的取貨任務,完成入庫後自動建立撿貨單</p>
+      <header className="flex items-start justify-between gap-2">
+        <div className="space-y-1">
+          <h1 className="text-lg text-white">庫存中心 · 同行調貨取貨</h1>
+          <p className="text-xs text-white/50">向同行取貨的任務清單；驗收過帳後自動結案</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => void load()}
+          aria-label="重新整理"
+          className="rounded-lg border border-white/10 p-2 text-white/60 hover:border-white/20"
+        >
+          <RefreshCw className="h-4 w-4" aria-hidden />
+        </button>
       </header>
 
       <div className="flex flex-wrap gap-2">
-        {FILTERS.map((f) => (
-          <button
-            key={f.id}
-            type="button"
-            onClick={() => setFilter(f.id)}
-            className={cx(
-              'inline-flex h-8 items-center rounded-full border px-3 text-xs transition-colors',
-              filter === f.id
-                ? 'border-[#E8A020]/60 bg-[#E8A020]/10 text-[#E8A020]'
-                : 'border-white/10 bg-white/5 text-white/60 hover:border-white/20',
-            )}
-          >
-            {f.label}
-          </button>
-        ))}
+        {FILTERS.map((f) => {
+          const isActive = filter === f.id;
+          return (
+            <button
+              key={f.id}
+              type="button"
+              onClick={() => setFilter(f.id)}
+              className={cx(
+                'inline-flex h-8 items-center rounded-full border px-3 text-xs transition-colors',
+                isActive
+                  ? 'border-[#E8A020]/60 bg-[#E8A020]/10 text-[#E8A020]'
+                  : 'border-white/10 bg-white/5 text-white/60 hover:border-white/20',
+              )}
+            >
+              {f.label}
+            </button>
+          );
+        })}
       </div>
 
       <div className="text-xs text-white/50 tabular-nums">
-        共 {filtered.length} 筆 · 尚待處理 {pendingCount} 筆
+        共 {filtered.length} 筆 · 待取貨 {pickupCount} 筆
       </div>
 
-      {filtered.length === 0 ? (
+      {err ? (
+        <div className="rounded-lg border border-red-400/40 bg-red-400/10 p-3 text-xs text-red-300">{err}</div>
+      ) : null}
+
+      {loading ? (
+        <div className="rounded-lg border border-dashed border-white/10 p-6 text-center text-xs text-white/50">
+          載入中…
+        </div>
+      ) : filtered.length === 0 ? (
         <div className="rounded-lg border border-dashed border-white/10 p-6 text-center text-xs text-white/50">
           目前沒有符合篩選條件的調貨單
         </div>
       ) : (
         <div className="space-y-3">
           {filtered.map((ti) => (
-            <TICard
-              key={ti.id}
-              ti={ti}
-              onPickup={() => pickupInquiry(ti.id)}
-              onComplete={() => completeInquiry(ti.id)}
-            />
+            <TiCard key={ti.id} ti={ti} />
           ))}
         </div>
       )}
