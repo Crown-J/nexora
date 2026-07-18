@@ -446,73 +446,90 @@ export class SoService {
 
   async create(user: RequestUser, dto: CreateSoDto) {
     const tenantId = requireTenantId(user);
-    return this.prisma.$transaction(async (tx) => {
-      const customer = await this.assertCustomerC(tx, tenantId, dto.customerId.trim());
+    // ── 交易前：純讀驗證/解析（P2028 修正 2026-07-18 全鏈路測試抓到：授信掃描/地址組取/底價檢查
+    //    都是重讀，原本包在 interactive tx 內佔用 5s 時鐘、恆迎級資料量 NET30 冷快取實測 6.7s 爆
+    //    Transaction expired。搬到交易外、交易只留配單號+寫入。）──
+    const customer = await this.assertCustomerC(this.prisma, tenantId, dto.customerId.trim());
 
-      // NX04-IMPL-01 Phase 3 commit 3a 接點 1：客戶預設據點 fallback
-      // dto.warehouseId 為主、無 → fallback customer.defaultWarehouseId（M1 配套）
-      // 2026-07-11 補齊承諾三層鏈（建單面板文案：客戶預設倉→使用者隸屬倉→主倉）：
-      //   隸屬倉取主要倉（isPrimary）優先、僅單倉隸屬時取該倉；最後 fallback 租戶主倉（isMain）
-      let effectiveWhId = dto.warehouseId?.trim() || customer.defaultWarehouseId;
-      if (!effectiveWhId) {
-        const uw = await tx.nx01UserWarehouse.findMany({
-          where: { tenantId, userId: user.sub, isActive: true },
-          select: { warehouseId: true, isPrimary: true },
-        });
-        effectiveWhId =
-          uw.find((r) => r.isPrimary)?.warehouseId ?? (uw.length === 1 ? uw[0]?.warehouseId : null) ?? null;
-      }
-      if (!effectiveWhId) {
-        const main = await tx.nx01Warehouse.findFirst({
-          where: { tenantId, isMain: true, isActive: true },
-          select: { id: true },
-        });
-        effectiveWhId = main?.id ?? null;
-      }
-      if (!effectiveWhId) {
-        throw new BadRequestException(
-          '無法決定出貨倉庫（未指定、客戶無預設倉、使用者無隸屬倉、租戶無主倉）',
-        );
-      }
-      const wh = await tx.nx01Warehouse.findFirst({
-        where: { id: effectiveWhId, tenantId },
-        select: { id: true, code: true },
+    // NX04-IMPL-01 Phase 3 commit 3a 接點 1：客戶預設據點 fallback
+    // dto.warehouseId 為主、無 → fallback customer.defaultWarehouseId（M1 配套）
+    // 2026-07-11 補齊承諾三層鏈（建單面板文案：客戶預設倉→使用者隸屬倉→主倉）：
+    //   隸屬倉取主要倉（isPrimary）優先、僅單倉隸屬時取該倉；最後 fallback 租戶主倉（isMain）
+    let effectiveWhId = dto.warehouseId?.trim() || customer.defaultWarehouseId;
+    if (!effectiveWhId) {
+      const uw = await this.prisma.nx01UserWarehouse.findMany({
+        where: { tenantId, userId: user.sub, isActive: true },
+        select: { warehouseId: true, isPrimary: true },
       });
-      if (!wh) throw new BadRequestException('warehouseId invalid');
-
-      const currencyId = await resolveCurrencyId(tx, dto.currencyId);
-      const taxRate = new PrismaNs.Decimal(dto.taxRate);
-      const docNo = await allocNx04DocNo(tx, tenantId, 'SO', wh.code);
-
-      // NX04-IMPL-01 Phase 3 commit 3a 接點 4：授信擋單呼叫（Crown Q-C4=A 4 機制順序）
-      // 預估 SO 總額（含稅、tx 外呼叫 service 不行、用 dto.items 預算）
-      const estimatedSubtotal = (dto.items ?? []).reduce(
-        (acc, it) => acc.add(new PrismaNs.Decimal(it.qty).mul(new PrismaNs.Decimal(it.unitPriceSnapshot))),
-        new PrismaNs.Decimal(0),
+      effectiveWhId =
+        uw.find((r) => r.isPrimary)?.warehouseId ?? (uw.length === 1 ? uw[0]?.warehouseId : null) ?? null;
+    }
+    if (!effectiveWhId) {
+      const main = await this.prisma.nx01Warehouse.findFirst({
+        where: { tenantId, isMain: true, isActive: true },
+        select: { id: true },
+      });
+      effectiveWhId = main?.id ?? null;
+    }
+    if (!effectiveWhId) {
+      throw new BadRequestException(
+        '無法決定出貨倉庫（未指定、客戶無預設倉、使用者無隸屬倉、租戶無主倉）',
       );
-      const estimatedTotal = estimatedSubtotal.add(estimatedSubtotal.mul(taxRate).div(100)).toDecimalPlaces(2);
-      // CreditGuard 4 機制 check（黑名單→額度→逾期→付款條件）
-      // 注意：creditGuard.check 不在 tx 內、純查詢 + decide
-      // 付款條件：dto 指定（即時銷售步驟 3）優先、否則客戶主檔預設；再過 CreditGuard 可能被改 CASH
-      const creditResult = await this.creditGuard.check(user, {
-        customerId: customer.id,
-        soAmount: Number(estimatedTotal.toString()),
-        paymentTerm: dto.paymentTerm?.trim() || customer.paymentTermDomestic || undefined,
-      });
-      const paymentTerm = creditResult.adjustedPaymentTerm;
+    }
+    const wh = await this.prisma.nx01Warehouse.findFirst({
+      where: { id: effectiveWhId, tenantId },
+      select: { id: true, code: true },
+    });
+    if (!wh) throw new BadRequestException('warehouseId invalid');
 
-      // 02 對齊第二批前端收尾軌 FE-CP4 2026-06-07：SO 自動帶 partner 預設送貨地址
-      // dto 沒給 deliveryAddress 時、從 partner_address SHIPPING isDefault 取一筆組字串
-      let deliveryAddressResolved: string | null =
-        (dto as { deliveryAddress?: string }).deliveryAddress?.trim() || null;
-      if (!deliveryAddressResolved) {
-        const defaultShipping = await composePartnerDefaultShippingAddress(
-          this.prisma,
-          tenantId,
+    const currencyId = await resolveCurrencyId(this.prisma, dto.currencyId);
+    const taxRate = new PrismaNs.Decimal(dto.taxRate);
+
+    // NX04-IMPL-01 Phase 3 commit 3a 接點 4：授信擋單呼叫（Crown Q-C4=A 4 機制順序）
+    const estimatedSubtotal = (dto.items ?? []).reduce(
+      (acc, it) => acc.add(new PrismaNs.Decimal(it.qty).mul(new PrismaNs.Decimal(it.unitPriceSnapshot))),
+      new PrismaNs.Decimal(0),
+    );
+    const estimatedTotal = estimatedSubtotal.add(estimatedSubtotal.mul(taxRate).div(100)).toDecimalPlaces(2);
+    // CreditGuard 4 機制 check（黑名單→額度→逾期→付款條件）；純查詢、交易外執行
+    // 付款條件：dto 指定（即時銷售步驟 3）優先、否則客戶主檔預設；再過 CreditGuard 可能被改 CASH
+    const creditResult = await this.creditGuard.check(user, {
+      customerId: customer.id,
+      soAmount: Number(estimatedTotal.toString()),
+      paymentTerm: dto.paymentTerm?.trim() || customer.paymentTermDomestic || undefined,
+    });
+    const paymentTerm = creditResult.adjustedPaymentTerm;
+
+    // 02 對齊第二批前端收尾軌 FE-CP4 2026-06-07：SO 自動帶 partner 預設送貨地址
+    // dto 沒給 deliveryAddress 時、從 partner_address SHIPPING isDefault 取一筆組字串
+    let deliveryAddressResolved: string | null = dto.deliveryAddress?.trim() || null;
+    if (!deliveryAddressResolved) {
+      const defaultShipping = await composePartnerDefaultShippingAddress(
+        this.prisma,
+        tenantId,
+        dto.customerId.trim(),
+      );
+      deliveryAddressResolved = defaultShipping?.oneLine ?? null;
+    }
+
+    // F1-E 底價檢查也是純讀（促銷引擎逐行查價）、搬交易前（bundle 行跳過、語意不變）
+    for (const it of dto.items ?? []) {
+      if (!it.bundleId?.trim()) {
+        await this.assertSoLinePriceReason(
+          user,
           dto.customerId.trim(),
+          it.partId.trim(),
+          new PrismaNs.Decimal(it.qty),
+          new PrismaNs.Decimal(it.unitPriceSnapshot),
+          it.warehouseId.trim(),
+          it.belowMinReason,
         );
-        deliveryAddressResolved = defaultShipping?.oneLine ?? null;
       }
+    }
+
+    // ── 交易：配單號 + 寫入（timeout 15s 保險絲：多行大單 items 寫入仍需餘裕）──
+    return this.prisma.$transaction(async (tx) => {
+      const docNo = await allocNx04DocNo(tx, tenantId, 'SO', wh.code);
 
       const so = await tx.nx04So.create({
         data: {
@@ -552,19 +569,7 @@ export class SoService {
       let line = 1;
       if (dto.items?.length) {
         for (const it of dto.items) {
-          // F1-E 銷貨促銷引擎 2026-06-09：unitPrice ≤ cost 或 < minPrice → 必填 belowMinReason
-          // F2 組合套餐 2026-06-09：bundleId 非空 → 跳過引擎檢查（套餐價即最終價、避免重複折）
-          if (!it.bundleId?.trim()) {
-            await this.assertSoLinePriceReason(
-              user,
-              dto.customerId.trim(),
-              it.partId.trim(),
-              new PrismaNs.Decimal(it.qty),
-              new PrismaNs.Decimal(it.unitPriceSnapshot),
-              it.warehouseId.trim(),
-              it.belowMinReason,
-            );
-          }
+          // F1-E 底價檢查已搬交易前（P2028 修正）；此處只做寫入
           await this.createSoItemTx(tx, user, so.id, line++, it);
         }
       }
@@ -629,7 +634,7 @@ export class SoService {
         afterData: full as object,
       });
       return this.mapDetail(full as never);
-    });
+    }, { timeout: 15000 });
   }
 
   /**
