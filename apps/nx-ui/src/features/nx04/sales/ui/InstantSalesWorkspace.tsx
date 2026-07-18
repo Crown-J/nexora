@@ -15,6 +15,7 @@
 import { ListPlus, MessageSquareText, ReceiptText, Trash2, Truck, UserRound, X } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 
+import { getQuotePriceIntel } from '@data/endpoints/nx04/quote/api/quote';
 import { FocusLockedDialog } from '@design/primitives/focus-locked-dialog';
 
 import { CustomerPicker, type PickedCustomer } from '@/features/nx04/quote/ui/CustomerPicker';
@@ -42,6 +43,9 @@ export type SalesLine = {
   availableTotal: string;
   qty: number;
   unitPrice: number;
+  remark: string;
+  /** 選料時本客戶是否已有近一月報價紀錄；false → 建單送出時自動生成即時報價紀錄（commit 5） */
+  hadQuoteRecord: boolean;
 };
 
 const nf = new Intl.NumberFormat('zh-TW');
@@ -151,7 +155,7 @@ function InstantSalesDialog({ onClose }: { onClose: () => void }) {
           {stage === 1 ? (
             <CustomerStep customer={customer} onPick={setCustomer} onNext={() => setStage(2)} />
           ) : stage === 2 ? (
-            <ItemsStep lines={lines} setLines={setLines} onNext={() => setStage(3)} />
+            <ItemsStep customer={customer} lines={lines} setLines={setLines} onNext={() => setStage(3)} />
           ) : (
             <div className="grid flex-1 place-items-center rounded-xl border border-dashed border-border/50 text-sm text-muted-foreground">
               步驟 {cur.n}「{cur.label}」建置中
@@ -215,12 +219,14 @@ function CustomerStep({
   );
 }
 
-/** 步驟 2：明細（加品項 → 數量/價格 → 加入清單） */
+/** 步驟 2：明細（加品項 → 數量/單價/備註 → 加入清單；單價自動帶報價） */
 function ItemsStep({
+  customer,
   lines,
   setLines,
   onNext,
 }: {
+  customer: PickedCustomer | null;
   lines: SalesLine[];
   setLines: React.Dispatch<React.SetStateAction<SalesLine[]>>;
   onNext: () => void;
@@ -228,14 +234,40 @@ function ItemsStep({
   const [pending, setPending] = useState<PickedPart | null>(null);
   const [qty, setQty] = useState('1');
   const [price, setPrice] = useState('');
+  const [remark, setRemark] = useState('');
+  const [priceLoading, setPriceLoading] = useState(false);
+  const [priceSource, setPriceSource] = useState<string | null>(null);
+  // 選料時本客戶是否已有近一月報價紀錄（false → 建單時自動生成即時報價紀錄）
+  const [hadRecord, setHadRecord] = useState(false);
   const [pickerKey, setPickerKey] = useState(0); // 加入後重置 PartPicker
   const qtyRef = useRef<HTMLInputElement>(null);
 
-  const pickPart = (p: PickedPart) => {
+  // 選料 → 自動帶價（近一月本客戶報價/成交較近者、否則建議售價；沿用即時報價範式）
+  const pickPart = async (p: PickedPart) => {
     setPending(p);
     setQty('1');
     setPrice('');
+    setRemark('');
+    setPriceSource(null);
+    setHadRecord(false);
     setTimeout(() => qtyRef.current?.focus(), 0);
+    if (!customer) return;
+    setPriceLoading(true);
+    try {
+      const intel = await getQuotePriceIntel(customer.id, p.id);
+      const cq = intel.sameCustomerQuote;
+      const cs = intel.sameCustomerSale;
+      const recent = cq && cs ? (cq.date >= cs.date ? cq : cs) : (cq ?? cs);
+      setPrice(recent?.amount ?? intel.suggestedPrice ?? '');
+      setPriceSource(
+        recent ? (recent === cq ? '近一月報價' : '近一月成交') : intel.suggestedPrice ? '建議售價' : null,
+      );
+      setHadRecord(!!cq); // 有近一月報價紀錄 → 建單時不再重複生成
+    } catch {
+      /* 查不到不擋、留白手填 */
+    } finally {
+      setPriceLoading(false);
+    }
   };
 
   const addLine = () => {
@@ -253,11 +285,16 @@ function ItemsStep({
         availableTotal: pending.availableTotal,
         qty: q,
         unitPrice: pr,
+        remark: remark.trim(),
+        hadQuoteRecord: hadRecord,
       },
     ]);
     setPending(null);
     setQty('1');
     setPrice('');
+    setRemark('');
+    setPriceSource(null);
+    setHadRecord(false);
     setPickerKey((k) => k + 1);
   };
 
@@ -267,48 +304,72 @@ function ItemsStep({
       <div className="rounded-xl border border-border/50 bg-background/40 p-3">
         <PartPicker key={pickerKey} onPick={pickPart} autoFocus />
         {pending ? (
-          <div className="mt-2 flex items-end gap-2">
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-[12px] font-medium">
-                {pending.code}　{pending.name}
+          <div className="mt-2 flex flex-col gap-2">
+            <div className="flex items-end gap-2">
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-[12px] font-medium">
+                  {pending.code}　{pending.name}
+                </div>
+                <div className="text-[11px] text-muted-foreground">
+                  {pending.brandName ?? '—'}・可出 {pending.availableTotal}
+                </div>
               </div>
-              <div className="text-[11px] text-muted-foreground">
-                {pending.brandName ?? '—'}・可出 {pending.availableTotal}
-              </div>
+              <label className="flex flex-col text-[10px] text-muted-foreground">
+                數量
+                <input
+                  ref={qtyRef}
+                  value={qty}
+                  onChange={(e) => setQty(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), document.getElementById('is-price')?.focus())}
+                  inputMode="decimal"
+                  className="w-16 rounded border border-border/60 bg-background px-2 py-1 text-right text-sm text-foreground"
+                />
+              </label>
+              <label className="flex flex-col text-[10px] text-muted-foreground">
+                單價
+                <input
+                  id="is-price"
+                  value={price}
+                  onChange={(e) => {
+                    setPrice(e.target.value);
+                    setPriceSource('手動');
+                  }}
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), document.getElementById('is-remark')?.focus())}
+                  inputMode="decimal"
+                  placeholder={priceLoading ? '帶價中…' : '0'}
+                  className="w-20 rounded border border-border/60 bg-background px-2 py-1 text-right text-sm text-foreground"
+                />
+              </label>
             </div>
-            <label className="flex flex-col text-[10px] text-muted-foreground">
-              數量
-              <input
-                ref={qtyRef}
-                value={qty}
-                onChange={(e) => setQty(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), document.getElementById('is-price')?.focus())}
-                inputMode="decimal"
-                className="w-16 rounded border border-border/60 bg-background px-2 py-1 text-right text-sm text-foreground"
-              />
-            </label>
-            <label className="flex flex-col text-[10px] text-muted-foreground">
-              單價
-              <input
-                id="is-price"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addLine())}
-                inputMode="decimal"
-                placeholder="0"
-                className="w-20 rounded border border-border/60 bg-background px-2 py-1 text-right text-sm text-foreground"
-              />
-            </label>
-            <button
-              type="button"
-              onClick={addLine}
-              className="rounded-lg bg-primary px-3 py-1.5 text-[13px] font-bold text-primary-foreground"
-            >
-              加入
-            </button>
+            <div className="flex items-end gap-2">
+              <label className="flex flex-1 flex-col text-[10px] text-muted-foreground">
+                備註
+                <input
+                  id="is-remark"
+                  value={remark}
+                  onChange={(e) => setRemark(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addLine())}
+                  placeholder="選填"
+                  className="w-full rounded border border-border/60 bg-background px-2 py-1 text-sm text-foreground"
+                />
+              </label>
+              <button
+                type="button"
+                onClick={addLine}
+                className="rounded-lg bg-primary px-3 py-1.5 text-[13px] font-bold text-primary-foreground"
+              >
+                加入
+              </button>
+            </div>
+            <div className="text-[10px] text-muted-foreground">
+              {priceSource ? `單價來源：${priceSource}` : priceLoading ? '查詢報價中…' : '　'}
+              {!hadRecord && !priceLoading ? '・建單時自動生成即時報價紀錄' : ''}
+            </div>
           </div>
         ) : (
-          <div className="mt-1.5 text-[11px] text-muted-foreground">搜尋料號加入，選定後填數量與單價、Enter 加入。</div>
+          <div className="mt-1.5 text-[11px] text-muted-foreground">
+            搜尋料號加入，選定後自動帶價、填數量/備註，Enter 一路到加入。
+          </div>
         )}
       </div>
 
@@ -333,6 +394,7 @@ function ItemsStep({
                   <td className="px-2 py-1.5">
                     <div className="font-medium">{l.partNo}</div>
                     <div className="text-[11px] text-muted-foreground">{l.partName}</div>
+                    {l.remark ? <div className="text-[11px] text-amber-600">※ {l.remark}</div> : null}
                   </td>
                   <td className="px-2 py-1.5 text-right tabular-nums">{nf.format(l.qty)}</td>
                   <td className="px-2 py-1.5 text-right tabular-nums">{money(l.unitPrice)}</td>
@@ -354,7 +416,12 @@ function ItemsStep({
         )}
       </div>
 
-      <div className="flex justify-end">
+      <div className="flex items-center justify-between">
+        {!customer ? (
+          <span className="text-[11px] text-amber-600">尚未選客戶（步驟 1），無法自動帶價</span>
+        ) : (
+          <span />
+        )}
         <button
           type="button"
           disabled={lines.length === 0}
