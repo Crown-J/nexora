@@ -12,10 +12,9 @@
 //   步驟 3/4/5 仍為佔位（後續 commit）。
 'use client';
 
-import { ListPlus, MessageSquareText, ReceiptText, Star, Trash2, Truck, UserRound, X } from 'lucide-react';
+import { ClipboardCheck, ListPlus, MessageSquareText, ReceiptText, Star, Trash2, UserRound, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 
-import { listWarehouses, type WarehouseDto } from '@data/endpoints/nx01/api/warehouse';
 import { getQuotePriceIntel } from '@data/endpoints/nx04/quote/api/quote';
 import { getPartner } from '@data/endpoints/shared/master/partner/api/partner';
 import { FocusLockedDialog } from '@design/primitives/focus-locked-dialog';
@@ -30,9 +29,9 @@ type StageDef = { n: SalesStage; label: string; icon: ReactNode; hint: string };
 
 const STAGE_DEFS: StageDef[] = [
   { n: 1, label: '客戶', icon: <UserRound size={18} />, hint: '選擇客戶' },
-  { n: 2, label: '明細', icon: <ListPlus size={18} />, hint: '品項・數量・價格' },
-  { n: 3, label: '交易', icon: <ReceiptText size={18} />, hint: '付款方式・發票種類' },
-  { n: 4, label: '出貨', icon: <Truck size={18} />, hint: '出貨倉庫・取貨方式' },
+  { n: 2, label: '明細', icon: <ListPlus size={18} />, hint: '品項・數量・價格・從哪出' },
+  { n: 3, label: '交易', icon: <ReceiptText size={18} />, hint: '付款・發票・帳期・取貨方式' },
+  { n: 4, label: '確認', icon: <ClipboardCheck size={18} />, hint: '覆核・自動拆單' },
   { n: 5, label: '訊息', icon: <MessageSquareText size={18} />, hint: '確認・訊息內容' },
 ];
 
@@ -48,8 +47,6 @@ export type SalesLine = {
   remark: string;
   /** 選料時本客戶是否已有近一月報價紀錄；false → 建單送出時自動生成即時報價紀錄（送出步驟） */
   hadQuoteRecord: boolean;
-  /** 步驟 4 逐項出貨倉庫（初值帶客戶預設倉/主倉、可改） */
-  warehouseId?: string;
 };
 
 const nf = new Intl.NumberFormat('zh-TW');
@@ -250,17 +247,12 @@ function InstantSalesDialog({ onClose }: { onClose: () => void }) {
               setInvoiceCopies={setInvoiceCopies}
               accountPeriod={accountPeriod}
               setAccountPeriod={setAccountPeriod}
+              deliveryType={deliveryType}
+              setDeliveryType={setDeliveryType}
               onNext={() => setStage(4)}
             />
           ) : stage === 4 ? (
-            <ShippingStep
-              customer={customer}
-              lines={lines}
-              setLines={setLines}
-              deliveryType={deliveryType}
-              setDeliveryType={setDeliveryType}
-              onNext={() => setStage(5)}
-            />
+            <ConfirmStep customer={customer} lines={lines} deliveryType={deliveryType} onNext={() => setStage(5)} />
           ) : (
             <div className="grid flex-1 place-items-center rounded-xl border border-dashed border-border/50 text-sm text-muted-foreground">
               步驟 {cur.n}「{cur.label}」建置中
@@ -713,7 +705,7 @@ function PillGroup<T extends string | number>({
   );
 }
 
-/** 步驟 3：交易（付款條件 + 發票種類 + 帳期） */
+/** 步驟 3：交易（付款條件 + 發票種類 + 帳期 + 取貨方式） */
 function TransactionStep({
   custDefaults,
   paymentTerm,
@@ -722,6 +714,8 @@ function TransactionStep({
   setInvoiceCopies,
   accountPeriod,
   setAccountPeriod,
+  deliveryType,
+  setDeliveryType,
   onNext,
 }: {
   custDefaults: CustomerDefaults | null;
@@ -731,6 +725,8 @@ function TransactionStep({
   setInvoiceCopies: (v: number) => void;
   accountPeriod: string;
   setAccountPeriod: (v: string) => void;
+  deliveryType: string;
+  setDeliveryType: (v: string) => void;
   onNext: () => void;
 }) {
   // 客戶預設（標星號用）
@@ -744,6 +740,7 @@ function TransactionStep({
   const rolled = custDefaults?.statementDay && new Date().getDate() > custDefaults.statementDay;
   const invoiceGroupRef = useRef<HTMLDivElement>(null);
   const monthRef = useRef<HTMLInputElement>(null);
+  const deliveryGroupRef = useRef<HTMLDivElement>(null);
   const focusSelectedIn = (el: HTMLDivElement | null) =>
     el?.querySelector<HTMLElement>('[tabindex="0"]')?.focus();
 
@@ -778,7 +775,7 @@ function TransactionStep({
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
               e.preventDefault();
-              onNext();
+              focusSelectedIn(deliveryGroupRef.current);
             }
           }}
           className="rounded-lg border border-border/60 bg-background px-3 py-1.5 text-sm text-foreground"
@@ -791,122 +788,88 @@ function TransactionStep({
           <div className="mt-1 text-[11px] text-muted-foreground">客戶未設結帳日 → 預設本月；可手動調整。</div>
         )}
       </div>
+      <PillGroup
+        label="取貨方式"
+        options={DELIVERY_OPTS}
+        value={deliveryType}
+        onChange={setDeliveryType}
+        containerRef={deliveryGroupRef}
+        onEnter={onNext}
+      />
       <div className="mt-auto flex justify-end">
         <button
           type="button"
           onClick={onNext}
           className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
         >
-          下一步：出貨 →
+          下一步：確認 →
         </button>
       </div>
     </div>
   );
 }
 
-/** 步驟 4：出貨（取貨方式 + 逐項出貨倉庫） */
-function ShippingStep({
+/** 步驟 4：確認（覆核 + 自動拆單預覽；送出於 commit 11） */
+function ConfirmStep({
   customer,
   lines,
-  setLines,
   deliveryType,
-  setDeliveryType,
   onNext,
 }: {
   customer: PickedCustomer | null;
   lines: SalesLine[];
-  setLines: React.Dispatch<React.SetStateAction<SalesLine[]>>;
   deliveryType: string;
-  setDeliveryType: (v: string) => void;
   onNext: () => void;
 }) {
-  const [whs, setWhs] = useState<WarehouseDto[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  // 載入倉庫清單 + 初始化每行倉別（客戶預設倉 → 主倉 → 第一個；已設者保留）
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      try {
-        const res = await listWarehouses({ page: 1, pageSize: 200, isActive: true });
-        if (!alive) return;
-        setWhs(res.items);
-        const fallback = customer?.defaultWarehouseId ?? res.items.find((w) => w.isMain)?.id ?? res.items[0]?.id;
-        if (fallback) {
-          setLines((prev) => prev.map((l) => (l.warehouseId ? l : { ...l, warehouseId: fallback })));
-        }
-      } catch {
-        /* 載入失敗不擋、留手選 */
-      } finally {
-        if (alive) setLoading(false);
-      }
-    })();
-    return () => {
-      alive = false;
-    };
-  }, [customer, setLines]);
-
-  const setLineWh = (i: number, whId: string) =>
-    setLines((prev) => prev.map((l, j) => (j === i ? { ...l, warehouseId: whId } : l)));
-
-  const allAssigned = lines.length > 0 && lines.every((l) => l.warehouseId);
-
+  const deliveryLabel = DELIVERY_OPTS.find((d) => d.v === deliveryType)?.label ?? deliveryType;
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4">
-      <PillGroup label="取貨方式" options={DELIVERY_OPTS} value={deliveryType} onChange={setDeliveryType} autoFocusGroup />
-
-      <div className="flex min-h-0 flex-1 flex-col">
-        <div className="mb-1.5 text-[12px] font-bold text-muted-foreground">各品項出貨倉庫</div>
-        <div className="min-h-0 flex-1 overflow-auto rounded-xl border border-border/40">
-          {loading ? (
-            <div className="grid h-full place-items-center text-[12px] text-muted-foreground">載入倉庫中…</div>
-          ) : (
-            <table className="w-full text-sm">
-              <thead className="sticky top-0 bg-muted/40 text-[11px] text-muted-foreground">
-                <tr>
-                  <th className="px-2 py-1.5 text-left font-medium">料號 / 品名</th>
-                  <th className="px-2 py-1.5 text-right font-medium">數量</th>
-                  <th className="px-2 py-1.5 text-left font-medium">出貨倉庫</th>
-                </tr>
-              </thead>
-              <tbody>
-                {lines.map((l, i) => (
-                  <tr key={i} className="border-t border-border/30">
-                    <td className="px-2 py-1.5">
-                      <div className="font-medium">{l.partNo}</div>
-                      <div className="text-[11px] text-muted-foreground">{l.partName}</div>
-                    </td>
-                    <td className="px-2 py-1.5 text-right tabular-nums">{nf.format(l.qty)}</td>
-                    <td className="px-2 py-1.5">
-                      <select
-                        value={l.warehouseId ?? ''}
-                        onChange={(e) => setLineWh(i, e.target.value)}
-                        className="w-full rounded border border-border/60 bg-background px-2 py-1 text-sm text-foreground"
-                      >
-                        <option value="" disabled>
-                          選倉庫…
-                        </option>
-                        {whs.map((w) => (
-                          <option key={w.id} value={w.id}>
-                            {w.code}　{w.name}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+      <div className="rounded-xl border border-border/40 p-3 text-[13px]">
+        <div>
+          <span className="text-muted-foreground">客戶　</span>
+          {customer ? `${customer.code}　${customer.name}` : '—'}
         </div>
+        <div className="mt-1">
+          <span className="text-muted-foreground">取貨　</span>
+          {deliveryLabel}
+        </div>
+      </div>
+
+      <div className="min-h-0 flex-1 overflow-auto rounded-xl border border-border/40">
+        <table className="w-full text-sm">
+          <thead className="sticky top-0 bg-muted/40 text-[11px] text-muted-foreground">
+            <tr>
+              <th className="px-2 py-1.5 text-left font-medium">料號 / 品名</th>
+              <th className="px-2 py-1.5 text-right font-medium">數量</th>
+              <th className="px-2 py-1.5 text-right font-medium">單價</th>
+              <th className="px-2 py-1.5 text-right font-medium">小計</th>
+            </tr>
+          </thead>
+          <tbody>
+            {lines.map((l, i) => (
+              <tr key={i} className="border-t border-border/30">
+                <td className="px-2 py-1.5">
+                  <div className="font-medium">{l.partNo}</div>
+                  <div className="text-[11px] text-muted-foreground">{l.partName}</div>
+                </td>
+                <td className="px-2 py-1.5 text-right tabular-nums">{nf.format(l.qty)}</td>
+                <td className="px-2 py-1.5 text-right tabular-nums">{money(l.unitPrice)}</td>
+                <td className="px-2 py-1.5 text-right font-medium tabular-nums">{money(l.qty * l.unitPrice)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="rounded-xl border border-dashed border-primary/40 bg-primary/5 p-3 text-[12px] text-muted-foreground">
+        自動拆單預覽（出貨分配完成後於此顯示「將產生：銷貨單 / 調撥單」）— 建置中
       </div>
 
       <div className="flex justify-end">
         <button
           type="button"
-          disabled={!allAssigned}
           onClick={onNext}
-          className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-40"
+          className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
         >
           下一步：訊息 →
         </button>
