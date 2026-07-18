@@ -105,28 +105,78 @@ try {
     [T, so.id]);
   ctx.check('2f 通知建單人「調撥料已到」', !!notice && notice.title.includes('調撥料已到'), notice?.title ?? '無');
 
-  // ══ 3. 出貨：PICKING → SHIPPED（扣庫存） ══
-  console.log('\n══ 3. 出貨 PICKING → SHIPPED ══');
+  // ══ 3. 撿貨 PK：建單 → 啟動(行 W→PK) → 逐項完成 → F ══
+  console.log('\n══ 3. 撿貨 PK（fulfillStatus W→PK ⭐新回寫） ══');
+  const soItemRows = await many(
+    `SELECT id, part_id, qty FROM nx04_so_item WHERE so_id=$1 ORDER BY line_no`, [so.id]);
+  const pkRes = await ctx.call('POST', '/nx03/pk', {
+    warehouseId: whA.id, pkDate: ctx.today, triggerSource: 'S', deliveryType: 'C',
+    items: soItemRows.map((r) => ({ refSoId: so.id, refSoItemId: r.id, partId: r.part_id, qty: Number(r.qty) })),
+  });
+  ctx.check('3a 撿貨單建立（4 行、綁 SO 行）', pkRes.status === 201, JSON.stringify(pkRes.data));
+  const pkId = pkRes.data?.id;
+  const pkStart = await ctx.call('PATCH', `/nx03/pk/${pkId}`, { status: 'C' });
+  ctx.check('3b 撿貨啟動 P→C', pkStart.status === 200, JSON.stringify(pkStart.data));
+  let fs = await many(`SELECT DISTINCT fulfill_status FROM nx04_so_item WHERE so_id=$1`, [so.id]);
+  ctx.check('3c ⭐行 fulfillStatus W→PK（撿貨中、銷貨單看得到進度）',
+    fs.length === 1 && fs[0].fulfill_status === 'PK', JSON.stringify(fs));
+  const pkItems = await many(`SELECT id FROM nx03_pk_item WHERE pk_id=$1`, [pkId]);
+  for (const it of pkItems) {
+    await ctx.call('PATCH', `/nx03/pk/${pkId}/items/${it.id}`, { status: 'C' });
+  }
+  const pkFin = await ctx.call('PATCH', `/nx03/pk/${pkId}`, { status: 'F' });
+  ctx.check('3d 撿貨完成 C→F', pkFin.status === 200, JSON.stringify(pkFin.data));
+
+  // ══ 4. 包貨 PL：從 PK 建 → 啟動(行 PK→PL) → 完成 → 寄出(行 PL→D) ══
+  console.log('\n══ 4. 包貨 PL（fulfillStatus PK→PL→D ⭐新回寫） ══');
+  const plRes = await ctx.call('POST', '/nx03/pl', { pkId, plDate: ctx.today, plType: 'C' });
+  ctx.check('4a 包貨單從撿貨單轉建', plRes.status === 201, JSON.stringify(plRes.data));
+  const plId = plRes.data?.id;
+  const plStart = await ctx.call('PATCH', `/nx03/pl/${plId}`, { status: 'C' });
+  ctx.check('4b 包貨啟動 P→C', plStart.status === 200, JSON.stringify(plStart.data));
+  fs = await many(`SELECT DISTINCT fulfill_status FROM nx04_so_item WHERE so_id=$1`, [so.id]);
+  ctx.check('4c ⭐行 fulfillStatus PK→PL（包貨中）', fs.length === 1 && fs[0].fulfill_status === 'PL', JSON.stringify(fs));
+  const plFin = await ctx.call('PATCH', `/nx03/pl/${plId}`, { status: 'F' });
+  ctx.check('4d 包貨完成 C→F', plFin.status === 200, JSON.stringify(plFin.data));
+  const plShip = await ctx.call('PATCH', `/nx03/pl/${plId}`, { status: 'S', logisticsTrackingNo: 'TEST-TRACK-001' });
+  ctx.check('4e 寄出 F→S', plShip.status === 200, JSON.stringify(plShip.data));
+  fs = await many(`SELECT DISTINCT fulfill_status FROM nx04_so_item WHERE so_id=$1`, [so.id]);
+  ctx.check('4f ⭐行 fulfillStatus PL→D（配送中；DN 簽收推 F 既有）',
+    fs.length === 1 && fs[0].fulfill_status === 'D', JSON.stringify(fs));
+
+  // ══ 5. 出貨：PICKING → SHIPPED（扣庫存） ══
+  console.log('\n══ 5. 出貨 PICKING → SHIPPED ══');
   const toPick = await ctx.call('PATCH', `/nx04/so/${so.id}`, { status: 'PICKING' });
-  ctx.check('3a CONFIRMED→PICKING', toPick.status === 200, JSON.stringify(toPick.data));
+  ctx.check('5a CONFIRMED→PICKING', toPick.status === 200, JSON.stringify(toPick.data));
   const toShip = await ctx.call('PATCH', `/nx04/so/${so.id}`, { status: 'SHIPPED' });
-  ctx.check('3b PICKING→SHIPPED 過帳', toShip.status === 200, JSON.stringify(toShip.data));
+  ctx.check('5b PICKING→SHIPPED 過帳', toShip.status === 200, JSON.stringify(toShip.data));
 
   const balA_P1_after = await balOf(P1.id, whA.id);
   const balA_P3_afterShip = await balOf(P3.id, whA.id);
-  ctx.check('3c 出貨扣庫存：P1 A倉 -2', balA_P1_before - balA_P1_after === 2,
+  ctx.check('5c 出貨扣庫存：P1 A倉 -2', balA_P1_before - balA_P1_after === 2,
     `${balA_P1_before}→${balA_P1_after}`);
-  ctx.check('3d 出貨扣庫存：P3 A倉 3→0（調來的貨出掉）', balA_P3_afterShip === balA_P3_before,
+  ctx.check('5d 出貨扣庫存：P3 A倉 3→0（調來的貨出掉）', balA_P3_afterShip === balA_P3_before,
     `A ${balA_P3_afterRecv}→${balA_P3_afterShip}`);
   const ledgers = await many(
     `SELECT count(*)::int AS n FROM nx03_stock_ledger
      WHERE tenant_id=$1 AND source_doc_id=$2 AND source_doc_type='S'`, [T, so.id]);
-  ctx.check('3e 出貨流水 4 行入帳（doc_type=S）', ledgers[0]?.n === 4, `實際 ${ledgers[0]?.n}`);
+  ctx.check('5e 出貨流水 4 行入帳（doc_type=S）', ledgers[0]?.n === 4, `實際 ${ledgers[0]?.n}`);
 } finally {
-  // 還原庫存 + 清單據/通知
+  // 還原庫存 + 清單據/通知（PK/PL 依 refSoId 反查清、wipeDocs 未涵蓋）
   for (const b of balBaks) await ctx.restoreBalances(b);
   await ctx.db.query(
     `DELETE FROM nx98_task_pool WHERE tenant_id=$1 AND source_doc_id = ANY($2)`, [ctx.tenant, created.sos]);
+  if (created.sos.length) {
+    const pkIds = (await ctx.db.query(
+      `SELECT DISTINCT pk_id FROM nx03_pk_item WHERE ref_so_id = ANY($1)`, [created.sos])).rows.map((r) => r.pk_id);
+    if (pkIds.length) {
+      await ctx.db.query(
+        `DELETE FROM nx03_pl_item WHERE pl_id IN (SELECT id FROM nx03_pl WHERE pk_id = ANY($1))`, [pkIds]);
+      await ctx.db.query(`DELETE FROM nx03_pl WHERE pk_id = ANY($1)`, [pkIds]);
+      await ctx.db.query(`DELETE FROM nx03_pk_item WHERE pk_id = ANY($1)`, [pkIds]);
+      await ctx.db.query(`DELETE FROM nx03_pk WHERE id = ANY($1)`, [pkIds]);
+    }
+  }
   await ctx.wipeDocs(created);
   console.log(`\n【自清】SO×${created.sos.length}、ST×${created.sts.length}、庫存快照還原×${balBaks.length}`);
   ctx.summary();

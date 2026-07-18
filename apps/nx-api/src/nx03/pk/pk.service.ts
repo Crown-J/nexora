@@ -16,6 +16,7 @@ import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
 import { allocNx03DocNo } from '../../shared/nx03/nx03-doc-no';
+import { advanceSoItemsFulfill, soItemIdsOfPk } from '../../shared/nx03/nx03-fulfill-advance';
 import { Nx03ListQueryDto } from '../../shared/nx03/nx03-list-query.dto';
 import { assertPkStatusTransition, PkStatus } from '../../shared/nx03/nx03-state-machine';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
@@ -267,6 +268,13 @@ export class PkService {
       // P → C：撿貨啟動、寫 startedAt
       if (dto.status === PkStatus.COUNTING && existing.status === PkStatus.PENDING) {
         extra.startedAt = new Date();
+        // PICK-CHAIN 2026-07-19：撿貨啟動 → SO 行 fulfillStatus W→PK（撿貨中、只前進不後退）
+        await advanceSoItemsFulfill(tx, {
+          tenantId,
+          soItemIds: await soItemIdsOfPk(tx, id),
+          to: 'PK',
+          userId: user.sub,
+        });
       }
       // C → F：撿貨完成、校驗所有 items status 非 P + 寫 completedAt/By
       if (dto.status === PkStatus.FINISHED && existing.status === PkStatus.COUNTING) {

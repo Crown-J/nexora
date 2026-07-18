@@ -15,6 +15,7 @@ import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
 import { allocNx03DocNo } from '../../shared/nx03/nx03-doc-no';
+import { advanceSoItemsFulfill, soItemIdsOfPl } from '../../shared/nx03/nx03-fulfill-advance';
 import { Nx03ListQueryDto } from '../../shared/nx03/nx03-list-query.dto';
 import { assertPlStatusTransition, PkStatus, PlStatus } from '../../shared/nx03/nx03-state-machine';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
@@ -219,6 +220,13 @@ export class PlService {
       // P → C：包貨啟動
       if (dto.status === PlStatus.COUNTING && existing.status === PlStatus.PENDING) {
         extra.startedAt = new Date();
+        // PICK-CHAIN 2026-07-19：包貨啟動 → SO 行 fulfillStatus PK→PL（包貨中）
+        await advanceSoItemsFulfill(tx, {
+          tenantId,
+          soItemIds: await soItemIdsOfPl(tx, id),
+          to: 'PL',
+          userId: user.sub,
+        });
       }
       // C → F：包貨完成
       if (dto.status === PlStatus.FINISHED && existing.status === PlStatus.COUNTING) {
@@ -232,6 +240,13 @@ export class PlService {
         }
         extra.shippedAt = new Date();
         extra.shippedBy = user.sub;
+        // PICK-CHAIN 2026-07-19：寄出 → SO 行 fulfillStatus PL→D（配送中；nx06 DN 簽收推 F 既有）
+        await advanceSoItemsFulfill(tx, {
+          tenantId,
+          soItemIds: await soItemIdsOfPl(tx, id),
+          to: 'D',
+          userId: user.sub,
+        });
       }
       await tx.nx03Pl.update({
         where: { id },
