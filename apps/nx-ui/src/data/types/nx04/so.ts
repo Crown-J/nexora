@@ -166,6 +166,10 @@ export interface CreateSoPayload {
   salesPersonId?: string;
   salesMethod?: string;
   accountPeriod?: string;
+  /** 發票聯式（0 不開 / 2 二聯 / 3 三聯）；未填後端從客戶預設帶 */
+  invoiceCopies?: number;
+  /** 付款條件（CASH/NET30…）；未填後端沿用客戶主檔，過 CreditGuard（INSTANT-SALES 2026-07-18） */
+  paymentTerm?: string;
 }
 
 export interface UpdateSoPayload {

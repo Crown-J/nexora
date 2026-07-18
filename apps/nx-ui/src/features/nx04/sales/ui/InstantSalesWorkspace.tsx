@@ -18,6 +18,8 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { listWarehouses, type WarehouseDto } from '@data/endpoints/nx01/api/warehouse';
 import { lookupStockBalance } from '@data/endpoints/nx03/stock-balance/api/lookup';
 import { getQuotePriceIntel } from '@data/endpoints/nx04/quote/api/quote';
+import { createQuoteRecord } from '@data/endpoints/nx04/record/api/record';
+import { createSo, updateSo } from '@data/endpoints/nx04/so/api/so';
 import { getPartner } from '@data/endpoints/shared/master/partner/api/partner';
 import { FocusLockedDialog } from '@design/primitives/focus-locked-dialog';
 
@@ -123,6 +125,45 @@ function defaultAccountPeriod(statementDay: number | null | undefined): string {
 /** 稅率：不開發票（invoiceCopies=0）→ 0%，否則 5%（營業稅） */
 const taxRateOf = (invoiceCopies: number) => (invoiceCopies === 0 ? 0 : 5);
 
+/** 建單結果（Step 5 顯示用） */
+type OrderResult = { docNo: string; stockLines: number; transferLines: number };
+
+/** Step 5 客戶訊息可設定顯示項（存 localStorage） */
+type MsgOpts = { partNo: boolean; partName: boolean; qty: boolean; price: boolean; ship: boolean; remark: boolean };
+const MSG_OPTS_KEY = 'nx-instant-sales-msg-opts';
+const DEFAULT_MSG_OPTS: MsgOpts = { partNo: true, partName: true, qty: true, price: true, ship: true, remark: false };
+const MSG_OPT_DEFS: { key: keyof MsgOpts; label: string }[] = [
+  { key: 'partNo', label: '料號' },
+  { key: 'partName', label: '品名' },
+  { key: 'qty', label: '數量' },
+  { key: 'price', label: '單價' },
+  { key: 'ship', label: '出貨狀態（現貨/等調撥）' },
+  { key: 'remark', label: '備註' },
+];
+
+/** 依顯示設定組客戶訊息文字 */
+function buildMessage(
+  customerName: string,
+  docNo: string,
+  lines: SalesLine[],
+  opts: MsgOpts,
+  invoiceCopies: number,
+): string {
+  const rows = lines.map((l) => {
+    const seg: string[] = [];
+    if (opts.partNo) seg.push(l.partNo);
+    if (opts.partName) seg.push(l.partName);
+    if (opts.qty) seg.push(`×${nf.format(l.qty)}`);
+    if (opts.price) seg.push(money(l.unitPrice));
+    if (opts.ship) seg.push(l.allocations.some((a) => a.source === 'TRANSFER') ? '（等調撥）' : '（現貨）');
+    if (opts.remark && l.remark) seg.push(`※${l.remark}`);
+    return `・${seg.join(' ')}`;
+  });
+  const subtotal = lines.reduce((a, l) => a + l.qty * l.unitPrice, 0);
+  const total = subtotal + Math.round((subtotal * taxRateOf(invoiceCopies)) / 100);
+  return [`【${customerName}】${docNo}`, ...rows, `合計（含稅）${money(total)}`].join('\n');
+}
+
 /** 對外：受控元件，殼以 open/onClosed 掛載（比照 GlobalTransferInquiry） */
 export function InstantSalesWorkspace({ open, onClosed }: { open: boolean; onClosed: () => void }) {
   if (!open) return null;
@@ -139,8 +180,92 @@ function InstantSalesDialog({ onClose }: { onClose: () => void }) {
   const [invoiceCopies, setInvoiceCopies] = useState(3);
   const [accountPeriod, setAccountPeriod] = useState(() => defaultAccountPeriod(null));
   const [deliveryType, setDeliveryType] = useState('P');
+  // 送出/結果
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [orderResult, setOrderResult] = useState<OrderResult | null>(null);
+  // Step 5 客戶訊息顯示設定（localStorage）
+  const [msgOpts, setMsgOpts] = useState<MsgOpts>(DEFAULT_MSG_OPTS);
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(MSG_OPTS_KEY);
+      if (raw) setMsgOpts({ ...DEFAULT_MSG_OPTS, ...JSON.parse(raw) });
+    } catch {
+      /* 讀不到用預設 */
+    }
+  }, []);
+  const setMsgOpt = useCallback((patch: Partial<MsgOpts>) => {
+    setMsgOpts((prev) => {
+      const next = { ...prev, ...patch };
+      try {
+        localStorage.setItem(MSG_OPTS_KEY, JSON.stringify(next));
+      } catch {
+        /* 存不了不擋 */
+      }
+      return next;
+    });
+  }, []);
   // 開站/回步驟 1 時聚焦客戶搜尋框（修：開站需滑鼠點框才能打字）
   const customerInputRef = useRef<HTMLInputElement>(null);
+
+  // 送出：建報價紀錄（缺的）→ 建 SO（分配攤成明細行）→ 確認（觸發自動調撥單）
+  const buildOrder = useCallback(async () => {
+    if (!customer || submitting || orderResult) return; // 已建單不重送
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      // 1. 對「無近一月報價紀錄」的行補即時報價紀錄
+      await Promise.all(
+        lines
+          .filter((l) => !l.hadQuoteRecord)
+          .map((l) =>
+            createQuoteRecord({
+              customerId: customer.id,
+              partId: l.partId,
+              qty: l.qty,
+              unitPrice: l.unitPrice,
+              warehouseId: l.allocations[0]?.warehouseId,
+              source: 'INSTANT',
+            }).catch(() => undefined),
+          ),
+      );
+      // 2. 分配攤成明細行（現貨=S、等調撥=T）
+      const items = lines.flatMap((l) =>
+        l.allocations.map((a) => ({
+          partId: l.partId,
+          warehouseId: a.warehouseId,
+          qty: a.qty,
+          unitPriceSnapshot: l.unitPrice,
+          transferSourceType: a.source === 'TRANSFER' ? 'T' : 'S',
+          belowMinReason: '即時銷售',
+          remark: l.remark || undefined,
+        })),
+      );
+      const headerWh = lines[0]?.allocations[0]?.warehouseId ?? customer.defaultWarehouseId ?? undefined;
+      const soDate = new Date().toISOString().slice(0, 10);
+      const so = await createSo({
+        customerId: customer.id,
+        warehouseId: headerWh ?? undefined,
+        soDate,
+        deliveryType,
+        taxRate: taxRateOf(invoiceCopies),
+        invoiceCopies,
+        paymentTerm: paymentTerm || undefined,
+        accountPeriod: accountPeriod ? `${accountPeriod}-01` : undefined,
+        salesMethod: '即時銷售',
+        items,
+      });
+      // 3. 確認 → CONFIRMED（後端對 T 行自動開調撥單 ST）
+      await updateSo(so.id, { status: 'CONFIRMED' });
+      const transferLines = items.filter((it) => it.transferSourceType === 'T').length;
+      setOrderResult({ docNo: so.docNo, stockLines: items.length - transferLines, transferLines });
+      setStage(5);
+    } catch (e) {
+      setSubmitError(e instanceof Error ? e.message : '建單失敗');
+    } finally {
+      setSubmitting(false);
+    }
+  }, [customer, submitting, orderResult, lines, deliveryType, invoiceCopies, paymentTerm, accountPeriod]);
 
   // 選客戶 → 帶回客戶預設（結帳日算帳期、發票聯式、付款條件提示）
   const handlePickCustomer = useCallback((c: PickedCustomer) => {
@@ -275,17 +400,34 @@ function InstantSalesDialog({ onClose }: { onClose: () => void }) {
               onNext={() => setStage(4)}
             />
           ) : stage === 4 ? (
-            <ConfirmStep customer={customer} lines={lines} deliveryType={deliveryType} onNext={() => setStage(5)} />
+            <ConfirmStep
+              customer={customer}
+              lines={lines}
+              deliveryType={deliveryType}
+              invoiceCopies={invoiceCopies}
+              submitting={submitting}
+              submitError={submitError}
+              onSubmit={buildOrder}
+            />
           ) : (
-            <div className="grid flex-1 place-items-center rounded-xl border border-dashed border-border/50 text-sm text-muted-foreground">
-              步驟 {cur.n}「{cur.label}」建置中
-            </div>
+            <MessageStep
+              customer={customer}
+              lines={lines}
+              invoiceCopies={invoiceCopies}
+              result={orderResult}
+              msgOpts={msgOpts}
+              onClose={onClose}
+            />
           )}
         </section>
 
-        {/* 副區：訂單摘要（步驟 5 訊息設定於後續 commit 疊在此） */}
+        {/* 副區：Step 5 顯示訊息設定、其餘顯示訂單摘要 */}
         <aside className="flex min-h-0 flex-col overflow-auto border-l border-border/40 p-5">
-          <OrderSummary customer={customer} lines={lines} invoiceCopies={invoiceCopies} />
+          {stage === 5 ? (
+            <MessageOptionsPanel opts={msgOpts} onChange={setMsgOpt} />
+          ) : (
+            <OrderSummary customer={customer} lines={lines} invoiceCopies={invoiceCopies} />
+          )}
         </aside>
       </div>
 
@@ -979,21 +1121,33 @@ function TransactionStep({
   );
 }
 
-/** 步驟 4：確認（覆核 + 自動拆單預覽；送出於 commit 11） */
+/** 步驟 4：確認（覆核 + 自動拆單預覽 + 送出建單） */
 function ConfirmStep({
   customer,
   lines,
   deliveryType,
-  onNext,
+  invoiceCopies,
+  submitting,
+  submitError,
+  onSubmit,
 }: {
   customer: PickedCustomer | null;
   lines: SalesLine[];
   deliveryType: string;
-  onNext: () => void;
+  invoiceCopies: number;
+  submitting: boolean;
+  submitError: string | null;
+  onSubmit: () => void;
 }) {
   const deliveryLabel = DELIVERY_OPTS.find((d) => d.v === deliveryType)?.label ?? deliveryType;
+  const allAllocs = lines.flatMap((l) => l.allocations);
+  const stockLines = allAllocs.filter((a) => a.source === 'STOCK').length;
+  const transferLines = allAllocs.filter((a) => a.source === 'TRANSFER').length;
+  const subtotal = lines.reduce((a, l) => a + l.qty * l.unitPrice, 0);
+  const total = subtotal + Math.round((subtotal * taxRateOf(invoiceCopies)) / 100);
+
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-4">
+    <div className="flex min-h-0 flex-1 flex-col gap-3">
       <div className="rounded-xl border border-border/40 p-3 text-[13px]">
         <div>
           <span className="text-muted-foreground">客戶　</span>
@@ -1001,7 +1155,7 @@ function ConfirmStep({
         </div>
         <div className="mt-1">
           <span className="text-muted-foreground">取貨　</span>
-          {deliveryLabel}
+          {deliveryLabel}・含稅合計 <span className="font-bold text-primary">{money(total)}</span>
         </div>
       </div>
 
@@ -1012,38 +1166,163 @@ function ConfirmStep({
               <th className="px-2 py-1.5 text-left font-medium">料號 / 品名</th>
               <th className="px-2 py-1.5 text-right font-medium">數量</th>
               <th className="px-2 py-1.5 text-right font-medium">單價</th>
-              <th className="px-2 py-1.5 text-right font-medium">小計</th>
+              <th className="px-2 py-1.5 text-left font-medium">出貨</th>
             </tr>
           </thead>
           <tbody>
             {lines.map((l, i) => (
-              <tr key={i} className="border-t border-border/30">
+              <tr key={i} className="border-t border-border/30 align-top">
                 <td className="px-2 py-1.5">
                   <div className="font-medium">{l.partNo}</div>
                   <div className="text-[11px] text-muted-foreground">{l.partName}</div>
                 </td>
                 <td className="px-2 py-1.5 text-right tabular-nums">{nf.format(l.qty)}</td>
                 <td className="px-2 py-1.5 text-right tabular-nums">{money(l.unitPrice)}</td>
-                <td className="px-2 py-1.5 text-right font-medium tabular-nums">{money(l.qty * l.unitPrice)}</td>
+                <td className="px-2 py-1.5 text-[11px]">
+                  {l.allocations.map((a, j) => (
+                    <div key={j} className={a.source === 'TRANSFER' ? 'text-amber-600' : 'text-muted-foreground'}>
+                      {nf.format(a.qty)} {a.source === 'TRANSFER' ? '等調撥' : '現貨'}
+                    </div>
+                  ))}
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
 
-      <div className="rounded-xl border border-dashed border-primary/40 bg-primary/5 p-3 text-[12px] text-muted-foreground">
-        自動拆單預覽（出貨分配完成後於此顯示「將產生：銷貨單 / 調撥單」）— 建置中
+      <div className="rounded-xl border border-dashed border-primary/40 bg-primary/5 p-3 text-[12px]">
+        <span className="font-bold text-foreground">將產生：</span>
+        <span className="text-muted-foreground">
+          {' '}
+          銷貨單 ×1（現貨 {stockLines} 行{transferLines ? ` + 等調撥 ${transferLines} 行` : ''}）
+          {transferLines ? `、調撥單 ×${transferLines}（確認時自動開、系統配來源倉）` : ''}
+        </span>
       </div>
+
+      {submitError ? (
+        <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-[12px] text-destructive">
+          {submitError}
+        </div>
+      ) : null}
 
       <div className="flex justify-end">
         <button
           type="button"
-          onClick={onNext}
-          className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
+          disabled={submitting || lines.length === 0}
+          onClick={onSubmit}
+          className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-40"
         >
-          下一步：訊息 →
+          {submitting ? '建立中…' : '建立訂單 → 送撿貨'}
         </button>
       </div>
+    </div>
+  );
+}
+
+/** 步驟 5：訊息（建單結果 + 客戶訊息；右側面板設定顯示項） */
+function MessageStep({
+  customer,
+  lines,
+  invoiceCopies,
+  result,
+  msgOpts,
+  onClose,
+}: {
+  customer: PickedCustomer | null;
+  lines: SalesLine[];
+  invoiceCopies: number;
+  result: OrderResult | null;
+  msgOpts: MsgOpts;
+  onClose: () => void;
+}) {
+  const [copied, setCopied] = useState(false);
+  if (!result) {
+    return (
+      <div className="grid flex-1 place-items-center text-sm text-muted-foreground">尚未建立訂單。</div>
+    );
+  }
+  const msg = buildMessage(customer?.name ?? '', result.docNo, lines, msgOpts, invoiceCopies);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(msg);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* 複製失敗忽略 */
+    }
+  };
+  return (
+    <div className="flex min-h-0 flex-1 flex-col gap-3">
+      <div className="rounded-xl border border-primary/40 bg-primary/8 p-3">
+        <div className="text-sm font-bold text-primary">✓ 訂單已建立　{result.docNo}</div>
+        <div className="mt-1 text-[12px] text-muted-foreground">
+          現貨 {result.stockLines} 行已送撿貨清單
+          {result.transferLines ? `；等調撥 ${result.transferLines} 行已自動開調撥單、到貨後接續出貨` : ''}。
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between">
+        <span className="text-[12px] font-bold text-muted-foreground">客戶訊息</span>
+        <button
+          type="button"
+          onClick={copy}
+          className="rounded-lg border border-border/60 px-2.5 py-1 text-[12px] hover:bg-muted/40"
+        >
+          {copied ? '已複製 ✓' : '複製訊息'}
+        </button>
+      </div>
+      <textarea
+        readOnly
+        value={msg}
+        className="min-h-0 flex-1 resize-none rounded-xl border border-border/40 bg-background/40 p-3 font-mono text-[12px] text-foreground"
+      />
+
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={onClose}
+          className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
+        >
+          完成・下一單
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/** 右側：Step 5 客戶訊息顯示設定（存 localStorage） */
+function MessageOptionsPanel({ opts, onChange }: { opts: MsgOpts; onChange: (patch: Partial<MsgOpts>) => void }) {
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="text-[12px] font-bold text-muted-foreground">訊息顯示項目</div>
+      <div className="flex flex-col gap-1.5">
+        {MSG_OPT_DEFS.map((o) => {
+          const on = opts[o.key];
+          return (
+            <button
+              key={o.key}
+              type="button"
+              onClick={() => onChange({ [o.key]: !on })}
+              className={
+                (on ? 'border-primary/50 bg-primary/10 text-foreground' : 'border-border/60 text-muted-foreground') +
+                ' flex items-center justify-between rounded-lg border px-3 py-2 text-left text-[13px] hover:border-primary/40'
+              }
+            >
+              <span>{o.label}</span>
+              <span
+                className={
+                  (on ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground') +
+                  ' rounded px-1.5 py-0.5 text-[10px] font-bold'
+                }
+              >
+                {on ? 'ON' : 'OFF'}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      <div className="text-[11px] text-muted-foreground">設定會記住（下次沿用）。</div>
     </div>
   );
 }
