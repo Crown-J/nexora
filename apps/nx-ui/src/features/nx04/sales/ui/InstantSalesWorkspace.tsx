@@ -621,6 +621,8 @@ function PillGroup<T extends string | number>({
   hint,
   defaultValue,
   autoFocusGroup,
+  onEnter,
+  containerRef,
 }: {
   label: string;
   options: { v: T; label: string }[];
@@ -631,6 +633,10 @@ function PillGroup<T extends string | number>({
   defaultValue?: T;
   /** 進站聚焦此組（步驟第一組用） */
   autoFocusGroup?: boolean;
+  /** Enter → 前進下一欄（父層聚焦下一個欄位） */
+  onEnter?: () => void;
+  /** 外部拿 radiogroup 容器（父層 Enter 前進時聚焦本組選中顆用） */
+  containerRef?: React.Ref<HTMLDivElement>;
 }) {
   const idx = Math.max(
     options.findIndex((o) => o.v === value),
@@ -656,13 +662,16 @@ function PillGroup<T extends string | number>({
     } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
       e.preventDefault();
       move(-1);
+    } else if (e.key === 'Enter' && onEnter) {
+      e.preventDefault();
+      onEnter();
     }
   };
 
   return (
     <div>
       <div className="mb-1.5 text-[12px] font-bold text-muted-foreground">{label}</div>
-      <div role="radiogroup" aria-label={label} onKeyDown={onKey} className="flex flex-wrap gap-2">
+      <div ref={containerRef} role="radiogroup" aria-label={label} onKeyDown={onKey} className="flex flex-wrap gap-2">
         {options.map((o, i) => {
           const selected = value === o.v;
           const isDefault = defaultValue !== undefined && o.v === defaultValue;
@@ -733,17 +742,13 @@ function TransactionStep({
       ? [{ v: defaultTerm, label: paymentTermLabel(defaultTerm) }, ...PAYMENT_TERMS]
       : PAYMENT_TERMS;
   const rolled = custDefaults?.statementDay && new Date().getDate() > custDefaults.statementDay;
+  const invoiceGroupRef = useRef<HTMLDivElement>(null);
+  const monthRef = useRef<HTMLInputElement>(null);
+  const focusSelectedIn = (el: HTMLDivElement | null) =>
+    el?.querySelector<HTMLElement>('[tabindex="0"]')?.focus();
 
   return (
-    <div
-      className="flex flex-1 flex-col gap-6"
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          onNext();
-        }
-      }}
-    >
+    <div className="flex flex-1 flex-col gap-6">
       <PillGroup
         label="付款條件"
         options={termOptions}
@@ -751,7 +756,8 @@ function TransactionStep({
         onChange={setPaymentTerm}
         defaultValue={defaultTerm}
         autoFocusGroup
-        hint="★ 為客戶主檔預設；信用逾期時系統仍可能強制現金。"
+        onEnter={() => focusSelectedIn(invoiceGroupRef.current)}
+        hint="★ 為客戶主檔預設；←→ 選、Enter 到發票種類。"
       />
       <PillGroup
         label="發票種類"
@@ -759,13 +765,22 @@ function TransactionStep({
         value={invoiceCopies}
         onChange={setInvoiceCopies}
         defaultValue={defaultInvoice}
+        containerRef={invoiceGroupRef}
+        onEnter={() => monthRef.current?.focus()}
       />
       <div>
         <div className="mb-1.5 text-[12px] font-bold text-muted-foreground">帳期（帳款年月）</div>
         <input
+          ref={monthRef}
           type="month"
           value={accountPeriod}
           onChange={(e) => setAccountPeriod(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              onNext();
+            }
+          }}
           className="rounded-lg border border-border/60 bg-background px-3 py-1.5 text-sm text-foreground"
         />
         {custDefaults?.statementDay ? (
