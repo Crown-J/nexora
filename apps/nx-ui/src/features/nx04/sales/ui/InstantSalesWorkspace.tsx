@@ -15,6 +15,8 @@
 import { ClipboardCheck, ListPlus, MessageSquareText, ReceiptText, Star, Trash2, UserRound, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 
+import { listWarehouses, type WarehouseDto } from '@data/endpoints/nx01/api/warehouse';
+import { lookupStockBalance } from '@data/endpoints/nx03/stock-balance/api/lookup';
 import { getQuotePriceIntel } from '@data/endpoints/nx04/quote/api/quote';
 import { getPartner } from '@data/endpoints/shared/master/partner/api/partner';
 import { FocusLockedDialog } from '@design/primitives/focus-locked-dialog';
@@ -35,7 +37,16 @@ const STAGE_DEFS: StageDef[] = [
   { n: 5, label: '訊息', icon: <MessageSquareText size={18} />, hint: '確認・訊息內容' },
 ];
 
-/** 建單草稿的明細行（step 4 才補 warehouseId） */
+/** 出貨分配來源：現貨（本倉可出）/ 等調撥（自倉調撥、系統配來源倉） */
+export type AllocSource = 'STOCK' | 'TRANSFER';
+/** 一筆出貨分配：某倉出某數量（來源決定現貨 or 等調撥） */
+export type Allocation = {
+  warehouseId: string;
+  qty: number;
+  source: AllocSource;
+};
+
+/** 建單草稿的明細行；allocations 加總須等於 qty（Step2 出貨分配） */
 export type SalesLine = {
   partId: string;
   partNo: string;
@@ -47,7 +58,19 @@ export type SalesLine = {
   remark: string;
   /** 選料時本客戶是否已有近一月報價紀錄；false → 建單送出時自動生成即時報價紀錄（送出步驟） */
   hadQuoteRecord: boolean;
+  /** 出貨分配（現貨/等調撥）；建單送出時每筆 → 一張銷貨明細行 */
+  allocations: Allocation[];
 };
+
+/** 依「客戶預設倉可用量」自動拆分配：足→現貨一筆；不足→現貨+調撥；無→調撥 */
+function autoAllocate(warehouseId: string, qty: number, avail: number): Allocation[] {
+  if (avail >= qty) return [{ warehouseId, qty, source: 'STOCK' }];
+  if (avail <= 0) return [{ warehouseId, qty, source: 'TRANSFER' }];
+  return [
+    { warehouseId, qty: avail, source: 'STOCK' },
+    { warehouseId, qty: qty - avail, source: 'TRANSFER' },
+  ];
+}
 
 const nf = new Intl.NumberFormat('zh-TW');
 const money = (n: number) => `$${nf.format(Math.round(n))}`;
@@ -318,7 +341,7 @@ function CustomerStep({
   );
 }
 
-/** 步驟 2：明細（加品項 → 數量/單價/備註 → 加入清單；單價自動帶報價） */
+/** 步驟 2：明細（加品項 → 數量/單價/備註 → 加入；單價自動帶價 + 出貨分配現貨/調撥） */
 function ItemsStep({
   customer,
   lines,
@@ -336,28 +359,55 @@ function ItemsStep({
   const [remark, setRemark] = useState('');
   const [priceLoading, setPriceLoading] = useState(false);
   const [priceSource, setPriceSource] = useState<string | null>(null);
-  // 選料時本客戶是否已有近一月報價紀錄（false → 建單時自動生成即時報價紀錄）
   const [hadRecord, setHadRecord] = useState(false);
-  const [pickerKey, setPickerKey] = useState(0); // 加入後重置 PartPicker
+  const [pickerKey, setPickerKey] = useState(0);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [whs, setWhs] = useState<WarehouseDto[]>([]);
   const qtyRef = useRef<HTMLInputElement>(null);
   const confirmBtnRef = useRef<HTMLButtonElement>(null);
   const linesRef = useRef(lines);
   linesRef.current = lines;
+  const defaultWhRef = useRef<string | null>(customer?.defaultWarehouseId ?? null);
 
-  // Alt+S 存檔 → 跳確認視窗（明細輸入完、確認後進「交易」步驟）
+  // 載入倉庫清單 + 決定預設出貨倉（客戶預設倉 → 主倉 → 第一個）
+  useEffect(() => {
+    let alive = true;
+    listWarehouses({ page: 1, pageSize: 200, isActive: true })
+      .then((res) => {
+        if (!alive) return;
+        setWhs(res.items);
+        defaultWhRef.current =
+          customer?.defaultWarehouseId ?? res.items.find((w) => w.isMain)?.id ?? res.items[0]?.id ?? null;
+      })
+      .catch(() => {
+        /* 載入失敗不擋 */
+      });
+    return () => {
+      alive = false;
+    };
+  }, [customer]);
+
+  const whName = (id: string) => {
+    const w = whs.find((x) => x.id === id);
+    return w ? `${w.code}　${w.name}` : id;
+  };
+
+  // Alt+S 存檔 → 跳確認視窗（配平才可進下一步）
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if (!e.altKey || e.ctrlKey || e.metaKey || e.key.toLowerCase() !== 's') return;
       e.preventDefault();
       e.stopPropagation();
-      if (linesRef.current.length > 0) setConfirmOpen(true);
+      const ls = linesRef.current;
+      if (ls.length > 0 && ls.every((l) => l.allocations.reduce((a, x) => a + x.qty, 0) === l.qty)) {
+        setConfirmOpen(true);
+      }
     };
     document.addEventListener('keydown', h, true);
     return () => document.removeEventListener('keydown', h, true);
   }, []);
 
-  // 選料 → 自動帶價（近一月本客戶報價/成交較近者、否則建議售價；沿用即時報價範式）
+  // 選料 → 自動帶價（沿用即時報價範式）
   const pickPart = async (p: PickedPart) => {
     setPending(p);
     setQty('1');
@@ -374,34 +424,45 @@ function ItemsStep({
       const cs = intel.sameCustomerSale;
       const recent = cq && cs ? (cq.date >= cs.date ? cq : cs) : (cq ?? cs);
       setPrice(recent?.amount ?? intel.suggestedPrice ?? '');
-      setPriceSource(
-        recent ? (recent === cq ? '近一月報價' : '近一月成交') : intel.suggestedPrice ? '建議售價' : null,
-      );
-      setHadRecord(!!cq); // 有近一月報價紀錄 → 建單時不再重複生成
+      setPriceSource(recent ? (recent === cq ? '近一月報價' : '近一月成交') : intel.suggestedPrice ? '建議售價' : null);
+      setHadRecord(!!cq);
     } catch {
-      /* 查不到不擋、留白手填 */
+      /* 查不到不擋 */
     } finally {
       setPriceLoading(false);
     }
   };
 
-  const addLine = () => {
+  // 加入 → 查客戶預設倉庫存、自動拆現貨/調撥
+  const addLine = async () => {
     if (!pending) return;
     const q = Number(qty);
     const pr = Number(price);
     if (!(q > 0) || !(pr >= 0) || price.trim() === '') return;
+    const p = pending;
+    const wh = defaultWhRef.current ?? whs[0]?.id ?? '';
+    let allocations: Allocation[] = [{ warehouseId: wh, qty: q, source: 'STOCK' }];
+    if (wh) {
+      try {
+        const bal = await lookupStockBalance(p.id, wh);
+        allocations = autoAllocate(wh, q, bal?.availableQty ?? 0);
+      } catch {
+        /* 查不到 → 單筆現貨、業務手調 */
+      }
+    }
     setLines((prev) => [
       ...prev,
       {
-        partId: pending.id,
-        partNo: pending.code,
-        partName: pending.name,
-        brandName: pending.brandName,
-        availableTotal: pending.availableTotal,
+        partId: p.id,
+        partNo: p.code,
+        partName: p.name,
+        brandName: p.brandName,
+        availableTotal: p.availableTotal,
         qty: q,
         unitPrice: pr,
         remark: remark.trim(),
         hadQuoteRecord: hadRecord,
+        allocations,
       },
     ]);
     setPending(null);
@@ -412,6 +473,44 @@ function ItemsStep({
     setHadRecord(false);
     setPickerKey((k) => k + 1);
   };
+
+  // 分配編輯
+  const updateAlloc = (li: number, ai: number, patch: Partial<Allocation>) =>
+    setLines((prev) =>
+      prev.map((l, i) =>
+        i !== li ? l : { ...l, allocations: l.allocations.map((a, j) => (j !== ai ? a : { ...a, ...patch })) },
+      ),
+    );
+  const addAlloc = (li: number) =>
+    setLines((prev) =>
+      prev.map((l, i) => {
+        if (i !== li) return l;
+        const wh = defaultWhRef.current ?? whs[0]?.id ?? '';
+        return { ...l, allocations: [...l.allocations, { warehouseId: wh, qty: 0, source: 'STOCK' as AllocSource }] };
+      }),
+    );
+  const removeAlloc = (li: number, ai: number) =>
+    setLines((prev) =>
+      prev.map((l, i) =>
+        i !== li ? l : l.allocations.length <= 1 ? l : { ...l, allocations: l.allocations.filter((_, j) => j !== ai) },
+      ),
+    );
+  // 換倉 → 重查該倉庫存、自動判現貨/調撥（治「選 A 但 A 沒貨＝等調撥」）
+  const changeAllocWh = async (li: number, ai: number, whId: string) => {
+    const alloc = linesRef.current[li]?.allocations[ai];
+    const partId = linesRef.current[li]?.partId;
+    updateAlloc(li, ai, { warehouseId: whId });
+    if (!alloc || !partId) return;
+    try {
+      const bal = await lookupStockBalance(partId, whId);
+      updateAlloc(li, ai, { source: (bal?.availableQty ?? 0) >= alloc.qty ? 'STOCK' : 'TRANSFER' });
+    } catch {
+      /* 查不到 → 保留現值 */
+    }
+  };
+
+  const allocSum = (l: SalesLine) => l.allocations.reduce((a, x) => a + x.qty, 0);
+  const allBalanced = lines.length > 0 && lines.every((l) => allocSum(l) === l.qty);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
@@ -463,14 +562,14 @@ function ItemsStep({
                   id="is-remark"
                   value={remark}
                   onChange={(e) => setRemark(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addLine())}
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), void addLine())}
                   placeholder="選填"
                   className="w-full rounded border border-border/60 bg-background px-2 py-1 text-sm text-foreground"
                 />
               </label>
               <button
                 type="button"
-                onClick={addLine}
+                onClick={() => void addLine()}
                 className="rounded-lg bg-primary px-3 py-1.5 text-[13px] font-bold text-primary-foreground"
               >
                 加入
@@ -483,63 +582,134 @@ function ItemsStep({
           </div>
         ) : (
           <div className="mt-1.5 text-[11px] text-muted-foreground">
-            搜尋料號加入，選定後自動帶價、填數量/備註，Enter 一路到加入。
+            搜尋料號加入，選定後自動帶價、填數量/備註，Enter 一路到加入。加入後在下方配「從哪出」。
           </div>
         )}
       </div>
 
-      {/* 明細清單 */}
-      <div className="min-h-0 flex-1 overflow-auto rounded-xl border border-border/40">
+      {/* 明細清單（每品項一卡 + 出貨分配） */}
+      <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-auto">
         {lines.length === 0 ? (
-          <div className="grid h-full place-items-center text-[12px] text-muted-foreground">尚無品項</div>
+          <div className="grid flex-1 place-items-center rounded-xl border border-dashed border-border/40 text-[12px] text-muted-foreground">
+            尚無品項
+          </div>
         ) : (
-          <table className="w-full text-sm">
-            <thead className="sticky top-0 bg-muted/40 text-[11px] text-muted-foreground">
-              <tr>
-                <th className="px-2 py-1.5 text-left font-medium">料號 / 品名</th>
-                <th className="px-2 py-1.5 text-right font-medium">數量</th>
-                <th className="px-2 py-1.5 text-right font-medium">單價</th>
-                <th className="px-2 py-1.5 text-right font-medium">小計</th>
-                <th className="w-8" />
-              </tr>
-            </thead>
-            <tbody>
-              {lines.map((l, i) => (
-                <tr key={i} className="border-t border-border/30">
-                  <td className="px-2 py-1.5">
-                    <div className="font-medium">{l.partNo}</div>
+          lines.map((l, li) => {
+            const sum = allocSum(l);
+            const balanced = sum === l.qty;
+            return (
+              <div key={li} className="rounded-xl border border-border/50 p-2.5">
+                {/* 品項頭 */}
+                <div className="flex items-start gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[13px] font-medium">{l.partNo}</div>
                     <div className="text-[11px] text-muted-foreground">{l.partName}</div>
                     {l.remark ? <div className="text-[11px] text-amber-600">※ {l.remark}</div> : null}
-                  </td>
-                  <td className="px-2 py-1.5 text-right tabular-nums">{nf.format(l.qty)}</td>
-                  <td className="px-2 py-1.5 text-right tabular-nums">{money(l.unitPrice)}</td>
-                  <td className="px-2 py-1.5 text-right font-medium tabular-nums">{money(l.qty * l.unitPrice)}</td>
-                  <td className="px-1 py-1.5 text-center">
-                    <button
-                      type="button"
-                      onClick={() => setLines((prev) => prev.filter((_, j) => j !== i))}
-                      aria-label="移除"
-                      className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </div>
+                  <div className="text-right text-[12px]">
+                    <div className="tabular-nums">
+                      {nf.format(l.qty)} × {money(l.unitPrice)}
+                    </div>
+                    <div className="font-bold tabular-nums">{money(l.qty * l.unitPrice)}</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setLines((prev) => prev.filter((_, j) => j !== li))}
+                    aria-label="移除品項"
+                    className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+
+                {/* 出貨分配 */}
+                <div className="mt-2 border-t border-border/30 pt-2">
+                  <div className="mb-1 flex items-center justify-between">
+                    <span className="text-[10px] font-medium text-muted-foreground">出貨分配</span>
+                    <span className={balanced ? 'text-[10px] text-primary' : 'text-[10px] font-bold text-destructive'}>
+                      已配 {nf.format(sum)}/{nf.format(l.qty)}
+                      {balanced ? ' ✓' : ' ⚠'}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    {l.allocations.map((a, ai) => (
+                      <div key={ai} className="flex items-center gap-1.5">
+                        <select
+                          value={a.warehouseId}
+                          onChange={(e) => void changeAllocWh(li, ai, e.target.value)}
+                          className="min-w-0 flex-1 rounded border border-border/60 bg-background px-1.5 py-1 text-[12px] text-foreground"
+                        >
+                          {whs.length === 0 ? <option value={a.warehouseId}>{whName(a.warehouseId)}</option> : null}
+                          {whs.map((w) => (
+                            <option key={w.id} value={w.id}>
+                              {w.code}　{w.name}
+                            </option>
+                          ))}
+                        </select>
+                        <input
+                          value={String(a.qty)}
+                          onChange={(e) => updateAlloc(li, ai, { qty: Number(e.target.value) || 0 })}
+                          inputMode="decimal"
+                          className="w-14 rounded border border-border/60 bg-background px-1.5 py-1 text-right text-[12px] text-foreground"
+                        />
+                        <div className="flex overflow-hidden rounded border border-border/60">
+                          {(['STOCK', 'TRANSFER'] as AllocSource[]).map((s) => (
+                            <button
+                              key={s}
+                              type="button"
+                              onClick={() => updateAlloc(li, ai, { source: s })}
+                              className={
+                                a.source === s
+                                  ? s === 'TRANSFER'
+                                    ? 'bg-amber-500/20 px-2 py-1 text-[11px] font-bold text-amber-700'
+                                    : 'bg-primary/15 px-2 py-1 text-[11px] font-bold text-primary'
+                                  : 'px-2 py-1 text-[11px] text-muted-foreground hover:bg-muted/40'
+                              }
+                            >
+                              {s === 'STOCK' ? '現貨' : '調撥'}
+                            </button>
+                          ))}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeAlloc(li, ai)}
+                          disabled={l.allocations.length <= 1}
+                          aria-label="刪分配"
+                          className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:opacity-30"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => addAlloc(li)}
+                    className="mt-1.5 rounded border border-dashed border-border/60 px-2 py-0.5 text-[11px] text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                  >
+                    ＋ 分配（拆倉／調撥）
+                  </button>
+                  {l.allocations.some((a) => a.source === 'TRANSFER') ? (
+                    <span className="ml-2 text-[10px] text-amber-600">含等調撥・建單時自動開調撥單</span>
+                  ) : null}
+                </div>
+              </div>
+            );
+          })
         )}
       </div>
 
       <div className="flex items-center justify-between">
         {!customer ? (
           <span className="text-[11px] text-amber-600">尚未選客戶（步驟 1），無法自動帶價</span>
+        ) : !allBalanced && lines.length > 0 ? (
+          <span className="text-[11px] text-destructive">有品項分配未配平，配平才能進下一步</span>
         ) : (
           <span className="text-[11px] text-muted-foreground">Alt+S 存檔並進下一步</span>
         )}
         <button
           type="button"
-          disabled={lines.length === 0}
+          disabled={!allBalanced}
           onClick={() => setConfirmOpen(true)}
           className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-40"
         >
