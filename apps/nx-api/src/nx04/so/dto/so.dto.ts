@@ -146,6 +146,16 @@ export class CreateSoDto {
   @IsString()
   @MaxLength(10)
   paymentTerm?: string;
+
+  /**
+   * 送貨地點／取貨註記（執行長 2026-07-18：實務常「A 叫貨送 B 地點」「A 叫貨 B 來取」）。
+   * 原 service 已讀 dto.deliveryAddress 但 DTO 未宣告 → whitelist 靜默剝除、client 送了也無效；本次補宣告。
+   * 未給 → service 沿用客戶預設送貨地址 fallback（行為不變）。
+   */
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  deliveryAddress?: string;
 }
 
 export class UpdateSoDto {

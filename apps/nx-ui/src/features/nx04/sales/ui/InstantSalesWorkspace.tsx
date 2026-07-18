@@ -17,6 +17,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 
 import { listWarehouses, type WarehouseDto } from '@data/endpoints/nx01/api/warehouse';
 import { lookupStockBalance } from '@data/endpoints/nx03/stock-balance/api/lookup';
+import { resolvePromotionPrice } from '@data/endpoints/nx04/promotion/api/promotion';
 import { getQuotePriceIntel } from '@data/endpoints/nx04/quote/api/quote';
 import { createQuoteRecord } from '@data/endpoints/nx04/record/api/record';
 import { createSo, softDeleteSo, updateSo } from '@data/endpoints/nx04/so/api/so';
@@ -62,6 +63,8 @@ export type SalesLine = {
   hadQuoteRecord: boolean;
   /** 出貨分配（現貨/等調撥）；建單送出時每筆 → 一張銷貨明細行 */
   allocations: Allocation[];
+  /** 低於底價原因（加入時真的低於 成本/最低售價 才要求填；2026-07-18 執行長拍板、不再固定繞過） */
+  belowMinReason?: string;
 };
 
 /** 依「客戶預設倉可用量」自動拆分配：足→現貨一筆；不足→現貨+調撥；無→調撥 */
@@ -180,6 +183,8 @@ function InstantSalesDialog({ onClose }: { onClose: () => void }) {
   const [invoiceCopies, setInvoiceCopies] = useState(3);
   const [accountPeriod, setAccountPeriod] = useState(() => defaultAccountPeriod(null));
   const [deliveryType, setDeliveryType] = useState('P');
+  // 送貨地點／取貨註記（執行長 2026-07-18：必填——A 叫貨送 B、B 來取都要寫清楚）
+  const [deliveryAddress, setDeliveryAddress] = useState('');
   // 送出/結果
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -223,28 +228,63 @@ function InstantSalesDialog({ onClose }: { onClose: () => void }) {
       setSubmitError(bad ? `品項 ${bad.partNo} 出貨分配未配平（回步驟 2 調整）` : '沒有品項');
       return;
     }
+    if (!deliveryAddress.trim()) {
+      setSubmitError('送貨地點必填（步驟 3）——送哪裡或誰來取要寫清楚');
+      return;
+    }
     setSubmitting(true);
     setSubmitError(null);
     try {
-      // 1. 分配攤成明細行（現貨=S、等調撥=T）
-      const items = lines.flatMap((l) =>
+      // 1. 誤標調撥自動轉現貨（執行長 2026-07-18 拍板）：該倉可用量（扣掉本單同料同倉現貨行）夠 → 轉回現貨
+      const stockTaken = new Map<string, number>();
+      lines.forEach((l) =>
+        l.allocations.forEach((a) => {
+          if (a.source === 'STOCK') {
+            const k = `${l.partId}|${a.warehouseId}`;
+            stockTaken.set(k, (stockTaken.get(k) ?? 0) + a.qty);
+          }
+        }),
+      );
+      const fixedLines = await Promise.all(
+        lines.map(async (l) => ({
+          ...l,
+          allocations: await Promise.all(
+            l.allocations.map(async (a) => {
+              if (a.source !== 'TRANSFER') return a;
+              try {
+                const bal = await lookupStockBalance(l.partId, a.warehouseId);
+                const taken = stockTaken.get(`${l.partId}|${a.warehouseId}`) ?? 0;
+                if ((bal?.availableQty ?? 0) - taken >= a.qty) return { ...a, source: 'STOCK' as AllocSource };
+              } catch {
+                /* 查不到 → 保留調撥、後端擋 */
+              }
+              return a;
+            }),
+          ),
+        })),
+      );
+      setLines(fixedLines); // 預覽/訊息與實際送出一致
+
+      // 2. 分配攤成明細行（現貨=S、等調撥=T）；低價原因只在真的低於底價時才帶（加入時已判）
+      const items = fixedLines.flatMap((l) =>
         l.allocations.map((a) => ({
           partId: l.partId,
           warehouseId: a.warehouseId,
           qty: a.qty,
           unitPriceSnapshot: l.unitPrice,
           transferSourceType: a.source === 'TRANSFER' ? 'T' : 'S',
-          belowMinReason: '即時銷售',
+          belowMinReason: l.belowMinReason || undefined,
           remark: l.remark || undefined,
         })),
       );
-      const headerWh = lines[0]?.allocations[0]?.warehouseId ?? customer.defaultWarehouseId ?? undefined;
+      const headerWh = fixedLines[0]?.allocations[0]?.warehouseId ?? customer.defaultWarehouseId ?? undefined;
       const soDate = new Date().toISOString().slice(0, 10);
       const so = await createSo({
         customerId: customer.id,
         warehouseId: headerWh ?? undefined,
         soDate,
         deliveryType,
+        deliveryAddress: deliveryAddress.trim(),
         taxRate: taxRateOf(invoiceCopies),
         invoiceCopies,
         paymentTerm: paymentTerm || undefined,
@@ -261,7 +301,7 @@ function InstantSalesDialog({ onClose }: { onClose: () => void }) {
       }
       // 3. 確認成功後、對「無近一月報價紀錄」的行補即時報價紀錄（失敗不擋單）
       await Promise.all(
-        lines
+        fixedLines
           .filter((l) => !l.hadQuoteRecord)
           .map((l) =>
             createQuoteRecord({
@@ -283,7 +323,7 @@ function InstantSalesDialog({ onClose }: { onClose: () => void }) {
     } finally {
       setSubmitting(false);
     }
-  }, [customer, submitting, orderResult, lines, deliveryType, invoiceCopies, paymentTerm, accountPeriod]);
+  }, [customer, submitting, orderResult, lines, deliveryType, deliveryAddress, invoiceCopies, paymentTerm, accountPeriod]);
 
   // 選客戶 → 帶回客戶預設（結帳日算帳期、發票聯式、付款條件提示）
   const handlePickCustomer = useCallback((c: PickedCustomer) => {
@@ -299,6 +339,8 @@ function InstantSalesDialog({ onClose }: { onClose: () => void }) {
         setInvoiceCopies(d.defaultInvoiceCopies ?? 3);
         setPaymentTerm(d.paymentTermDomestic || 'CASH');
         setAccountPeriod(defaultAccountPeriod(d.statementDay));
+        // 送貨地點預填客戶主檔地址（可改；空的就留給業務填）
+        setDeliveryAddress((prev) => prev || p.address || '');
       })
       .catch(() => {
         /* 帶不到預設不擋、留手選 */
@@ -415,6 +457,8 @@ function InstantSalesDialog({ onClose }: { onClose: () => void }) {
               setAccountPeriod={setAccountPeriod}
               deliveryType={deliveryType}
               setDeliveryType={setDeliveryType}
+              deliveryAddress={deliveryAddress}
+              setDeliveryAddress={setDeliveryAddress}
               onNext={() => setStage(4)}
             />
           ) : stage === 4 ? (
@@ -422,6 +466,7 @@ function InstantSalesDialog({ onClose }: { onClose: () => void }) {
               customer={customer}
               lines={lines}
               deliveryType={deliveryType}
+              deliveryAddress={deliveryAddress}
               invoiceCopies={invoiceCopies}
               submitting={submitting}
               submitError={submitError}
@@ -523,6 +568,9 @@ function ItemsStep({
   const [pickerKey, setPickerKey] = useState(0);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [whs, setWhs] = useState<WarehouseDto[]>([]);
+  // 低價守門（2026-07-18 執行長拍板：真的低於 成本/最低售價 才要求填原因、不再固定繞過）
+  const [floorWarn, setFloorWarn] = useState<string | null>(null);
+  const [floorReason, setFloorReason] = useState('');
   const qtyRef = useRef<HTMLInputElement>(null);
   const confirmBtnRef = useRef<HTMLButtonElement>(null);
   const linesRef = useRef(lines);
@@ -575,6 +623,8 @@ function ItemsStep({
     setRemark('');
     setPriceSource(null);
     setHadRecord(false);
+    setFloorWarn(null);
+    setFloorReason('');
     setTimeout(() => qtyRef.current?.focus(), 0);
     if (!customer) return;
     setPriceLoading(true);
@@ -593,7 +643,7 @@ function ItemsStep({
     }
   };
 
-  // 加入 → 查客戶預設倉庫存、自動拆現貨/調撥
+  // 加入 → 低價檢查 → 查客戶預設倉庫存、自動拆現貨/調撥
   const addLine = async () => {
     if (!pending) return;
     const q = Number(qty);
@@ -601,6 +651,25 @@ function ItemsStep({
     if (!(q > 0) || !(pr >= 0) || price.trim() === '') return;
     const p = pending;
     const wh = defaultWhRef.current ?? whs[0]?.id ?? '';
+    // 低價檢查：低於底價且沒填原因 → 擋在加入、跳原因欄
+    let belowMinReason: string | undefined;
+    if (customer) {
+      try {
+        const r = await resolvePromotionPrice({ customerId: customer.id, partId: p.id, qty: q, warehouseId: wh || undefined });
+        const costTrig = r.cost !== null && pr <= Number(r.cost);
+        const minTrig = r.minPrice !== null && pr < Number(r.minPrice);
+        if (costTrig || minTrig) {
+          if (!floorReason.trim()) {
+            setFloorWarn(costTrig ? `單價低於成本 ${r.cost}，請填原因` : `單價低於最低售價 ${r.minPrice}，請填原因`);
+            setTimeout(() => document.getElementById('is-floor-reason')?.focus(), 0);
+            return;
+          }
+          belowMinReason = floorReason.trim();
+        }
+      } catch {
+        /* 查不到底價 → 不擋、後端建單仍有最後防線 */
+      }
+    }
     let allocations: Allocation[] = [{ warehouseId: wh, qty: q, source: 'STOCK' }];
     if (wh) {
       try {
@@ -623,6 +692,7 @@ function ItemsStep({
         remark: remark.trim(),
         hadQuoteRecord: hadRecord,
         allocations,
+        belowMinReason,
       },
     ]);
     setPending(null);
@@ -631,6 +701,8 @@ function ItemsStep({
     setRemark('');
     setPriceSource(null);
     setHadRecord(false);
+    setFloorWarn(null);
+    setFloorReason('');
     setPickerKey((k) => k + 1);
   };
 
@@ -735,6 +807,21 @@ function ItemsStep({
                 加入
               </button>
             </div>
+            {floorWarn ? (
+              <div className="flex items-end gap-2 rounded-lg border border-destructive/40 bg-destructive/5 p-2">
+                <label className="flex flex-1 flex-col text-[10px] font-bold text-destructive">
+                  {floorWarn}
+                  <input
+                    id="is-floor-reason"
+                    value={floorReason}
+                    onChange={(e) => setFloorReason(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), void addLine())}
+                    placeholder="低價原因（必填才能加入）"
+                    className="mt-0.5 w-full rounded border border-destructive/40 bg-background px-2 py-1 text-sm font-normal text-foreground"
+                  />
+                </label>
+              </div>
+            ) : null}
             <div className="text-[10px] text-muted-foreground">
               {priceSource ? `單價來源：${priceSource}` : priceLoading ? '查詢報價中…' : '　'}
               {!hadRecord && !priceLoading ? '・建單時自動生成即時報價紀錄' : ''}
@@ -1046,6 +1133,8 @@ function TransactionStep({
   setAccountPeriod,
   deliveryType,
   setDeliveryType,
+  deliveryAddress,
+  setDeliveryAddress,
   onNext,
 }: {
   custDefaults: CustomerDefaults | null;
@@ -1057,6 +1146,8 @@ function TransactionStep({
   setAccountPeriod: (v: string) => void;
   deliveryType: string;
   setDeliveryType: (v: string) => void;
+  deliveryAddress: string;
+  setDeliveryAddress: (v: string) => void;
   onNext: () => void;
 }) {
   // 客戶預設（標星號用）
@@ -1071,6 +1162,7 @@ function TransactionStep({
   const invoiceGroupRef = useRef<HTMLDivElement>(null);
   const monthRef = useRef<HTMLInputElement>(null);
   const deliveryGroupRef = useRef<HTMLDivElement>(null);
+  const addressRef = useRef<HTMLInputElement>(null);
   const focusSelectedIn = (el: HTMLDivElement | null) =>
     el?.querySelector<HTMLElement>('[tabindex="0"]')?.focus();
 
@@ -1124,13 +1216,37 @@ function TransactionStep({
         value={deliveryType}
         onChange={setDeliveryType}
         containerRef={deliveryGroupRef}
-        onEnter={onNext}
+        onEnter={() => addressRef.current?.focus()}
       />
-      <div className="mt-auto flex justify-end">
+      <div>
+        <div className="mb-1.5 text-[12px] font-bold text-muted-foreground">
+          送貨地點 <span className="text-destructive">*</span>
+        </div>
+        <input
+          ref={addressRef}
+          value={deliveryAddress}
+          onChange={(e) => setDeliveryAddress(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && deliveryAddress.trim()) {
+              e.preventDefault();
+              onNext();
+            }
+          }}
+          maxLength={200}
+          placeholder="送哪裡／誰來取（例：送林口B店、王先生下午來取）"
+          className="w-full rounded-lg border border-border/60 bg-background px-3 py-1.5 text-sm text-foreground"
+        />
+        <div className="mt-1 text-[11px] text-muted-foreground">
+          必填——常有「A 叫貨送 B 地點」「A 叫貨 B 來取」，要寫清楚給倉庫。
+        </div>
+      </div>
+      <div className="mt-auto flex items-center justify-end gap-3">
+        {!deliveryAddress.trim() ? <span className="text-[11px] text-destructive">送貨地點未填</span> : null}
         <button
           type="button"
+          disabled={!deliveryAddress.trim()}
           onClick={onNext}
-          className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
+          className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-40"
         >
           下一步：確認 →
         </button>
@@ -1144,6 +1260,7 @@ function ConfirmStep({
   customer,
   lines,
   deliveryType,
+  deliveryAddress,
   invoiceCopies,
   submitting,
   submitError,
@@ -1152,6 +1269,7 @@ function ConfirmStep({
   customer: PickedCustomer | null;
   lines: SalesLine[];
   deliveryType: string;
+  deliveryAddress: string;
   invoiceCopies: number;
   submitting: boolean;
   submitError: string | null;
@@ -1178,6 +1296,10 @@ function ConfirmStep({
         <div className="mt-1">
           <span className="text-muted-foreground">取貨　</span>
           {deliveryLabel}・含稅合計 <span className="font-bold text-primary">{money(total)}</span>
+        </div>
+        <div className="mt-1">
+          <span className="text-muted-foreground">地點　</span>
+          {deliveryAddress.trim() || <span className="text-destructive">未填（回步驟 3）</span>}
         </div>
       </div>
 

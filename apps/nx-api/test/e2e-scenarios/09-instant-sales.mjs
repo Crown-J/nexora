@@ -195,18 +195,44 @@ try {
     [T, customer.id, stockParts[1].part_id]);
   console.log(`  觀察：同料重送 → 紀錄 ${recBefore.n} → ${recAfter.n}（無防重、前端 retry 會重複生成）`);
 
-  // ══ T7 配送 D 但客戶無預設送貨地址 → 建單行為 ══
-  console.log('\n══ T7 deliveryType=D、客戶無送貨地址 ══');
-  const r7 = await submitOrder({
+  // ══ T7 前端指定送貨地點 → 應原樣入庫（CreateSoDto.deliveryAddress 2026-07-18 補宣告） ══
+  console.log('\n══ T7 指定送貨地點（A 叫貨送 B） ══');
+  const r7 = await ctx.call('POST', '/nx04/so', {
+    customerId: customer.id, warehouseId: whA.id, soDate: today, deliveryType: 'D',
+    deliveryAddress: '送林口B店　王先生收', taxRate: 5, invoiceCopies: 3,
     items: [mkItem(stockParts[0].part_id, whA.id, 1, 'S', 70)],
-    paymentTerm: 'CASH', invoiceCopies: 3, accountPeriod: '2026-07', deliveryType: 'D', confirm: true,
   });
-  if (r7.so) {
-    const so7 = await one(`SELECT delivery_type, delivery_address, status FROM nx04_so WHERE id=$1`, [r7.so.id]);
-    console.log(`  觀察：D 建單${r7.confirmed ? '+確認成功' : '、確認被擋 ' + JSON.stringify(r7.err?.data)}，地址=${so7.delivery_address ?? 'NULL'}`);
-    if (so7.delivery_type === 'D' && !so7.delivery_address)
-      console.log('  ⚠ 配送單無地址仍放行 → 倉庫端配送作業會缺資訊，回報執行長');
-  } else console.log(`  建單被擋：${JSON.stringify(r7.err?.data)}`);
+  ctx.check('T7 建單成功', r7.status === 201, JSON.stringify(r7.data));
+  if (r7.status === 201) {
+    created.sos.push(r7.data.id);
+    const so7 = await one(`SELECT delivery_address FROM nx04_so WHERE id=$1`, [r7.data.id]);
+    ctx.check('T7 指定地點原樣入庫（不再被 whitelist 剝除）',
+      so7.delivery_address === '送林口B店　王先生收', so7.delivery_address ?? 'NULL');
+  }
+
+  // ══ T8 低價守門：前端不再固定繞過 → 後端底價防線應生效 ══
+  console.log('\n══ T8 低於成本無原因 → 後端應擋；有原因 → 放行 ══');
+  const costPart = await one(
+    `SELECT b.part_id, p.code, p.cost FROM nx03_stock_balance b
+     JOIN nx01_part p ON p.id=b.part_id AND p.is_active AND p.cost > 1
+     WHERE b.tenant_id=$1 AND b.warehouse_id=$2 AND b.available_qty>5
+     ORDER BY b.available_qty DESC LIMIT 1`, [T, whA.id]);
+  if (costPart) {
+    const lowItem = { partId: costPart.part_id, warehouseId: whA.id, qty: 1, unitPriceSnapshot: 0.5, transferSourceType: 'S' };
+    const r8a = await ctx.call('POST', '/nx04/so', {
+      customerId: customer.id, warehouseId: whA.id, soDate: today, deliveryType: 'P',
+      deliveryAddress: '客戶自取', taxRate: 5, invoiceCopies: 3, items: [lowItem],
+    });
+    if (r8a.status === 201) created.sos.push(r8a.data.id);
+    ctx.check('T8a 低於成本、無原因 → 400 擋單', r8a.status === 400, `HTTP ${r8a.status}`);
+    const r8b = await ctx.call('POST', '/nx04/so', {
+      customerId: customer.id, warehouseId: whA.id, soDate: today, deliveryType: 'P',
+      deliveryAddress: '客戶自取', taxRate: 5, invoiceCopies: 3,
+      items: [{ ...lowItem, belowMinReason: '清庫存特價' }],
+    });
+    if (r8b.status === 201) created.sos.push(r8b.data.id);
+    ctx.check('T8b 低於成本、有原因 → 放行', r8b.status === 201, JSON.stringify(r8b.data));
+  } else console.log('（找不到 cost>1 的有貨料、跳過 T8）');
 } finally {
   // 自清：SO/ST + 報價紀錄
   await ctx.wipeDocs(created);

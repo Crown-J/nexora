@@ -170,6 +170,8 @@ export interface CreateSoPayload {
   invoiceCopies?: number;
   /** 付款條件（CASH/NET30…）；未填後端沿用客戶主檔，過 CreditGuard（INSTANT-SALES 2026-07-18） */
   paymentTerm?: string;
+  /** 送貨地點／取貨註記（A 叫貨送 B、B 來取）；未填後端帶客戶預設送貨地址 */
+  deliveryAddress?: string;
 }
 
 export interface UpdateSoPayload {
