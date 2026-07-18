@@ -240,7 +240,23 @@ function ItemsStep({
   // 選料時本客戶是否已有近一月報價紀錄（false → 建單時自動生成即時報價紀錄）
   const [hadRecord, setHadRecord] = useState(false);
   const [pickerKey, setPickerKey] = useState(0); // 加入後重置 PartPicker
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const qtyRef = useRef<HTMLInputElement>(null);
+  const confirmBtnRef = useRef<HTMLButtonElement>(null);
+  const linesRef = useRef(lines);
+  linesRef.current = lines;
+
+  // Alt+S 存檔 → 跳確認視窗（明細輸入完、確認後進「交易」步驟）
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => {
+      if (!e.altKey || e.ctrlKey || e.metaKey || e.key.toLowerCase() !== 's') return;
+      e.preventDefault();
+      e.stopPropagation();
+      if (linesRef.current.length > 0) setConfirmOpen(true);
+    };
+    document.addEventListener('keydown', h, true);
+    return () => document.removeEventListener('keydown', h, true);
+  }, []);
 
   // 選料 → 自動帶價（近一月本客戶報價/成交較近者、否則建議售價；沿用即時報價範式）
   const pickPart = async (p: PickedPart) => {
@@ -420,17 +436,71 @@ function ItemsStep({
         {!customer ? (
           <span className="text-[11px] text-amber-600">尚未選客戶（步驟 1），無法自動帶價</span>
         ) : (
-          <span />
+          <span className="text-[11px] text-muted-foreground">Alt+S 存檔並進下一步</span>
         )}
         <button
           type="button"
           disabled={lines.length === 0}
-          onClick={onNext}
+          onClick={() => setConfirmOpen(true)}
           className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-40"
         >
           下一步：交易 →
         </button>
       </div>
+
+      {/* Alt+S / 下一步 → 明細確認視窗（確認後進交易步驟） */}
+      {confirmOpen ? (
+        <FocusLockedDialog
+          open
+          onClose={() => setConfirmOpen(false)}
+          initialFocusRef={confirmBtnRef}
+          ariaLabel="確認明細"
+          backdropClassName="bg-black/50 backdrop-blur-[2px] animate-in fade-in duration-100"
+          dialogClassName="w-[360px] rounded-2xl border border-border/60 bg-popover text-foreground shadow-[0_24px_70px_rgba(0,0,0,0.55)] animate-in fade-in zoom-in-95 duration-100"
+        >
+          <div className="p-4">
+            <h3 className="text-sm font-bold">確認明細</h3>
+            <div className="mt-2 space-y-1 text-[13px]">
+              <div>
+                <span className="text-muted-foreground">客戶　</span>
+                {customer ? `${customer.code}　${customer.name}` : '—'}
+              </div>
+              <div>
+                <span className="text-muted-foreground">品項　</span>
+                {lines.length} 項・總數量 {nf.format(lines.reduce((a, l) => a + l.qty, 0))}
+              </div>
+              <div>
+                <span className="text-muted-foreground">金額　</span>
+                <span className="font-bold text-primary">
+                  {money(lines.reduce((a, l) => a + l.qty * l.unitPrice, 0))}
+                </span>
+                （未稅）
+              </div>
+            </div>
+            <p className="mt-3 text-[12px] text-muted-foreground">確認後進入「交易」設定。</p>
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setConfirmOpen(false)}
+                className="rounded-lg border border-border/60 px-3 py-1.5 text-sm hover:bg-muted/40"
+              >
+                取消
+              </button>
+              <button
+                ref={confirmBtnRef}
+                type="button"
+                onClick={() => {
+                  setConfirmOpen(false);
+                  onNext();
+                }}
+                className="rounded-lg bg-primary px-4 py-1.5 text-sm font-bold text-primary-foreground"
+              >
+                確認 →
+              </button>
+            </div>
+          </div>
+        </FocusLockedDialog>
+      ) : null}
     </div>
   );
 }
