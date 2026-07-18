@@ -19,7 +19,7 @@ import { listWarehouses, type WarehouseDto } from '@data/endpoints/nx01/api/ware
 import { lookupStockBalance } from '@data/endpoints/nx03/stock-balance/api/lookup';
 import { getQuotePriceIntel } from '@data/endpoints/nx04/quote/api/quote';
 import { createQuoteRecord } from '@data/endpoints/nx04/record/api/record';
-import { createSo, updateSo } from '@data/endpoints/nx04/so/api/so';
+import { createSo, softDeleteSo, updateSo } from '@data/endpoints/nx04/so/api/so';
 import { getPartner } from '@data/endpoints/shared/master/partner/api/partner';
 import { FocusLockedDialog } from '@design/primitives/focus-locked-dialog';
 
@@ -208,28 +208,25 @@ function InstantSalesDialog({ onClose }: { onClose: () => void }) {
   // 開站/回步驟 1 時聚焦客戶搜尋框（修：開站需滑鼠點框才能打字）
   const customerInputRef = useRef<HTMLInputElement>(null);
 
-  // 送出：建報價紀錄（缺的）→ 建 SO（分配攤成明細行）→ 確認（觸發自動調撥單）
+  // 送出：驗配平 → 建 SO（分配攤成明細行）→ 確認（觸發自動調撥單）→ 成功後補報價紀錄
+  // 冪等（2026-07-18 全面測試修正）：確認失敗 → 草稿自動作廢、重試不留孤兒；報價紀錄挪到成功後、重試不重複
   const buildOrder = useCallback(async () => {
     if (!customer || submitting || orderResult) return; // 已建單不重送
+    // 0. 守門：每行分配需配平、每筆分配量 > 0 且有倉（Alt+數字跳步可繞過 Step2 守門、這裡兜底）
+    const bad = lines.find(
+      (l) =>
+        l.allocations.length === 0 ||
+        l.allocations.some((a) => !(a.qty > 0) || !a.warehouseId) ||
+        l.allocations.reduce((s, a) => s + a.qty, 0) !== l.qty,
+    );
+    if (lines.length === 0 || bad) {
+      setSubmitError(bad ? `品項 ${bad.partNo} 出貨分配未配平（回步驟 2 調整）` : '沒有品項');
+      return;
+    }
     setSubmitting(true);
     setSubmitError(null);
     try {
-      // 1. 對「無近一月報價紀錄」的行補即時報價紀錄
-      await Promise.all(
-        lines
-          .filter((l) => !l.hadQuoteRecord)
-          .map((l) =>
-            createQuoteRecord({
-              customerId: customer.id,
-              partId: l.partId,
-              qty: l.qty,
-              unitPrice: l.unitPrice,
-              warehouseId: l.allocations[0]?.warehouseId,
-              source: 'INSTANT',
-            }).catch(() => undefined),
-          ),
-      );
-      // 2. 分配攤成明細行（現貨=S、等調撥=T）
+      // 1. 分配攤成明細行（現貨=S、等調撥=T）
       const items = lines.flatMap((l) =>
         l.allocations.map((a) => ({
           partId: l.partId,
@@ -255,8 +252,29 @@ function InstantSalesDialog({ onClose }: { onClose: () => void }) {
         salesMethod: '即時銷售',
         items,
       });
-      // 3. 確認 → CONFIRMED（後端對 T 行自動開調撥單 ST）
-      await updateSo(so.id, { status: 'CONFIRMED' });
+      // 2. 確認 → CONFIRMED（後端對 T 行自動開調撥單 ST）；失敗把草稿作廢、避免重試堆孤兒 DRAFT
+      try {
+        await updateSo(so.id, { status: 'CONFIRMED' });
+      } catch (confirmErr) {
+        await softDeleteSo(so.id, '即時銷售確認失敗自動作廢').catch(() => undefined);
+        throw confirmErr;
+      }
+      // 3. 確認成功後、對「無近一月報價紀錄」的行補即時報價紀錄（失敗不擋單）
+      await Promise.all(
+        lines
+          .filter((l) => !l.hadQuoteRecord)
+          .map((l) =>
+            createQuoteRecord({
+              customerId: customer.id,
+              partId: l.partId,
+              qty: l.qty,
+              unitPrice: l.unitPrice,
+              warehouseId: l.allocations[0]?.warehouseId,
+              source: 'INSTANT',
+              sourceDocId: so.id,
+            }).catch(() => undefined),
+          ),
+      );
       const transferLines = items.filter((it) => it.transferSourceType === 'T').length;
       setOrderResult({ docNo: so.docNo, stockLines: items.length - transferLines, transferLines });
       setStage(5);
@@ -790,7 +808,7 @@ function ItemsStep({
                         </select>
                         <input
                           value={String(a.qty)}
-                          onChange={(e) => updateAlloc(li, ai, { qty: Number(e.target.value) || 0 })}
+                          onChange={(e) => updateAlloc(li, ai, { qty: Math.max(0, Number(e.target.value) || 0) })}
                           inputMode="decimal"
                           className="w-14 rounded border border-border/60 bg-background px-1.5 py-1 text-right text-[12px] text-foreground"
                         />
@@ -1145,6 +1163,10 @@ function ConfirmStep({
   const transferLines = allAllocs.filter((a) => a.source === 'TRANSFER').length;
   const subtotal = lines.reduce((a, l) => a + l.qty * l.unitPrice, 0);
   const total = subtotal + Math.round((subtotal * taxRateOf(invoiceCopies)) / 100);
+  // Alt+數字可跳步繞過 Step2 守門 → 這裡再擋一次
+  const unbalanced = lines.some(
+    (l) => l.allocations.some((a) => !(a.qty > 0) || !a.warehouseId) || l.allocations.reduce((s, a) => s + a.qty, 0) !== l.qty,
+  );
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
@@ -1206,10 +1228,11 @@ function ConfirmStep({
         </div>
       ) : null}
 
-      <div className="flex justify-end">
+      <div className="flex items-center justify-end gap-3">
+        {unbalanced ? <span className="text-[11px] text-destructive">有品項分配未配平（回步驟 2 調整）</span> : null}
         <button
           type="button"
-          disabled={submitting || lines.length === 0}
+          disabled={submitting || lines.length === 0 || unbalanced}
           onClick={onSubmit}
           className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-40"
         >
