@@ -93,7 +93,12 @@ export async function autoCreateTransferFromSo(
     const requiredQty = new PrismaNs.Decimal(item.qty);
 
     if (onHand.gte(requiredQty)) {
-      // 足量、不需調撥
+      // 足量、不需調撥——誤標調撥自動轉回現貨（執行長 2026-07-18 拍板；PICK-CHAIN 後端版）
+      // 原本只 skip、行卡 transferStatus='P' 待補且無單據會來解鎖；轉 S/C 直接進「等撿貨」
+      await tx.nx04SoItem.update({
+        where: { id: item.id },
+        data: { transferSourceType: 'S', transferStatus: 'C', updatedBy: p.userId },
+      });
       continue;
     }
 

@@ -12,6 +12,7 @@ import { requireTenantId } from '../../shared/nx01/require-tenant';
 import { allocNx03DocNo } from '../../shared/nx03/nx03-doc-no';
 import { applyQtyInWithLedger, applyQtyOutWithLedger } from '../../shared/nx03/nx03-inventory';
 import { Nx03ListQueryDto } from '../../shared/nx03/nx03-list-query.dto';
+import { applyStReceivedToSo } from '../../shared/nx03/nx03-on-st-received';
 import {
   assertTransferStatusTransition,
   TransferStatus,
@@ -365,6 +366,9 @@ export class TransferService {
             updatedBy: user.sub,
           },
         });
+        // PICK-CHAIN 2026-07-18：SO 缺貨觸發的調撥（StItem.sourceSoItemId）→ 回寫 SO 行補貨完成 C
+        // 對齊 TI 鏈 applyTiPostedToSo 範式；純倉間調撥（無 sourceSoItemId）無事發生
+        await applyStReceivedToSo(tx, { tenantId, stId: id, stDocNo: existing.docNo, userId: user.sub });
       } else {
         await tx.nx03St.update({
           where: { id },
