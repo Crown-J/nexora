@@ -12,7 +12,7 @@
 //   步驟 3/4/5 仍為佔位（後續 commit）。
 'use client';
 
-import { ListPlus, MessageSquareText, ReceiptText, Trash2, Truck, UserRound, X } from 'lucide-react';
+import { ListPlus, MessageSquareText, ReceiptText, Star, Trash2, Truck, UserRound, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 
 import { listWarehouses, type WarehouseDto } from '@data/endpoints/nx01/api/warehouse';
@@ -55,14 +55,16 @@ export type SalesLine = {
 const nf = new Intl.NumberFormat('zh-TW');
 const money = (n: number) => `$${nf.format(Math.round(n))}`;
 
-/** 付款條件（步驟 3；'' = 不指定、沿用客戶主檔預設）*/
+/** 付款條件（步驟 3；直接列具體值，客戶主檔預設那顆標星號）*/
 const PAYMENT_TERMS: { v: string; label: string }[] = [
-  { v: '', label: '客戶預設' },
   { v: 'CASH', label: '現金' },
+  { v: 'PREPAY', label: '預付' },
   { v: 'NET30', label: '月結 30 天' },
   { v: 'NET60', label: '月結 60 天' },
   { v: 'NET90', label: '月結 90 天' },
 ];
+/** 付款條件代碼 → 中文（客戶預設值落在標準清單外時仍能顯示）*/
+const paymentTermLabel = (v: string): string => PAYMENT_TERMS.find((t) => t.v === v)?.label ?? v;
 /** 發票種類（invoiceCopies；0 不開 / 2 二聯 / 3 三聯）*/
 const INVOICE_OPTS: { v: number; label: string }[] = [
   { v: 3, label: '三聯' },
@@ -132,6 +134,7 @@ function InstantSalesDialog({ onClose }: { onClose: () => void }) {
         };
         setCustDefaults(d);
         setInvoiceCopies(d.defaultInvoiceCopies ?? 3);
+        setPaymentTerm(d.paymentTermDomestic || 'CASH');
         setAccountPeriod(defaultAccountPeriod(d.statementDay));
       })
       .catch(() => {
@@ -685,8 +688,11 @@ function PillGroup<T extends string | number>({
             >
               {o.label}
               {isDefault ? (
-                <span className="ml-1.5 rounded bg-primary/20 px-1 py-0.5 align-middle text-[9px] font-medium text-primary">
-                  預設
+                <span
+                  title="客戶預設"
+                  className="absolute -right-1.5 -top-1.5 grid size-4 place-items-center rounded-full border border-primary/50 bg-background text-primary"
+                >
+                  <Star size={9} fill="currentColor" strokeWidth={0} />
                 </span>
               ) : null}
             </button>
@@ -718,9 +724,14 @@ function TransactionStep({
   setAccountPeriod: (v: string) => void;
   onNext: () => void;
 }) {
-  // 客戶預設發票聯式（標「預設」徽章用）
+  // 客戶預設（標星號用）
   const defaultInvoice = custDefaults?.defaultInvoiceCopies ?? 3;
-  const termLabel = custDefaults ? (PAYMENT_TERMS.find((t) => t.v === custDefaults.paymentTermDomestic)?.label ?? custDefaults.paymentTermDomestic) : null;
+  const defaultTerm = custDefaults?.paymentTermDomestic;
+  // 付款條件選項：客戶預設值若不在標準清單（如 NET45/INSTALLMENT）→ 補進去
+  const termOptions =
+    defaultTerm && !PAYMENT_TERMS.some((t) => t.v === defaultTerm)
+      ? [{ v: defaultTerm, label: paymentTermLabel(defaultTerm) }, ...PAYMENT_TERMS]
+      : PAYMENT_TERMS;
   const rolled = custDefaults?.statementDay && new Date().getDate() > custDefaults.statementDay;
 
   return (
@@ -735,16 +746,12 @@ function TransactionStep({
     >
       <PillGroup
         label="付款條件"
-        options={PAYMENT_TERMS}
+        options={termOptions}
         value={paymentTerm}
         onChange={setPaymentTerm}
-        defaultValue=""
+        defaultValue={defaultTerm}
         autoFocusGroup
-        hint={
-          termLabel
-            ? `「客戶預設」＝${termLabel}；信用逾期時系統仍可能強制現金。`
-            : '選「客戶預設」＝沿用客戶主檔；信用逾期時系統仍可能強制現金。'
-        }
+        hint="★ 為客戶主檔預設；信用逾期時系統仍可能強制現金。"
       />
       <PillGroup
         label="發票種類"
