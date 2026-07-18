@@ -493,10 +493,11 @@ export class SoService {
       const estimatedTotal = estimatedSubtotal.add(estimatedSubtotal.mul(taxRate).div(100)).toDecimalPlaces(2);
       // CreditGuard 4 機制 check（黑名單→額度→逾期→付款條件）
       // 注意：creditGuard.check 不在 tx 內、純查詢 + decide
+      // 付款條件：dto 指定（即時銷售步驟 3）優先、否則客戶主檔預設；再過 CreditGuard 可能被改 CASH
       const creditResult = await this.creditGuard.check(user, {
         customerId: customer.id,
         soAmount: Number(estimatedTotal.toString()),
-        paymentTerm: customer.paymentTermDomestic ?? undefined,
+        paymentTerm: dto.paymentTerm?.trim() || customer.paymentTermDomestic || undefined,
       });
       const paymentTerm = creditResult.adjustedPaymentTerm;
 

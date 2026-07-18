@@ -15,6 +15,7 @@
 import { ListPlus, MessageSquareText, ReceiptText, Trash2, Truck, UserRound, X } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 
+import { listWarehouses, type WarehouseDto } from '@data/endpoints/nx01/api/warehouse';
 import { getQuotePriceIntel } from '@data/endpoints/nx04/quote/api/quote';
 import { FocusLockedDialog } from '@design/primitives/focus-locked-dialog';
 
@@ -44,12 +45,35 @@ export type SalesLine = {
   qty: number;
   unitPrice: number;
   remark: string;
-  /** 選料時本客戶是否已有近一月報價紀錄；false → 建單送出時自動生成即時報價紀錄（commit 5） */
+  /** 選料時本客戶是否已有近一月報價紀錄；false → 建單送出時自動生成即時報價紀錄（送出步驟） */
   hadQuoteRecord: boolean;
+  /** 步驟 4 逐項出貨倉庫（初值帶客戶預設倉/主倉、可改） */
+  warehouseId?: string;
 };
 
 const nf = new Intl.NumberFormat('zh-TW');
 const money = (n: number) => `$${nf.format(Math.round(n))}`;
+
+/** 付款條件（步驟 3；'' = 不指定、沿用客戶主檔預設）*/
+const PAYMENT_TERMS: { v: string; label: string }[] = [
+  { v: '', label: '客戶預設' },
+  { v: 'CASH', label: '現金' },
+  { v: 'NET30', label: '月結 30 天' },
+  { v: 'NET60', label: '月結 60 天' },
+  { v: 'NET90', label: '月結 90 天' },
+];
+/** 發票種類（invoiceCopies；0 不開 / 2 二聯 / 3 三聯）*/
+const INVOICE_OPTS: { v: number; label: string }[] = [
+  { v: 3, label: '三聯' },
+  { v: 2, label: '二聯' },
+  { v: 0, label: '不開發票' },
+];
+/** 取貨方式（deliveryType；後端權威 P/D/C）*/
+const DELIVERY_OPTS: { v: string; label: string }[] = [
+  { v: 'P', label: '自取' },
+  { v: 'D', label: '配送' },
+  { v: 'C', label: '寄貨' },
+];
 
 /** 對外：受控元件，殼以 open/onClosed 掛載（比照 GlobalTransferInquiry） */
 export function InstantSalesWorkspace({ open, onClosed }: { open: boolean; onClosed: () => void }) {
@@ -62,6 +86,9 @@ function InstantSalesDialog({ onClose }: { onClose: () => void }) {
   // ── 建單草稿 ──
   const [customer, setCustomer] = useState<PickedCustomer | null>(null);
   const [lines, setLines] = useState<SalesLine[]>([]);
+  const [paymentTerm, setPaymentTerm] = useState(''); // '' = 客戶預設
+  const [invoiceCopies, setInvoiceCopies] = useState(3);
+  const [deliveryType, setDeliveryType] = useState('P');
 
   // Alt+1~5 直接跳步（全域 capture，比照 F5）
   useEffect(() => {
@@ -156,6 +183,23 @@ function InstantSalesDialog({ onClose }: { onClose: () => void }) {
             <CustomerStep customer={customer} onPick={setCustomer} onNext={() => setStage(2)} />
           ) : stage === 2 ? (
             <ItemsStep customer={customer} lines={lines} setLines={setLines} onNext={() => setStage(3)} />
+          ) : stage === 3 ? (
+            <TransactionStep
+              paymentTerm={paymentTerm}
+              setPaymentTerm={setPaymentTerm}
+              invoiceCopies={invoiceCopies}
+              setInvoiceCopies={setInvoiceCopies}
+              onNext={() => setStage(4)}
+            />
+          ) : stage === 4 ? (
+            <ShippingStep
+              customer={customer}
+              lines={lines}
+              setLines={setLines}
+              deliveryType={deliveryType}
+              setDeliveryType={setDeliveryType}
+              onNext={() => setStage(5)}
+            />
           ) : (
             <div className="grid flex-1 place-items-center rounded-xl border border-dashed border-border/50 text-sm text-muted-foreground">
               步驟 {cur.n}「{cur.label}」建置中
@@ -501,6 +545,192 @@ function ItemsStep({
           </div>
         </FocusLockedDialog>
       ) : null}
+    </div>
+  );
+}
+
+/** 選項膠囊組（付款/發票/取貨共用） */
+function PillGroup<T extends string | number>({
+  label,
+  options,
+  value,
+  onChange,
+  hint,
+}: {
+  label: string;
+  options: { v: T; label: string }[];
+  value: T;
+  onChange: (v: T) => void;
+  hint?: string;
+}) {
+  return (
+    <div>
+      <div className="mb-1.5 text-[12px] font-bold text-muted-foreground">{label}</div>
+      <div className="flex flex-wrap gap-2">
+        {options.map((o) => (
+          <button
+            key={String(o.v)}
+            type="button"
+            onClick={() => onChange(o.v)}
+            className={
+              value === o.v
+                ? 'rounded-lg border border-primary bg-primary/15 px-3 py-1.5 text-sm font-bold text-primary'
+                : 'rounded-lg border border-border/60 px-3 py-1.5 text-sm text-foreground hover:border-primary/40'
+            }
+          >
+            {o.label}
+          </button>
+        ))}
+      </div>
+      {hint ? <div className="mt-1 text-[11px] text-muted-foreground">{hint}</div> : null}
+    </div>
+  );
+}
+
+/** 步驟 3：交易（付款條件 + 發票種類） */
+function TransactionStep({
+  paymentTerm,
+  setPaymentTerm,
+  invoiceCopies,
+  setInvoiceCopies,
+  onNext,
+}: {
+  paymentTerm: string;
+  setPaymentTerm: (v: string) => void;
+  invoiceCopies: number;
+  setInvoiceCopies: (v: number) => void;
+  onNext: () => void;
+}) {
+  return (
+    <div className="flex flex-1 flex-col gap-6">
+      <PillGroup
+        label="付款條件"
+        options={PAYMENT_TERMS}
+        value={paymentTerm}
+        onChange={setPaymentTerm}
+        hint="選「客戶預設」＝沿用客戶主檔；信用逾期時系統仍可能強制現金。"
+      />
+      <PillGroup label="發票種類" options={INVOICE_OPTS} value={invoiceCopies} onChange={setInvoiceCopies} />
+      <div className="mt-auto flex justify-end">
+        <button
+          type="button"
+          onClick={onNext}
+          className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
+        >
+          下一步：出貨 →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/** 步驟 4：出貨（取貨方式 + 逐項出貨倉庫） */
+function ShippingStep({
+  customer,
+  lines,
+  setLines,
+  deliveryType,
+  setDeliveryType,
+  onNext,
+}: {
+  customer: PickedCustomer | null;
+  lines: SalesLine[];
+  setLines: React.Dispatch<React.SetStateAction<SalesLine[]>>;
+  deliveryType: string;
+  setDeliveryType: (v: string) => void;
+  onNext: () => void;
+}) {
+  const [whs, setWhs] = useState<WarehouseDto[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // 載入倉庫清單 + 初始化每行倉別（客戶預設倉 → 主倉 → 第一個；已設者保留）
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const res = await listWarehouses({ page: 1, pageSize: 200, isActive: true });
+        if (!alive) return;
+        setWhs(res.items);
+        const fallback = customer?.defaultWarehouseId ?? res.items.find((w) => w.isMain)?.id ?? res.items[0]?.id;
+        if (fallback) {
+          setLines((prev) => prev.map((l) => (l.warehouseId ? l : { ...l, warehouseId: fallback })));
+        }
+      } catch {
+        /* 載入失敗不擋、留手選 */
+      } finally {
+        if (alive) setLoading(false);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [customer, setLines]);
+
+  const setLineWh = (i: number, whId: string) =>
+    setLines((prev) => prev.map((l, j) => (j === i ? { ...l, warehouseId: whId } : l)));
+
+  const allAssigned = lines.length > 0 && lines.every((l) => l.warehouseId);
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col gap-4">
+      <PillGroup label="取貨方式" options={DELIVERY_OPTS} value={deliveryType} onChange={setDeliveryType} />
+
+      <div className="flex min-h-0 flex-1 flex-col">
+        <div className="mb-1.5 text-[12px] font-bold text-muted-foreground">各品項出貨倉庫</div>
+        <div className="min-h-0 flex-1 overflow-auto rounded-xl border border-border/40">
+          {loading ? (
+            <div className="grid h-full place-items-center text-[12px] text-muted-foreground">載入倉庫中…</div>
+          ) : (
+            <table className="w-full text-sm">
+              <thead className="sticky top-0 bg-muted/40 text-[11px] text-muted-foreground">
+                <tr>
+                  <th className="px-2 py-1.5 text-left font-medium">料號 / 品名</th>
+                  <th className="px-2 py-1.5 text-right font-medium">數量</th>
+                  <th className="px-2 py-1.5 text-left font-medium">出貨倉庫</th>
+                </tr>
+              </thead>
+              <tbody>
+                {lines.map((l, i) => (
+                  <tr key={i} className="border-t border-border/30">
+                    <td className="px-2 py-1.5">
+                      <div className="font-medium">{l.partNo}</div>
+                      <div className="text-[11px] text-muted-foreground">{l.partName}</div>
+                    </td>
+                    <td className="px-2 py-1.5 text-right tabular-nums">{nf.format(l.qty)}</td>
+                    <td className="px-2 py-1.5">
+                      <select
+                        value={l.warehouseId ?? ''}
+                        onChange={(e) => setLineWh(i, e.target.value)}
+                        className="w-full rounded border border-border/60 bg-background px-2 py-1 text-sm text-foreground"
+                      >
+                        <option value="" disabled>
+                          選倉庫…
+                        </option>
+                        {whs.map((w) => (
+                          <option key={w.id} value={w.id}>
+                            {w.code}　{w.name}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+
+      <div className="flex justify-end">
+        <button
+          type="button"
+          disabled={!allAssigned}
+          onClick={onNext}
+          className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-40"
+        >
+          下一步：訊息 →
+        </button>
+      </div>
     </div>
   );
 }

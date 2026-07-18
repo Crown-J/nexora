@@ -137,6 +137,15 @@ export class CreateSoDto {
   @IsOptional()
   @IsDateString()
   accountPeriod?: string;
+
+  /**
+   * 付款條件（CASH 現金／NET30 月結…）。即時銷售步驟 3 可指定；未給 → 沿用客戶主檔預設。
+   * 仍過 CreditGuard——逾期等狀況可能被強制改 CASH（INSTANT-SALES 2026-07-18）。
+   */
+  @IsOptional()
+  @IsString()
+  @MaxLength(10)
+  paymentTerm?: string;
 }
 
 export class UpdateSoDto {
