@@ -13,10 +13,11 @@
 'use client';
 
 import { ListPlus, MessageSquareText, ReceiptText, Trash2, Truck, UserRound, X } from 'lucide-react';
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 
 import { listWarehouses, type WarehouseDto } from '@data/endpoints/nx01/api/warehouse';
 import { getQuotePriceIntel } from '@data/endpoints/nx04/quote/api/quote';
+import { getPartner } from '@data/endpoints/shared/master/partner/api/partner';
 import { FocusLockedDialog } from '@design/primitives/focus-locked-dialog';
 
 import { CustomerPicker, type PickedCustomer } from '@/features/nx04/quote/ui/CustomerPicker';
@@ -75,6 +76,31 @@ const DELIVERY_OPTS: { v: string; label: string }[] = [
   { v: 'C', label: '寄貨' },
 ];
 
+/** 選客戶時一併帶回的預設值（結帳日/預設發票聯式/付款條件）*/
+type CustomerDefaults = {
+  statementDay: number | null;
+  defaultInvoiceCopies: number | null;
+  paymentTermDomestic: string;
+};
+
+/** 帳期預設（YYYY-MM）：今天日 > 客戶結帳日 → 切下月帳，否則本月 */
+function defaultAccountPeriod(statementDay: number | null | undefined): string {
+  const now = new Date();
+  let y = now.getFullYear();
+  let m = now.getMonth(); // 0-based
+  if (statementDay && now.getDate() > statementDay) {
+    m += 1;
+    if (m > 11) {
+      m = 0;
+      y += 1;
+    }
+  }
+  return `${y}-${String(m + 1).padStart(2, '0')}`;
+}
+
+/** 稅率：不開發票（invoiceCopies=0）→ 0%，否則 5%（營業稅） */
+const taxRateOf = (invoiceCopies: number) => (invoiceCopies === 0 ? 0 : 5);
+
 /** 對外：受控元件，殼以 open/onClosed 掛載（比照 GlobalTransferInquiry） */
 export function InstantSalesWorkspace({ open, onClosed }: { open: boolean; onClosed: () => void }) {
   if (!open) return null;
@@ -85,10 +111,33 @@ function InstantSalesDialog({ onClose }: { onClose: () => void }) {
   const [stage, setStage] = useState<SalesStage>(1);
   // ── 建單草稿 ──
   const [customer, setCustomer] = useState<PickedCustomer | null>(null);
+  const [custDefaults, setCustDefaults] = useState<CustomerDefaults | null>(null);
   const [lines, setLines] = useState<SalesLine[]>([]);
   const [paymentTerm, setPaymentTerm] = useState(''); // '' = 客戶預設
   const [invoiceCopies, setInvoiceCopies] = useState(3);
+  const [accountPeriod, setAccountPeriod] = useState(() => defaultAccountPeriod(null));
   const [deliveryType, setDeliveryType] = useState('P');
+  // 開站/回步驟 1 時聚焦客戶搜尋框（修：開站需滑鼠點框才能打字）
+  const customerInputRef = useRef<HTMLInputElement>(null);
+
+  // 選客戶 → 帶回客戶預設（結帳日算帳期、發票聯式、付款條件提示）
+  const handlePickCustomer = useCallback((c: PickedCustomer) => {
+    setCustomer(c);
+    getPartner(c.id)
+      .then((p) => {
+        const d: CustomerDefaults = {
+          statementDay: p.statementDay ?? null,
+          defaultInvoiceCopies: p.defaultInvoiceCopies ?? null,
+          paymentTermDomestic: p.paymentTermDomestic,
+        };
+        setCustDefaults(d);
+        setInvoiceCopies(d.defaultInvoiceCopies ?? 3);
+        setAccountPeriod(defaultAccountPeriod(d.statementDay));
+      })
+      .catch(() => {
+        /* 帶不到預設不擋、留手選 */
+      });
+  }, []);
 
   // Alt+1~5 直接跳步（全域 capture，比照 F5）
   useEffect(() => {
@@ -112,6 +161,7 @@ function InstantSalesDialog({ onClose }: { onClose: () => void }) {
       open
       onClose={onClose}
       ariaLabel="即時銷售"
+      initialFocusRef={customerInputRef}
       backdropClassName="bg-black/45 backdrop-blur-[2px] animate-in fade-in duration-150"
       dialogClassName="flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-popover text-foreground shadow-[0_24px_70px_rgba(0,0,0,0.55)] animate-in fade-in zoom-in-95 duration-150"
       dialogStyle={{ width: 'min(1080px, 96vw)', height: 'min(680px, 92vh)' }}
@@ -180,15 +230,23 @@ function InstantSalesDialog({ onClose }: { onClose: () => void }) {
           </div>
 
           {stage === 1 ? (
-            <CustomerStep customer={customer} onPick={setCustomer} onNext={() => setStage(2)} />
+            <CustomerStep
+              customer={customer}
+              inputRef={customerInputRef}
+              onPick={handlePickCustomer}
+              onNext={() => setStage(2)}
+            />
           ) : stage === 2 ? (
             <ItemsStep customer={customer} lines={lines} setLines={setLines} onNext={() => setStage(3)} />
           ) : stage === 3 ? (
             <TransactionStep
+              custDefaults={custDefaults}
               paymentTerm={paymentTerm}
               setPaymentTerm={setPaymentTerm}
               invoiceCopies={invoiceCopies}
               setInvoiceCopies={setInvoiceCopies}
+              accountPeriod={accountPeriod}
+              setAccountPeriod={setAccountPeriod}
               onNext={() => setStage(4)}
             />
           ) : stage === 4 ? (
@@ -209,7 +267,7 @@ function InstantSalesDialog({ onClose }: { onClose: () => void }) {
 
         {/* 副區：訂單摘要（步驟 5 訊息設定於後續 commit 疊在此） */}
         <aside className="flex min-h-0 flex-col overflow-auto border-l border-border/40 p-5">
-          <OrderSummary customer={customer} lines={lines} />
+          <OrderSummary customer={customer} lines={lines} invoiceCopies={invoiceCopies} />
         </aside>
       </div>
 
@@ -224,16 +282,18 @@ function InstantSalesDialog({ onClose }: { onClose: () => void }) {
 /** 步驟 1：客戶 */
 function CustomerStep({
   customer,
+  inputRef,
   onPick,
   onNext,
 }: {
   customer: PickedCustomer | null;
+  inputRef: React.Ref<HTMLInputElement>;
   onPick: (c: PickedCustomer) => void;
   onNext: () => void;
 }) {
   return (
     <div className="flex flex-1 flex-col gap-3">
-      <CustomerPicker onPick={onPick} onCommit={() => customer && onNext()} autoFocus partnerType="C" />
+      <CustomerPicker onPick={onPick} onCommit={() => customer && onNext()} autoFocus partnerType="C" inputRef={inputRef} />
       {customer ? (
         <div className="rounded-xl border border-primary/40 bg-primary/8 p-3">
           <div className="text-[11px] text-muted-foreground">已選客戶</div>
@@ -549,68 +609,166 @@ function ItemsStep({
   );
 }
 
-/** 選項膠囊組（付款/發票/取貨共用） */
+/** 選項膠囊組（付款/發票/取貨共用；鍵盤 radiogroup：←→↑↓ 選、Tab 進出、預設值標示） */
 function PillGroup<T extends string | number>({
   label,
   options,
   value,
   onChange,
   hint,
+  defaultValue,
+  autoFocusGroup,
 }: {
   label: string;
   options: { v: T; label: string }[];
   value: T;
   onChange: (v: T) => void;
   hint?: string;
+  /** 客戶預設值 → 該顆標「預設」徽章 + 底色，讓業務知道停在預設上 */
+  defaultValue?: T;
+  /** 進站聚焦此組（步驟第一組用） */
+  autoFocusGroup?: boolean;
 }) {
+  const idx = Math.max(
+    options.findIndex((o) => o.v === value),
+    0,
+  );
+  const btnRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  useEffect(() => {
+    if (autoFocusGroup) btnRefs.current[idx]?.focus();
+    // 僅進站聚焦一次
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoFocusGroup]);
+
+  const move = (d: number) => {
+    const n = (idx + d + options.length) % options.length;
+    onChange(options[n].v);
+    btnRefs.current[n]?.focus();
+  };
+  const onKey = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      move(1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      move(-1);
+    }
+  };
+
   return (
     <div>
       <div className="mb-1.5 text-[12px] font-bold text-muted-foreground">{label}</div>
-      <div className="flex flex-wrap gap-2">
-        {options.map((o) => (
-          <button
-            key={String(o.v)}
-            type="button"
-            onClick={() => onChange(o.v)}
-            className={
-              value === o.v
-                ? 'rounded-lg border border-primary bg-primary/15 px-3 py-1.5 text-sm font-bold text-primary'
-                : 'rounded-lg border border-border/60 px-3 py-1.5 text-sm text-foreground hover:border-primary/40'
-            }
-          >
-            {o.label}
-          </button>
-        ))}
+      <div role="radiogroup" aria-label={label} onKeyDown={onKey} className="flex flex-wrap gap-2">
+        {options.map((o, i) => {
+          const selected = value === o.v;
+          const isDefault = defaultValue !== undefined && o.v === defaultValue;
+          return (
+            <button
+              key={String(o.v)}
+              ref={(el) => {
+                btnRefs.current[i] = el;
+              }}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              tabIndex={selected ? 0 : -1}
+              onClick={() => onChange(o.v)}
+              className={
+                (selected
+                  ? 'border-primary bg-primary/15 font-bold text-primary'
+                  : isDefault
+                    ? 'border-primary/40 bg-primary/5 text-foreground hover:border-primary/60'
+                    : 'border-border/60 text-foreground hover:border-primary/40') +
+                ' relative rounded-lg border px-3 py-1.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary/50'
+              }
+            >
+              {o.label}
+              {isDefault ? (
+                <span className="ml-1.5 rounded bg-primary/20 px-1 py-0.5 align-middle text-[9px] font-medium text-primary">
+                  預設
+                </span>
+              ) : null}
+            </button>
+          );
+        })}
       </div>
       {hint ? <div className="mt-1 text-[11px] text-muted-foreground">{hint}</div> : null}
     </div>
   );
 }
 
-/** 步驟 3：交易（付款條件 + 發票種類） */
+/** 步驟 3：交易（付款條件 + 發票種類 + 帳期） */
 function TransactionStep({
+  custDefaults,
   paymentTerm,
   setPaymentTerm,
   invoiceCopies,
   setInvoiceCopies,
+  accountPeriod,
+  setAccountPeriod,
   onNext,
 }: {
+  custDefaults: CustomerDefaults | null;
   paymentTerm: string;
   setPaymentTerm: (v: string) => void;
   invoiceCopies: number;
   setInvoiceCopies: (v: number) => void;
+  accountPeriod: string;
+  setAccountPeriod: (v: string) => void;
   onNext: () => void;
 }) {
+  // 客戶預設發票聯式（標「預設」徽章用）
+  const defaultInvoice = custDefaults?.defaultInvoiceCopies ?? 3;
+  const termLabel = custDefaults ? (PAYMENT_TERMS.find((t) => t.v === custDefaults.paymentTermDomestic)?.label ?? custDefaults.paymentTermDomestic) : null;
+  const rolled = custDefaults?.statementDay && new Date().getDate() > custDefaults.statementDay;
+
   return (
-    <div className="flex flex-1 flex-col gap-6">
+    <div
+      className="flex flex-1 flex-col gap-6"
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          onNext();
+        }
+      }}
+    >
       <PillGroup
         label="付款條件"
         options={PAYMENT_TERMS}
         value={paymentTerm}
         onChange={setPaymentTerm}
-        hint="選「客戶預設」＝沿用客戶主檔；信用逾期時系統仍可能強制現金。"
+        defaultValue=""
+        autoFocusGroup
+        hint={
+          termLabel
+            ? `「客戶預設」＝${termLabel}；信用逾期時系統仍可能強制現金。`
+            : '選「客戶預設」＝沿用客戶主檔；信用逾期時系統仍可能強制現金。'
+        }
       />
-      <PillGroup label="發票種類" options={INVOICE_OPTS} value={invoiceCopies} onChange={setInvoiceCopies} />
+      <PillGroup
+        label="發票種類"
+        options={INVOICE_OPTS}
+        value={invoiceCopies}
+        onChange={setInvoiceCopies}
+        defaultValue={defaultInvoice}
+      />
+      <div>
+        <div className="mb-1.5 text-[12px] font-bold text-muted-foreground">帳期（帳款年月）</div>
+        <input
+          type="month"
+          value={accountPeriod}
+          onChange={(e) => setAccountPeriod(e.target.value)}
+          className="rounded-lg border border-border/60 bg-background px-3 py-1.5 text-sm text-foreground"
+        />
+        {custDefaults?.statementDay ? (
+          <div className="mt-1 text-[11px] text-muted-foreground">
+            客戶結帳日 {custDefaults.statementDay} 號{rolled ? '・今天已過 → 預設切下月帳' : '・今天未過 → 本月帳'}
+          </div>
+        ) : (
+          <div className="mt-1 text-[11px] text-muted-foreground">客戶未設結帳日 → 預設本月；可手動調整。</div>
+        )}
+      </div>
       <div className="mt-auto flex justify-end">
         <button
           type="button"
@@ -673,7 +831,7 @@ function ShippingStep({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4">
-      <PillGroup label="取貨方式" options={DELIVERY_OPTS} value={deliveryType} onChange={setDeliveryType} />
+      <PillGroup label="取貨方式" options={DELIVERY_OPTS} value={deliveryType} onChange={setDeliveryType} autoFocusGroup />
 
       <div className="flex min-h-0 flex-1 flex-col">
         <div className="mb-1.5 text-[12px] font-bold text-muted-foreground">各品項出貨倉庫</div>
@@ -735,10 +893,21 @@ function ShippingStep({
   );
 }
 
-/** 右側：訂單摘要（客戶 + 明細合計） */
-function OrderSummary({ customer, lines }: { customer: PickedCustomer | null; lines: SalesLine[] }) {
+/** 右側：訂單摘要（客戶 + 明細合計 + 未稅/稅額/含稅，稅隨發票種類） */
+function OrderSummary({
+  customer,
+  lines,
+  invoiceCopies,
+}: {
+  customer: PickedCustomer | null;
+  lines: SalesLine[];
+  invoiceCopies: number;
+}) {
   const totalQty = lines.reduce((a, l) => a + l.qty, 0);
-  const totalAmt = lines.reduce((a, l) => a + l.qty * l.unitPrice, 0);
+  const subtotal = lines.reduce((a, l) => a + l.qty * l.unitPrice, 0);
+  const rate = taxRateOf(invoiceCopies);
+  const tax = Math.round((subtotal * rate) / 100);
+  const total = subtotal + tax;
   return (
     <div className="flex flex-col gap-3">
       <div className="text-[12px] font-bold text-muted-foreground">訂單摘要</div>
@@ -757,10 +926,21 @@ function OrderSummary({ customer, lines }: { customer: PickedCustomer | null; li
           <span className="text-muted-foreground">總數量</span>
           <span className="font-medium tabular-nums">{nf.format(totalQty)}</span>
         </div>
-        <div className="mt-2 flex justify-between border-t border-border/30 pt-2 text-sm">
-          <span className="font-bold">金額（未稅）</span>
-          <span className="font-bold tabular-nums text-primary">{money(totalAmt)}</span>
+        <div className="mt-2 flex justify-between border-t border-border/30 pt-2 text-[13px]">
+          <span className="text-muted-foreground">未稅</span>
+          <span className="tabular-nums">{money(subtotal)}</span>
         </div>
+        <div className="mt-1 flex justify-between text-[13px]">
+          <span className="text-muted-foreground">稅額（{rate}%）</span>
+          <span className="tabular-nums">{money(tax)}</span>
+        </div>
+        <div className="mt-1 flex justify-between border-t border-border/30 pt-1.5 text-sm">
+          <span className="font-bold">含稅合計</span>
+          <span className="font-bold tabular-nums text-primary">{money(total)}</span>
+        </div>
+        {invoiceCopies === 0 ? (
+          <div className="mt-1 text-[10px] text-amber-600">不開發票 → 稅額 0</div>
+        ) : null}
       </div>
     </div>
   );
