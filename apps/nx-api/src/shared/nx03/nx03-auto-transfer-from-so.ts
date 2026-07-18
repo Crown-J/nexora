@@ -82,6 +82,13 @@ export async function autoCreateTransferFromSo(
       continue;
     }
 
+    // PEER-G 2026-07-19：G 同行調貨（TI 鏈）／B 客訂（採購需求鏈）各有補貨機制、不走自倉調撥。
+    // 修既有 bug：G/B 行原本會被掃進來、自家全倉無貨（正是走同行的原因）→ 直接 throw 炸掉整個確認。
+    if (item.transferSourceType === 'G' || item.transferSourceType === 'B') {
+      result.totalItemsAlreadyHandled++;
+      continue;
+    }
+
     // 查目標倉庫實際庫存
     const targetBalance = await tx.nx03StockBalance.findFirst({
       where: { tenantId: p.tenantId, partId: item.partId, warehouseId: item.warehouseId },

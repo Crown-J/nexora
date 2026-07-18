@@ -19,8 +19,9 @@ import { listWarehouses, type WarehouseDto } from '@data/endpoints/nx01/api/ware
 import { lookupStockBalance } from '@data/endpoints/nx03/stock-balance/api/lookup';
 import { resolvePromotionPrice } from '@data/endpoints/nx04/promotion/api/promotion';
 import { getQuotePriceIntel } from '@data/endpoints/nx04/quote/api/quote';
-import { createQuoteRecord } from '@data/endpoints/nx04/record/api/record';
-import { createSo, softDeleteSo, updateSo } from '@data/endpoints/nx04/so/api/so';
+import { createInquiryRecord, createQuoteRecord, listInquiryRecords } from '@data/endpoints/nx04/record/api/record';
+import { createSo, createTiFromSo, softDeleteSo, updateSo } from '@data/endpoints/nx04/so/api/so';
+import type { InquiryRecord } from '@data/types/nx04/record';
 import { getPartner } from '@data/endpoints/shared/master/partner/api/partner';
 import { FocusLockedDialog } from '@design/primitives/focus-locked-dialog';
 
@@ -40,13 +41,19 @@ const STAGE_DEFS: StageDef[] = [
   { n: 5, label: '訊息', icon: <MessageSquareText size={18} />, hint: '確認・訊息內容' },
 ];
 
-/** 出貨分配來源：現貨（本倉可出）/ 等調撥（自倉調撥、系統配來源倉） */
-export type AllocSource = 'STOCK' | 'TRANSFER';
-/** 一筆出貨分配：某倉出某數量（來源決定現貨 or 等調撥） */
+/** 出貨分配來源：現貨（本倉可出）/ 等調撥（自倉調撥、系統配來源倉）/ 同行調貨（TI 鏈） */
+export type AllocSource = 'STOCK' | 'TRANSFER' | 'PEER';
+/** 一筆出貨分配：某倉出某數量（來源決定現貨/等調撥/同行）；PEER 需綁同行對象（價由詢價紀錄接） */
 export type Allocation = {
   warehouseId: string;
   qty: number;
   source: AllocSource;
+  /** PEER 專用：同行對象（create-ti 用；價後端自動取該同行×該料最近詢價紀錄） */
+  peerPartnerId?: string;
+  /** PEER 顯示用：同行編號+名稱 */
+  peerLabel?: string;
+  /** PEER 顯示用：詢價價（僅展示、實際成本後端從詢價紀錄帶） */
+  peerPrice?: string;
 };
 
 /** 建單草稿的明細行；allocations 加總須等於 qty（Step2 出貨分配） */
@@ -129,7 +136,7 @@ function defaultAccountPeriod(statementDay: number | null | undefined): string {
 const taxRateOf = (invoiceCopies: number) => (invoiceCopies === 0 ? 0 : 5);
 
 /** 建單結果（Step 5 顯示用） */
-type OrderResult = { docNo: string; stockLines: number; transferLines: number };
+type OrderResult = { docNo: string; stockLines: number; transferLines: number; tiDocNos: string[] };
 
 /** Step 5 客戶訊息可設定顯示項（存 localStorage） */
 type MsgOpts = { partNo: boolean; partName: boolean; qty: boolean; price: boolean; ship: boolean; remark: boolean };
@@ -158,7 +165,14 @@ function buildMessage(
     if (opts.partName) seg.push(l.partName);
     if (opts.qty) seg.push(`×${nf.format(l.qty)}`);
     if (opts.price) seg.push(money(l.unitPrice));
-    if (opts.ship) seg.push(l.allocations.some((a) => a.source === 'TRANSFER') ? '（等調撥）' : '（現貨）');
+    if (opts.ship)
+      seg.push(
+        l.allocations.some((a) => a.source === 'PEER')
+          ? '（調貨中）'
+          : l.allocations.some((a) => a.source === 'TRANSFER')
+            ? '（等調撥）'
+            : '（現貨）',
+      );
     if (opts.remark && l.remark) seg.push(`※${l.remark}`);
     return `・${seg.join(' ')}`;
   });
@@ -217,15 +231,15 @@ function InstantSalesDialog({ onClose }: { onClose: () => void }) {
   // 冪等（2026-07-18 全面測試修正）：確認失敗 → 草稿自動作廢、重試不留孤兒；報價紀錄挪到成功後、重試不重複
   const buildOrder = useCallback(async () => {
     if (!customer || submitting || orderResult) return; // 已建單不重送
-    // 0. 守門：每行分配需配平、每筆分配量 > 0 且有倉（Alt+數字跳步可繞過 Step2 守門、這裡兜底）
+    // 0. 守門：每行分配需配平、每筆分配量 > 0 且有倉、同行分配需綁對象（Alt+數字跳步可繞過 Step2 守門、這裡兜底）
     const bad = lines.find(
       (l) =>
         l.allocations.length === 0 ||
-        l.allocations.some((a) => !(a.qty > 0) || !a.warehouseId) ||
+        l.allocations.some((a) => !(a.qty > 0) || !a.warehouseId || (a.source === 'PEER' && !a.peerPartnerId)) ||
         l.allocations.reduce((s, a) => s + a.qty, 0) !== l.qty,
     );
     if (lines.length === 0 || bad) {
-      setSubmitError(bad ? `品項 ${bad.partNo} 出貨分配未配平（回步驟 2 調整）` : '沒有品項');
+      setSubmitError(bad ? `品項 ${bad.partNo} 出貨分配未配平或同行未選對象（回步驟 2 調整）` : '沒有品項');
       return;
     }
     if (!deliveryAddress.trim()) {
@@ -265,18 +279,26 @@ function InstantSalesDialog({ onClose }: { onClose: () => void }) {
       );
       setLines(fixedLines); // 預覽/訊息與實際送出一致
 
-      // 2. 分配攤成明細行（現貨=S、等調撥=T）；低價原因只在真的低於底價時才帶（加入時已判）
+      // 2. 分配攤成明細行（現貨=S、等調撥=T、同行=G）；低價原因只在真的低於底價時才帶（加入時已判）
       const items = fixedLines.flatMap((l) =>
         l.allocations.map((a) => ({
           partId: l.partId,
           warehouseId: a.warehouseId,
           qty: a.qty,
           unitPriceSnapshot: l.unitPrice,
-          transferSourceType: a.source === 'TRANSFER' ? 'T' : 'S',
+          transferSourceType: a.source === 'PEER' ? 'G' : a.source === 'TRANSFER' ? 'T' : 'S',
           belowMinReason: l.belowMinReason || undefined,
           remark: l.remark || undefined,
         })),
       );
+      // 同行分組（flat index ↔ 建單回傳 items 同序、確認後逐同行建 TI）
+      const flatAllocs = fixedLines.flatMap((l) => l.allocations);
+      const peerGroups = new Map<string, number[]>(); // peerPartnerId → flat indexes
+      flatAllocs.forEach((a, i) => {
+        if (a.source === 'PEER' && a.peerPartnerId) {
+          peerGroups.set(a.peerPartnerId, [...(peerGroups.get(a.peerPartnerId) ?? []), i]);
+        }
+      });
       const headerWh = fixedLines[0]?.allocations[0]?.warehouseId ?? customer.defaultWarehouseId ?? undefined;
       const soDate = new Date().toISOString().slice(0, 10);
       const so = await createSo({
@@ -292,14 +314,32 @@ function InstantSalesDialog({ onClose }: { onClose: () => void }) {
         salesMethod: '即時銷售',
         items,
       });
-      // 2. 確認 → CONFIRMED（後端對 T 行自動開調撥單 ST）；失敗把草稿作廢、避免重試堆孤兒 DRAFT
+      // 3. 確認 → CONFIRMED（後端對 T 行自動開調撥單 ST；G/B 行已排除不掃）；失敗把草稿作廢、避免重試堆孤兒 DRAFT
       try {
         await updateSo(so.id, { status: 'CONFIRMED' });
       } catch (confirmErr) {
         await softDeleteSo(so.id, '即時銷售確認失敗自動作廢').catch(() => undefined);
         throw confirmErr;
       }
-      // 3. 確認成功後、對「無近一月報價紀錄」的行補即時報價紀錄（失敗不擋單）
+      // 4. 同行分配 → 逐同行建調貨單 TI（價由後端自動取該同行×該料最近詢價紀錄、含回鏈）
+      //    TI 建立失敗不整單回滾（SO 已確認生效）——留待補行、錯誤顯示請業務到銷貨單補開
+      const tiDocNos: string[] = [];
+      let tiError: string | null = null;
+      const soItems = so.items ?? [];
+      for (const [partnerId, flatIdxs] of peerGroups) {
+        const soItemIds = flatIdxs.map((i) => soItems[i]?.id).filter((x): x is string => !!x);
+        if (!soItemIds.length) continue;
+        try {
+          const r = await createTiFromSo(so.id, { partnerId, soItemIds, remark: '即時銷售自動開單' });
+          tiDocNos.push(r.tiDocNo);
+        } catch (e) {
+          tiError = e instanceof Error ? e.message : '調貨單建立失敗';
+        }
+      }
+      if (tiError) {
+        setSubmitError(`銷貨單已建立（${so.docNo}）、但調貨單開立失敗：${tiError}——請到銷貨單詳情補開同行調貨`);
+      }
+      // 5. 確認成功後、對「無近一月報價紀錄」的行補即時報價紀錄（失敗不擋單）
       await Promise.all(
         fixedLines
           .filter((l) => !l.hadQuoteRecord)
@@ -316,7 +356,13 @@ function InstantSalesDialog({ onClose }: { onClose: () => void }) {
           ),
       );
       const transferLines = items.filter((it) => it.transferSourceType === 'T').length;
-      setOrderResult({ docNo: so.docNo, stockLines: items.length - transferLines, transferLines });
+      const peerLines = items.filter((it) => it.transferSourceType === 'G').length;
+      setOrderResult({
+        docNo: so.docNo,
+        stockLines: items.length - transferLines - peerLines,
+        transferLines,
+        tiDocNos,
+      });
       setStage(5);
     } catch (e) {
       setSubmitError(e instanceof Error ? e.message : '建單失敗');
@@ -607,7 +653,10 @@ function ItemsStep({
       e.preventDefault();
       e.stopPropagation();
       const ls = linesRef.current;
-      if (ls.length > 0 && ls.every((l) => l.allocations.reduce((a, x) => a + x.qty, 0) === l.qty)) {
+      const ok = (l: SalesLine) =>
+        l.allocations.reduce((a, x) => a + x.qty, 0) === l.qty &&
+        l.allocations.every((a) => a.source !== 'PEER' || !!a.peerPartnerId);
+      if (ls.length > 0 && ls.every(ok)) {
         setConfirmOpen(true);
       }
     };
@@ -742,7 +791,11 @@ function ItemsStep({
   };
 
   const allocSum = (l: SalesLine) => l.allocations.reduce((a, x) => a + x.qty, 0);
-  const allBalanced = lines.length > 0 && lines.every((l) => allocSum(l) === l.qty);
+  const lineOk = (l: SalesLine) =>
+    allocSum(l) === l.qty && l.allocations.every((a) => a.source !== 'PEER' || !!a.peerPartnerId);
+  const allBalanced = lines.length > 0 && lines.every(lineOk);
+  // 同行挑選對話框（哪一列分配在選同行）
+  const [peerPick, setPeerPick] = useState<{ li: number; ai: number } | null>(null);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
@@ -880,7 +933,8 @@ function ItemsStep({
                   </div>
                   <div className="flex flex-col gap-1.5">
                     {l.allocations.map((a, ai) => (
-                      <div key={ai} className="flex items-center gap-1.5">
+                      <div key={ai}>
+                      <div className="flex items-center gap-1.5">
                         <select
                           value={a.warehouseId}
                           onChange={(e) => void changeAllocWh(li, ai, e.target.value)}
@@ -900,20 +954,29 @@ function ItemsStep({
                           className="w-14 rounded border border-border/60 bg-background px-1.5 py-1 text-right text-[12px] text-foreground"
                         />
                         <div className="flex overflow-hidden rounded border border-border/60">
-                          {(['STOCK', 'TRANSFER'] as AllocSource[]).map((s) => (
+                          {(['STOCK', 'TRANSFER', 'PEER'] as AllocSource[]).map((s) => (
                             <button
                               key={s}
                               type="button"
-                              onClick={() => updateAlloc(li, ai, { source: s })}
+                              onClick={() => {
+                                if (s === 'PEER') {
+                                  // 同行：先選對象（詢價紀錄/現場填價）、選定才落 PEER
+                                  setPeerPick({ li, ai });
+                                } else {
+                                  updateAlloc(li, ai, { source: s, peerPartnerId: undefined, peerLabel: undefined, peerPrice: undefined });
+                                }
+                              }}
                               className={
                                 a.source === s
                                   ? s === 'TRANSFER'
                                     ? 'bg-amber-500/20 px-2 py-1 text-[11px] font-bold text-amber-700'
-                                    : 'bg-primary/15 px-2 py-1 text-[11px] font-bold text-primary'
+                                    : s === 'PEER'
+                                      ? 'bg-sky-500/20 px-2 py-1 text-[11px] font-bold text-sky-700'
+                                      : 'bg-primary/15 px-2 py-1 text-[11px] font-bold text-primary'
                                   : 'px-2 py-1 text-[11px] text-muted-foreground hover:bg-muted/40'
                               }
                             >
-                              {s === 'STOCK' ? '現貨' : '調撥'}
+                              {s === 'STOCK' ? '現貨' : s === 'TRANSFER' ? '調撥' : '同行'}
                             </button>
                           ))}
                         </div>
@@ -927,6 +990,18 @@ function ItemsStep({
                           <Trash2 size={12} />
                         </button>
                       </div>
+                      {a.source === 'PEER' ? (
+                        <button
+                          type="button"
+                          onClick={() => setPeerPick({ li, ai })}
+                          className="ml-1 mt-0.5 text-[10px] text-sky-700 underline-offset-2 hover:underline"
+                        >
+                          {a.peerLabel
+                            ? `${a.peerLabel}${a.peerPrice ? `・詢價 $${a.peerPrice}` : ''}（點我換）`
+                            : '⚠ 未選同行對象（點我選）'}
+                        </button>
+                      ) : null}
+                      </div>
                     ))}
                   </div>
                   <button
@@ -938,6 +1013,9 @@ function ItemsStep({
                   </button>
                   {l.allocations.some((a) => a.source === 'TRANSFER') ? (
                     <span className="ml-2 text-[10px] text-amber-600">含等調撥・建單時自動開調撥單</span>
+                  ) : null}
+                  {l.allocations.some((a) => a.source === 'PEER') ? (
+                    <span className="ml-2 text-[10px] text-sky-700">含同行調貨・建單時自動開調貨單</span>
                   ) : null}
                 </div>
               </div>
@@ -963,6 +1041,24 @@ function ItemsStep({
           下一步：交易 →
         </button>
       </div>
+
+      {/* 同行對象挑選（詢價紀錄 / 現場填價逃生門） */}
+      {peerPick ? (
+        <PeerPickDialog
+          line={lines[peerPick.li]}
+          allocQty={lines[peerPick.li]?.allocations[peerPick.ai]?.qty ?? 1}
+          onPick={(peer) => {
+            updateAlloc(peerPick.li, peerPick.ai, {
+              source: 'PEER',
+              peerPartnerId: peer.partnerId,
+              peerLabel: peer.label,
+              peerPrice: peer.price,
+            });
+            setPeerPick(null);
+          }}
+          onClose={() => setPeerPick(null)}
+        />
+      ) : null}
 
       {/* Alt+S / 下一步 → 明細確認視窗（確認後進交易步驟） */}
       {confirmOpen ? (
@@ -1018,6 +1114,148 @@ function ItemsStep({
         </FocusLockedDialog>
       ) : null}
     </div>
+  );
+}
+
+/** 同行對象挑選：列該料詢價紀錄選一筆（帶對象+價）；逃生門＝現場填價（挑同行+填價→補詢價紀錄）。
+ *  拍板（執行長 2026-07-18/19）：查無詢價紀錄 → 擋、提示先詢價或現場填價；現場填價立即補一筆詢價紀錄
+ *  （原子日誌語意：真的問到價就記）。TI 成本由後端自動取「該同行×該料最近詢價紀錄」、此處選誰=綁定對象。 */
+function PeerPickDialog({
+  line,
+  allocQty,
+  onPick,
+  onClose,
+}: {
+  line: SalesLine | undefined;
+  allocQty: number;
+  onPick: (p: { partnerId: string; label: string; price?: string }) => void;
+  onClose: () => void;
+}) {
+  const [recs, setRecs] = useState<InquiryRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [manualPeer, setManualPeer] = useState<PickedCustomer | null>(null);
+  const [manualPrice, setManualPrice] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  // 該料詢價紀錄（partNo 快照過濾、近的在前）
+  useEffect(() => {
+    if (!line) return;
+    let alive = true;
+    listInquiryRecords({ partNo: line.partNo, pageSize: 20 })
+      .then((r) => {
+        if (alive) setRecs(r.items.filter((x) => x.partId === line.partId));
+      })
+      .catch(() => undefined)
+      .finally(() => alive && setLoading(false));
+    return () => {
+      alive = false;
+    };
+  }, [line]);
+
+  if (!line) return null;
+
+  // 逃生門：現場填價 → 立即補一筆詢價紀錄 → 選用
+  const saveManual = async () => {
+    if (!manualPeer || !(Number(manualPrice) >= 0) || manualPrice.trim() === '') return;
+    setSaving(true);
+    setErr(null);
+    try {
+      await createInquiryRecord({
+        sourcePartnerId: manualPeer.id,
+        partId: line.partId,
+        qty: allocQty > 0 ? allocQty : 1,
+        unitPrice: Number(manualPrice),
+        remark: '即時銷售現場填價',
+      });
+      onPick({ partnerId: manualPeer.id, label: `${manualPeer.code}　${manualPeer.name}`, price: manualPrice });
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : '詢價紀錄建立失敗');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <FocusLockedDialog
+      open
+      onClose={onClose}
+      ariaLabel="選同行調貨對象"
+      backdropClassName="bg-black/50 backdrop-blur-[2px] animate-in fade-in duration-100"
+      dialogClassName="flex max-h-[80vh] w-[460px] flex-col overflow-hidden rounded-2xl border border-border/60 bg-popover text-foreground shadow-[0_24px_70px_rgba(0,0,0,0.55)] animate-in fade-in zoom-in-95 duration-100"
+    >
+      <div className="border-b border-border/40 px-4 py-2.5">
+        <h3 className="text-sm font-bold">同行調貨對象</h3>
+        <div className="mt-0.5 truncate text-[11px] text-muted-foreground">
+          {line.partNo}　{line.partName}
+        </div>
+      </div>
+      <div className="min-h-0 flex-1 overflow-auto p-3">
+        <div className="mb-1 text-[11px] font-bold text-muted-foreground">詢價紀錄（選一筆帶對象與價）</div>
+        {loading ? (
+          <div className="py-4 text-center text-[12px] text-muted-foreground">載入中…</div>
+        ) : recs.length === 0 ? (
+          <div className="rounded-lg border border-dashed border-border/50 p-3 text-[12px] text-muted-foreground">
+            此料尚無詢價紀錄——先到站 3 即時調貨詢價問價，或下方「現場填價」直接記一筆。
+          </div>
+        ) : (
+          <div className="flex flex-col gap-1">
+            {recs.map((r) => (
+              <button
+                key={r.id}
+                type="button"
+                onClick={() =>
+                  onPick({
+                    partnerId: r.sourcePartnerId,
+                    label: `${r.partnerCode ?? ''}　${r.partnerName ?? ''}`.trim(),
+                    price: r.unitPrice,
+                  })
+                }
+                className="flex items-center justify-between rounded-lg border border-border/50 px-3 py-2 text-left hover:border-sky-500/60 hover:bg-sky-500/5"
+              >
+                <span className="min-w-0">
+                  <span className="block truncate text-[13px] font-medium">
+                    {r.partnerCode}　{r.partnerName}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">{r.recordDate?.slice(0, 10)}</span>
+                </span>
+                <span className="ml-2 shrink-0 font-bold tabular-nums text-sky-700">${r.unitPrice}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* 逃生門：現場填價 */}
+        <div className="mt-3 rounded-xl border border-border/50 bg-background/40 p-3">
+          <div className="mb-1.5 text-[11px] font-bold text-muted-foreground">
+            現場填價（剛問到的價、順手補一筆詢價紀錄）
+          </div>
+          <CustomerPicker onPick={setManualPeer} onCommit={() => undefined} partnerType="O" />
+          <div className="mt-2 flex items-end gap-2">
+            <label className="flex flex-col text-[10px] text-muted-foreground">
+              同行報價
+              <input
+                value={manualPrice}
+                onChange={(e) => setManualPrice(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), void saveManual())}
+                inputMode="decimal"
+                placeholder="0"
+                className="w-24 rounded border border-border/60 bg-background px-2 py-1 text-right text-sm text-foreground"
+              />
+            </label>
+            <button
+              type="button"
+              disabled={!manualPeer || manualPrice.trim() === '' || saving}
+              onClick={() => void saveManual()}
+              className="rounded-lg bg-sky-600 px-3 py-1.5 text-[13px] font-bold text-white disabled:opacity-40"
+            >
+              {saving ? '記錄中…' : '記詢價並選用'}
+            </button>
+          </div>
+          {err ? <div className="mt-1 text-[11px] text-destructive">{err}</div> : null}
+        </div>
+      </div>
+    </FocusLockedDialog>
   );
 }
 
@@ -1279,11 +1517,17 @@ function ConfirmStep({
   const allAllocs = lines.flatMap((l) => l.allocations);
   const stockLines = allAllocs.filter((a) => a.source === 'STOCK').length;
   const transferLines = allAllocs.filter((a) => a.source === 'TRANSFER').length;
+  const peerPartners = new Set(
+    allAllocs.filter((a) => a.source === 'PEER' && a.peerPartnerId).map((a) => a.peerPartnerId),
+  );
+  const peerLines = allAllocs.filter((a) => a.source === 'PEER').length;
   const subtotal = lines.reduce((a, l) => a + l.qty * l.unitPrice, 0);
   const total = subtotal + Math.round((subtotal * taxRateOf(invoiceCopies)) / 100);
-  // Alt+數字可跳步繞過 Step2 守門 → 這裡再擋一次
+  // Alt+數字可跳步繞過 Step2 守門 → 這裡再擋一次（含同行未選對象）
   const unbalanced = lines.some(
-    (l) => l.allocations.some((a) => !(a.qty > 0) || !a.warehouseId) || l.allocations.reduce((s, a) => s + a.qty, 0) !== l.qty,
+    (l) =>
+      l.allocations.some((a) => !(a.qty > 0) || !a.warehouseId || (a.source === 'PEER' && !a.peerPartnerId)) ||
+      l.allocations.reduce((s, a) => s + a.qty, 0) !== l.qty,
   );
 
   return (
@@ -1324,8 +1568,18 @@ function ConfirmStep({
                 <td className="px-2 py-1.5 text-right tabular-nums">{money(l.unitPrice)}</td>
                 <td className="px-2 py-1.5 text-[11px]">
                   {l.allocations.map((a, j) => (
-                    <div key={j} className={a.source === 'TRANSFER' ? 'text-amber-600' : 'text-muted-foreground'}>
-                      {nf.format(a.qty)} {a.source === 'TRANSFER' ? '等調撥' : '現貨'}
+                    <div
+                      key={j}
+                      className={
+                        a.source === 'TRANSFER'
+                          ? 'text-amber-600'
+                          : a.source === 'PEER'
+                            ? 'text-sky-700'
+                            : 'text-muted-foreground'
+                      }
+                    >
+                      {nf.format(a.qty)}{' '}
+                      {a.source === 'TRANSFER' ? '等調撥' : a.source === 'PEER' ? `同行（${a.peerLabel ?? '?'}）` : '現貨'}
                     </div>
                   ))}
                 </td>
@@ -1339,8 +1593,11 @@ function ConfirmStep({
         <span className="font-bold text-foreground">將產生：</span>
         <span className="text-muted-foreground">
           {' '}
-          銷貨單 ×1（現貨 {stockLines} 行{transferLines ? ` + 等調撥 ${transferLines} 行` : ''}）
-          {transferLines ? `、調撥單 ×${transferLines}（確認時自動開、系統配來源倉）` : ''}
+          銷貨單 ×1（現貨 {stockLines} 行
+          {transferLines ? ` + 等調撥 ${transferLines} 行` : ''}
+          {peerLines ? ` + 同行 ${peerLines} 行` : ''}）
+          {transferLines ? `、調撥單 ×${transferLines}（自動開、系統配來源倉）` : ''}
+          {peerPartners.size ? `、調貨單 ×${peerPartners.size}（自動開、成本帶詢價紀錄）` : ''}
         </span>
       </div>
 
@@ -1403,7 +1660,8 @@ function MessageStep({
         <div className="text-sm font-bold text-primary">✓ 訂單已建立　{result.docNo}</div>
         <div className="mt-1 text-[12px] text-muted-foreground">
           現貨 {result.stockLines} 行已送撿貨清單
-          {result.transferLines ? `；等調撥 ${result.transferLines} 行已自動開調撥單、到貨後接續出貨` : ''}。
+          {result.transferLines ? `；等調撥 ${result.transferLines} 行已自動開調撥單、到貨後接續出貨` : ''}
+          {result.tiDocNos.length ? `；同行調貨單 ${result.tiDocNos.join('、')} 已開立（草稿、待採購端跟催）` : ''}。
         </div>
       </div>
 
