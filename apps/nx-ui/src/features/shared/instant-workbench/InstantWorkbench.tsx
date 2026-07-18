@@ -24,6 +24,7 @@ import { FocusLockedDialog } from '@design/primitives/focus-locked-dialog';
 
 import { GlobalTransferInquiry } from '@/features/nx04/quote/ui/GlobalTransferInquiry';
 import { QuoteWorkspace } from '@/features/nx04/quote/ui/QuoteWorkspace';
+import { InstantSalesWorkspace } from '@/features/nx04/sales/ui/InstantSalesWorkspace';
 
 import { LIVE_STATIONS, type InstantStationNo } from './station-registry';
 
@@ -115,6 +116,9 @@ export function InstantWorkbench() {
 
       {/* 站 3 調貨詢價（wrapper 常駐：nx-transfer-add 清單事件＋回饋 chip 不論開關都收） */}
       <GlobalTransferInquiry open={current === 3} onClosed={stationClosed} />
+
+      {/* 站 4 即時銷售（成交快速建單精靈；切走即關＝比照站 1/3 toggle 行為） */}
+      <InstantSalesWorkspace open={current === 4} onClosed={stationClosed} />
     </>
   );
 }
@@ -217,7 +221,7 @@ function WorkbenchMenu({
                     <span className="ml-2 text-[10px] text-primary/80">● 開啟中</span>
                   ) : null}
                 </span>
-                <span className="text-[11px] text-muted-foreground">{ANCHOR_HINT[s.anchor]}</span>
+                <span className="text-[11px] text-muted-foreground">{s.hint ?? ANCHOR_HINT[s.anchor]}</span>
               </span>
             </button>
           ))}
