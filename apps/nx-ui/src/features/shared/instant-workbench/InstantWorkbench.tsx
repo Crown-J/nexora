@@ -26,7 +26,7 @@ import { GlobalTransferInquiry } from '@/features/nx04/quote/ui/GlobalTransferIn
 import { QuoteWorkspace } from '@/features/nx04/quote/ui/QuoteWorkspace';
 import { InstantSalesWorkspace } from '@/features/nx04/sales/ui/InstantSalesWorkspace';
 
-import { LIVE_STATIONS, type InstantStationNo } from './station-registry';
+import { LIVE_STATIONS, stationHasUnsavedData, type InstantStationNo } from './station-registry';
 
 /** 各站選單副標（錨提示、拍板：四站各有各的錨） */
 const ANCHOR_HINT: Record<string, string> = {
@@ -47,12 +47,20 @@ export function InstantWorkbench() {
   // 站 1 開站情境（nx-part-quick-search-open 嵌入點事件帶入、殼轉交）
   const [station1Ctx, setStation1Ctx] = useState<Partial<F2EntryContext> | undefined>(undefined);
 
-  const enterStation = useCallback((no: InstantStationNo) => {
-    if (no === 2) setQuoteMounted(true);
-    setLastStation(no);
-    setCurrent(no);
-    setMenuOpen(false);
-  }, []);
+  const enterStation = useCallback(
+    (no: InstantStationNo) => {
+      // 切站守衛（執行長 2026-07-19）：「切走即關」的站有未完成資料 → 先確認
+      //（站 2 切走保活不會註冊；取消 → 留在原站、選單留著讓使用者 Esc 回去）
+      if (current !== null && current !== no && stationHasUnsavedData(current)) {
+        if (!window.confirm('目前站內還有未完成的資料、切站會清空——確定切換？')) return;
+      }
+      if (no === 2) setQuoteMounted(true);
+      setLastStation(no);
+      setCurrent(no);
+      setMenuOpen(false);
+    },
+    [current],
+  );
 
   // F2 = 選單 toggle（window capture：比照原 F5 範式、modal 開著也叫得出來）
   // 鍵位宣告：design/keyboard/keymap-registry.ts『instant-workbench』（全域保留鍵 SSOT）

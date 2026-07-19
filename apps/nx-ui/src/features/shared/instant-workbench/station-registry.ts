@@ -36,3 +36,26 @@ export const INSTANT_STATIONS: InstantStationDef[] = [
 ];
 
 export const LIVE_STATIONS = INSTANT_STATIONS.filter((s) => s.status === 'live');
+
+// ── 站內未完成資料守衛（執行長 2026-07-19：站內有資料、關窗/切站要先跳確認）──
+// 只有「切走即關、資料會真丟」的站需要註冊（站 4 即時銷售）；
+// 站 2 切走保活、站 3 清單存 localStorage、站 1 純查詢——關了不丟資料、不註冊。
+// 站自己的 X/Esc 關窗由站內 guardedClose 自查；殼切站前呼叫 stationHasUnsavedData。
+const dirtyCheckers = new Map<InstantStationNo, () => boolean>();
+
+/** 站掛載時註冊「目前有無未完成資料」檢查；回傳解除函式（unmount 時呼叫） */
+export function registerStationDirtyChecker(no: InstantStationNo, check: () => boolean): () => void {
+  dirtyCheckers.set(no, check);
+  return () => {
+    if (dirtyCheckers.get(no) === check) dirtyCheckers.delete(no);
+  };
+}
+
+/** 殼切站前查：該站目前是否有未完成資料（未註冊 → false） */
+export function stationHasUnsavedData(no: InstantStationNo): boolean {
+  try {
+    return dirtyCheckers.get(no)?.() ?? false;
+  } catch {
+    return false;
+  }
+}

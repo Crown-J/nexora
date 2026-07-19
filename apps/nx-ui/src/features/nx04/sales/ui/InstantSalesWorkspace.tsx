@@ -22,11 +22,18 @@ import { getQuotePriceIntel } from '@data/endpoints/nx04/quote/api/quote';
 import { createInquiryRecord, createQuoteRecord, listInquiryRecords } from '@data/endpoints/nx04/record/api/record';
 import { createSo, createTiFromSo, softDeleteSo, updateSo } from '@data/endpoints/nx04/so/api/so';
 import type { InquiryRecord } from '@data/types/nx04/record';
+import {
+  createPartnerAddress,
+  listPartnerAddresses,
+  type PartnerAddressRow,
+} from '@data/endpoints/shared/address/partner-address-api';
 import { getPartner } from '@data/endpoints/shared/master/partner/api/partner';
 import { FocusLockedDialog } from '@design/primitives/focus-locked-dialog';
 
 import { CustomerPicker, type PickedCustomer } from '@/features/nx04/quote/ui/CustomerPicker';
 import { PartPicker, type PickedPart } from '@/features/nx04/quote/ui/PartPicker';
+import { formatAddressOneLine } from '@/features/shared/address/AddressPicker';
+import { registerStationDirtyChecker } from '@/features/shared/instant-workbench/station-registry';
 
 /** 站內步驟號（5 步；與 SO 建單流程對應） */
 type SalesStage = 1 | 2 | 3 | 4 | 5;
@@ -135,6 +142,22 @@ function defaultAccountPeriod(statementDay: number | null | undefined): string {
 /** 稅率：不開發票（invoiceCopies=0）→ 0%，否則 5%（營業稅） */
 const taxRateOf = (invoiceCopies: number) => (invoiceCopies === 0 ? 0 : 5);
 
+/** 送貨地址列 → 單行字串（結構化組字對齊 backend compose；freeform / 標籤兜底）
+ *  ⚠️ seed／恆迎歷史資料常把台灣地址整串放 freeformAddress（結構化欄只有郵遞區號）——
+ *  結構化組不出街道級內容（無 streetName/buildingNo）時、把 freeform 併上、不然只剩「106」這種郵碼 */
+function shipAddressOneLine(r: PartnerAddressRow): string {
+  const line = formatAddressOneLine(r, {
+    countryName: r.country?.name ?? null,
+    countryCode: r.country?.code ?? null,
+    cityName: r.city?.name ?? null,
+    districtName: r.district?.name ?? null,
+  });
+  if (r.freeformAddress && !r.streetName && !r.buildingNo) {
+    return [line, r.freeformAddress].filter(Boolean).join(' ').trim() || r.label || '';
+  }
+  return line || r.freeformAddress || r.label || '';
+}
+
 /** 建單結果（Step 5 顯示用） */
 type OrderResult = { docNo: string; stockLines: number; transferLines: number; tiDocNos: string[] };
 
@@ -199,6 +222,8 @@ function InstantSalesDialog({ onClose }: { onClose: () => void }) {
   const [deliveryType, setDeliveryType] = useState('P');
   // 送貨地點／取貨註記（執行長 2026-07-18：必填——A 叫貨送 B、B 來取都要寫清楚）
   const [deliveryAddress, setDeliveryAddress] = useState('');
+  // 客戶送貨地點清單（nx01_partner_address SHIPPING；執行長 2026-07-19：接主檔＋可快速建立）
+  const [shipAddresses, setShipAddresses] = useState<PartnerAddressRow[]>([]);
   // 送出/結果
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -372,7 +397,11 @@ function InstantSalesDialog({ onClose }: { onClose: () => void }) {
   }, [customer, submitting, orderResult, lines, deliveryType, deliveryAddress, invoiceCopies, paymentTerm, accountPeriod]);
 
   // 選客戶 → 帶回客戶預設（結帳日算帳期、發票聯式、付款條件提示）
+  const pickedCustomerIdRef = useRef<string | null>(null);
   const handlePickCustomer = useCallback((c: PickedCustomer) => {
+    // 換不同客戶 → 送貨地點歸零（舊客戶的地址帶到新客戶是錯資料）
+    if (pickedCustomerIdRef.current !== null && pickedCustomerIdRef.current !== c.id) setDeliveryAddress('');
+    pickedCustomerIdRef.current = c.id;
     setCustomer(c);
     getPartner(c.id)
       .then((p) => {
@@ -385,11 +414,23 @@ function InstantSalesDialog({ onClose }: { onClose: () => void }) {
         setInvoiceCopies(d.defaultInvoiceCopies ?? 3);
         setPaymentTerm(d.paymentTermDomestic || 'CASH');
         setAccountPeriod(defaultAccountPeriod(d.statementDay));
-        // 送貨地點預填客戶主檔地址（可改；空的就留給業務填）
-        setDeliveryAddress((prev) => prev || p.address || '');
       })
       .catch(() => {
         /* 帶不到預設不擋、留手選 */
+      });
+    // 送貨地點接衛星表（partner.address 純文字欄已 DROP、原 p.address 預填從沒生效過）：
+    // 抓 SHIPPING 清單給步驟 3 下拉、預設地址（isDefault）預填（欄位空著才填、不蓋手打內容）
+    setShipAddresses([]);
+    listPartnerAddresses(c.id)
+      .then((rows) => {
+        const ship = rows.filter((r) => r.addressType === 'SHIPPING' && r.isActive);
+        setShipAddresses(ship);
+        const def = ship.find((r) => r.isDefault) ?? ship[0];
+        const line = def ? shipAddressOneLine(def) : '';
+        if (line) setDeliveryAddress((prev) => prev || line);
+      })
+      .catch(() => {
+        /* 清單抓不到不擋、留手填 */
       });
   }, []);
 
@@ -408,12 +449,21 @@ function InstantSalesDialog({ onClose }: { onClose: () => void }) {
     return () => document.removeEventListener('keydown', h, true);
   }, []);
 
+  // 關窗守衛（執行長 2026-07-19：站內有資料、關窗/切站都要先確認）；建單完成（orderResult）後放行
+  const dirtyRef = useRef(false);
+  dirtyRef.current = !orderResult && (customer !== null || lines.length > 0 || deliveryAddress.trim() !== '');
+  useEffect(() => registerStationDirtyChecker(4, () => dirtyRef.current), []);
+  const guardedClose = useCallback(() => {
+    if (dirtyRef.current && !window.confirm('訂單還沒送出、關閉會清空已填內容——確定關閉？')) return;
+    onClose();
+  }, [onClose]);
+
   const cur = STAGE_DEFS.find((s) => s.n === stage)!;
 
   return (
     <FocusLockedDialog
       open
-      onClose={onClose}
+      onClose={guardedClose}
       ariaLabel="即時銷售"
       initialFocusRef={customerInputRef}
       backdropClassName="bg-black/45 backdrop-blur-[2px] animate-in fade-in duration-150"
@@ -435,7 +485,7 @@ function InstantSalesDialog({ onClose }: { onClose: () => void }) {
         </kbd>
         <button
           type="button"
-          onClick={onClose}
+          onClick={guardedClose}
           aria-label="關閉"
           className="rounded-md p-1 text-muted-foreground hover:bg-muted/50 hover:text-foreground"
         >
@@ -505,6 +555,9 @@ function InstantSalesDialog({ onClose }: { onClose: () => void }) {
               setDeliveryType={setDeliveryType}
               deliveryAddress={deliveryAddress}
               setDeliveryAddress={setDeliveryAddress}
+              customerId={customer?.id ?? null}
+              addresses={shipAddresses}
+              onAddressCreated={(row) => setShipAddresses((prev) => [...prev, row])}
               onNext={() => setStage(4)}
             />
           ) : stage === 4 ? (
@@ -1373,6 +1426,9 @@ function TransactionStep({
   setDeliveryType,
   deliveryAddress,
   setDeliveryAddress,
+  customerId,
+  addresses,
+  onAddressCreated,
   onNext,
 }: {
   custDefaults: CustomerDefaults | null;
@@ -1386,6 +1442,9 @@ function TransactionStep({
   setDeliveryType: (v: string) => void;
   deliveryAddress: string;
   setDeliveryAddress: (v: string) => void;
+  customerId: string | null;
+  addresses: PartnerAddressRow[];
+  onAddressCreated: (row: PartnerAddressRow) => void;
   onNext: () => void;
 }) {
   // 客戶預設（標星號用）
@@ -1403,6 +1462,56 @@ function TransactionStep({
   const addressRef = useRef<HTMLInputElement>(null);
   const focusSelectedIn = (el: HTMLDivElement | null) =>
     el?.querySelector<HTMLElement>('[tabindex="0"]')?.focus();
+
+  // ── 送貨地點下拉（客戶送貨地點表 nx01_partner_address SHIPPING；執行長 2026-07-19）──
+  // 輸入即過濾常用地點、↑↓ 選 Enter 帶入；打的內容不在清單 → 尾列「＋存入客戶送貨地點」
+  const [addrOpen, setAddrOpen] = useState(false);
+  const [addrHi, setAddrHi] = useState(0);
+  // 是否按過 ↑↓（「＋存入」列只有主動移過去 Enter 才觸發；直接 Enter＝手打註記走下一步、不誤存）
+  const [addrNav, setAddrNav] = useState(false);
+  const [addrSaving, setAddrSaving] = useState(false);
+  const [addrSaveErr, setAddrSaveErr] = useState<string | null>(null);
+  const addrListRef = useRef<HTMLDivElement>(null);
+  const q = deliveryAddress.trim();
+  const addrEntries = addresses.map((a) => ({ a, line: shipAddressOneLine(a) })).filter((e) => e.line);
+  const addrFiltered = q
+    ? addrEntries.filter((e) => e.line.includes(q) || (e.a.label ?? '').includes(q))
+    : addrEntries;
+  // 快速存入：有客戶、有內容、不與既有列完全相同；> 100 字超過欄寬不給存（streetName VARCHAR(100)）
+  const canQuickSave =
+    !!customerId && !!q && q.length <= 100 && !addrEntries.some((e) => e.line === q) && !addrSaving;
+  const addrOptionCount = addrFiltered.length + (canQuickSave ? 1 : 0);
+  useEffect(() => {
+    setAddrHi((h) => Math.min(h, Math.max(0, addrOptionCount - 1)));
+  }, [addrOptionCount]);
+  useEffect(() => {
+    addrListRef.current?.querySelector(`[data-hi="${addrHi}"]`)?.scrollIntoView({ block: 'nearest' });
+  }, [addrHi, addrOpen]);
+
+  const pickAddr = (line: string) => {
+    setDeliveryAddress(line);
+    setAddrOpen(false);
+  };
+  // 快速建立：寫進 streetName（TW 組字含街道、主檔地址管理也看得到／可再補齊細欄）；
+  // 不用 freeformAddress——那是非 TW 專用、TW 組字不吃、其他模組會顯示成空地址
+  const quickSaveAddr = async () => {
+    if (!customerId || !canQuickSave) return;
+    setAddrSaving(true);
+    setAddrSaveErr(null);
+    try {
+      const row = await createPartnerAddress(customerId, {
+        addressType: 'SHIPPING',
+        streetName: q,
+        isDefault: addresses.length === 0,
+      });
+      onAddressCreated(row);
+      setAddrOpen(false);
+    } catch (e) {
+      setAddrSaveErr(e instanceof Error ? e.message : '存入失敗');
+    } finally {
+      setAddrSaving(false);
+    }
+  };
 
   return (
     <div className="flex flex-1 flex-col gap-6">
@@ -1460,23 +1569,117 @@ function TransactionStep({
         <div className="mb-1.5 text-[12px] font-bold text-muted-foreground">
           送貨地點 <span className="text-destructive">*</span>
         </div>
-        <input
-          ref={addressRef}
-          value={deliveryAddress}
-          onChange={(e) => setDeliveryAddress(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && deliveryAddress.trim()) {
-              e.preventDefault();
-              onNext();
-            }
-          }}
-          maxLength={200}
-          placeholder="送哪裡／誰來取（例：送林口B店、王先生下午來取）"
-          className="w-full rounded-lg border border-border/60 bg-background px-3 py-1.5 text-sm text-foreground"
-        />
-        <div className="mt-1 text-[11px] text-muted-foreground">
-          必填——常有「A 叫貨送 B 地點」「A 叫貨 B 來取」，要寫清楚給倉庫。
+        <div className="relative">
+          <input
+            ref={addressRef}
+            value={deliveryAddress}
+            onChange={(e) => {
+              setDeliveryAddress(e.target.value);
+              setAddrOpen(true);
+              setAddrNav(false);
+              setAddrSaveErr(null);
+            }}
+            onFocus={() => {
+              if (addrOptionCount > 0) setAddrOpen(true);
+              setAddrHi(0);
+              setAddrNav(false);
+            }}
+            onBlur={() => setTimeout(() => setAddrOpen(false), 120)}
+            onKeyDown={(e) => {
+              if (addrOpen && addrOptionCount > 0) {
+                if (e.key === 'ArrowDown') {
+                  e.preventDefault();
+                  setAddrHi((h) => Math.min(addrOptionCount - 1, h + 1));
+                  setAddrNav(true);
+                  return;
+                }
+                if (e.key === 'ArrowUp') {
+                  e.preventDefault();
+                  setAddrHi((h) => Math.max(0, h - 1));
+                  setAddrNav(true);
+                  return;
+                }
+                if (e.key === 'Escape') {
+                  // 只收下拉、不關整站（stopPropagation 擋住 FocusLockedDialog 的 Esc）
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setAddrOpen(false);
+                  return;
+                }
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  if (addrHi < addrFiltered.length) {
+                    const line = addrFiltered[addrHi].line;
+                    // 高亮列＝已填的內容 → 視為確認、直接下一步
+                    if (line === q) {
+                      setAddrOpen(false);
+                      onNext();
+                    } else pickAddr(line);
+                  } else if (addrNav) {
+                    // 主動 ↑↓ 移到「＋存入」列才存；沒移過＝手打註記、Enter 走下一步
+                    void quickSaveAddr();
+                  } else if (q) {
+                    setAddrOpen(false);
+                    onNext();
+                  }
+                  return;
+                }
+              }
+              if (e.key === 'Enter' && deliveryAddress.trim()) {
+                e.preventDefault();
+                onNext();
+              }
+            }}
+            maxLength={200}
+            placeholder="送哪裡／誰來取（例：送林口B店、王先生下午來取）"
+            className="w-full rounded-lg border border-border/60 bg-background px-3 py-1.5 text-sm text-foreground"
+          />
+          {addrOpen && addrOptionCount > 0 ? (
+            <div
+              ref={addrListRef}
+              className="absolute z-30 mt-1 max-h-56 w-full overflow-auto rounded-lg border border-border bg-card shadow-lg"
+            >
+              {addrFiltered.map((e, i) => (
+                <button
+                  key={e.a.id}
+                  type="button"
+                  data-hi={i}
+                  onMouseDown={(ev) => {
+                    ev.preventDefault();
+                    pickAddr(e.line);
+                  }}
+                  className={`flex w-full items-center gap-1.5 px-2 py-1.5 text-left text-sm ${i === addrHi ? 'bg-primary/15' : ''} hover:bg-accent/15`}
+                >
+                  {e.a.isDefault ? <Star size={11} className="shrink-0 fill-primary text-primary" /> : null}
+                  {e.a.label ? (
+                    <span className="shrink-0 rounded bg-muted/60 px-1 text-[10px] text-muted-foreground">
+                      {e.a.label}
+                    </span>
+                  ) : null}
+                  <span className="truncate">{e.line}</span>
+                </button>
+              ))}
+              {canQuickSave ? (
+                <button
+                  type="button"
+                  data-hi={addrFiltered.length}
+                  onMouseDown={(ev) => {
+                    ev.preventDefault();
+                    void quickSaveAddr();
+                  }}
+                  className={`block w-full border-t border-border/40 px-2 py-1.5 text-left text-sm text-primary ${addrFiltered.length === addrHi ? 'bg-primary/15' : ''} hover:bg-accent/15`}
+                >
+                  ＋ 把「{q}」存入客戶送貨地點
+                </button>
+              ) : null}
+            </div>
+          ) : null}
         </div>
+        <div className="mt-1 text-[11px] text-muted-foreground">
+          必填——常有「A 叫貨送 B 地點」「A 叫貨 B 來取」，要寫清楚給倉庫。↑↓ 選常用地點、Enter 帶入。
+        </div>
+        {addrSaving ? <div className="mt-1 text-[11px] text-muted-foreground">存入客戶送貨地點…</div> : null}
+        {addrSaveErr ? <div className="mt-1 text-[11px] text-destructive">存入失敗：{addrSaveErr}</div> : null}
       </div>
       <div className="mt-auto flex items-center justify-end gap-3">
         {!deliveryAddress.trim() ? <span className="text-[11px] text-destructive">送貨地點未填</span> : null}
