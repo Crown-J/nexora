@@ -614,10 +614,7 @@ function isShortcutDockActive(pathname: string, href: string): boolean {
  */
 const HIDE_MOBILE_DOCK_PREFIXES = [
   '/dashboard/master',
-  // R5：SOP 精品示範有自己的固定底部操作列，避免與全站 DOCK 雙 bar 衝突
-  '/dashboard/purchase/sop-demo',
-  // R6：國內銷貨 SOP 精品示範同理
-  '/dashboard/sale/sop-demo',
+  // MOCK-CLEAN 2026-07-19：R5/R6 SOP 精品示範（sop-demo）整包退役、對應隱藏規則移除
 ];
 const HIDE_MOBILE_DOCK_EXACT = [
   '/dashboard/purchase',
