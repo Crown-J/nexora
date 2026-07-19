@@ -46,6 +46,22 @@ export async function listWarrantyClaims(params: ListWarrantyClaimParams): Promi
   return res.json() as Promise<PagedWarrantyClaim>;
 }
 
+/** 站 5 即時銷退・保固步驟：建議供應商＝該料最近進貨（RR）供應商；查無回 null（改手選） */
+export type SuggestedSupplier = {
+  supplierId: string;
+  supplierCode: string;
+  supplierName: string;
+  sourceRrDocNo: string;
+};
+
+export async function suggestWarrantySupplier(partId: string): Promise<SuggestedSupplier | null> {
+  const qs = buildQueryString({ partId });
+  const res = await apiFetch(`${BASE}/suggest-supplier${qs}`, { method: 'GET' });
+  await assertOk(res, 'nxui_nx02_warranty_claim_suggest_supplier');
+  const text = await res.text();
+  return text ? (JSON.parse(text) as SuggestedSupplier) : null;
+}
+
 export async function getWarrantyClaim(id: string): Promise<WarrantyClaimDto> {
   const res = await apiFetch(`${BASE}/${encodeURIComponent(id)}`, { method: 'GET' });
   await assertOk(res, 'nxui_nx02_warranty_claim_get');
