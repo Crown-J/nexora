@@ -98,6 +98,33 @@ export class WarrantyClaimService {
     return where;
   }
 
+  /// 站 5 即時銷退・保固步驟（執行長 2026-07-19 拍板）：建議供應商＝該料最近一次進貨（RR）供應商。
+  /// 零件主檔無預設供應商欄、以進貨事實推定；查無進貨紀錄回 null（前端改手選）。
+  async suggestSupplier(user: RequestUser, partId: string) {
+    const tenantId = requireTenantId(user);
+    if (!partId?.trim()) throw new BadRequestException('partId is required');
+    const row = await this.prisma.nx02RrItem.findFirst({
+      where: { partId: partId.trim(), rr: { tenantId } },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        rr: {
+          select: {
+            docNo: true,
+            supplierId: true,
+            supplier: { select: { code: true, name: true } },
+          },
+        },
+      },
+    });
+    if (!row) return null;
+    return {
+      supplierId: row.rr.supplierId,
+      supplierCode: row.rr.supplier.code,
+      supplierName: row.rr.supplier.name,
+      sourceRrDocNo: row.rr.docNo,
+    };
+  }
+
   async list(user: RequestUser, q: ListWarrantyClaimQueryDto) {
     const tenantId = requireTenantId(user);
     const page = q.page ?? 1;

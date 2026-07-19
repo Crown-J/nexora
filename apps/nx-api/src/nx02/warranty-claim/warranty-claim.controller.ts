@@ -36,6 +36,13 @@ export class WarrantyClaimController {
     return this.svc.list(user, q);
   }
 
+  /// 站 5 即時銷退（2026-07-19）：保固建議供應商＝該料最近進貨供應商（⚠️ 須排在 :id 路由前）
+  @Get('suggest-supplier')
+  @Permission('purchase.warranty-claim.create')
+  suggestSupplier(@CurrentUser() user: RequestUser, @Query('partId') partId: string) {
+    return this.svc.suggestSupplier(user, partId);
+  }
+
   @Get(':id')
   @Permission('purchase.warranty-claim.view')
   getById(@CurrentUser() user: RequestUser, @Param('id') id: string) {
