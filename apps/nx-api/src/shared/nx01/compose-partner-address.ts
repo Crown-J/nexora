@@ -80,6 +80,13 @@ export async function composePartnerDefaultShippingAddress(
     if (row.floor) parts.push(`${row.floor}樓`);
     if (row.roomNo) parts.push(`${row.roomNo}室`);
     oneLine = parts.join('').trim();
+    // ⚠️ seed／恆迎歷史資料常把台灣地址整串放 freeformAddress（結構化欄只有郵遞區號）——
+    // 結構化組不出街道級內容（無 streetName/buildingNo）時把 freeform 併上，
+    // 不然這批資料只組得出「106」這種郵碼、甚至空字串（執行長 2026-07-19 拍板直接修；
+    // 對齊前端 InstantSalesWorkspace shipAddressOneLine 同款兜底）
+    if (row.freeformAddress && !row.streetName && !row.buildingNo) {
+      oneLine = [oneLine, row.freeformAddress].filter(Boolean).join(' ').trim();
+    }
   }
 
   return {
