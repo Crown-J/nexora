@@ -6,7 +6,7 @@
 // status='planned' 的站不渲染分頁、數字鍵無效（執行長拍板：不顯示「開發中」灰分頁）。
 // permissionCode：B 期防線①（無權限 → 分頁不渲染、數字鍵無效）；A 期全站未掛權限、先留位。
 
-export type InstantStationNo = 1 | 2 | 3 | 4 | 5;
+export type InstantStationNo = 1 | 2 | 3 | 4 | 5 | 6;
 
 export type InstantStationDef = {
   /** 檯內裸數字鍵（焦點守衛下切站） */
@@ -31,8 +31,11 @@ export const INSTANT_STATIONS: InstantStationDef[] = [
   { no: 3, id: 'transfer-inquiry', label: '調貨詢價', anchor: 'transfer-target', status: 'live' },
   // 站 4：即時銷售（成交快速建單、客戶為錨；5 步 客戶→明細→交易→出貨→訊息 → 建單+確認送撿貨清單）
   { no: 4, id: 'instant-sales', label: '即時銷售', anchor: 'customer', hint: '先定客戶・成交開單', status: 'live' },
-  // 站 5：即時補貨（補貨籃；批次產單型別待執行長用實例拍板、順延未做）
-  { no: 5, id: 'replenish-basket', label: '即時補貨', anchor: 'basket', status: 'planned' },
+  // 站 5：即時銷退（執行長 2026-07-19 拍板：接手站 5、只收業務發起 A、送出直接轉檢驗中；
+  //        5 步 客戶→挑原單退行→退貨資訊→確認→訊息；一張銷退綁一張原銷貨單、跨單走「下一單」）
+  { no: 5, id: 'instant-sr', label: '即時銷退', anchor: 'customer', hint: '先定客戶・退貨開單', status: 'live' },
+  // 站 6：即時補貨（原站 5 順延挪號、2026-07-19；補貨籃；批次產單型別待執行長用實例拍板、未做）
+  { no: 6, id: 'replenish-basket', label: '即時補貨', anchor: 'basket', status: 'planned' },
 ];
 
 export const LIVE_STATIONS = INSTANT_STATIONS.filter((s) => s.status === 'live');

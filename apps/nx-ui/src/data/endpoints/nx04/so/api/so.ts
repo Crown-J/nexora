@@ -12,6 +12,7 @@ import type {
   OpenQuoteLine,
   PatchSoItemPayload,
   PendingTransferLinesResponse,
+  ReturnableSo,
   So,
   SoItem,
   SoListResponse,
@@ -93,6 +94,12 @@ export function removeSoItem(soId: string, itemId: string): Promise<{ ok: true }
 export function listOpenQuoteLines(customerId: string): Promise<OpenQuoteLine[]> {
   const qs = buildQueryString({ customerId });
   return apiJson(`/nx04/so/quote-lines/open${qs}`);
+}
+
+/// 即時銷退站 5：該客戶可退貨 SO＋行（含已退量/可退量）
+export function listReturnableSoLines(customerId: string): Promise<ReturnableSo[]> {
+  const qs = buildQueryString({ customerId });
+  return apiJson(`/nx04/so/returnable-lines${qs}`);
 }
 
 /// SO 待調貨行清單（給 IT-O 觸發 UI 用）

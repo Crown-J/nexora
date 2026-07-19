@@ -218,6 +218,31 @@ export interface OpenQuoteLine {
   createdAt: string;
 }
 
+/// 可退貨 SO＋行（GET /nx04/so/returnable-lines；即時銷退站 5、2026-07-19）
+export interface ReturnableSoLine {
+  soItemId: string;
+  lineNo: number;
+  partId: string;
+  partNo: string;
+  partName: string;
+  /** 退貨政策（F=自由/S=標準/R=限制/N=不可退/W=保固） */
+  returnPolicy: string;
+  qty: string;
+  unitPrice: string;
+  returnedQty: string;
+  returnableQty: string;
+}
+
+export interface ReturnableSo {
+  soId: string;
+  docNo: string;
+  soDate: string;
+  status: string;
+  taxRate: string;
+  totalAmount: string;
+  items: ReturnableSoLine[];
+}
+
 /// 待調貨行（GET /nx04/so/:id/pending-transfer-lines）
 export interface PendingTransferLinesResponse {
   soId: string;

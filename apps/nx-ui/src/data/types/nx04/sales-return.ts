@@ -131,7 +131,7 @@ export interface CreateSrItemPayload {
 export interface CreateSrPayload {
   soId: string;
   srDate: string;
-  /// R 退錢 / D 折讓 / X 換新
+  /// 取件方式（S=客戶自行送回 / C=外務順路取回 / P=客戶自行寄回）
   returnMethod: string;
   /** 05 補做 C1 2026-06-09：退回方式（A=業務發起 / B=送貨員當場帶回） */
   initiationType?: 'A' | 'B';

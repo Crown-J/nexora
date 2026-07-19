@@ -25,6 +25,7 @@ import { FocusLockedDialog } from '@design/primitives/focus-locked-dialog';
 import { GlobalTransferInquiry } from '@/features/nx04/quote/ui/GlobalTransferInquiry';
 import { QuoteWorkspace } from '@/features/nx04/quote/ui/QuoteWorkspace';
 import { InstantSalesWorkspace } from '@/features/nx04/sales/ui/InstantSalesWorkspace';
+import { InstantSalesReturnWorkspace } from '@/features/nx04/sales-return/ui/InstantSalesReturnWorkspace';
 
 import { LIVE_STATIONS, stationHasUnsavedData, type InstantStationNo } from './station-registry';
 
@@ -127,6 +128,9 @@ export function InstantWorkbench() {
 
       {/* 站 4 即時銷售（成交快速建單精靈；切走即關＝比照站 1/3 toggle 行為） */}
       <InstantSalesWorkspace open={current === 4} onClosed={stationClosed} />
+
+      {/* 站 5 即時銷退（業務發起退貨開單精靈、執行長 2026-07-19；切走即關、守衛同站 4） */}
+      <InstantSalesReturnWorkspace open={current === 5} onClosed={stationClosed} />
     </>
   );
 }

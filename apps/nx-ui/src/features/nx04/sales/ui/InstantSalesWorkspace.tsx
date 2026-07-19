@@ -1312,8 +1312,9 @@ function PeerPickDialog({
   );
 }
 
-/** 選項膠囊組（付款/發票/取貨共用；鍵盤 radiogroup：←→↑↓ 選、Tab 進出、預設值標示） */
-function PillGroup<T extends string | number>({
+/** 選項膠囊組（付款/發票/取貨共用；鍵盤 radiogroup：←→↑↓ 選、Tab 進出、預設值標示）
+ *  export：站 5 即時銷退（InstantSalesReturnWorkspace）取件方式共用（2026-07-19） */
+export function PillGroup<T extends string | number>({
   label,
   options,
   value,
