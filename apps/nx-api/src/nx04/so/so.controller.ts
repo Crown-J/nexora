@@ -39,6 +39,13 @@ export class SoController {
     return this.svc.listOpenQuoteLines(user, customerId);
   }
 
+  /// 即時銷退站 5（2026-07-19）：該客戶可退貨 SO＋行（含已退量/可退量；⚠️ 須排在 :id 路由前）
+  @Get('returnable-lines')
+  @Permission('sale.sr.create')
+  returnableLines(@CurrentUser() user: RequestUser, @Query('customerId') customerId: string) {
+    return this.svc.listReturnableSoLines(user, customerId);
+  }
+
   /// NX04-M2 §A C3：SO 待調貨行清單（transferSourceType='G' + transferStatus='P'）
   @Get(':id/pending-transfer-lines')
   @Permission('sale.so.view')

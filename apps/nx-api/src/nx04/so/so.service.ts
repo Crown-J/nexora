@@ -23,6 +23,7 @@ import { Nx04ListQueryDto } from '../../shared/nx04/nx04-list-query.dto';
 import {
   assertSoStatusTransition,
   QuoteStatus,
+  SalesReturnStatus,
   SoStatus,
 } from '../../shared/nx04/nx04-state-machine';
 import { autoCreateTransferFromSo } from '../../shared/nx03/nx03-auto-transfer-from-so';
@@ -692,6 +693,85 @@ export class SoService {
         belowMinReason: r.belowMinReason,
         createdAt: r.createdAt,
       }));
+  }
+
+  /// 即時銷退站 5（執行長 2026-07-19 拍板）：該客戶可退貨 SO 清單＋行已退量/可退量。
+  /// 範圍：SHIPPED/INVOICED、未作廢、近 20 張（顯示範圍、非業務閘門——退貨政策在 SR 端擋）；
+  /// 已退量口徑對齊 sales-return.service validateReturnQty（SR 非 CANCELLED/REJECTED 都算）。
+  async listReturnableSoLines(user: RequestUser, customerId: string) {
+    const tenantId = requireTenantId(user);
+    if (!customerId?.trim()) throw new BadRequestException('customerId is required');
+    const sos = await this.prisma.nx04So.findMany({
+      where: {
+        tenantId,
+        customerId: customerId.trim(),
+        cancelledAt: null,
+        status: { in: [SoStatus.SHIPPED, SoStatus.INVOICED] },
+      },
+      orderBy: [{ soDate: 'desc' }, { createdAt: 'desc' }],
+      take: 20,
+      select: {
+        id: true,
+        docNo: true,
+        soDate: true,
+        status: true,
+        taxRate: true,
+        totalAmount: true,
+        rev_Nx04SoItem_soId: {
+          orderBy: { lineNo: 'asc' },
+          select: {
+            id: true,
+            lineNo: true,
+            partId: true,
+            partNo: true,
+            partName: true,
+            qty: true,
+            unitPrice: true,
+            part: { select: { returnPolicy: true } },
+          },
+        },
+      },
+    });
+    const itemIds = sos.flatMap((s) => s.rev_Nx04SoItem_soId.map((i) => i.id));
+    const returnedRows = itemIds.length
+      ? await this.prisma.nx04SrItem.groupBy({
+          by: ['soItemId'],
+          where: {
+            soItemId: { in: itemIds },
+            sr: {
+              tenantId,
+              status: { notIn: [SalesReturnStatus.CANCELLED, SalesReturnStatus.REJECTED] },
+            },
+          },
+          _sum: { qty: true },
+        })
+      : [];
+    const returnedMap = new Map(
+      returnedRows.map((r) => [r.soItemId, new PrismaNs.Decimal(r._sum.qty ?? 0)]),
+    );
+    return sos.map((s) => ({
+      soId: s.id,
+      docNo: s.docNo,
+      soDate: s.soDate,
+      status: s.status,
+      taxRate: s.taxRate,
+      totalAmount: s.totalAmount,
+      items: s.rev_Nx04SoItem_soId.map((i) => {
+        const returned = returnedMap.get(i.id) ?? new PrismaNs.Decimal(0);
+        return {
+          soItemId: i.id,
+          lineNo: i.lineNo,
+          partId: i.partId,
+          partNo: i.partNo,
+          partName: i.partName,
+          returnPolicy: i.part.returnPolicy,
+          qty: i.qty,
+          unitPrice: i.unitPrice,
+          returnedQty: returned,
+          returnableQty: new PrismaNs.Decimal(i.qty).sub(returned),
+        };
+      }),
+    }));
   }
 
   private async createSoItemTx(
