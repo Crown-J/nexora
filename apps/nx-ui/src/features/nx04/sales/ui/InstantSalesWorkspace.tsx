@@ -1733,8 +1733,19 @@ function ConfirmStep({
       l.allocations.reduce((s, a) => s + a.qty, 0) !== l.qty,
   );
 
+  // 掛載自動聚焦「建立訂單」鈕（執行長 2026-07-19 抓的 bug：步驟 3 Enter 進來後焦點掉到 body、
+  // modal 守衛把下一鍵拉回視窗第一個可聚焦元素＝標題列 X → 連按 Enter 變成關窗而不是送出）
+  // 鈕 disabled（沒品項/未配平）時改聚焦容器、鍵盤留在視窗內
+  const submitRef = useRef<HTMLButtonElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const btn = submitRef.current;
+    if (btn && !btn.disabled) btn.focus();
+    else rootRef.current?.focus();
+  }, []);
+
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-3">
+    <div ref={rootRef} tabIndex={-1} className="flex min-h-0 flex-1 flex-col gap-3 outline-none">
       <div className="rounded-xl border border-border/40 p-3 text-[13px]">
         <div>
           <span className="text-muted-foreground">客戶　</span>
@@ -1813,6 +1824,7 @@ function ConfirmStep({
       <div className="flex items-center justify-end gap-3">
         {unbalanced ? <span className="text-[11px] text-destructive">有品項分配未配平（回步驟 2 調整）</span> : null}
         <button
+          ref={submitRef}
           type="button"
           disabled={submitting || lines.length === 0 || unbalanced}
           onClick={onSubmit}
@@ -1842,6 +1854,11 @@ function MessageStep({
   onClose: () => void;
 }) {
   const [copied, setCopied] = useState(false);
+  // 掛載自動聚焦「完成・下一單」（同步驟 4 的焦點掉 body 問題；建單完成後 Enter＝收單、不會誤觸 X）
+  const doneRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    doneRef.current?.focus();
+  }, []);
   if (!result) {
     return (
       <div className="grid flex-1 place-items-center text-sm text-muted-foreground">尚未建立訂單。</div>
@@ -1886,6 +1903,7 @@ function MessageStep({
 
       <div className="flex justify-end">
         <button
+          ref={doneRef}
           type="button"
           onClick={onClose}
           className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
