@@ -1141,6 +1141,8 @@ model Nx01Partner {
   rev_Nx02Qt_inquiryPartnerId              Nx02Qt[]                     @relation("R_Nx02Qt_inquiryPartnerId")
   rev_Nx02Rfq_supplierId                   Nx02Rfq[]                    @relation("R_Nx02Rfq_supplierId")
   rev_Nx02Rr_supplierId                    Nx02Rr[]                     @relation("R_Nx02Rr_supplierId")
+  rev_Nx02Rr_billingPartnerId              Nx02Rr[]                     @relation("R_Nx02Rr_billingPartnerId")
+  rev_Nx04So_billingPartnerId              Nx04So[]                     @relation("R_Nx04So_billingPartnerId")
   rev_Nx02Ti_partnerId                     Nx02Ti[]                     @relation("R_Nx02Ti_partnerId")
   rev_Nx02PartnerPart_partnerId            Nx02PartnerPart[]            @relation("R_Nx02PartnerPart_partnerId")
   rev_Nx03Parcel_toPartnerId               Nx03Parcel[]                 @relation("R_Nx03Parcel_toPartnerId")
@@ -2258,6 +2260,8 @@ model Nx02Pr {
   warehouseId           String         @map("warehouse_id") @db.VarChar(15)
   /// 退貨單號（唯一），[PR]+[年月]+[倉別]+[5碼流水號]，EX：PR-202602-Z01-00001；啟用最低需求版本：LITE
   docNo                 String         @map("doc_no") @db.VarChar(30)
+  /// 舊系統原單號（偉盟 RSIM.ROREN；歷史匯入冪等鍵＋追溯、null=系統原生單）；G1 偉盟匯入 2026-07-20 Crown 拍板；啟用最低需求版本：LITE
+  legacyDocNo           String?        @map("legacy_doc_no") @db.VarChar(20)
   /// 退貨日期；啟用最低需求版本：LITE
   prDate                DateTime       @map("pr_date") @db.Date
   /// 廠商 ID (外鍵)；啟用最低需求版本：LITE
@@ -2317,6 +2321,7 @@ model Nx02Pr {
   rev_Nx05ArLedger_prId Nx05ArLedger[] @relation("R_Nx05ArLedger_prId")
 
   @@unique([docNo])
+  @@unique([tenantId, legacyDocNo])
   @@map("nx02_pr")
 }
 
@@ -2328,8 +2333,8 @@ model Nx02PrItem {
   id           String        @id @default(dbgenerated("gen_nx02_pr_item_id()")) @db.VarChar(15)
   /// 對應退貨單表頭 ID；啟用最低需求版本：LITE
   prId         String        @map("pr_id") @db.VarChar(15)
-  /// 來源進貨明細 (外鍵)；啟用最低需求版本：LITE
-  rrItemId     String        @map("rr_item_id") @db.VarChar(15)
+  /// 來源進貨明細 (外鍵)。2026-07-20 改可空（Crown 拍板 G6、完全比照 Nx04SrItem.soItemId 2026-07-07 前例）：DB 層可空僅供偉盟歷史進退匯入（無原進貨單參照）；系統內建立進退仍必填（DTO/service 驗證、不受此變更影響）；啟用最低需求版本：LITE
+  rrItemId     String?       @map("rr_item_id") @db.VarChar(15)
   /// 明細行號（1,2,3…）；啟用最低需求版本：LITE
   lineNo       Int           @default(1) @map("line_no")
   /// 零件 ID；啟用最低需求版本：LITE
@@ -2359,7 +2364,7 @@ model Nx02PrItem {
   /// 退貨原因（E=數量多餘/D=外觀損壞/F=功能異常/W=規格不符/O=其他）。；啟用最低需求版本：LITE-CORE
   returnReason String        @default("O") @map("return_reason") @db.VarChar(1)
   pr           Nx02Pr        @relation("R_Nx02PrItem_prId", fields: [prId], references: [id])
-  rrItem       Nx02RrItem    @relation("R_Nx02PrItem_rrItemId", fields: [rrItemId], references: [id])
+  rrItem       Nx02RrItem?   @relation("R_Nx02PrItem_rrItemId", fields: [rrItemId], references: [id])
   part         Nx01Part      @relation("R_Nx02PrItem_partId", fields: [partId], references: [id])
   location     Nx01Location? @relation("R_Nx02PrItem_locationId", fields: [locationId], references: [id])
 
@@ -2539,10 +2544,20 @@ model Nx02Rr {
   warehouseId           String         @map("warehouse_id") @db.VarChar(15)
   /// 進貨單號（唯一），[RR]+[年月]+[倉別]+[5碼流水號]，EX：RR-202602-Z01-00001；啟用最低需求版本：LITE
   docNo                 String         @map("doc_no") @db.VarChar(30)
+  /// 舊系統原單號（偉盟 RSIM.ROREN；歷史匯入冪等鍵＋追溯、null=系統原生單）；G1 偉盟匯入 2026-07-20 Crown 拍板；啟用最低需求版本：LITE
+  legacyDocNo           String?        @map("legacy_doc_no") @db.VarChar(20)
   /// 進貨日期；啟用最低需求版本：LITE
   rrDate                DateTime       @map("rr_date") @db.Date
   /// 廠商 ID (外鍵)；啟用最低需求版本：LITE
   supplierId            String         @map("supplier_id") @db.VarChar(15)
+  /// 帳款對象（FK nx01_partner；可≠supplierId、null=同廠商）。偉盟進貨「其他」tab 帳款對象實務；G3 2026-07-20 Crown 拍板；啟用最低需求版本：LITE
+  billingPartnerId      String?        @map("billing_partner_id") @db.VarChar(15)
+  /// 關聯銷貨單（代購/直送：為特定銷貨現金採購；偉盟 RSIM.RORER 印證、循 Nx03St.refSoId 範式）；G5 2026-07-20 Crown 拍板；啟用最低需求版本：LITE
+  refSoId               String?        @map("ref_so_id") @db.VarChar(15)
+  /// 廠商發票號（偉盟 RSIM.ROINV；進項對帳用）；G4 2026-07-20 Crown 拍板；啟用最低需求版本：LITE
+  supplierInvoiceNo     String?        @map("supplier_invoice_no") @db.VarChar(20)
+  /// 廠商發票日期（偉盟 RSIM.RODAV）；G4 2026-07-20 Crown 拍板；啟用最低需求版本：LITE
+  supplierInvoiceDate   DateTime?      @map("supplier_invoice_date") @db.Date
   /// 來源詢價單據 id (外鍵)；啟用最低需求版本：LITE
   rfqId                 String?        @map("rfq_id") @db.VarChar(15)
   /// 來源採購單據 id (外鍵)；啟用最低需求版本：LITE
@@ -2592,6 +2607,8 @@ model Nx02Rr {
   tenant                Nx99Tenant     @relation("R_Nx02Rr_tenantId", fields: [tenantId], references: [id])
   warehouse             Nx01Warehouse  @relation("R_Nx02Rr_warehouseId", fields: [warehouseId], references: [id])
   supplier              Nx01Partner    @relation("R_Nx02Rr_supplierId", fields: [supplierId], references: [id])
+  billingPartner        Nx01Partner?   @relation("R_Nx02Rr_billingPartnerId", fields: [billingPartnerId], references: [id])
+  refSo                 Nx04So?        @relation("R_Nx02Rr_refSoId", fields: [refSoId], references: [id])
   rfq                   Nx02Rfq?       @relation("R_Nx02Rr_rfqId", fields: [rfqId], references: [id])
   po                    Nx02Po?        @relation("R_Nx02Rr_poId", fields: [poId], references: [id])
   ti                    Nx02Ti?        @relation("R_Nx02Rr_tiId", fields: [tiId], references: [id])
@@ -2602,6 +2619,7 @@ model Nx02Rr {
   rev_Nx05ApLedger_rrId Nx05ApLedger[] @relation("R_Nx05ApLedger_rrId")
 
   @@unique([docNo])
+  @@unique([tenantId, legacyDocNo])
   @@map("nx02_rr")
 }
 
@@ -3301,6 +3319,8 @@ model Nx03St {
   tenantId               String        @map("tenant_id") @db.VarChar(15)
   /// 調撥單號（唯一），[ST]+[年月]+[倉別]+[5碼流水號]，EX：ST-202602-Z01-00001；啟用最低需求版本：PLUS
   docNo                  String        @map("doc_no") @db.VarChar(30)
+  /// 舊系統原單號（偉盟 RSIM.ROREN；歷史匯入冪等鍵＋追溯、null=系統原生單）；G1 偉盟匯入 2026-07-20 Crown 拍板；啟用最低需求版本：PLUS
+  legacyDocNo            String?       @map("legacy_doc_no") @db.VarChar(20)
   /// 調撥日期；啟用最低需求版本：PLUS
   stDate                 DateTime      @map("st_date") @db.Date
   /// 來源倉庫 (外鍵)；啟用最低需求版本：PLUS
@@ -3352,6 +3372,7 @@ model Nx03St {
   rev_Nx03StItem_stId    Nx03StItem[]  @relation("R_Nx03StItem_stId")
   rev_Nx04SoItem_stId    Nx04SoItem[]  @relation("R_Nx04SoItem_stId")
 
+  @@unique([tenantId, legacyDocNo])
   @@map("nx03_st")
 }
 
@@ -3520,6 +3541,8 @@ model Nx03StockTake {
   tenantId                          String              @map("tenant_id") @db.VarChar(15)
   /// 盤點單號（唯一），[SL]+[年月]+[倉別]+[5碼流水號]，EX：SL-202602-Z01-00001；啟用最低需求版本：LITE
   docNo                             String              @map("doc_no") @db.VarChar(30)
+  /// 舊系統原單號（偉盟 RSIM.ROREN；歷史匯入冪等鍵＋追溯、null=系統原生單）；G1 偉盟匯入 2026-07-20 Crown 拍板；啟用最低需求版本：LITE
+  legacyDocNo                       String?             @map("legacy_doc_no") @db.VarChar(20)
   /// 盤點日期；啟用最低需求版本：LITE
   stockTakeDate                     DateTime            @map("stock_take_date") @db.Date
   /// 盤點倉庫（LITE 先以單倉/單次盤點為主）；啟用最低需求版本：LITE
@@ -3567,6 +3590,7 @@ model Nx03StockTake {
   rev_Nx03StockTakeItem_stockTakeId Nx03StockTakeItem[] @relation("R_Nx03StockTakeItem_stockTakeId")
 
   @@unique([docNo])
+  @@unique([tenantId, legacyDocNo])
   @@map("nx03_stock_take")
 }
 
@@ -3763,6 +3787,8 @@ model Nx03Disposal {
   tenantId     String             @map("tenant_id") @db.VarChar(15)
   /// 報廢單號（唯一），[DS]+[年月]+[倉別]+[5碼流水號]，EX：DS-202605-Z01-00001；啟用最低需求版本：LITE
   docNo        String             @map("doc_no") @db.VarChar(30)
+  /// 舊系統原單號（偉盟 RSIM.ROREN；歷史匯入冪等鍵＋追溯、null=系統原生單）；G1 偉盟匯入 2026-07-20 Crown 拍板；啟用最低需求版本：LITE
+  legacyDocNo  String?            @map("legacy_doc_no") @db.VarChar(20)
   /// 報廢倉庫；啟用最低需求版本：LITE
   warehouseId  String             @map("warehouse_id") @db.VarChar(15)
   /// 報廢日期；啟用最低需求版本：LITE
@@ -3794,6 +3820,7 @@ model Nx03Disposal {
   items        Nx03DisposalItem[] @relation("R_Nx03DisposalItem_disposalId")
 
   @@unique([docNo])
+  @@unique([tenantId, legacyDocNo])
   @@map("nx03_disposal")
 }
 
@@ -4402,10 +4429,14 @@ model Nx04So {
   warehouseId            String         @map("warehouse_id") @db.VarChar(15)
   /// 銷貨單號（唯一），[SO]+[年月]+[倉別]+[5碼流水號]，EX：SO-202604-Z01-00001；啟用最低需求版本：LITE-CORE
   docNo                  String         @map("doc_no") @db.VarChar(30)
+  /// 舊系統原單號（偉盟 RSIM.ROREN；歷史匯入冪等鍵＋追溯、null=系統原生單）；G1 偉盟匯入 2026-07-20 Crown 拍板；啟用最低需求版本：LITE-CORE
+  legacyDocNo            String?        @map("legacy_doc_no") @db.VarChar(20)
   /// 銷貨日期。；啟用最低需求版本：LITE-CORE
   soDate                 DateTime       @map("so_date") @db.Date
   /// 客戶ID（FK nx01_partner，partner_type=C）。；啟用最低需求版本：LITE-CORE
   customerId             String         @map("customer_id") @db.VarChar(15)
+  /// 帳款對象（FK nx01_partner；可≠customerId、null=同客戶）。偉盟銷貨「其他」tab 帳款對象（RSIM.RORCN）實務；G3 2026-07-20 Crown 拍板；啟用最低需求版本：LITE-CORE
+  billingPartnerId       String?        @map("billing_partner_id") @db.VarChar(15)
   /// 來源報價單ID（FK nx04_quote，可空=即時報價直接開單）。；啟用最低需求版本：LITE-CORE
   quoteId                String?        @map("quote_id") @db.VarChar(15)
   /// 業務員（FK Nx01User、跟 createdBy 開單人員分開）；05 補做 C2 2026-06-09
@@ -4470,6 +4501,7 @@ model Nx04So {
   tenant                 Nx99Tenant     @relation("R_Nx04So_tenantId", fields: [tenantId], references: [id])
   warehouse              Nx01Warehouse  @relation("R_Nx04So_warehouseId", fields: [warehouseId], references: [id])
   customer               Nx01Partner    @relation("R_Nx04So_customerId", fields: [customerId], references: [id])
+  billingPartner         Nx01Partner?   @relation("R_Nx04So_billingPartnerId", fields: [billingPartnerId], references: [id])
   quote                  Nx04Quote?     @relation("R_Nx04So_quoteId", fields: [quoteId], references: [id])
   currency               Nx01Currency   @relation("R_Nx04So_currencyId", fields: [currencyId], references: [id])
   salesPerson            Nx01User?      @relation("R_Nx04So_salesPersonId", fields: [salesPersonId], references: [id])
@@ -4479,8 +4511,10 @@ model Nx04So {
   rev_Nx04Sr_soId        Nx04Sr[]       @relation("R_Nx04Sr_soId")
   rev_Nx05ArLedger_soId  Nx05ArLedger[] @relation("R_Nx05ArLedger_soId")
   rev_Nx06Dn_sourceSoId  Nx06Dn[]       @relation("R_Nx06Dn_sourceSoId")
+  rev_Nx02Rr_refSoId     Nx02Rr[]       @relation("R_Nx02Rr_refSoId")
 
   @@unique([docNo])
+  @@unique([tenantId, legacyDocNo])
   @@index([specialPriceFlag])
   @@index([salesPersonId])
   @@index([tenantId, accountPeriod])
@@ -4518,6 +4552,8 @@ model Nx04SoItem {
   qty                           Decimal           @db.Decimal(14, 4)
   /// 銷售單價。；啟用最低需求版本：LITE-CORE
   unitPrice                     Decimal           @default(0) @map("unit_price") @db.Decimal(14, 4)
+  /// 銷貨成本快照（系統過帳時抓 stock_balance.avg_cost；偉盟匯入=RSIO.ROCOT 平均成本）。毛利=lineAmount−qty×unitCost；G2 2026-07-20 Crown 拍板；啟用最低需求版本：LITE-CORE
+  unitCost                      Decimal           @default(0) @map("unit_cost") @db.Decimal(14, 4)
   /// 折扣代碼ID（選填，FK nx01_discount_code）。；啟用最低需求版本：LITE-CORE
   discountCodeId                String?           @map("discount_code_id") @db.VarChar(15)
   /// 明細金額（qty × unit_price）。；啟用最低需求版本：LITE-CORE
@@ -4600,6 +4636,8 @@ model Nx04Sr {
   warehouseId           String        @map("warehouse_id") @db.VarChar(15)
   /// 銷退單號（唯一），[SR]+[年月]+[倉別]+[5碼流水號]，EX：SR-202604-Z01-00001；啟用最低需求版本：LITE-CORE
   docNo                 String        @map("doc_no") @db.VarChar(30)
+  /// 舊系統原單號（偉盟 RSIM.ROREN；歷史匯入冪等鍵＋追溯、null=系統原生單）；G1 偉盟匯入 2026-07-20 Crown 拍板；啟用最低需求版本：LITE-CORE
+  legacyDocNo           String?       @map("legacy_doc_no") @db.VarChar(20)
   /// 銷退日期。；啟用最低需求版本：LITE-CORE
   srDate                DateTime      @map("sr_date") @db.Date
   /// 客戶ID（FK nx01_partner）。；啟用最低需求版本：LITE-CORE
@@ -4652,6 +4690,7 @@ model Nx04Sr {
   rev_Nx06Dn_sourceSrId Nx06Dn[]      @relation("R_Nx06Dn_sourceSrId")
 
   @@unique([docNo])
+  @@unique([tenantId, legacyDocNo])
   @@map("nx04_sr")
 }
 
