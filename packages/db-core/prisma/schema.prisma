@@ -4191,6 +4191,91 @@ model Nx04Co {
 }
 
 /// =======================================================
+/// Nx04Order — DB table `nx04_order`（客戶訂單頭；偉盟 RORA 歷史匯入專用）
+/// 2026-07-20 Crown 拍板 G9：NEXORA 原生無獨立客戶訂單文件（動線報價→SO），
+/// 為忠實容納偉盟訂單 RORA/RORB（多行、含金額）新增此專用表。與 Nx04Co（缺貨補單、綁 SO）語意不同。
+/// 純量外鍵（FK 約束於 migration 建立），不參與現有關聯圖以縮小 schema 變更面。
+/// =======================================================
+model Nx04Order {
+  /// [NX04]+[ORDR]+[7碼流水號]，EX：NX04ORDR0000001
+  id           String    @id @db.VarChar(15)
+  /// 租戶 ID（FK nx99_tenant）
+  tenantId     String    @map("tenant_id") @db.VarChar(15)
+  /// 對應倉庫/門市（FK nx01_warehouse）
+  warehouseId  String    @map("warehouse_id") @db.VarChar(15)
+  /// 訂單號（唯一）
+  docNo        String    @map("doc_no") @db.VarChar(30)
+  /// 舊系統原單號（偉盟 RORA.RAREN；匯入冪等鍵＋追溯）
+  legacyDocNo  String?   @map("legacy_doc_no") @db.VarChar(20)
+  /// 訂單日期
+  orderDate    DateTime  @map("order_date") @db.Date
+  /// 客戶 ID（FK nx01_partner）
+  customerId   String    @map("customer_id") @db.VarChar(15)
+  /// 交期（偉盟 RADTO，選填）
+  expectedDate DateTime? @map("expected_date") @db.Date
+  /// 來源單號（偉盟 RACNO，可能引用報價，字串追溯用）
+  sourceDocNo  String?   @map("source_doc_no") @db.VarChar(30)
+  /// 付款方式（偉盟 RAPAY 快照）
+  paymentTerm  String?   @map("payment_term") @db.VarChar(40)
+  /// 小計（未稅）
+  subtotal     Decimal   @default(0) @db.Decimal(14, 2)
+  /// 稅率
+  taxRate      Decimal   @default(5) @map("tax_rate") @db.Decimal(5, 2)
+  /// 稅額
+  taxAmount    Decimal   @default(0) @map("tax_amount") @db.Decimal(14, 2)
+  /// 總額（含稅）
+  totalAmount  Decimal   @default(0) @map("total_amount") @db.Decimal(14, 2)
+  /// 狀態（歷史匯入一律 CLOSED）
+  status       String    @default("CLOSED") @db.VarChar(30)
+  /// 備註
+  remark       String?   @db.VarChar(200)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  createdBy    String    @map("created_by") @db.VarChar(15)
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  updatedBy    String    @map("updated_by") @db.VarChar(15)
+
+  @@unique([docNo])
+  @@unique([tenantId, legacyDocNo])
+  @@index([tenantId, customerId])
+  @@map("nx04_order")
+}
+
+/// =======================================================
+/// Nx04OrderItem — DB table `nx04_order_item`（客戶訂單身；偉盟 RORB）
+/// =======================================================
+model Nx04OrderItem {
+  /// [NX04]+[ORIT]+[7碼流水號]
+  id         String   @id @db.VarChar(15)
+  /// 對應訂單頭 ID（FK nx04_order）
+  orderId    String   @map("order_id") @db.VarChar(15)
+  /// 明細行號
+  lineNo     Int      @map("line_no")
+  /// 零件 ID（FK nx01_part）
+  partId     String   @map("part_id") @db.VarChar(15)
+  /// 料號快照
+  partNo     String   @map("part_no") @db.VarChar(50)
+  /// 品名快照
+  partName   String   @map("part_name") @db.VarChar(200)
+  /// 廠牌快照（偉盟 RBLAB）
+  brandName  String?  @map("brand_name") @db.VarChar(100)
+  /// 訂購數量
+  qty        Decimal  @default(0) @db.Decimal(14, 4)
+  /// 單價
+  unitPrice  Decimal  @default(0) @map("unit_price") @db.Decimal(14, 4)
+  /// 金額
+  lineAmount Decimal  @default(0) @map("line_amount") @db.Decimal(14, 2)
+  /// 備註（含折數/車型等併入）
+  remark     String?  @db.VarChar(200)
+  createdAt  DateTime @default(now()) @map("created_at")
+  createdBy  String   @map("created_by") @db.VarChar(15)
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  updatedBy  String   @map("updated_by") @db.VarChar(15)
+
+  @@index([orderId])
+  @@map("nx04_order_item")
+}
+
+/// =======================================================
 /// Nx04Quote — DB table `nx04_quote`
 /// =======================================================
 model Nx04Quote {
