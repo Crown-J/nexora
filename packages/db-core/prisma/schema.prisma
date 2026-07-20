@@ -4202,6 +4202,8 @@ model Nx04Quote {
   warehouseId               String             @map("warehouse_id") @db.VarChar(15)
   /// 報價單號（唯一），[QT]+[年月]+[倉別]+[5碼流水號]，EX：QT-202604-Z01-00001；啟用最低需求版本：LITE-CORE
   docNo                     String             @map("doc_no") @db.VarChar(30)
+  /// 舊系統原單號（偉盟 RSAA.RAREN；歷史匯入冪等鍵＋追溯、null=系統原生單）；G8 偉盟報價匯入 2026-07-20 Crown 拍板；啟用最低需求版本：LITE-CORE
+  legacyDocNo               String?            @map("legacy_doc_no") @db.VarChar(20)
   /// 報價日期。；啟用最低需求版本：LITE-CORE
   quoteDate                 DateTime           @map("quote_date") @db.Date
   /// 客戶ID（FK nx01_partner，partner_type=C）。；啟用最低需求版本：LITE-CORE
@@ -4258,6 +4260,7 @@ model Nx04Quote {
 
   @@index([salesPersonId])
   @@unique([docNo])
+  @@unique([tenantId, legacyDocNo])
   @@map("nx04_quote")
 }
 
