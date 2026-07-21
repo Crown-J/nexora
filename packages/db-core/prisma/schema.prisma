@@ -7769,8 +7769,8 @@ model Nx01PartnerAddress {
 /// 客戶等級變更歷史（對齊 Crown 2026-05-29 Q6 拍板、PENDING/APPROVED/REJECTED 流程）
 /// 業務員申請、G 核可後 partner.customer_grade_id 同步更新、PENDING/REJECTED 不影響既有 QT
 /// =======================================================
-/// 往來帳戶（交易資格閘門載體、規格：docs/專案/規格書/核心/往來帳戶閘門-設計規格.md v1.2、2026-07-21 執行長拍板）。
-/// R=收款帳戶（他付我 → 可銷售/報價）/ P=付款帳戶（我付他 → 可採購/進貨/同行調貨）。
+/// 往來帳戶（交易資格閘門載體、規格：docs/專案/規格書/核心/往來帳戶閘門-設計規格.md v1.3、2026-07-21 執行長拍板）。
+/// R=收款帳戶（他付我 → 可銷售/報價）/ P=進貨付款帳戶（採購域、綁採購權限=貨源隔離）/ T=調貨付款帳戶（同行調貨、業務域、免銀行資訊）。
 /// 一對象一方向一戶（unique、多銀行戶擴充=將來放寬）；散客 L 與現金客戶（partner.isCashCustomer）不開戶、閘門直接放行。
 model Nx01PartnerAccount {
   /// [NX01]+[PACT]+[7碼流水號]，EX : NX01PACT0000001；啟用最低需求版本：LITE
@@ -7779,7 +7779,7 @@ model Nx01PartnerAccount {
   tenantId      String      @map("tenant_id") @db.VarChar(15)
   /// 往來對象 ID（FK nx01_partner）；啟用最低需求版本：LITE
   partnerId     String      @map("partner_id") @db.VarChar(15)
-  /// 方向：R=收款帳戶（銷售閘門）/ P=付款帳戶（採購+同行調貨閘門）；啟用最低需求版本：LITE
+  /// 方向：R=收款帳戶（銷售閘門）/ P=進貨付款帳戶（採購閘門、v1.3 拆種）/ T=調貨付款帳戶（同行調貨閘門、v1.3）；啟用最低需求版本：LITE
   direction     String      @db.VarChar(1)
   /// 狀態：A=啟用 / S=停用（停用=閘門擋、非軟刪）；啟用最低需求版本：LITE
   status        String      @default("A") @db.VarChar(1)
