@@ -28,6 +28,7 @@ import { Prisma as PrismaNs } from 'db-core';
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
+import { assertSellable } from '../../shared/nx01/partner-account-gate';
 
 import type { CheckCreditDto } from './dto/credit-guard.dto';
 
@@ -67,17 +68,15 @@ export class CreditGuardService {
         creditStatus: true,
         paymentTermDomestic: true,
         isActive: true,
+        isCashCustomer: true,
       },
     });
     if (!customer) throw new NotFoundException('customerId not found in tenant');
-    if (customer.partnerType !== 'C' && customer.partnerType !== 'O') {
-      throw new BadRequestException(
-        `customerId must be partner_type IN ('C', 'O') (保養廠或同行), got '${customer.partnerType}'`,
-      );
-    }
     if (!customer.isActive) {
       throw new BadRequestException('customerId is inactive');
     }
+    // 帳戶閘門 v1.3（2026-07-21、取代舊 C/O 類型判斷）：散客/現金客戶/R 收款帳戶 三擇一
+    await assertSellable(this.prisma, tenantId, customer);
 
     const tenant = await this.prisma.nx99Tenant.findFirst({
       where: { id: tenantId },
