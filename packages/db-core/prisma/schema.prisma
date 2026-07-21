@@ -1051,6 +1051,8 @@ model Nx01Partner {
   partnerType                              String                       @default("C") @map("partner_type") @db.VarChar(1)
   /// 可調貨旗標。partner_type=O 同行業務上預設 true（service 層 create 時帶入）；partner_type=C 保養廠預設 false、少數保養廠偶爾調貨時可手動開啟。調貨對象篩選 = WHERE partner_type='O' OR canTransferStock=true。對齊 can_* 範式；啟用最低需求版本：LITE
   canTransferStock                         Boolean                      @default(false) @map("can_transfer_stock")
+  /// 現金客戶標記（帳戶閘門規格 v1.2、2026-07-21 拍板）：無統編的具名客戶標記後可銷售、不開收款帳戶不掛應收、交易走現金。閘門放行三擇一：R 帳戶／散客 L／本旗標；啟用最低需求版本：LITE
+  isCashCustomer                           Boolean                      @default(false) @map("is_cash_customer")
   /// 聯絡人（可空、主要單一聯絡人；多窗口走 nx01_partner_contact 子表）；啟用最低需求版本：LITE
   contactName                              String?                      @map("contact_name") @db.VarChar(50)
   /// 對方公司負責人姓名（與本公司業務歸屬 sales_user_id 不同）；02 第三批 T2 2026-06-07 新增、啟用最低需求版本：LITE
@@ -1161,6 +1163,7 @@ model Nx01Partner {
   rev_Nx06DnStop_partnerId                 Nx06DnStop[]                 @relation("R_Nx06DnStop_partnerId")
   rev_Nx08PurchaseCache_supplierId         Nx08PurchaseCache[]          @relation("R_Nx08PurchaseCache_supplierId")
   rev_Nx08SalesCache_customerId            Nx08SalesCache[]             @relation("R_Nx08SalesCache_customerId")
+  rev_Nx01PartnerAccount_partnerId         Nx01PartnerAccount[]         @relation("R_Nx01PartnerAccount_partnerId")
   rev_Nx01PartnerAddress_partnerId         Nx01PartnerAddress[]         @relation("R_Nx01PartnerAddress_partnerId")
   rev_Nx02WarrantyClaim_supplierId         Nx02WarrantyClaim[]          @relation("R_Nx02WarrantyClaim_supplierId")
   rev_Nx01PartnerGradeHistory_partnerId    Nx01PartnerGradeHistory[]    @relation("R_Nx01PartnerGradeHistory_partnerId")
@@ -7435,6 +7438,7 @@ model Nx99Tenant {
   rev_Nx09RepairSop_tenantId               Nx09RepairSop[]               @relation("R_Nx09RepairSop_tenantId")
   rev_Nx98DocLink_tenantId                 Nx98DocLink[]                 @relation("R_Nx98DocLink_tenantId")
   rev_Nx99Subscription_tenantId            Nx99Subscription[]            @relation("R_Nx99Subscription_tenantId")
+  rev_Nx01PartnerAccount_tenantId          Nx01PartnerAccount[]          @relation("R_Nx01PartnerAccount_tenantId")
   rev_Nx01PartnerAddress_tenantId          Nx01PartnerAddress[]          @relation("R_Nx01PartnerAddress_tenantId")
   // 02 第三批 T2 2026-06-07：聯絡窗口子表
   rev_Nx01PartnerContact_tenantId          Nx01PartnerContact[]          @relation("R_Nx01PartnerContact_tenantId")
@@ -7765,6 +7769,47 @@ model Nx01PartnerAddress {
 /// 客戶等級變更歷史（對齊 Crown 2026-05-29 Q6 拍板、PENDING/APPROVED/REJECTED 流程）
 /// 業務員申請、G 核可後 partner.customer_grade_id 同步更新、PENDING/REJECTED 不影響既有 QT
 /// =======================================================
+/// 往來帳戶（交易資格閘門載體、規格：docs/專案/規格書/核心/往來帳戶閘門-設計規格.md v1.2、2026-07-21 執行長拍板）。
+/// R=收款帳戶（他付我 → 可銷售/報價）/ P=付款帳戶（我付他 → 可採購/進貨/同行調貨）。
+/// 一對象一方向一戶（unique、多銀行戶擴充=將來放寬）；散客 L 與現金客戶（partner.isCashCustomer）不開戶、閘門直接放行。
+model Nx01PartnerAccount {
+  /// [NX01]+[PACT]+[7碼流水號]，EX : NX01PACT0000001；啟用最低需求版本：LITE
+  id            String      @id @default(dbgenerated("gen_nx01_partner_account_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵）；啟用最低需求版本：LITE
+  tenantId      String      @map("tenant_id") @db.VarChar(15)
+  /// 往來對象 ID（FK nx01_partner）；啟用最低需求版本：LITE
+  partnerId     String      @map("partner_id") @db.VarChar(15)
+  /// 方向：R=收款帳戶（銷售閘門）/ P=付款帳戶（採購+同行調貨閘門）；啟用最低需求版本：LITE
+  direction     String      @db.VarChar(1)
+  /// 狀態：A=啟用 / S=停用（停用=閘門擋、非軟刪）；啟用最低需求版本：LITE
+  status        String      @default("A") @db.VarChar(1)
+  /// 銀行名稱（P 戶匯款路徑、R 戶不需要）；啟用最低需求版本：LITE
+  bankName      String?     @map("bank_name") @db.VarChar(100)
+  /// 銀行代碼；啟用最低需求版本：LITE
+  bankCode      String?     @map("bank_code") @db.VarChar(10)
+  /// 銀行帳號；啟用最低需求版本：LITE
+  bankAccountNo String?     @map("bank_account_no") @db.VarChar(30)
+  /// 戶名；啟用最低需求版本：LITE
+  accountHolder String?     @map("account_holder") @db.VarChar(100)
+  /// 祖父條款待補件標記（遷移舊戶：R=統編未補 / P=銀行帳號未補）；啟用最低需求版本：LITE
+  needsBackfill Boolean     @default(false) @map("needs_backfill")
+  /// 開戶時間；啟用最低需求版本：LITE
+  openedAt      DateTime    @default(now()) @map("opened_at")
+  /// 開戶人；啟用最低需求版本：LITE
+  openedBy      String      @map("opened_by") @db.VarChar(15)
+  createdAt     DateTime    @default(now()) @map("created_at")
+  createdBy     String      @map("created_by") @db.VarChar(15)
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+  updatedBy     String      @map("updated_by") @db.VarChar(15)
+  tenant        Nx99Tenant  @relation("R_Nx01PartnerAccount_tenantId", fields: [tenantId], references: [id])
+  partner       Nx01Partner @relation("R_Nx01PartnerAccount_partnerId", fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, partnerId, direction])
+  @@index([tenantId, direction, status])
+  @@index([partnerId])
+  @@map("nx01_partner_account")
+}
+
 model Nx01PartnerGradeHistory {
   /// [NX01]+[PGHI]+[7碼流水號]，EX : NX01PGHI0000001；啟用最低需求版本：LITE-CORE
   id           String            @id @default(dbgenerated("gen_nx01_partner_grade_history_id()")) @db.VarChar(15)
