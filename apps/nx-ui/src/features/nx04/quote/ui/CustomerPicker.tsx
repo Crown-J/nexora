@@ -42,8 +42,8 @@ export function CustomerPicker({
   /** 已選後再按 Enter → 跳下一欄 */
   onCommit: () => void;
   autoFocus?: boolean;
-  /** partner 類型過濾（預設 C 客戶；即時詢價傳 O 挑同行；進貨單傳 S 挑供應商）*/
-  partnerType?: 'C' | 'O' | 'S';
+  /** partner 類型過濾（預設 C 客戶；即時詢價傳 O 挑同行；進貨單傳 S 挑供應商；C,O=保養廠+同行、2026-07-21 賣同行拍板）*/
+  partnerType?: 'C' | 'O' | 'S' | 'C,O';
   /** 外部要拿輸入框 ref（FocusLockedDialog initialFocusRef 用、比照 PartPicker）*/
   inputRef?: React.Ref<HTMLInputElement>;
 }) {

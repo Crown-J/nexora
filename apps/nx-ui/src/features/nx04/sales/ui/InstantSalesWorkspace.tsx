@@ -615,7 +615,8 @@ function CustomerStep({
 }) {
   return (
     <div className="flex flex-1 flex-col gap-3">
-      <CustomerPicker onPick={onPick} onCommit={() => customer && onNext()} autoFocus partnerType="C" inputRef={inputRef} />
+      {/* 2026-07-21 執行長拍板：即時銷售可賣同行（材料行）→ C,O 雙類型（SO 後端本收 C/O/L） */}
+      <CustomerPicker onPick={onPick} onCommit={() => customer && onNext()} autoFocus partnerType="C,O" inputRef={inputRef} />
       {customer ? (
         <div className="rounded-xl border border-primary/40 bg-primary/8 p-3">
           <div className="text-[11px] text-muted-foreground">已選客戶</div>
