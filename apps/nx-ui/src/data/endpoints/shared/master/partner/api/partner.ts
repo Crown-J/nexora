@@ -29,6 +29,10 @@ export type ListPartnerParams = {
   phonetic?: string;
   /** v1.2 階段 E P2：模組頁過濾 partnerType（e.g. 銷貨頁只看 C/O、採購頁只看 S） */
   partnerType?: string;
+  /** 帳戶閘門 v1.3：只列持有指定方向啟用帳戶者（R/P/T、主檔用） */
+  hasAccount?: 'R' | 'P' | 'T';
+  /** 帳戶閘門 v1.3：站點選擇器複合過濾（SELL=可銷售/TRANSFER=可調貨/PURCHASE=可採購、PURCHASE 綁採購權限） */
+  gate?: 'SELL' | 'TRANSFER' | 'PURCHASE';
   /** v1.2 階段 E P2：顯示停用過濾（undefined=全部、true=只啟用、false=只停用） */
   isActive?: boolean;
 };
@@ -41,6 +45,8 @@ export async function listPartner(params: ListPartnerParams): Promise<PagedResul
     search: params.q?.trim() ? params.q.trim() : undefined,
     phonetic: params.phonetic?.trim() ? params.phonetic.trim() : undefined,
     partnerType: params.partnerType,
+    hasAccount: params.hasAccount,
+    gate: params.gate,
     isActive: params.isActive === undefined ? undefined : String(params.isActive),
   });
 

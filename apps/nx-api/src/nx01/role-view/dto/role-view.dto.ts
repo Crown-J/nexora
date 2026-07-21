@@ -4,7 +4,9 @@
  * 路由 nx01/role-views；停用走 @Delete soft（isActive=false + revokedAt）。
  */
 
-import { Type } from 'class-transformer';
+import { Transform } from 'class-transformer';
+
+import { toBoolean } from '../../../shared/dto/to-boolean';
 import { IsBoolean, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 
 import { Nx01ListQueryDto } from '../../../shared/nx01/pagination.dto';
@@ -30,22 +32,22 @@ export class CreateRoleViewDto {
   @MaxLength(15)
   viewId!: string;
 
-  @IsOptional() @Type(() => Boolean) @IsBoolean() canRead?: boolean;
-  @IsOptional() @Type(() => Boolean) @IsBoolean() canCreate?: boolean;
-  @IsOptional() @Type(() => Boolean) @IsBoolean() canUpdate?: boolean;
-  @IsOptional() @Type(() => Boolean) @IsBoolean() canDelete?: boolean;
-  @IsOptional() @Type(() => Boolean) @IsBoolean() canExport?: boolean;
+  @IsOptional() @Transform(toBoolean) @IsBoolean() canRead?: boolean;
+  @IsOptional() @Transform(toBoolean) @IsBoolean() canCreate?: boolean;
+  @IsOptional() @Transform(toBoolean) @IsBoolean() canUpdate?: boolean;
+  @IsOptional() @Transform(toBoolean) @IsBoolean() canDelete?: boolean;
+  @IsOptional() @Transform(toBoolean) @IsBoolean() canExport?: boolean;
   // T1-fix-b 2026-06-07：核准權限第 6 欄（schema 已 預埋）。對採購單/保固/盤點等審核流程畫面有意義、其餘 N/A 不勾。
-  @IsOptional() @Type(() => Boolean) @IsBoolean() canApprove?: boolean;
+  @IsOptional() @Transform(toBoolean) @IsBoolean() canApprove?: boolean;
 }
 
 export class UpdateRoleViewDto {
-  @IsOptional() @Type(() => Boolean) @IsBoolean() canRead?: boolean;
-  @IsOptional() @Type(() => Boolean) @IsBoolean() canCreate?: boolean;
-  @IsOptional() @Type(() => Boolean) @IsBoolean() canUpdate?: boolean;
-  @IsOptional() @Type(() => Boolean) @IsBoolean() canDelete?: boolean;
-  @IsOptional() @Type(() => Boolean) @IsBoolean() canExport?: boolean;
+  @IsOptional() @Transform(toBoolean) @IsBoolean() canRead?: boolean;
+  @IsOptional() @Transform(toBoolean) @IsBoolean() canCreate?: boolean;
+  @IsOptional() @Transform(toBoolean) @IsBoolean() canUpdate?: boolean;
+  @IsOptional() @Transform(toBoolean) @IsBoolean() canDelete?: boolean;
+  @IsOptional() @Transform(toBoolean) @IsBoolean() canExport?: boolean;
   // T1-fix-b 2026-06-07：核准權限第 6 欄
-  @IsOptional() @Type(() => Boolean) @IsBoolean() canApprove?: boolean;
-  @IsOptional() @Type(() => Boolean) @IsBoolean() isActive?: boolean;
+  @IsOptional() @Transform(toBoolean) @IsBoolean() canApprove?: boolean;
+  @IsOptional() @Transform(toBoolean) @IsBoolean() isActive?: boolean;
 }

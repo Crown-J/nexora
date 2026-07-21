@@ -1,7 +1,9 @@
 // apps/nx-api/src/nx01/part-kit/dto/part-kit.dto.ts
 // 2026-06-26：組合/拆解組件關係 DTO
 // 業務：一個「整體件」= 一組「組件（含數量）」。種類3 拆解 / 種類4 組合。
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+
+import { toBoolean } from '../../../shared/dto/to-boolean';
 import {
   IsArray,
   IsBoolean,
@@ -76,7 +78,7 @@ export class CreatePartKitDto {
   sortNo?: number;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 }
@@ -106,7 +108,7 @@ export class UpdatePartKitDto {
   sortNo?: number;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 }

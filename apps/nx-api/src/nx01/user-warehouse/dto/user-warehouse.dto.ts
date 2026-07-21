@@ -6,7 +6,9 @@
  * 2026-06-22 執行長拍板：加 isPrimary / setPrimary（員工可多歸倉、要能指定主要倉）
  */
 
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+
+import { toBoolean } from '../../../shared/dto/to-boolean';
 import {
   IsBoolean,
   IsInt,
@@ -27,7 +29,7 @@ export class ListUserWarehouseQueryDto {
   warehouseId?: string;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 
@@ -54,7 +56,7 @@ export class AssignUserWarehouseDto {
   warehouseId!: string;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isPrimary?: boolean;
 }
@@ -68,7 +70,7 @@ export class RevokeUserWarehouseDto {
 
 /** PATCH /user-warehouse/:id/set-primary */
 export class SetPrimaryUserWarehouseDto {
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isPrimary!: boolean;
 }

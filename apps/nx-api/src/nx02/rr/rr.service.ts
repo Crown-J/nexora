@@ -9,6 +9,7 @@ import { Prisma as PrismaNs } from 'db-core';
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
+import { assertTransferable } from '../../shared/nx01/partner-account-gate';
 import { resolveCurrencyId } from '../../shared/nx02/nx02-currency';
 import { allocDocNo } from '../../shared/nx02/nx02-doc-no';
 import { Nx02ListQueryDto } from '../../shared/nx02/nx02-list-query.dto';
@@ -278,6 +279,8 @@ export class RrService {
           `RR with tiId (同行調貨入庫) supplierId partnerType must be 'O' (同行), got '${supplier?.partnerType ?? 'not found'}'`,
         );
       }
+      // 帳戶閘門 v1.3：調貨=買賣、同行須持有 T 調貨付款帳戶（身分判斷之上疊加）
+      await assertTransferable(tx, rr.tenantId, rr.supplierId);
     }
 
     // load RrImport（國外才有、不會 throw、null = 國內 RR）

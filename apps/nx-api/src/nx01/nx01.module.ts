@@ -63,6 +63,8 @@ import { PartService } from './part/part.service';
 import { PartSearchController } from './part-search/part-search.controller';
 import { PartSearchService } from './part-search/part-search.service';
 import { PartnerController } from './partner/partner.controller';
+import { PartnerAccountController } from './partner-account/partner-account.controller';
+import { PartnerAccountService } from './partner-account/partner-account.service';
 import { PartnerService } from './partner/partner.service';
 import { PermissionController } from './permission/permission.controller';
 import { PermissionService } from './permission/permission.service';
@@ -116,6 +118,7 @@ import { UserTeamService } from './user-team/user-team.service';
     PartController,
     PartSearchController,
     PartnerController,
+    PartnerAccountController,
     CustomerGradeController,
     SupplierGradeController,
     UserController,
@@ -164,6 +167,7 @@ import { UserTeamService } from './user-team/user-team.service';
     PartService,
     PartSearchService,
     PartnerService,
+    PartnerAccountService,
     CustomerGradeService,
     SupplierGradeService,
     SeqCounterService,

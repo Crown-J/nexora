@@ -1,7 +1,9 @@
 // apps/nx-api/src/nx01/bulletin/dto/bulletin.dto.ts
 // NX01-08 公告系統 v1.0 DTO（軌 3 commit 3、對齊 spec § 4.1）
 
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+
+import { toBoolean } from '../../../shared/dto/to-boolean';
 import {
   ArrayMaxSize,
   IsArray,
@@ -76,7 +78,7 @@ export class CreateBulletinDto {
   status?: string;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isPinned?: boolean;
 
@@ -85,7 +87,7 @@ export class CreateBulletinDto {
   expiredAt?: Date;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 }
@@ -132,7 +134,7 @@ export class UpdateBulletinDto {
   status?: string;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isPinned?: boolean;
 
@@ -141,7 +143,7 @@ export class UpdateBulletinDto {
   expiredAt?: Date | null;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 }

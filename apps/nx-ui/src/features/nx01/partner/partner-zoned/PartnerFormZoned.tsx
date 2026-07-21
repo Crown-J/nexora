@@ -25,6 +25,7 @@ import { FormField, FormInput } from '@/features/nx01/shell/ui/FormField';
 import { KeyboardSelect } from '@/features/nx01/shell/ui/KeyboardSelect';
 import { SatelliteSection } from '@/features/nx01/shell/satellite/SatelliteSection';
 import { PartnerAddressSection } from './PartnerAddressSection';
+import { PartnerAccountSection } from './PartnerAccountSection';
 
 import {
   CREDIT_STATUS_OPTIONS,
@@ -143,6 +144,19 @@ export function PartnerFormZoned({
           // 衛星表：partner 兩組地址（送貨多筆 / 帳單一筆）
           // 2026-06-23 執行長拍板接通、PartnerAddressSection 接 nx01_partner_address。
           if (f.isSatellite) {
+            // 帳戶閘門 v1.3：往來帳戶衛星區（R 收款/P 進貨付款/T 調貨付款）
+            if (f.key === 'accounts') {
+              return (
+                <div key={f.key} className="sm:col-span-2">
+                  <PartnerAccountSection
+                    partnerId={selectedPartnerId ?? null}
+                    editing={editing}
+                    partnerType={String(draft.partnerType ?? '')}
+                    canTransferStock={Boolean(draft.canTransferStock)}
+                  />
+                </div>
+              );
+            }
             const addressType =
               f.key === 'shippingAddresses' ? 'SHIPPING'
               : f.key === 'billingAddress' ? 'BILLING'
@@ -261,9 +275,11 @@ export function PartnerFormZoned({
             );
           }
 
-          // canTransferStock toggle
-          if (f.key === 'canTransferStock' && fieldEditable) {
+          // 布林 toggle（canTransferStock／isCashCustomer 帳戶閘門 v1.3）
+          if ((f.key === 'canTransferStock' || f.key === 'isCashCustomer') && fieldEditable) {
             const on = Boolean(draft[f.key]);
+            const onLabel = f.key === 'canTransferStock' ? '可調貨' : '現金客戶';
+            const offLabel = f.key === 'canTransferStock' ? '不可調貨' : '記帳客戶（走收款帳戶）';
             return (
               <FieldShell key={f.key} label={f.label}>
                 <button
@@ -276,7 +292,7 @@ export function PartnerFormZoned({
                       : 'border-[#5A5A60]/40 bg-[#0A0A0C] text-[#888892]',
                   )}
                 >
-                  {on ? '可調貨' : '不可調貨'}
+                  {on ? onLabel : offLabel}
                 </button>
               </FieldShell>
             );
@@ -348,6 +364,7 @@ function renderBrowseValue(
 ): string {
   if (raw == null || raw === '') return '—';
   if (key === 'canTransferStock') return raw ? '可調貨' : '不可調貨';
+  if (key === 'isCashCustomer') return raw ? '現金客戶' : '記帳客戶';
   if (key === 'partnerType') {
     return PARTNER_TYPE_LABEL[String(raw).toUpperCase() as keyof typeof PARTNER_TYPE_LABEL] ?? String(raw);
   }

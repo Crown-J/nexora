@@ -1,4 +1,6 @@
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+
+import { toBoolean } from '../../../shared/dto/to-boolean';
 import {
   IsArray,
   IsBoolean,
@@ -87,7 +89,7 @@ export class CreatePartDto {
   name!: string;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isOem?: boolean;
 
@@ -147,7 +149,7 @@ export class CreatePartDto {
   uom?: string;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 
@@ -231,7 +233,7 @@ export class UpdatePartDto {
   name?: string;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isOem?: boolean;
 
@@ -302,7 +304,7 @@ export class UpdatePartDto {
   uom?: string;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 

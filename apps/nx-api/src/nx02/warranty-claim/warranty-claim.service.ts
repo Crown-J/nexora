@@ -23,6 +23,7 @@ import { closeIssueReportFromDisposition } from '../../shared/nx03/nx03-issue-re
 import { allocNx05DocNo } from '../../shared/nx05/nx05-doc-no';
 import { Nx02ListQueryDto } from '../../shared/nx02/nx02-list-query.dto';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
+import { assertPurchasable } from '../../shared/nx01/partner-account-gate';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 
 import type {
@@ -162,14 +163,11 @@ export class WarrantyClaimService {
   ): Promise<void> {
     const p = await tx.nx01Partner.findFirst({
       where: { id: supplierId, tenantId, isActive: true },
-      select: { partnerType: true },
+      select: { id: true },
     });
     if (!p) throw new BadRequestException(`supplierId not found or inactive`);
-    if (p.partnerType !== 'S') {
-      throw new BadRequestException(
-        `supplierId must be partner_type='S' (純供應商), got '${p.partnerType}'`,
-      );
-    }
+    // 帳戶閘門 v1.3：向廠商保固=採購域、持有 P 進貨付款帳戶（取代舊 partner_type='S' 判斷）
+    await assertPurchasable(tx, tenantId, supplierId);
   }
 
   async create(user: RequestUser, dto: CreateWarrantyClaimDto) {

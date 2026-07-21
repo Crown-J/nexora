@@ -78,7 +78,7 @@ export function partnerRowToDraft(row: PartnerDto): PartnerDraft {
     // 衛星表（shippingAddresses / billingAddress）不入 scalar draft（P5 啟用）
     if (f.isSatellite) continue;
     const v = (row as unknown as Record<string, unknown>)[f.key];
-    if (f.key === 'canTransferStock') draft[f.key] = Boolean(v);
+    if (f.key === 'canTransferStock' || f.key === 'isCashCustomer') draft[f.key] = Boolean(v);
     else draft[f.key] = v == null ? '' : String(v);
   }
   return draft;
@@ -91,6 +91,7 @@ export function emptyPartnerDraft(defaultPartnerType: PartnerType = 'C'): Partne
     if (f.isSatellite) continue;
     if (f.key === 'partnerType') draft[f.key] = defaultPartnerType;
     else if (f.key === 'canTransferStock') draft[f.key] = defaultPartnerType === 'O';
+    else if (f.key === 'isCashCustomer') draft[f.key] = false;
     else if (f.key === 'paymentTermDomestic') draft[f.key] = 'NET30';
     else if (f.key === 'paymentTermImport') draft[f.key] = 'TT';
     else if (f.key === 'incoterm') draft[f.key] = 'FOB';
@@ -118,7 +119,7 @@ export function partnerDraftToBody(
     // editableZones 過濾：只送本頁可編 zone 的欄位
     if (editableZones && !editableZones.has(f.zone)) continue;
     const v = draft[f.key];
-    if (f.key === 'canTransferStock') {
+    if (f.key === 'canTransferStock' || f.key === 'isCashCustomer') {
       body[f.key] = Boolean(v);
       continue;
     }

@@ -1,6 +1,8 @@
 // apps/nx-api/src/nx01/phonetic-dictionary/dto/phonetic-dictionary.dto.ts
 // 對應規格：docs/nx01/spec/intent/nx01-10-phonetic-search.md v1.0 §4.1
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+
+import { toBoolean } from '../../../shared/dto/to-boolean';
 import {
   IsArray,
   IsBoolean,
@@ -50,7 +52,7 @@ export class CreatePhoneticDictionaryDto {
   usageFreq?: number;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 }
@@ -80,7 +82,7 @@ export class UpdatePhoneticDictionaryDto {
   usageFreq?: number;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 }

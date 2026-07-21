@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "nx-ui",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "nx-ui", "dev"],
+      "port": 3000
+    },
+    {
+      "name": "nx-api",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "nx-api", "start:dev"],
+      "port": 3001
+    }
+  ]
+}

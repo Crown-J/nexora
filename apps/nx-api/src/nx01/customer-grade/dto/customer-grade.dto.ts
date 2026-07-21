@@ -1,7 +1,9 @@
 // apps/nx-api/src/nx01/customer-grade/dto/customer-grade.dto.ts
 // 對應規格：docs/nx01/spec/intent/nx01-07-base-catalog.md v1.0
 // Crown 拍 Q1=A：OWNER 可改 marginPct + name + sortNo + isActive、code 鎖（A/B/C/D 4 級固定）
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+
+import { toBoolean } from '../../../shared/dto/to-boolean';
 import {
   IsBoolean,
   IsInt,
@@ -40,7 +42,7 @@ export class UpdateCustomerGradeDto {
   sortNo?: number;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 }

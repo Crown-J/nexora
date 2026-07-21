@@ -1,7 +1,9 @@
 // apps/nx-api/src/nx01/part-relation/dto/part-relation.dto.ts
 // 對應規格：docs/nx01/spec/intent/nx01-17-part-version-relation.md v1.0
 // 軸 1：relationType 升 SmallInt 1~5
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+
+import { toBoolean } from '../../../shared/dto/to-boolean';
 import {
   IsBoolean,
   IsInt,
@@ -66,7 +68,7 @@ export class CreatePartRelationDto {
   sortNo?: number;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 }
@@ -109,7 +111,7 @@ export class UpdatePartRelationDto {
   sortNo?: number;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 }

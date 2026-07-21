@@ -1,7 +1,9 @@
 // apps/nx-api/src/nx01/part-model/dto/part-model.dto.ts
 // 對應規格：docs/nx01/spec/intent/nx01-16-part-model.md v1.0
 // fitLevel SmallInt enum（Q3=B 拍板：1=原廠 / 2=副廠等效 / 3=通用替代）
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+
+import { toBoolean } from '../../../shared/dto/to-boolean';
 import {
   IsBoolean,
   IsInt,
@@ -66,7 +68,7 @@ export class CreatePartModelDto {
   sortNo?: number;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 }
@@ -90,7 +92,7 @@ export class UpdatePartModelDto {
   sortNo?: number;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 }

@@ -3,7 +3,9 @@
 //
 // scopeType: P=part 指定料件 / B=brand 品牌 / G=partGroup 料件族群（Alex Q1 拍板 3 種、車型留汽車資料庫套件）
 
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+
+import { toBoolean } from '../../../shared/dto/to-boolean';
 import {
   ArrayMinSize,
   IsArray,
@@ -24,12 +26,12 @@ const SCOPE_TYPES = ['P', 'B', 'G'] as const;
 
 export class ListPromotionQueryDto extends Nx04ListQueryDto {
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isClearance?: boolean;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 }
@@ -67,7 +69,7 @@ export class CreatePromotionDto {
   validTo!: string;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isClearance?: boolean;
 
@@ -82,7 +84,7 @@ export class CreatePromotionDto {
   remark?: string;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 
@@ -115,7 +117,7 @@ export class UpdatePromotionDto {
   validTo?: string;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isClearance?: boolean;
 
@@ -129,7 +131,7 @@ export class UpdatePromotionDto {
   remark?: string | null;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 }

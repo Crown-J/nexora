@@ -175,7 +175,7 @@ export function CreateTiFromSoModal({
           <div className="text-sm">
             <span className="mb-1 block">🟢 同行對象 *（↑↓ 選、Enter 定 → 跳明細）</span>
             <CustomerPicker
-              partnerType="O"
+              gate="TRANSFER"
               autoFocus
               onPick={(p) => {
                 setPartner(p);

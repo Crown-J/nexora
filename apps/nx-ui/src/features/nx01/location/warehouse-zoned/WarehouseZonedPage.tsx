@@ -174,7 +174,8 @@ export function WarehouseZonedPage({
         page: 1,
         pageSize,
         q: debouncedKw,
-        isActive: showInactive ? undefined : true,
+        // 垃圾桶語意：開=只看停用列（再啟用入口）、關=只看啟用列（2026-07-21 執行長回饋：啟用列不該混進垃圾桶）
+        isActive: showInactive ? false : true,
       });
       setRows(res.items);
       setTotal(res.total);

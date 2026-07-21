@@ -1,4 +1,6 @@
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+
+import { toBoolean } from '../../../shared/dto/to-boolean';
 import {
   IsBoolean,
   IsIn,
@@ -6,6 +8,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  Matches,
   Max,
   MaxLength,
   Min,
@@ -27,10 +30,23 @@ const PAY_IMP = ['TT', 'LC', 'DP', 'DA'] as const;
 const CREDIT_STAT = ['N', 'W', 'F'] as const;
 
 export class ListPartnerQueryDto extends Nx01ListQueryDto {
+  /** 單一類型（'C'）或逗號多類型（'C,O'）。2026-07-21 執行長回饋：即時報價要能報同行（材料行）。 */
   @IsOptional()
   @IsString()
-  @IsIn(PARTNER_TYPES)
+  @Matches(/^[COSTVBL](,[COSTVBL])*$/, { message: 'partnerType 須為 C/O/S/T/V/B/L 的單值或逗號組合' })
   partnerType?: string;
+
+  /** 帳戶閘門 v1.3：只列持有指定方向啟用帳戶者（R=收款/P=進貨付款/T=調貨付款）。P=供應商名單、service 內綁採購權限（貨源隔離）。 */
+  @IsOptional()
+  @IsString()
+  @IsIn(['R', 'P', 'T'])
+  hasAccount?: string;
+
+  /** 帳戶閘門 v1.3 Step 3a 複合過濾（站點選擇器用）：SELL=可銷售（R戶∪現金客戶∪散客L）/ TRANSFER=可調貨（同行身分∩T戶）/ PURCHASE=可採購（P戶、綁採購權限）。 */
+  @IsOptional()
+  @IsString()
+  @IsIn(['SELL', 'TRANSFER', 'PURCHASE'])
+  gate?: string;
 
   /** 02 對齊第二批 C 軌 CP2-b：注音搜尋（phoneticFull / phoneticCode contains）*/
   @IsOptional()
@@ -140,15 +156,21 @@ export class CreatePartnerDto {
   incoterm?: string;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 
   /** 可調貨旗標。partner_type='O' 同行 service 層 create 時預設 true；'C' 保養廠可手動開啟。 */
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   canTransferStock?: boolean;
+
+  /** 現金客戶標記（帳戶閘門 v1.3）：無統編具名客戶、可銷售不開收款戶不掛應收。 */
+  @IsOptional()
+  @Transform(toBoolean)
+  @IsBoolean()
+  isCashCustomer?: boolean;
 
   // ── v1.2 對齊 階段 E P2：basic 區補欄（schema 既有、DTO 補對齊） ──
   @IsOptional() @IsString() @MaxLength(50) shortName?: string;
@@ -270,15 +292,21 @@ export class UpdatePartnerDto {
   incoterm?: string | null;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 
   /** 可調貨旗標。partner_type='O' 同行 service 層 create 時預設 true；'C' 保養廠可手動開啟。 */
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   canTransferStock?: boolean;
+
+  /** 現金客戶標記（帳戶閘門 v1.3）：無統編具名客戶、可銷售不開收款戶不掛應收。 */
+  @IsOptional()
+  @Transform(toBoolean)
+  @IsBoolean()
+  isCashCustomer?: boolean;
 
   // ── v1.2 對齊 階段 E P2：basic 區補欄（schema 既有、DTO 補對齊） ──
   @IsOptional() @IsString() @MaxLength(50) shortName?: string | null;

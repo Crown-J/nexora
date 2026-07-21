@@ -189,9 +189,10 @@ export function PartZonedPage({
         q: debouncedKw,
       });
       // listPart 目前不支援 isActive 過濾、前端篩
-      const items = showInactive ? res.items : res.items.filter((r) => r.isActive);
+      // 垃圾桶語意：開=只看停用列（再啟用入口）、關=只看啟用列（2026-07-21 執行長回饋：啟用列不該混進垃圾桶）
+      const items = res.items.filter((r) => (showInactive ? !r.isActive : r.isActive));
       setRows(items);
-      setTotal(showInactive ? res.total : items.length);
+      setTotal(items.length);
     } catch (e) {
       showToast((e as Error)?.message ?? '載入失敗', 'danger');
     } finally {

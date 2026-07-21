@@ -615,7 +615,8 @@ function CustomerStep({
 }) {
   return (
     <div className="flex flex-1 flex-col gap-3">
-      <CustomerPicker onPick={onPick} onCommit={() => customer && onNext()} autoFocus partnerType="C" inputRef={inputRef} />
+      {/* 帳戶閘門 v1.3（2026-07-21）：可銷售=收款戶∪現金客戶∪散客、不再看類型 */}
+      <CustomerPicker onPick={onPick} onCommit={() => customer && onNext()} autoFocus gate="SELL" inputRef={inputRef} />
       {customer ? (
         <div className="rounded-xl border border-primary/40 bg-primary/8 p-3">
           <div className="text-[11px] text-muted-foreground">已選客戶</div>
@@ -1283,7 +1284,8 @@ function PeerPickDialog({
           <div className="mb-1.5 text-[11px] font-bold text-muted-foreground">
             現場填價（剛問到的價、順手補一筆詢價紀錄）
           </div>
-          <CustomerPicker onPick={setManualPeer} onCommit={() => undefined} partnerType="O" />
+          {/* 帳戶閘門 v1.3：現場同行=可調貨（同行身分∩調貨付款戶） */}
+          <CustomerPicker onPick={setManualPeer} onCommit={() => undefined} gate="TRANSFER" />
           <div className="mt-2 flex items-end gap-2">
             <label className="flex flex-col text-[10px] text-muted-foreground">
               同行報價

@@ -72,6 +72,16 @@ export const PARTNER_FIELDS: FieldDef<PartnerZone>[] = [
 
   // ─── finance 財務區 ───
   { key: 'taxId', label: '統一編號', zone: 'finance' },
+  // 帳戶閘門 v1.3（2026-07-21 執行長拍板）：現金客戶標記＋往來帳戶衛星區
+  { key: 'isCashCustomer', label: '現金客戶', zone: 'finance', notes: '無統編具名客戶：可銷售、不開收款戶不掛應收' },
+  {
+    key: 'accounts',
+    label: '往來帳戶',
+    zone: 'finance',
+    isSatellite: true,
+    satelliteName: 'nx01_partner_account',
+    notes: 'R 收款（可銷售）/ P 進貨付款（可採購、採購域）/ T 調貨付款（同行調貨）；交易資格閘門',
+  },
   // 偉盟設計檢視 P1-2 2026-07-10：發票抬頭（偉盟 BCINT 印證常異於客戶名）
   { key: 'invoiceTitle', label: '發票抬頭', zone: 'finance', notes: '可異於客戶名稱；空=同客戶名稱' },
   { key: 'paymentTermDomestic', label: '國內付款條件', zone: 'finance', required: true, notes: 'PREPAY / NET30 / NET60 / NET90' },

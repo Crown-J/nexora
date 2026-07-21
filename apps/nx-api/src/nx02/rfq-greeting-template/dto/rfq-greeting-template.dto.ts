@@ -1,7 +1,9 @@
 // apps/nx-api/src/nx02/rfq-greeting-template/dto/rfq-greeting-template.dto.ts
 // LITE 階段 1 M2-e：詢價客套話設定 DTO（每租戶 1:1、unique）
 
-import { Type } from 'class-transformer';
+import { Transform } from 'class-transformer';
+
+import { toBoolean } from '../../../shared/dto/to-boolean';
 import { IsBoolean, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class UpdateRfqGreetingTemplateDto {
@@ -16,7 +18,7 @@ export class UpdateRfqGreetingTemplateDto {
   closingContent?: string;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 }

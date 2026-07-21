@@ -1301,7 +1301,7 @@ export function PoCreatePanel({
             </>
           ) : (
             <>
-              <FieldRow label="供應商"><CustomerPicker partnerType="S" onPick={setSupplier} onCommit={() => {}} autoFocus /></FieldRow>
+              <FieldRow label="供應商"><CustomerPicker gate="PURCHASE" onPick={setSupplier} onCommit={() => {}} autoFocus /></FieldRow>
               <FieldRow label="採購類型">
                 <select value={purchaseType} onChange={(e) => setPurchaseType(e.target.value as 'D' | 'I' | 'B')} className={inputCls}>
                   <option value="D">D 國內</option>

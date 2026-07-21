@@ -4,6 +4,8 @@ import type { Prisma } from 'db-core';
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
+import { assertPurchaseDomainAccess } from '../../shared/nx01/partner-account-gate';
+import { isValidTaiwanTaxId } from '../../shared/nx01/taiwan-tax-id';
 import { SeqCounterService, type SeqScope } from '../../shared/nx01/seq-counter.service';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 
@@ -18,6 +20,7 @@ const SEL = {
   name: true,
   partnerType: true,
   canTransferStock: true,
+  isCashCustomer: true,
   contactName: true,
   phone: true,
   mobile: true,
@@ -131,7 +134,36 @@ export class PartnerService {
 
   private whereList(tenantId: string, q: ListPartnerQueryDto): Prisma.Nx01PartnerWhereInput {
     const where: Prisma.Nx01PartnerWhereInput = { tenantId };
-    if (q.partnerType) where.partnerType = q.partnerType;
+    if (q.partnerType) {
+      // 支援逗號多類型（'C,O'）：即時報價要能同時搜保養廠+同行（2026-07-21）
+      const types = q.partnerType.split(',');
+      where.partnerType = types.length > 1 ? { in: types } : types[0];
+    }
+    if (q.hasAccount) {
+      // 帳戶閘門 v1.3：只列持有指定方向啟用帳戶者（P 的採購權限檢查在 list() 入口）
+      where.rev_Nx01PartnerAccount_partnerId = { some: { direction: q.hasAccount, status: 'A' } };
+    }
+    if (q.gate) {
+      // 複合閘門過濾（站點選擇器）；用 AND 疊加、避免跟 search 的 OR 打架
+      const gateWhere: Prisma.Nx01PartnerWhereInput =
+        q.gate === 'SELL'
+          ? {
+              OR: [
+                { rev_Nx01PartnerAccount_partnerId: { some: { direction: 'R', status: 'A' } } },
+                { isCashCustomer: true },
+                { partnerType: 'L' },
+              ],
+            }
+          : q.gate === 'TRANSFER'
+            ? {
+                AND: [
+                  { OR: [{ partnerType: 'O' }, { canTransferStock: true }] },
+                  { rev_Nx01PartnerAccount_partnerId: { some: { direction: 'T', status: 'A' } } },
+                ],
+              }
+            : { rev_Nx01PartnerAccount_partnerId: { some: { direction: 'P', status: 'A' } } };
+      where.AND = [...(Array.isArray(where.AND) ? where.AND : where.AND ? [where.AND] : []), gateWhere];
+    }
     if (q.search?.trim()) {
       const s = q.search.trim();
       where.OR = [
@@ -147,6 +179,10 @@ export class PartnerService {
 
   async list(user: RequestUser, q: ListPartnerQueryDto) {
     const tenantId = requireTenantId(user);
+    // 貨源隔離（帳戶閘門 v1.3）：P 進貨付款帳戶持有清單=供應商名單、需採購域權限
+    if (q.hasAccount === 'P' || q.gate === 'PURCHASE') {
+      await assertPurchaseDomainAccess(this.prisma, user.sub);
+    }
     const page = q.page ?? 1;
     const pageSize = q.pageSize ?? 20;
     const skip = (page - 1) * pageSize;
@@ -268,6 +304,8 @@ export class PartnerService {
         name: dto.name.trim(),
         partnerType: dto.partnerType,
         canTransferStock: dto.canTransferStock ?? defaultCanTransferStock,
+        // 帳戶閘門 v1.3：現金客戶標記（無統編具名客戶、可銷售不掛應收）
+        ...(dto.isCashCustomer !== undefined ? { isCashCustomer: dto.isCashCustomer } : {}),
         contactName: dto.contactName?.trim() || null,
         phone: dto.phone?.trim() || null,
         mobile: dto.mobile?.trim() || null,
@@ -321,6 +359,34 @@ export class PartnerService {
       },
       select: SEL,
     });
+    // 帳戶閘門 v1.3（規格五-1/六）：新建對象自動開戶——
+    //   C/O 開 R 收款戶（統編缺或格式不符 → 待補件、不擋建檔）；O 加開 T 調貨戶；
+    //   S/V/T 開 P 進貨付款戶（銀行資訊建檔時必空 → 待補件）；B/L/現金客戶不開。
+    if (!dto.isCashCustomer) {
+      const taxOk = !!dto.taxId?.trim() && isValidTaiwanTaxId(dto.taxId.trim());
+      const autoAccounts: { direction: string; needsBackfill: boolean }[] = [];
+      if (partnerType === 'C' || partnerType === 'O') autoAccounts.push({ direction: 'R', needsBackfill: !taxOk });
+      if (partnerType === 'O') autoAccounts.push({ direction: 'T', needsBackfill: false });
+      if (partnerType === 'S' || partnerType === 'V' || partnerType === 'T') {
+        autoAccounts.push({ direction: 'P', needsBackfill: true });
+      }
+      if (autoAccounts.length) {
+        await this.prisma.nx01PartnerAccount.createMany({
+          data: autoAccounts.map((a) => ({
+            tenantId,
+            partnerId: row.id,
+            direction: a.direction,
+            status: 'A',
+            needsBackfill: a.needsBackfill,
+            openedBy: user.sub,
+            createdBy: user.sub,
+            updatedBy: user.sub,
+          })),
+          skipDuplicates: true,
+        });
+      }
+    }
+
     await this.audit.write({
       tenantId,
       actorUserId: user.sub,
@@ -358,6 +424,7 @@ export class PartnerService {
         ...(dto.name !== undefined ? { name: dto.name.trim() } : {}),
         ...(dto.partnerType !== undefined ? { partnerType: dto.partnerType } : {}),
         ...(dto.canTransferStock !== undefined ? { canTransferStock: dto.canTransferStock } : {}),
+        ...(dto.isCashCustomer !== undefined ? { isCashCustomer: dto.isCashCustomer } : {}),
         ...(dto.contactName !== undefined ? { contactName: dto.contactName } : {}),
         ...(dto.phone !== undefined ? { phone: dto.phone } : {}),
         ...(dto.mobile !== undefined ? { mobile: dto.mobile } : {}),

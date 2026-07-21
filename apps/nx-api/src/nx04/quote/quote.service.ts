@@ -9,6 +9,7 @@ import { Prisma as PrismaNs } from 'db-core';
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
+import { assertSellable } from '../../shared/nx01/partner-account-gate';
 import { resolveCurrencyId } from '../../shared/nx02/nx02-currency';
 import { allocNx04DocNo } from '../../shared/nx04/nx04-doc-no';
 import { assertQuoteStatusTransition, QuoteStatus } from '../../shared/nx04/nx04-state-machine';
@@ -225,12 +226,14 @@ export class QuoteService {
     return us.map((u) => u.id);
   }
 
+  // 帳戶閘門 v1.3（2026-07-21、取代舊 partnerType IN ('C','O')）：散客/現金客戶/R 收款帳戶 三擇一
   private async assertCustomerC(tx: Prisma.TransactionClient, tenantId: string, partnerId: string) {
     const p = await tx.nx01Partner.findFirst({
-      where: { id: partnerId, tenantId, isActive: true, partnerType: { in: ['C', 'O'] } },
-      select: { id: true },
+      where: { id: partnerId, tenantId, isActive: true },
+      select: { id: true, partnerType: true, isCashCustomer: true },
     });
-    if (!p) throw new BadRequestException("customerId must be an active partner with partnerType IN ('C', 'O')");
+    if (!p) throw new BadRequestException('customerId not found or inactive');
+    await assertSellable(tx, tenantId, p);
   }
 
   private lineAmount(qty: PrismaNs.Decimal, unit: PrismaNs.Decimal) {

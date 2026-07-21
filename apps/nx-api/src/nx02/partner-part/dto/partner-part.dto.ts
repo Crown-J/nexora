@@ -3,7 +3,9 @@
 // 對齊 Crown Q-PP-1=C 混合範式 + Q-PP-2=a 不細分 partnerType=S + Q-PP-3=b 廠商料號選填
 // 對齊 Q-S3=A unique [tenantId, partnerId, partId, validFrom] 支援歷史版本
 
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+
+import { toBoolean } from '../../../shared/dto/to-boolean';
 import {
   IsBoolean,
   IsDateString,
@@ -49,12 +51,12 @@ export class PartnerPartListQueryDto {
   source?: 'S' | 'M';
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isPrimary?: boolean;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 

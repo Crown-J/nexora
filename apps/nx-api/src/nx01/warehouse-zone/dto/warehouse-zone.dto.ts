@@ -1,6 +1,8 @@
 // apps/nx-api/src/nx01/warehouse-zone/dto/warehouse-zone.dto.ts
 // 倉庫分區 DTO（2026-06-22 執行長拍板新增四層架構）
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+
+import { toBoolean } from '../../../shared/dto/to-boolean';
 import {
   IsBoolean,
   IsInt,
@@ -42,7 +44,7 @@ export class CreateWarehouseZoneDto {
   sortNo?: number;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 }
@@ -61,7 +63,7 @@ export class UpdateWarehouseZoneDto {
   sortNo?: number;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 }
