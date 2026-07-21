@@ -21,6 +21,7 @@ import { Prisma as PrismaNs } from 'db-core';
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
+import { assertPurchasable } from '../../shared/nx01/partner-account-gate';
 
 import type {
   CreatePartnerPartDto,
@@ -62,7 +63,7 @@ export class PartnerPartService {
     }
   }
 
-  /** 校驗 partner 存在 + tenant 一致 + partner_type='S' 純供應商（Q-PP-2=a application guard）。 */
+  /** 校驗 partner 存在 + tenant 一致 + 可採購（帳戶閘門 v1.3：持有 P 進貨付款帳戶、取代舊 partner_type='S' 判斷）。 */
   private async assertPartnerIsSupplier(tenantId: string, partnerId: string) {
     const partner = await this.prisma.nx01Partner.findFirst({
       where: { id: partnerId, tenantId },
@@ -71,14 +72,10 @@ export class PartnerPartService {
     if (!partner) {
       throw new BadRequestException(`partnerId not found in tenant`);
     }
-    if (partner.partnerType !== 'S') {
-      throw new BadRequestException(
-        `partnerId must be partner_type='S' (純供應商), got '${partner.partnerType}'`,
-      );
-    }
     if (!partner.isActive) {
       throw new BadRequestException(`partnerId is inactive`);
     }
+    await assertPurchasable(this.prisma, tenantId, partner.id);
   }
 
   /** 校驗 part 存在 + tenant 一致。 */

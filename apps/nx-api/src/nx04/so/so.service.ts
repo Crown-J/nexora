@@ -10,6 +10,7 @@ import { Prisma as PrismaNs } from 'db-core';
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
+import { assertSellable, assertTransferable } from '../../shared/nx01/partner-account-gate';
 import { composePartnerDefaultShippingAddress } from '../../shared/nx01/compose-partner-address';
 import { resolveCurrencyId } from '../../shared/nx02/nx02-currency';
 import { allocDocNo as allocNx02DocNo } from '../../shared/nx02/nx02-doc-no';
@@ -268,15 +269,17 @@ export class SoService {
   }
 
   /**
-   * 校驗 customerId 為 partner_type IN ('C', 'O', 'L')（保養廠 / 同行 / 散客）+ isActive、回傳 partner 完整資訊
-   * partner 改制七分類：W4 [3-5] 加散客 L（手冊 §3.5「銷貨單客戶欄可直接選散客」）
+   * 校驗 customerId 可銷售 + isActive、回傳 partner 完整資訊
+   * 帳戶閘門 v1.3（2026-07-21、取代舊 partnerType IN ('C','O','L') 類型閘門）：
+   *   放行三擇一 = 散客 L ／ 現金客戶 isCashCustomer ／ 持有啟用 R 收款帳戶
    */
   private async assertCustomerC(tx: Prisma.TransactionClient, tenantId: string, partnerId: string) {
     const p = await tx.nx01Partner.findFirst({
-      where: { id: partnerId, tenantId, isActive: true, partnerType: { in: ['C', 'O', 'L'] } },
+      where: { id: partnerId, tenantId, isActive: true },
       select: {
         id: true,
         partnerType: true,
+        isCashCustomer: true,
         paymentTermDomestic: true,
         defaultWarehouseId: true,
         creditLimit: true,
@@ -285,7 +288,8 @@ export class SoService {
         defaultInvoiceCopies: true,
       },
     });
-    if (!p) throw new BadRequestException("customerId must be an active partner with partnerType IN ('C', 'O', 'L')");
+    if (!p) throw new BadRequestException('customerId not found or inactive');
+    await assertSellable(tx, tenantId, p);
     return p;
   }
 
@@ -1416,6 +1420,8 @@ export class SoService {
       if (partner.partnerType !== 'O' && !partner.canTransferStock) {
         throw new BadRequestException("partnerId must be type='O' or canTransferStock=true for IT transfer");
       }
+      // 帳戶閘門 v1.3：調貨=買賣、須持有 T 調貨付款帳戶（身分判斷之上疊加）
+      await assertTransferable(tx, tenantId, partner.id);
 
       // 驗 line 都屬於該 SO + 都是 G + P + 未綁 TI
       const itemIds = dto.soItemIds.map((s) => s.trim());

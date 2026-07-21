@@ -15,6 +15,7 @@ import type { Prisma } from 'db-core';
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
+import { hasActiveAccount } from '../../shared/nx01/partner-account-gate';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 
 import type {
@@ -52,13 +53,16 @@ export class PartnerGradeHistoryService {
   async request(user: RequestUser, dto: CreateGradeChangeRequestDto) {
     const tenantId = requireTenantId(user);
     return this.prisma.$transaction(async (tx) => {
-      // 1. 驗 partner 存在 + active + 是客戶（C 或 O）
+      // 1. 驗 partner 存在 + active + 是記帳客戶（帳戶閘門 v1.3：持有 R 收款帳戶、取代舊 C/O 類型判斷）
       const partner = await tx.nx01Partner.findFirst({
-        where: { id: dto.partnerId.trim(), tenantId, isActive: true, partnerType: { in: ['C', 'O'] } },
+        where: { id: dto.partnerId.trim(), tenantId, isActive: true },
         select: { id: true, customerGradeId: true, code: true, name: true },
       });
       if (!partner) {
-        throw new BadRequestException("partnerId must be an active partner with partnerType IN ('C', 'O')");
+        throw new BadRequestException('partnerId not found or inactive');
+      }
+      if (!(await hasActiveAccount(tx, tenantId, partner.id, 'R'))) {
+        throw new BadRequestException('[PA-001] 等級調整僅適用持有收款帳戶的記帳客戶');
       }
 
       // 2. 驗 newGradeId 存在 + active

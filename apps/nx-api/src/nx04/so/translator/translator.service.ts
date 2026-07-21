@@ -22,6 +22,7 @@ import { allocNx04DocNo } from '../../../shared/nx04/nx04-doc-no';
 import { requireDefaultLocationId } from '../../../shared/nx04/nx04-location';
 import { resolveCurrencyId } from '../../../shared/nx02/nx02-currency';
 import { requireTenantId } from '../../../shared/nx01/require-tenant';
+import { assertSellable } from '../../../shared/nx01/partner-account-gate';
 
 import type {
   TranslateLineItemDto,
@@ -287,15 +288,23 @@ export class Nx04SoTranslatorService {
     tenantId: string,
     partnerId: string,
   ): Promise<{ paymentTerm: string; partnerType: string; defaultInvoiceCopies: number }> {
-    // W4 [3-5]：translator 也允許散客 L（手冊 §3.5 銷貨單客戶欄可直接選散客）
+    // 帳戶閘門 v1.3（2026-07-21、取代類型閘門）：散客 L／現金客戶／R 收款帳戶 三擇一
     const p = await tx.nx01Partner.findFirst({
-      where: { id: partnerId, tenantId, isActive: true, partnerType: { in: ['C', 'O', 'L'] } },
-      select: { paymentTermDomestic: true, partnerType: true, defaultInvoiceCopies: true },
+      where: { id: partnerId, tenantId, isActive: true },
+      select: { id: true, paymentTermDomestic: true, partnerType: true, isCashCustomer: true, defaultInvoiceCopies: true },
     });
     if (!p) {
       throw new TranslatorInvalidInputError(
         'CUSTOMER_NOT_C_PARTNER',
-        `客戶 '${partnerId}' 不存在或不是有效客戶（partner_type 須為 C 保養廠 / O 同行 / L 散客）`,
+        `客戶 '${partnerId}' 不存在或已停用`,
+      );
+    }
+    try {
+      await assertSellable(tx, tenantId, p);
+    } catch {
+      throw new TranslatorInvalidInputError(
+        'CUSTOMER_NOT_C_PARTNER',
+        `客戶 '${partnerId}' 尚未開立收款帳戶（也非散客/現金客戶）、無法銷售`,
       );
     }
     return {

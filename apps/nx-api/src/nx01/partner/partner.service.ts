@@ -4,6 +4,7 @@ import type { Prisma } from 'db-core';
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
+import { assertPurchaseDomainAccess } from '../../shared/nx01/partner-account-gate';
 import { SeqCounterService, type SeqScope } from '../../shared/nx01/seq-counter.service';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 
@@ -136,6 +137,10 @@ export class PartnerService {
       const types = q.partnerType.split(',');
       where.partnerType = types.length > 1 ? { in: types } : types[0];
     }
+    if (q.hasAccount) {
+      // 帳戶閘門 v1.3：只列持有指定方向啟用帳戶者（P 的採購權限檢查在 list() 入口）
+      where.rev_Nx01PartnerAccount_partnerId = { some: { direction: q.hasAccount, status: 'A' } };
+    }
     if (q.search?.trim()) {
       const s = q.search.trim();
       where.OR = [
@@ -151,6 +156,10 @@ export class PartnerService {
 
   async list(user: RequestUser, q: ListPartnerQueryDto) {
     const tenantId = requireTenantId(user);
+    // 貨源隔離（帳戶閘門 v1.3）：P 進貨付款帳戶持有清單=供應商名單、需採購域權限
+    if (q.hasAccount === 'P') {
+      await assertPurchaseDomainAccess(this.prisma, user.sub);
+    }
     const page = q.page ?? 1;
     const pageSize = q.pageSize ?? 20;
     const skip = (page - 1) * pageSize;

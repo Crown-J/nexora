@@ -36,6 +36,12 @@ export class ListPartnerQueryDto extends Nx01ListQueryDto {
   @Matches(/^[COSTVBL](,[COSTVBL])*$/, { message: 'partnerType 須為 C/O/S/T/V/B/L 的單值或逗號組合' })
   partnerType?: string;
 
+  /** 帳戶閘門 v1.3：只列持有指定方向啟用帳戶者（R=收款/P=進貨付款/T=調貨付款）。P=供應商名單、service 內綁採購權限（貨源隔離）。 */
+  @IsOptional()
+  @IsString()
+  @IsIn(['R', 'P', 'T'])
+  hasAccount?: string;
+
   /** 02 對齊第二批 C 軌 CP2-b：注音搜尋（phoneticFull / phoneticCode contains）*/
   @IsOptional()
   @IsString()
