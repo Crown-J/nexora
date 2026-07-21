@@ -208,7 +208,8 @@ export function PartnerMasterPage({
         pageSize,
         q: debouncedKw,
         partnerType: onlyType,
-        isActive: showInactive ? undefined : true,
+        // 垃圾桶語意：開=只看停用列（再啟用入口）、關=只看啟用列（2026-07-21 執行長回饋：啟用列不該混進垃圾桶）
+        isActive: showInactive ? false : true,
       });
       // 若 filterPartnerTypes 有多個、後端僅查一種、前端額外提示
       setRows(res.items);
