@@ -131,7 +131,11 @@ export class PartnerService {
 
   private whereList(tenantId: string, q: ListPartnerQueryDto): Prisma.Nx01PartnerWhereInput {
     const where: Prisma.Nx01PartnerWhereInput = { tenantId };
-    if (q.partnerType) where.partnerType = q.partnerType;
+    if (q.partnerType) {
+      // 支援逗號多類型（'C,O'）：即時報價要能同時搜保養廠+同行（2026-07-21）
+      const types = q.partnerType.split(',');
+      where.partnerType = types.length > 1 ? { in: types } : types[0];
+    }
     if (q.search?.trim()) {
       const s = q.search.trim();
       where.OR = [

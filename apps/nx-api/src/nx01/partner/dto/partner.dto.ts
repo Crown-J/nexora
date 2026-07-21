@@ -8,6 +8,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  Matches,
   Max,
   MaxLength,
   Min,
@@ -29,9 +30,10 @@ const PAY_IMP = ['TT', 'LC', 'DP', 'DA'] as const;
 const CREDIT_STAT = ['N', 'W', 'F'] as const;
 
 export class ListPartnerQueryDto extends Nx01ListQueryDto {
+  /** 單一類型（'C'）或逗號多類型（'C,O'）。2026-07-21 執行長回饋：即時報價要能報同行（材料行）。 */
   @IsOptional()
   @IsString()
-  @IsIn(PARTNER_TYPES)
+  @Matches(/^[COSTVBL](,[COSTVBL])*$/, { message: 'partnerType 須為 C/O/S/T/V/B/L 的單值或逗號組合' })
   partnerType?: string;
 
   /** 02 對齊第二批 C 軌 CP2-b：注音搜尋（phoneticFull / phoneticCode contains）*/
