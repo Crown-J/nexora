@@ -823,7 +823,7 @@ export function RrCreatePanel({
             </>
           ) : (
             <>
-              <FieldRow label="供應商"><CustomerPicker partnerType="S" onPick={setSupplier} onCommit={() => {}} /></FieldRow>
+              <FieldRow label="供應商"><CustomerPicker gate="PURCHASE" onPick={setSupplier} onCommit={() => {}} /></FieldRow>
               <FieldRow label="進貨日期"><input type="date" value={rrDate} onChange={(e) => setRrDate(e.target.value)} className={inputCls} /></FieldRow>
               <FieldRow label="稅率 %"><input type="number" min="0" step="0.5" value={taxRate} onChange={(e) => setTaxRate(e.target.value)} className={inputCls} /></FieldRow>
               <FieldRow label="備註"><input value={remark} onChange={(e) => setRemark(e.target.value)} className={inputCls} /></FieldRow>

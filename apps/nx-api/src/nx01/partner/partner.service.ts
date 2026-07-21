@@ -5,6 +5,7 @@ import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
 import { assertPurchaseDomainAccess } from '../../shared/nx01/partner-account-gate';
+import { isValidTaiwanTaxId } from '../../shared/nx01/taiwan-tax-id';
 import { SeqCounterService, type SeqScope } from '../../shared/nx01/seq-counter.service';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 
@@ -358,6 +359,34 @@ export class PartnerService {
       },
       select: SEL,
     });
+    // 帳戶閘門 v1.3（規格五-1/六）：新建對象自動開戶——
+    //   C/O 開 R 收款戶（統編缺或格式不符 → 待補件、不擋建檔）；O 加開 T 調貨戶；
+    //   S/V/T 開 P 進貨付款戶（銀行資訊建檔時必空 → 待補件）；B/L/現金客戶不開。
+    if (!dto.isCashCustomer) {
+      const taxOk = !!dto.taxId?.trim() && isValidTaiwanTaxId(dto.taxId.trim());
+      const autoAccounts: { direction: string; needsBackfill: boolean }[] = [];
+      if (partnerType === 'C' || partnerType === 'O') autoAccounts.push({ direction: 'R', needsBackfill: !taxOk });
+      if (partnerType === 'O') autoAccounts.push({ direction: 'T', needsBackfill: false });
+      if (partnerType === 'S' || partnerType === 'V' || partnerType === 'T') {
+        autoAccounts.push({ direction: 'P', needsBackfill: true });
+      }
+      if (autoAccounts.length) {
+        await this.prisma.nx01PartnerAccount.createMany({
+          data: autoAccounts.map((a) => ({
+            tenantId,
+            partnerId: row.id,
+            direction: a.direction,
+            status: 'A',
+            needsBackfill: a.needsBackfill,
+            openedBy: user.sub,
+            createdBy: user.sub,
+            updatedBy: user.sub,
+          })),
+          skipDuplicates: true,
+        });
+      }
+    }
+
     await this.audit.write({
       tenantId,
       actorUserId: user.sub,

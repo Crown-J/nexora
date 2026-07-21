@@ -441,7 +441,7 @@ export function RfqDetailPanel({
           <FieldRow label="供應商">
             {headerEditing ? (
               <div className="space-y-1">
-                <CustomerPicker partnerType="S" onPick={(p) => { setSupplierPick(p); setClearSupplier(false); }} onCommit={() => {}} />
+                <CustomerPicker gate="PURCHASE" onPick={(p) => { setSupplierPick(p); setClearSupplier(false); }} onCommit={() => {}} />
                 <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
                   <span>目前：{supplierPick ? `${supplierPick.code}　${supplierPick.name}` : clearSupplier ? '（清除、改未指定）' : (rfq.supplierName ?? '未指定')}</span>
                   {(rfq.supplierId || supplierPick) && !clearSupplier ? (
@@ -644,7 +644,7 @@ function QtCompareSection({ rfqId, onAdopted }: { rfqId: string; onAdopted: () =
       {loaded && addOpen ? (
         <div className="space-y-2 rounded border border-border/40 bg-muted/20 p-2">
           <div className="text-[11px] text-muted-foreground">新增一筆報價（業務外部問完填入）：</div>
-          <CustomerPicker partnerType="S" onPick={setNewSupplier} onCommit={() => {}} />
+          <CustomerPicker gate="PURCHASE" onPick={setNewSupplier} onCommit={() => {}} />
           <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
             <input type="number" step="0.0001" placeholder="單價" value={newQt.quotedPrice} onChange={(e) => setNewQt({ ...newQt, quotedPrice: e.target.value })} className={inputCls} />
             <input type="number" step="1" placeholder="可供數量" value={newQt.quotedQuantity} onChange={(e) => setNewQt({ ...newQt, quotedQuantity: e.target.value })} className={inputCls} />
@@ -1007,7 +1007,7 @@ export function RfqCreatePanel({ onCreated, onCancel }: { onCreated: (id: string
           </FieldRow>
           <FieldRow label="供應商">
             <div className="space-y-1">
-              <CustomerPicker partnerType="S" onPick={setSupplier} onCommit={() => {}} />
+              <CustomerPicker gate="PURCHASE" onPick={setSupplier} onCommit={() => {}} />
               <p className="text-[11px] text-muted-foreground">{supplier ? `已選：${supplier.code}　${supplier.name}` : '可不指定（先問多家、用比價區收報價）'}</p>
             </div>
           </FieldRow>

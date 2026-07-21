@@ -35,6 +35,7 @@ export function CustomerPicker({
   onCommit,
   autoFocus,
   partnerType = 'C',
+  gate,
   inputRef,
 }: {
   /** 選定客戶 */
@@ -44,6 +45,8 @@ export function CustomerPicker({
   autoFocus?: boolean;
   /** partner 類型過濾（預設 C 客戶；即時詢價傳 O 挑同行；進貨單傳 S 挑供應商；C,O=保養廠+同行、2026-07-21 賣同行拍板）*/
   partnerType?: 'C' | 'O' | 'S' | 'C,O';
+  /** 帳戶閘門 v1.3 複合過濾（給了就取代 partnerType）：SELL=可銷售/TRANSFER=可調貨/PURCHASE=可採購 */
+  gate?: 'SELL' | 'TRANSFER' | 'PURCHASE';
   /** 外部要拿輸入框 ref（FocusLockedDialog initialFocusRef 用、比照 PartPicker）*/
   inputRef?: React.Ref<HTMLInputElement>;
 }) {
@@ -72,7 +75,11 @@ export function CustomerPicker({
         return;
       }
       try {
-        const res = await listPartner({ page: 1, pageSize: 20, q: t, partnerType, isActive: true });
+        const res = await listPartner(
+          gate
+            ? { page: 1, pageSize: 20, q: t, gate, isActive: true }
+            : { page: 1, pageSize: 20, q: t, partnerType, isActive: true },
+        );
         if (myReq !== reqRef.current) return;
         setRows(
           res.items.map((p) => ({
@@ -90,14 +97,18 @@ export function CustomerPicker({
       }
     }, 200);
     return () => clearTimeout(h);
-  }, [text, picked, partnerType]);
+  }, [text, picked, partnerType, gate]);
 
   async function doPhonetic() {
     const code = keyToBopomofo(text.trim());
     if (!code) return;
     const myReq = ++reqRef.current;
     try {
-      const res = await listPartner({ page: 1, pageSize: 20, phonetic: code, partnerType, isActive: true });
+      const res = await listPartner(
+        gate
+          ? { page: 1, pageSize: 20, phonetic: code, gate, isActive: true }
+          : { page: 1, pageSize: 20, phonetic: code, partnerType, isActive: true },
+      );
       if (myReq !== reqRef.current) return;
       setRows(res.items.map((p) => ({ id: p.id, code: p.code, name: p.name })));
       setOpen(true);

@@ -298,7 +298,7 @@ export function QuoteWorkspace({ onClose, hidden = false }: { onClose: () => voi
     if (partnerInfo?.id === customer.id || infoFetchedFor.current === customer.id) return;
     infoFetchedFor.current = customer.id;
     let alive = true;
-    void listPartner({ page: 1, pageSize: 5, q: customer.code, partnerType: 'C,O', isActive: true })
+    void listPartner({ page: 1, pageSize: 5, q: customer.code, gate: 'SELL', isActive: true })
       .then((r) => {
         if (!alive) return;
         setPartnerInfo(r.items.find((p) => p.id === customer.id) ?? null);
@@ -320,8 +320,8 @@ export function QuoteWorkspace({ onClose, hidden = false }: { onClose: () => voi
       return;
     }
     const h = setTimeout(() => {
-      // 2026-07-21 執行長回饋：報價對象含同行（材料行）→ C,O 雙類型
-      void listPartner({ page: 1, pageSize: 20, q: t, partnerType: 'C,O', isActive: true })
+      // 帳戶閘門 v1.3（2026-07-21）：可銷售=收款戶∪現金客戶∪散客、不再看類型
+      void listPartner({ page: 1, pageSize: 20, q: t, gate: 'SELL', isActive: true })
         .then((r) => {
           if (custReqRef.current !== myReq) return;
           setCustCands(r.items);
@@ -345,7 +345,7 @@ export function QuoteWorkspace({ onClose, hidden = false }: { onClose: () => voi
         const r = await listPartner({
           page: 1,
           pageSize: 20,
-          partnerType: 'C,O',
+          gate: 'SELL',
           isActive: true,
           ...(phonetic ? { phonetic: keyToBopomofo(t) } : { q: t }),
         });
