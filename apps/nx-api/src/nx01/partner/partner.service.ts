@@ -19,6 +19,7 @@ const SEL = {
   name: true,
   partnerType: true,
   canTransferStock: true,
+  isCashCustomer: true,
   contactName: true,
   phone: true,
   mobile: true,
@@ -141,6 +142,27 @@ export class PartnerService {
       // 帳戶閘門 v1.3：只列持有指定方向啟用帳戶者（P 的採購權限檢查在 list() 入口）
       where.rev_Nx01PartnerAccount_partnerId = { some: { direction: q.hasAccount, status: 'A' } };
     }
+    if (q.gate) {
+      // 複合閘門過濾（站點選擇器）；用 AND 疊加、避免跟 search 的 OR 打架
+      const gateWhere: Prisma.Nx01PartnerWhereInput =
+        q.gate === 'SELL'
+          ? {
+              OR: [
+                { rev_Nx01PartnerAccount_partnerId: { some: { direction: 'R', status: 'A' } } },
+                { isCashCustomer: true },
+                { partnerType: 'L' },
+              ],
+            }
+          : q.gate === 'TRANSFER'
+            ? {
+                AND: [
+                  { OR: [{ partnerType: 'O' }, { canTransferStock: true }] },
+                  { rev_Nx01PartnerAccount_partnerId: { some: { direction: 'T', status: 'A' } } },
+                ],
+              }
+            : { rev_Nx01PartnerAccount_partnerId: { some: { direction: 'P', status: 'A' } } };
+      where.AND = [...(Array.isArray(where.AND) ? where.AND : where.AND ? [where.AND] : []), gateWhere];
+    }
     if (q.search?.trim()) {
       const s = q.search.trim();
       where.OR = [
@@ -157,7 +179,7 @@ export class PartnerService {
   async list(user: RequestUser, q: ListPartnerQueryDto) {
     const tenantId = requireTenantId(user);
     // 貨源隔離（帳戶閘門 v1.3）：P 進貨付款帳戶持有清單=供應商名單、需採購域權限
-    if (q.hasAccount === 'P') {
+    if (q.hasAccount === 'P' || q.gate === 'PURCHASE') {
       await assertPurchaseDomainAccess(this.prisma, user.sub);
     }
     const page = q.page ?? 1;
@@ -281,6 +303,8 @@ export class PartnerService {
         name: dto.name.trim(),
         partnerType: dto.partnerType,
         canTransferStock: dto.canTransferStock ?? defaultCanTransferStock,
+        // 帳戶閘門 v1.3：現金客戶標記（無統編具名客戶、可銷售不掛應收）
+        ...(dto.isCashCustomer !== undefined ? { isCashCustomer: dto.isCashCustomer } : {}),
         contactName: dto.contactName?.trim() || null,
         phone: dto.phone?.trim() || null,
         mobile: dto.mobile?.trim() || null,
@@ -371,6 +395,7 @@ export class PartnerService {
         ...(dto.name !== undefined ? { name: dto.name.trim() } : {}),
         ...(dto.partnerType !== undefined ? { partnerType: dto.partnerType } : {}),
         ...(dto.canTransferStock !== undefined ? { canTransferStock: dto.canTransferStock } : {}),
+        ...(dto.isCashCustomer !== undefined ? { isCashCustomer: dto.isCashCustomer } : {}),
         ...(dto.contactName !== undefined ? { contactName: dto.contactName } : {}),
         ...(dto.phone !== undefined ? { phone: dto.phone } : {}),
         ...(dto.mobile !== undefined ? { mobile: dto.mobile } : {}),

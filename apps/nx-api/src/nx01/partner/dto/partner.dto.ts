@@ -42,6 +42,12 @@ export class ListPartnerQueryDto extends Nx01ListQueryDto {
   @IsIn(['R', 'P', 'T'])
   hasAccount?: string;
 
+  /** 帳戶閘門 v1.3 Step 3a 複合過濾（站點選擇器用）：SELL=可銷售（R戶∪現金客戶∪散客L）/ TRANSFER=可調貨（同行身分∩T戶）/ PURCHASE=可採購（P戶、綁採購權限）。 */
+  @IsOptional()
+  @IsString()
+  @IsIn(['SELL', 'TRANSFER', 'PURCHASE'])
+  gate?: string;
+
   /** 02 對齊第二批 C 軌 CP2-b：注音搜尋（phoneticFull / phoneticCode contains）*/
   @IsOptional()
   @IsString()
@@ -159,6 +165,12 @@ export class CreatePartnerDto {
   @Transform(toBoolean)
   @IsBoolean()
   canTransferStock?: boolean;
+
+  /** 現金客戶標記（帳戶閘門 v1.3）：無統編具名客戶、可銷售不開收款戶不掛應收。 */
+  @IsOptional()
+  @Transform(toBoolean)
+  @IsBoolean()
+  isCashCustomer?: boolean;
 
   // ── v1.2 對齊 階段 E P2：basic 區補欄（schema 既有、DTO 補對齊） ──
   @IsOptional() @IsString() @MaxLength(50) shortName?: string;
@@ -289,6 +301,12 @@ export class UpdatePartnerDto {
   @Transform(toBoolean)
   @IsBoolean()
   canTransferStock?: boolean;
+
+  /** 現金客戶標記（帳戶閘門 v1.3）：無統編具名客戶、可銷售不開收款戶不掛應收。 */
+  @IsOptional()
+  @Transform(toBoolean)
+  @IsBoolean()
+  isCashCustomer?: boolean;
 
   // ── v1.2 對齊 階段 E P2：basic 區補欄（schema 既有、DTO 補對齊） ──
   @IsOptional() @IsString() @MaxLength(50) shortName?: string | null;
