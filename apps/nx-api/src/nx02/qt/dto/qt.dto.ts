@@ -1,5 +1,7 @@
 // apps/nx-api/src/nx02/qt/dto/qt.dto.ts
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+
+import { toBoolean } from '../../../shared/dto/to-boolean';
 import {
   IsBoolean,
   IsInt,
@@ -66,7 +68,7 @@ export class ListRfqQueryDto {
   rfqType?: string; // 'P' 同行調貨；'G' 一般
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   includeQts?: boolean;
 

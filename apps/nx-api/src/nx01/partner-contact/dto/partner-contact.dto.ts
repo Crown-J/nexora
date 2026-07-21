@@ -1,6 +1,8 @@
 // apps/nx-api/src/nx01/partner-contact/dto/partner-contact.dto.ts
 // 02 第三批 T2 2026-06-07：partner 聯絡窗口子表 DTO
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+
+import { toBoolean } from '../../../shared/dto/to-boolean';
 import { IsBoolean, IsInt, IsOptional, IsString, MaxLength, Min, MinLength } from 'class-validator';
 
 export class CreatePartnerContactDto {
@@ -12,7 +14,7 @@ export class CreatePartnerContactDto {
   @IsOptional() @IsString() @MaxLength(100) email?: string;
   @IsOptional() @IsString() @MaxLength(200) note?: string;
   @IsOptional() @Type(() => Number) @IsInt() @Min(0) sortNo?: number;
-  @IsOptional() @Type(() => Boolean) @IsBoolean() isActive?: boolean;
+  @IsOptional() @Transform(toBoolean) @IsBoolean() isActive?: boolean;
 }
 
 export class UpdatePartnerContactDto {
@@ -24,5 +26,5 @@ export class UpdatePartnerContactDto {
   @IsOptional() @IsString() @MaxLength(100) email?: string | null;
   @IsOptional() @IsString() @MaxLength(200) note?: string | null;
   @IsOptional() @Type(() => Number) @IsInt() @Min(0) sortNo?: number;
-  @IsOptional() @Type(() => Boolean) @IsBoolean() isActive?: boolean;
+  @IsOptional() @Transform(toBoolean) @IsBoolean() isActive?: boolean;
 }

@@ -1,6 +1,8 @@
 // apps/nx-api/src/nx01/part-group/dto/part-group.dto.ts
 // 對應規格：docs/nx01/spec/intent/nx01-07-base-catalog.md v1.0 (part_group 子段)
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+
+import { toBoolean } from '../../../shared/dto/to-boolean';
 import { IsBoolean, IsInt, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 
 import { Nx01ListQueryDto } from '../../../shared/nx01/pagination.dto';
@@ -30,7 +32,7 @@ export class CreatePartGroupDto {
   sortNo?: number;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 }
@@ -60,7 +62,7 @@ export class UpdatePartGroupDto {
   sortNo?: number;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 }

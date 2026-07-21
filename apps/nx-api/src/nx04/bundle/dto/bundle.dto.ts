@@ -1,7 +1,9 @@
 // apps/nx-api/src/nx04/bundle/dto/bundle.dto.ts
 // F2 組合套餐 2026-06-09：DTO
 
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+
+import { toBoolean } from '../../../shared/dto/to-boolean';
 import {
   ArrayMinSize,
   IsArray,
@@ -19,7 +21,7 @@ import { Nx04ListQueryDto } from '../../../shared/nx04/nx04-list-query.dto';
 
 export class ListBundleQueryDto extends Nx04ListQueryDto {
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 }
@@ -59,7 +61,7 @@ export class CreateBundleDto {
   remark?: string;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 
@@ -95,7 +97,7 @@ export class UpdateBundleDto {
   remark?: string | null;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 }

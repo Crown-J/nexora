@@ -2,7 +2,9 @@
 // NX03 BrandAllocationRule DTO（AR 配比規則、modelId 級）
 // 對齊 Crown Q-B1=A modelId 級 + Q-S1=A source S/M 雙來源 + Q-M2=A Decimal(5,4)
 
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+
+import { toBoolean } from '../../../shared/dto/to-boolean';
 import {
   IsBoolean,
   IsDateString,
@@ -43,7 +45,7 @@ export class BrandAllocationRuleListQueryDto {
   source?: 'S' | 'M';
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 

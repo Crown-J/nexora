@@ -1,7 +1,9 @@
 // apps/nx-api/src/nx01/permission-level/dto/permission-level.dto.ts
 // 職務↔權限拆分軌 Step3：權限等級 DTO
 
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+
+import { toBoolean } from '../../../shared/dto/to-boolean';
 import {
   ArrayMinSize,
   IsArray,
@@ -23,14 +25,14 @@ export class CreatePermissionLevelDto {
   @IsString() @MinLength(1) @MaxLength(50) name!: string;
   @IsOptional() @IsString() @MaxLength(200) description?: string;
   @IsOptional() @Type(() => Number) @IsInt() sortNo?: number;
-  @IsOptional() @Type(() => Boolean) @IsBoolean() isActive?: boolean;
+  @IsOptional() @Transform(toBoolean) @IsBoolean() isActive?: boolean;
 }
 
 export class UpdatePermissionLevelDto {
   @IsOptional() @IsString() @MinLength(1) @MaxLength(50) name?: string;
   @IsOptional() @IsString() @MaxLength(200) description?: string | null;
   @IsOptional() @Type(() => Number) @IsInt() sortNo?: number;
-  @IsOptional() @Type(() => Boolean) @IsBoolean() isActive?: boolean;
+  @IsOptional() @Transform(toBoolean) @IsBoolean() isActive?: boolean;
 }
 
 export class SetLevelPermissionsDto {

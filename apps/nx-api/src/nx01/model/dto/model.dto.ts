@@ -1,6 +1,8 @@
 // apps/nx-api/src/nx01/model/dto/model.dto.ts
 // 對應規格：docs/nx01/spec/intent/nx01-13-model.md v1.0 §4
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+
+import { toBoolean } from '../../../shared/dto/to-boolean';
 import {
   IsBoolean,
   IsInt,
@@ -85,7 +87,7 @@ export class CreateModelDto {
   sortNo?: number;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 }
@@ -146,7 +148,7 @@ export class UpdateModelDto {
   sortNo?: number;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 }

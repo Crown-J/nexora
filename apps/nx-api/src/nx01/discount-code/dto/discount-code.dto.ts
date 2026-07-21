@@ -2,7 +2,9 @@
 // F1-A 銷貨優惠價子系統 2026-06-08：折扣代碼主檔 DTO
 // schema Nx01DiscountCode（既有）：code/name/discountType(P=率/A=金額)/discountValue/managedBy(P=採購組長/S=銷售組長)/remark/isActive
 
-import { Type } from 'class-transformer';
+import { Transform } from 'class-transformer';
+
+import { toBoolean } from '../../../shared/dto/to-boolean';
 import {
   IsBoolean,
   IsIn,
@@ -54,7 +56,7 @@ export class CreateDiscountCodeDto {
   remark?: string;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 }
@@ -87,7 +89,7 @@ export class UpdateDiscountCodeDto {
   remark?: string;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 }

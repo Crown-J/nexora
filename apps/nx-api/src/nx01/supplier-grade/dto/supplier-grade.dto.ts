@@ -2,7 +2,9 @@
 // LITE 階段 1 M2-c：供應商分級主檔 DTO。
 // 05 批 T4 2026-06-07：半開放升級 — 開放 Create、A/B/C/D 內建 lock（不可刪、code 不可改）。
 //   保住 partner.recalcSupplierGradeByPaymentTerm 的自動分級邏輯（依賴內建 A/B/C/D）。
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+
+import { toBoolean } from '../../../shared/dto/to-boolean';
 import { IsBoolean, IsInt, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 
 import { Nx01ListQueryDto } from '../../../shared/nx01/pagination.dto';
@@ -35,7 +37,7 @@ export class CreateSupplierGradeDto {
   sortNo?: number;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 }
@@ -64,7 +66,7 @@ export class UpdateSupplierGradeDto {
   sortNo?: number;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 }

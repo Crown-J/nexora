@@ -1,4 +1,6 @@
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+
+import { toBoolean } from '../../../shared/dto/to-boolean';
 import {
   IsBoolean,
   IsIn,
@@ -38,7 +40,7 @@ export class ListTenantsQueryDto {
   status?: string;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 }
@@ -74,7 +76,7 @@ export class CreateTenantDto {
   sortNo?: number;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 
@@ -132,7 +134,7 @@ export class UpdateTenantDto {
   sortNo?: number;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 

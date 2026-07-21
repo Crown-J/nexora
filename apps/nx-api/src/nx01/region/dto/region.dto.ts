@@ -1,6 +1,8 @@
 // apps/nx-api/src/nx01/region/dto/region.dto.ts
 // 02 對齊第二批 C 軌 CP1 2026-06-06：客戶地區小型主檔（不入 partner code 編號）
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+
+import { toBoolean } from '../../../shared/dto/to-boolean';
 import { IsBoolean, IsInt, IsOptional, IsString, MaxLength, Min, MinLength } from 'class-validator';
 
 import { Nx01ListQueryDto } from '../../../shared/nx01/pagination.dto';
@@ -25,7 +27,7 @@ export class CreateRegionDto {
   sortNo?: number;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 }
@@ -44,7 +46,7 @@ export class UpdateRegionDto {
   sortNo?: number;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 }

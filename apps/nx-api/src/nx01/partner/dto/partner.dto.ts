@@ -1,4 +1,6 @@
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+
+import { toBoolean } from '../../../shared/dto/to-boolean';
 import {
   IsBoolean,
   IsIn,
@@ -140,13 +142,13 @@ export class CreatePartnerDto {
   incoterm?: string;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 
   /** 可調貨旗標。partner_type='O' 同行 service 層 create 時預設 true；'C' 保養廠可手動開啟。 */
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   canTransferStock?: boolean;
 
@@ -270,13 +272,13 @@ export class UpdatePartnerDto {
   incoterm?: string | null;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 
   /** 可調貨旗標。partner_type='O' 同行 service 層 create 時預設 true；'C' 保養廠可手動開啟。 */
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   canTransferStock?: boolean;
 

@@ -1,7 +1,9 @@
 // apps/nx-api/src/nx05/account-code/dto/account-code.dto.ts
 // NX05 AccountCode DTO（會計科目主檔 CRUD）
 
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+
+import { toBoolean } from '../../../shared/dto/to-boolean';
 import {
   IsBoolean,
   IsIn,
@@ -36,12 +38,12 @@ export class AccountCodeListQueryDto {
   category?: 'I' | 'E' | 'A' | 'L';
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isSystem?: boolean;
 

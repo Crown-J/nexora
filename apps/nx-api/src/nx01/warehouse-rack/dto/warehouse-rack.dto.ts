@@ -1,6 +1,8 @@
 // apps/nx-api/src/nx01/warehouse-rack/dto/warehouse-rack.dto.ts
 // 貨架 DTO（2026-06-28 五層倉儲第四層：區域 → 貨架）
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+
+import { toBoolean } from '../../../shared/dto/to-boolean';
 import {
   IsBoolean,
   IsInt,
@@ -42,7 +44,7 @@ export class CreateWarehouseRackDto {
   sortNo?: number;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 }
@@ -61,7 +63,7 @@ export class UpdateWarehouseRackDto {
   sortNo?: number;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 }

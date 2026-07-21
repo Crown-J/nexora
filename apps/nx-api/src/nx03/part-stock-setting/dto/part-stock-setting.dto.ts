@@ -2,7 +2,9 @@
 // NX03 PartStockSetting DTO（料件 × 倉 安全量 / 最高量 / 補貨點）
 // 對齊 AUDIT-03 業務語意 + overview §3.3 #12 自動補貨偵測基礎（範圍 A 涵蓋 setting、補貨建議單在 B 軌）
 
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+
+import { toBoolean } from '../../../shared/dto/to-boolean';
 import {
   IsBoolean,
   IsInt,
@@ -40,7 +42,7 @@ export class PartStockSettingListQueryDto {
   partId?: string;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 

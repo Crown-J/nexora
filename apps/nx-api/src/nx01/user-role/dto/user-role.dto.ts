@@ -7,7 +7,9 @@
  * 後續軌 TASK-API-NAMESPACE-NORMALIZE 統一所有 nx01 entity 路由前綴。
  */
 
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+
+import { toBoolean } from '../../../shared/dto/to-boolean';
 import {
   IsBoolean,
   IsInt,
@@ -28,7 +30,7 @@ export class ListUserRoleQueryDto {
   roleId?: string;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 
@@ -55,7 +57,7 @@ export class AssignUserRoleDto {
   roleId!: string;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isPrimary?: boolean;
 }
@@ -69,14 +71,14 @@ export class RevokeUserRoleDto {
 
 /** PATCH /user-role/:id/primary */
 export class SetPrimaryDto {
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isPrimary!: boolean;
 }
 
 /** PATCH /user-role/:id/active */
 export class SetActiveDto {
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive!: boolean;
 }

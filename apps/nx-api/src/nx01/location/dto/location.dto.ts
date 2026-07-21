@@ -4,7 +4,9 @@
  * 路由 nx01/locations、停用走 @Delete soft（系統不刪資料）。
  */
 
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+
+import { toBoolean } from '../../../shared/dto/to-boolean';
 import { IsBoolean, IsInt, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 
 import { Nx01ListQueryDto } from '../../../shared/nx01/pagination.dto';
@@ -75,7 +77,7 @@ export class CreateLocationDto {
   sortNo?: number;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 }
@@ -139,7 +141,7 @@ export class UpdateLocationDto {
   sortNo?: number;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 }

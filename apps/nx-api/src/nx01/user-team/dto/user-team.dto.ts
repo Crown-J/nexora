@@ -1,6 +1,8 @@
 // apps/nx-api/src/nx01/user-team/dto/user-team.dto.ts
 // 05 批 T3 2026-06-07：UserTeam 衛星 DTO（範式對齊 user-role）
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+
+import { toBoolean } from '../../../shared/dto/to-boolean';
 import { IsBoolean, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class ListUserTeamQueryDto {
@@ -8,7 +10,7 @@ export class ListUserTeamQueryDto {
   @IsOptional() @IsString() teamId?: string;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 
@@ -31,10 +33,10 @@ export class AssignUserTeamDto {
   @IsString() teamId!: string;
 
   /** 主組旗標、true 時自動把該員工其他 isPrimary=true 改 false */
-  @IsOptional() @Type(() => Boolean) @IsBoolean() isPrimary?: boolean;
+  @IsOptional() @Transform(toBoolean) @IsBoolean() isPrimary?: boolean;
 
   /** 是否為該組組長 */
-  @IsOptional() @Type(() => Boolean) @IsBoolean() isLeader?: boolean;
+  @IsOptional() @Transform(toBoolean) @IsBoolean() isLeader?: boolean;
 }
 
 export class RevokeUserTeamDto {
@@ -42,13 +44,13 @@ export class RevokeUserTeamDto {
 }
 
 export class SetPrimaryUserTeamDto {
-  @Type(() => Boolean) @IsBoolean() isPrimary!: boolean;
+  @Transform(toBoolean) @IsBoolean() isPrimary!: boolean;
 }
 
 export class SetLeaderUserTeamDto {
-  @Type(() => Boolean) @IsBoolean() isLeader!: boolean;
+  @Transform(toBoolean) @IsBoolean() isLeader!: boolean;
 }
 
 export class SetActiveUserTeamDto {
-  @Type(() => Boolean) @IsBoolean() isActive!: boolean;
+  @Transform(toBoolean) @IsBoolean() isActive!: boolean;
 }

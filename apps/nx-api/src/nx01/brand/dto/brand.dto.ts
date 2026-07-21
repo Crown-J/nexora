@@ -1,6 +1,8 @@
 // apps/nx-api/src/nx01/brand/dto/brand.dto.ts
 // W6 [3-8] 2026-06-06 品牌合併（合 PartBrand + CarBrand → Brand、雙開關 isCar / isPart）
 import { Transform, Type } from 'class-transformer';
+
+import { toBoolean } from '../../../shared/dto/to-boolean';
 import {
   IsBoolean,
   IsInt,
@@ -17,13 +19,13 @@ import { Nx01ListQueryDto } from '../../../shared/nx01/pagination.dto';
 export class ListBrandQueryDto extends Nx01ListQueryDto {
   /** 只列 isCar=true 的品牌（車型字典 / Engine / Transmission / Model / VinLookup picker 用）*/
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isCar?: boolean;
 
   /** 只列 isPart=true 的品牌（零件主檔 / StItem picker 用）*/
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isPart?: boolean;
 }
@@ -62,12 +64,12 @@ export class CreateBrandDto {
 
   /** W6 雙開關：同 code 可同時是車牌 + 零件廠牌（業界 VAG 範式）*/
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isCar?: boolean;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isPart?: boolean;
 
@@ -83,7 +85,7 @@ export class CreateBrandDto {
   sortNo?: number;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 }
@@ -123,12 +125,12 @@ export class UpdateBrandDto {
   logoUrl?: string | null;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isCar?: boolean;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isPart?: boolean;
 
@@ -144,7 +146,7 @@ export class UpdateBrandDto {
   sortNo?: number;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 }

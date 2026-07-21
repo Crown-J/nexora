@@ -1,5 +1,7 @@
 // apps/nx-api/src/nx01/site/dto/site.dto.ts
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+
+import { toBoolean } from '../../../shared/dto/to-boolean';
 import { IsBoolean, IsInt, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 
 import { Nx01ListQueryDto } from '../../../shared/nx01/pagination.dto';
@@ -43,7 +45,7 @@ export class CreateSiteDto {
   phone?: string;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isMain?: boolean;
 
@@ -53,7 +55,7 @@ export class CreateSiteDto {
   sortNo?: number;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 }
@@ -97,7 +99,7 @@ export class UpdateSiteDto {
   phone?: string | null;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isMain?: boolean;
 
@@ -107,7 +109,7 @@ export class UpdateSiteDto {
   sortNo?: number;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 }

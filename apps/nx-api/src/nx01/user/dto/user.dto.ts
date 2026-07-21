@@ -1,4 +1,6 @@
-import { Transform, Type } from 'class-transformer';
+import { Transform } from 'class-transformer';
+
+import { toBoolean } from '../../../shared/dto/to-boolean';
 import {
   ArrayMaxSize,
   ArrayMinSize,
@@ -109,7 +111,7 @@ export class CreateUserDto {
   phone?: string;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 
@@ -156,7 +158,7 @@ export class CreateUserDto {
   @IsOptional() @IsString() @MaxLength(50) legacyCode?: string;
 
   // 2026-06-18 補 Hana demo 欄位:兩階段驗證開關（security zone）
-  @IsOptional() @Type(() => Boolean) @IsBoolean() twoFaEnabled?: boolean;
+  @IsOptional() @Transform(toBoolean) @IsBoolean() twoFaEnabled?: boolean;
 }
 
 /**
@@ -212,7 +214,7 @@ export class UpdateUserDto {
   phone?: string | null;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isActive?: boolean;
 
@@ -221,7 +223,7 @@ export class UpdateUserDto {
 
   // 2026-06-23：admin 重設密碼時要帶 mustChangePassword=true、員工首次登入強制改
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   mustChangePassword?: boolean;
 
@@ -265,5 +267,5 @@ export class UpdateUserDto {
   @IsOptional() @IsString() @MaxLength(50) legacyCode?: string | null;
 
   // 2026-06-18 補 Hana demo 欄位:兩階段驗證開關（security zone 整合時實作 OTP）
-  @IsOptional() @Type(() => Boolean) @IsBoolean() twoFaEnabled?: boolean;
+  @IsOptional() @Transform(toBoolean) @IsBoolean() twoFaEnabled?: boolean;
 }
