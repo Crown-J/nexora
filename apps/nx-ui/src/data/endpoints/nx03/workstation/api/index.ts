@@ -186,6 +186,85 @@ export async function completePicking(id: string, currentStatus: PkStatus): Prom
 }
 
 // ────────────────────────────────────────────────────────────
+// nx03/pick-pool（撿貨池、SALES-FLOW 階段 1）
+// 工作池式撿貨：非「新增撿貨單」。池行狀態由後端推導（fulfillStatus + 隱形 pk_item.status）。
+// ────────────────────────────────────────────────────────────
+
+/** 池行狀態：W=待撿 / K=撿貨中 / D=已撿完 / M=找不到 */
+export type PoolLineStatus = 'W' | 'K' | 'D' | 'M';
+
+export interface PoolLine {
+  soItemId: string;
+  soId: string;
+  soDocNo: string;
+  customerName: string;
+  warehouseId: string;
+  warehouseCode: string;
+  warehouseName: string;
+  deliveryType: string; // D=配送 / P=自取 / C=寄貨
+  lineNo: number;
+  partId: string;
+  partNo: string;
+  partName: string;
+  qty: string;
+  locationId: string | null;
+  status: PoolLineStatus;
+  pkItemId: string | null;
+}
+
+export interface PoolGroup {
+  soId: string;
+  soDocNo: string;
+  customerName: string;
+  warehouseId: string;
+  warehouseCode: string;
+  warehouseName: string;
+  deliveryType: string;
+  soDate: string | null;
+  lines: PoolLine[];
+  pendingCount: number;
+  pickingCount: number;
+  doneCount: number;
+}
+
+export interface PickPoolQuery {
+  warehouseId?: string;
+  status?: PoolLineStatus;
+  search?: string;
+}
+
+export function getPickPool(q: PickPoolQuery = {}): Promise<{ groups: PoolGroup[]; total: number }> {
+  return apiJson(
+    `/nx03/pick-pool${buildQueryString({
+      warehouseId: q.warehouseId,
+      status: q.status,
+      search: q.search,
+    })}`,
+  );
+}
+
+/** 開始撿一張 SO（備妥待撿行整批進撿貨中）。 */
+export function startPick(soId: string): Promise<{ pkId: string; pkDocNo: string; soId: string; added: number }> {
+  return apiJson(`/nx03/pick-pool/start`, { method: 'POST', body: JSON.stringify({ soId }) });
+}
+
+/** 標記某行撿到了（已撿完）。 */
+export function pickPoolLine(soItemId: string, locationId?: string): Promise<{ ok: true }> {
+  return apiJson(`/nx03/pick-pool/pick`, {
+    method: 'POST',
+    body: JSON.stringify({ soItemId, locationId }),
+  });
+}
+
+/** 標記某行找不到貨。 */
+export function notFoundPoolLine(soItemId: string, reason: string): Promise<{ ok: true }> {
+  return apiJson(`/nx03/pick-pool/not-found`, {
+    method: 'POST',
+    body: JSON.stringify({ soItemId, reason }),
+  });
+}
+
+// ────────────────────────────────────────────────────────────
 // nx03/pl
 // ────────────────────────────────────────────────────────────
 
