@@ -28,6 +28,8 @@ import { PartStockSettingController } from './part-stock-setting/part-stock-sett
 import { PartStockSettingService } from './part-stock-setting/part-stock-setting.service';
 import { ParcelController } from './parcel/parcel.controller';
 import { ParcelService } from './parcel/parcel.service';
+import { PickPoolController } from './pick-pool/pick-pool.controller';
+import { PickPoolService } from './pick-pool/pick-pool.service';
 import { PkController } from './pk/pk.controller';
 import { PkService } from './pk/pk.service';
 import { PlController } from './pl/pl.controller';
@@ -64,6 +66,7 @@ import { TransferService } from './transfer/transfer.service';
     ConversionController,
     IssueReportController,
     PkController,
+    PickPoolController,
     PlController,
     ParcelController,
     InboundController,
@@ -87,6 +90,7 @@ import { TransferService } from './transfer/transfer.service';
     ConversionService,
     IssueReportService,
     PkService,
+    PickPoolService,
     PlService,
     ParcelService,
     InboundService,
