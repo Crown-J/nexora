@@ -1,53 +1,55 @@
 // apps/nx-api/src/nx03/pick-pool/dto/pick-pool.dto.ts
-// 撿貨池 DTO（SALES-FLOW 階段 1）。撿貨池＝銷貨行工作池、非「新增撿貨單」。
+// 撿貨清單 DTO（SALES-FLOW 撿貨重設計 2026-07-22）。庫位軸、同料件合併總量。
 
-import { IsIn, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { IsIn, IsNumber, IsOptional, IsString, MaxLength, Min, MinLength } from 'class-validator';
 
-/** 撿貨池查詢：可選倉別 + 狀態 + 關鍵字。 */
-export class PickPoolQueryDto {
-  /** 限定倉別（null=全倉）。 */
+/** 撿貨清單查詢：可選倉別 + 關鍵字。 */
+export class PickListQueryDto {
   @IsOptional()
   @IsString()
   warehouseId?: string;
 
-  /** 池行狀態：W=待撿 / K=撿貨中 / D=已撿完 / M=找不到（空=全部進行中）。 */
-  @IsOptional()
-  @IsIn(['W', 'K', 'D', 'M'])
-  status?: 'W' | 'K' | 'D' | 'M';
-
-  /** 關鍵字（銷貨單號 / 客戶名 / 料號 / 品名）。 */
+  /** 關鍵字（料號 / 品名 / 庫位）。 */
   @IsOptional()
   @IsString()
   search?: string;
 }
 
-/** 開始撿一張銷貨單（其備妥的待撿行整批進撿貨中）。 */
-export class StartPickDto {
+/** 撿到了：把某（倉 × 料件）的所有待撿行整批標為已撿。 */
+export class PickAggregateDto {
   @IsString()
   @MinLength(1)
-  soId!: string;
+  warehouseId!: string;
+
+  @IsString()
+  @MinLength(1)
+  partId!: string;
 }
 
-/** 標記某銷貨行「撿到了」（已撿完）。 */
-export class PickLineDto {
+/**
+ * 撿貨異常：開正式異常回報單（接六處置流程）。
+ * issueType：D=損毀 / S=數量短缺（撿貨現場常見兩種）。
+ */
+export class ReportPickIssueDto {
   @IsString()
   @MinLength(1)
-  soItemId!: string;
+  warehouseId!: string;
 
-  /** 撿貨庫位（選填、記錄實際取貨位）。 */
+  @IsString()
+  @MinLength(1)
+  partId!: string;
+
+  @IsIn(['D', 'S'])
+  issueType!: 'D' | 'S';
+
+  /** 異常數量（損毀幾個 / 短缺幾個）。 */
+  @IsNumber()
+  @Min(0.0001)
+  qty!: number;
+
+  /** 異常說明（選填）。 */
   @IsOptional()
   @IsString()
-  locationId?: string;
-}
-
-/** 標記某銷貨行「找不到貨」。 */
-export class NotFoundLineDto {
-  @IsString()
-  @MinLength(1)
-  soItemId!: string;
-
-  @IsString()
-  @MinLength(1)
   @MaxLength(200)
-  reason!: string;
+  reason?: string;
 }

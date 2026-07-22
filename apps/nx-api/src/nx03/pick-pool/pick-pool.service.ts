@@ -1,17 +1,14 @@
 // apps/nx-api/src/nx03/pick-pool/pick-pool.service.ts
-// 撿貨池 service（SALES-FLOW 階段 1、2026-07-22 執行長拍板 D1）
+// 撿貨清單 service（SALES-FLOW 撿貨重設計 2026-07-22 執行長拍板）
 //
-// 業務語意：撿貨「表頭拆掉」＝倉管眼前只有一張工作池清單、不新增撿貨單。
-//   池 = 所有「現貨已備齊、還沒撿完」的銷貨行（transferStatus=C 且 fulfillStatus∈{W,PK}）。
-//   每行狀態：待撿(W) → 撿貨中(K) → 已撿完(D)／找不到(M)。
+// 業務語意：撿貨以「庫位」為軸、不是銷貨單——倉管不管貨是誰的哪張單，
+//   只照庫位順路一路撿到包貨區。清單＝依庫位分組、同（倉×料件）合併總量的撿貨任務列。
+//   每列快速反應：這東西在哪(庫位) / 長什麼樣(主圖) / 異常(開異常回報單) / 撿好了。
 //
-// 底層：nx03_pk 撿貨單降為「隱形帳」——系統自動每張 SO 開一張隱形撿貨單當接往包貨的橋，
-//   倉管無感。一張 SO 對應一張未完成(P/C)的隱形 PK；deliveryType 取自 SO 表頭（header 語意仍合法）。
-//   撿貨動作全部落在既有 nx03_pk / nx03_pk_item + 既有 fulfill-advance helper 上、零 schema 改動。
-//
-// 過帳：撿貨不扣帳（扣庫存/開應收依 D4/D6 移到簽收）；此處只推進 fulfillStatus W→PK。
+// 底層：撿到了＝把該（倉×料件）所有待撿的 SO 行整批落 nx03_pk_item(status=C)、推進 fulfillStatus W→PK；
+//   一 SO 一張隱形撿貨單當接往包貨的橋（倉管無感）。撿貨不扣帳（扣庫存/開應收依 D4/D6 移到簽收）。
 
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import type { Prisma } from 'db-core';
 
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
@@ -22,45 +19,31 @@ import { advanceSoItemsFulfill } from '../../shared/nx03/nx03-fulfill-advance';
 import { PkStatus } from '../../shared/nx03/nx03-state-machine';
 import { SoStatus } from '../../shared/nx04/nx04-state-machine';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
+import { IssueReportService } from '../issue-report/issue-report.service';
 
-import type { NotFoundLineDto, PickLineDto, PickPoolQueryDto, StartPickDto } from './dto/pick-pool.dto';
+import type { PickAggregateDto, PickListQueryDto, ReportPickIssueDto } from './dto/pick-pool.dto';
 
-/** 池行狀態（前端顯示用；非 DB 欄位、由 fulfillStatus + pk_item.status 推導）。 */
-type PoolLineStatus = 'W' | 'K' | 'D' | 'M'; // 待撿 / 撿貨中 / 已撿完 / 找不到
-
-interface PoolLine {
-  soItemId: string;
-  soId: string;
-  soDocNo: string;
-  customerName: string;
+/** 撿貨任務列（同 倉×料件 合併總量）。 */
+interface PickItem {
   warehouseId: string;
   warehouseCode: string;
-  warehouseName: string;
-  deliveryType: string; // D=配送 / P=自取 / C=寄貨
-  lineNo: number;
   partId: string;
   partNo: string;
   partName: string;
-  qty: string;
+  photoId: string | null; // 料件主圖（nx01_part_photo）
   locationId: string | null;
-  status: PoolLineStatus;
-  pkItemId: string | null;
+  locationCode: string | null;
+  totalQty: string;
+  soDocNos: string[]; // 底層來自哪些銷貨單（倉管不需管、備查）
+  soItemIds: string[];
 }
 
-/** 撿貨池：以 SO 為群組回傳（一張 SO 一疊行）。 */
-interface PoolGroup {
-  soId: string;
-  soDocNo: string;
-  customerName: string;
-  warehouseId: string;
+/** 依庫位分組。 */
+interface PickGroup {
+  locationId: string | null;
+  locationCode: string | null; // null=未指定庫位
   warehouseCode: string;
-  warehouseName: string;
-  deliveryType: string;
-  soDate: string | null;
-  lines: PoolLine[];
-  pendingCount: number; // 待撿
-  pickingCount: number; // 撿貨中
-  doneCount: number; // 已撿完 + 找不到
+  items: PickItem[];
 }
 
 @Injectable()
@@ -68,273 +51,260 @@ export class PickPoolService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: Nx01AuditLogWriterService,
+    private readonly issueReport: IssueReportService,
   ) {}
 
-  /** 撿貨池清單（依 SO 群組）。 */
-  async getPool(user: RequestUser, q: PickPoolQueryDto): Promise<{ groups: PoolGroup[]; total: number }> {
+  /** 撿貨清單：待撿行依庫位分組、同（倉×料件）合併總量、排序＝走動最優化。 */
+  async getPickList(user: RequestUser, q: PickListQueryDto): Promise<{ groups: PickGroup[]; total: number; lineCount: number }> {
     const tenantId = requireTenantId(user);
-    const soWhere: Prisma.Nx04SoWhereInput = {
-      tenantId,
-      cancelledAt: null,
-      status: { in: [SoStatus.CONFIRMED, SoStatus.PICKING] },
-    };
-    if (q.warehouseId?.trim()) soWhere.warehouseId = q.warehouseId.trim();
-
     const where: Prisma.Nx04SoItemWhereInput = {
-      transferStatus: 'C', // 補貨完成＝現貨備妥（本倉現貨 or 調撥/調貨已到）
-      fulfillStatus: { in: ['W', 'PK'] }, // 待撿 or 撿貨中（PL 之後已離開撿貨池）
-      so: soWhere,
+      transferStatus: 'C',
+      fulfillStatus: 'W', // 待撿（已撿的推進到 PK、離開清單）
+      so: { tenantId, cancelledAt: null, status: { in: [SoStatus.CONFIRMED, SoStatus.PICKING] } },
     };
+    if (q.warehouseId?.trim()) where.warehouseId = q.warehouseId.trim();
     if (q.search?.trim()) {
       const s = q.search.trim();
       where.OR = [
         { partNo: { contains: s, mode: 'insensitive' } },
         { partName: { contains: s, mode: 'insensitive' } },
-        { so: { docNo: { contains: s, mode: 'insensitive' } } },
-        { so: { customer: { name: { contains: s, mode: 'insensitive' } } } },
       ];
     }
 
     const rows = await this.prisma.nx04SoItem.findMany({
       where,
-      orderBy: [{ soId: 'asc' }, { lineNo: 'asc' }],
       select: {
         id: true,
-        soId: true,
-        lineNo: true,
+        warehouseId: true,
         partId: true,
         partNo: true,
         partName: true,
         qty: true,
-        fulfillStatus: true,
-        so: {
-          select: {
-            docNo: true,
-            deliveryType: true,
-            soDate: true,
-            warehouseId: true,
-            warehouse: { select: { code: true, name: true } },
-            customer: { select: { name: true } },
-          },
-        },
+        so: { select: { docNo: true } },
       },
     });
+    if (!rows.length) return { groups: [], total: 0, lineCount: 0 };
 
-    // 撈對應隱形撿貨單明細（非作廢 PK）→ 推導池行狀態
-    const soItemIds = rows.map((r) => r.id);
-    const pkItems = soItemIds.length
-      ? await this.prisma.nx03PkItem.findMany({
-          where: { refSoItemId: { in: soItemIds }, pk: { status: { not: PkStatus.VOIDED } } },
-          select: { id: true, refSoItemId: true, status: true, locationId: true },
-        })
+    const partIds = [...new Set(rows.map((r) => r.partId))];
+    const whIds = [...new Set(rows.map((r) => r.warehouseId))];
+
+    // 庫位（part_stock_setting.defaultLocationId per 倉×料件）
+    const settings = await this.prisma.nx03PartStockSetting.findMany({
+      where: { tenantId, partId: { in: partIds }, warehouseId: { in: whIds } },
+      select: { partId: true, warehouseId: true, defaultLocationId: true },
+    });
+    const locByKey = new Map(settings.map((s) => [`${s.warehouseId}|${s.partId}`, s.defaultLocationId]));
+    const locIds = [...new Set(settings.map((s) => s.defaultLocationId).filter((x): x is string => !!x))];
+    const locs = locIds.length
+      ? await this.prisma.nx01Location.findMany({ where: { id: { in: locIds } }, select: { id: true, code: true } })
       : [];
-    const pkBySoItem = new Map(pkItems.map((pi) => [pi.refSoItemId!, pi]));
+    const locCode = new Map(locs.map((l) => [l.id, l.code]));
+    const whs = await this.prisma.nx01Warehouse.findMany({ where: { id: { in: whIds } }, select: { id: true, code: true } });
+    const whCode = new Map(whs.map((w) => [w.id, w.code]));
 
-    const groups = new Map<string, PoolGroup>();
+    // 主圖（sortNo 最小 = 主圖）
+    const photos = await this.prisma.nx01PartPhoto.findMany({
+      where: { partId: { in: partIds } },
+      orderBy: { sortNo: 'asc' },
+      select: { id: true, partId: true },
+    });
+    const photoByPart = new Map<string, string>();
+    for (const p of photos) if (!photoByPart.has(p.partId)) photoByPart.set(p.partId, p.id);
+
+    // 合併：倉×料件
+    const agg = new Map<string, PickItem & { _qty: number; _docNos: Set<string> }>();
     for (const r of rows) {
-      const pi = pkBySoItem.get(r.id);
-      const status = this.deriveStatus(r.fulfillStatus, pi?.status);
-      if (q.status && status !== q.status) continue;
-      let g = groups.get(r.soId);
-      if (!g) {
-        g = {
-          soId: r.soId,
-          soDocNo: r.so.docNo,
-          customerName: r.so.customer?.name ?? '—',
-          warehouseId: r.so.warehouseId,
-          warehouseCode: r.so.warehouse?.code ?? '',
-          warehouseName: r.so.warehouse?.name ?? '',
-          deliveryType: r.so.deliveryType,
-          soDate: r.so.soDate ? r.so.soDate.toISOString().slice(0, 10) : null,
-          lines: [],
-          pendingCount: 0,
-          pickingCount: 0,
-          doneCount: 0,
+      const key = `${r.warehouseId}|${r.partId}`;
+      let a = agg.get(key);
+      if (!a) {
+        const locId = locByKey.get(key) ?? null;
+        a = {
+          warehouseId: r.warehouseId,
+          warehouseCode: whCode.get(r.warehouseId) ?? '',
+          partId: r.partId,
+          partNo: r.partNo,
+          partName: r.partName,
+          photoId: photoByPart.get(r.partId) ?? null,
+          locationId: locId,
+          locationCode: locId ? (locCode.get(locId) ?? null) : null,
+          totalQty: '0',
+          soDocNos: [],
+          soItemIds: [],
+          _qty: 0,
+          _docNos: new Set<string>(),
         };
-        groups.set(r.soId, g);
+        agg.set(key, a);
       }
-      g.lines.push({
-        soItemId: r.id,
-        soId: r.soId,
-        soDocNo: r.so.docNo,
-        customerName: r.so.customer?.name ?? '—',
-        warehouseId: r.so.warehouseId,
-        warehouseCode: r.so.warehouse?.code ?? '',
-        warehouseName: r.so.warehouse?.name ?? '',
-        deliveryType: r.so.deliveryType,
-        lineNo: r.lineNo,
-        partId: r.partId,
-        partNo: r.partNo,
-        partName: r.partName,
-        qty: r.qty.toString(),
-        locationId: pi?.locationId ?? null,
-        status,
-        pkItemId: pi?.id ?? null,
-      });
-      if (status === 'W') g.pendingCount++;
-      else if (status === 'K') g.pickingCount++;
-      else g.doneCount++;
+      a._qty += Number(r.qty);
+      a.soItemIds.push(r.id);
+      if (r.so?.docNo) a._docNos.add(r.so.docNo);
     }
 
-    const groupList = [...groups.values()].filter((g) => g.lines.length > 0);
-    return { groups: groupList, total: groupList.reduce((n, g) => n + g.lines.length, 0) };
+    const items: PickItem[] = [...agg.values()].map((a) => ({
+      warehouseId: a.warehouseId,
+      warehouseCode: a.warehouseCode,
+      partId: a.partId,
+      partNo: a.partNo,
+      partName: a.partName,
+      photoId: a.photoId,
+      locationId: a.locationId,
+      locationCode: a.locationCode,
+      totalQty: String(a._qty),
+      soDocNos: [...a._docNos],
+      soItemIds: a.soItemIds,
+    }));
+
+    // 排序：庫位碼（未指定排最後）→ 料號
+    const locKeyOf = (c: string | null) => (c == null ? '￿' : c);
+    items.sort((x, y) => locKeyOf(x.locationCode).localeCompare(locKeyOf(y.locationCode)) || x.partNo.localeCompare(y.partNo));
+
+    // 依庫位分組
+    const groups = new Map<string, PickGroup>();
+    for (const it of items) {
+      const gk = it.locationId ?? '__none__';
+      let g = groups.get(gk);
+      if (!g) {
+        g = { locationId: it.locationId, locationCode: it.locationCode, warehouseCode: it.warehouseCode, items: [] };
+        groups.set(gk, g);
+      }
+      g.items.push(it);
+    }
+    const groupList = [...groups.values()].sort((a, b) => locKeyOf(a.locationCode).localeCompare(locKeyOf(b.locationCode)));
+    return { groups: groupList, total: items.length, lineCount: rows.length };
   }
 
-  private deriveStatus(fulfillStatus: string, pkItemStatus?: string): PoolLineStatus {
-    if (pkItemStatus === 'C') return 'D'; // 已撿完
-    if (pkItemStatus === 'M') return 'M'; // 找不到
-    if (pkItemStatus === 'P' || fulfillStatus === 'PK') return 'K'; // 撿貨中
-    return 'W'; // 待撿
-  }
-
-  /**
-   * 開始撿一張 SO：把其備妥待撿行整批進「撿貨中」。
-   * - 找/開該 SO 的隱形撿貨單（未完成 P/C）；沒有就開一張（deliveryType 取自 SO）。
-   * - 尚無 pk_item 的待撿行 → 新增 pk_item（status=P）。
-   * - 隱形 PK P→C（推進行 fulfillStatus W→PK）；SO CONFIRMED→PICKING。
-   */
-  async startPick(user: RequestUser, dto: StartPickDto) {
+  /** 撿到了：把某（倉×料件）的所有待撿行整批標為已撿（落 pk_item、推進 W→PK）。 */
+  async pickAggregate(user: RequestUser, dto: PickAggregateDto) {
     const tenantId = requireTenantId(user);
+    const warehouseId = dto.warehouseId.trim();
+    const partId = dto.partId.trim();
     return this.prisma.$transaction(async (tx) => {
-      const so = await tx.nx04So.findFirst({
-        where: { id: dto.soId.trim(), tenantId, cancelledAt: null },
+      const lines = await tx.nx04SoItem.findMany({
+        where: {
+          warehouseId,
+          partId,
+          transferStatus: 'C',
+          fulfillStatus: 'W',
+          so: { tenantId, cancelledAt: null, status: { in: [SoStatus.CONFIRMED, SoStatus.PICKING] } },
+        },
         select: {
           id: true,
-          docNo: true,
-          status: true,
-          deliveryType: true,
-          warehouseId: true,
-          warehouse: { select: { code: true } },
+          soId: true,
+          partId: true,
+          partNo: true,
+          partName: true,
+          qty: true,
+          so: { select: { id: true, deliveryType: true, status: true } },
         },
       });
-      if (!so) throw new NotFoundException('SO not found');
-      if (so.status !== SoStatus.CONFIRMED && so.status !== SoStatus.PICKING) {
-        throw new BadRequestException(`SO 狀態 ${so.status} 不可撿貨（需 CONFIRMED / PICKING）`);
+      if (!lines.length) {
+        throw new BadRequestException('目前沒有可撿的待撿項（可能已撿或單據已取消）');
       }
-
-      // 備妥待撿行（現貨、還沒進撿貨中）
-      const readyLines = await tx.nx04SoItem.findMany({
-        where: { soId: so.id, transferStatus: 'C', fulfillStatus: 'W' },
-        orderBy: { lineNo: 'asc' },
-        select: { id: true, partId: true, partNo: true, partName: true, qty: true },
+      const wh = await tx.nx01Warehouse.findFirst({ where: { id: warehouseId, tenantId }, select: { code: true } });
+      if (!wh) throw new BadRequestException('warehouseId invalid');
+      const setting = await tx.nx03PartStockSetting.findFirst({
+        where: { tenantId, partId, warehouseId },
+        select: { defaultLocationId: true },
       });
-      if (!readyLines.length) {
-        throw new BadRequestException('此銷貨單目前沒有可撿的現貨行（可能待補貨或已在撿貨中）');
+      const locId = setting?.defaultLocationId ?? null;
+
+      // 依 SO 分組落 pk_item
+      const bySo = new Map<string, typeof lines>();
+      for (const l of lines) {
+        const arr = bySo.get(l.soId) ?? [];
+        arr.push(l);
+        bySo.set(l.soId, arr);
       }
-
-      const pk = await this.ensureHiddenPk(tx, user, tenantId, so);
-
-      // 已在此 PK 的行不重複加
-      const existing = await tx.nx03PkItem.findMany({
-        where: { pkId: pk.id, refSoItemId: { in: readyLines.map((l) => l.id) } },
-        select: { refSoItemId: true },
-      });
-      const existingSet = new Set(existing.map((e) => e.refSoItemId));
-      const maxLine = await tx.nx03PkItem.aggregate({ where: { pkId: pk.id }, _max: { lineNo: true } });
-      let line = (maxLine._max.lineNo ?? 0) + 1;
-      let added = 0;
-      for (const l of readyLines) {
-        if (existingSet.has(l.id)) continue;
-        await tx.nx03PkItem.create({
-          data: {
-            pkId: pk.id,
-            refSoId: so.id,
-            refSoItemId: l.id,
-            lineNo: line++,
-            partId: l.partId,
-            partNo: l.partNo,
-            partName: l.partName,
-            qty: l.qty,
-            status: 'P',
-            labelChecked: false,
-            updatedBy: user.sub,
-          },
+      for (const [soId, soLines] of bySo) {
+        const so = soLines[0].so;
+        const pk = await this.ensureHiddenPk(tx, user, tenantId, {
+          id: soId,
+          deliveryType: so.deliveryType,
+          warehouseId,
+          warehouseCode: wh.code,
         });
-        added++;
+        const maxLine = await tx.nx03PkItem.aggregate({ where: { pkId: pk.id }, _max: { lineNo: true } });
+        let line = (maxLine._max.lineNo ?? 0) + 1;
+        for (const l of soLines) {
+          await tx.nx03PkItem.create({
+            data: {
+              pkId: pk.id,
+              refSoId: soId,
+              refSoItemId: l.id,
+              lineNo: line++,
+              partId: l.partId,
+              partNo: l.partNo,
+              partName: l.partName,
+              locationId: locId,
+              qty: l.qty,
+              status: 'C', // 撿到了＝已撿完
+              labelChecked: false,
+              updatedBy: user.sub,
+            },
+          });
+        }
+        // 隱形 PK：P→C（啟動）→ 全數非 P 時 C→F（供包貨撈貨）
+        if (pk.status === PkStatus.PENDING) {
+          await tx.nx03Pk.update({
+            where: { id: pk.id },
+            data: { status: PkStatus.COUNTING, startedAt: new Date(), updatedBy: user.sub },
+          });
+        }
+        const pending = await tx.nx03PkItem.count({ where: { pkId: pk.id, status: 'P' } });
+        if (pending === 0) {
+          await tx.nx03Pk.update({
+            where: { id: pk.id },
+            data: { status: PkStatus.FINISHED, completedAt: new Date(), completedBy: user.sub, updatedBy: user.sub },
+          });
+        }
+        // SO CONFIRMED→PICKING（撿貨啟動）
+        if (so.status === SoStatus.CONFIRMED) {
+          await tx.nx04So.update({ where: { id: soId }, data: { status: SoStatus.PICKING, updatedBy: user.sub } });
+        }
       }
-
-      // PK P→C（撿貨啟動）＋推進行 fulfillStatus W→PK
-      if (pk.status === PkStatus.PENDING) {
-        await tx.nx03Pk.update({
-          where: { id: pk.id },
-          data: { status: PkStatus.COUNTING, startedAt: new Date(), updatedBy: user.sub },
-        });
-      }
-      await advanceSoItemsFulfill(tx, {
-        tenantId,
-        soItemIds: readyLines.map((l) => l.id),
-        to: 'PK',
-        userId: user.sub,
-      });
-
-      // SO CONFIRMED→PICKING（撿貨啟動、單據狀態同步）
-      if (so.status === SoStatus.CONFIRMED) {
-        await tx.nx04So.update({
-          where: { id: so.id },
-          data: { status: SoStatus.PICKING, updatedBy: user.sub },
-        });
-      }
+      // 推進 fulfillStatus W→PK
+      await advanceSoItemsFulfill(tx, { tenantId, soItemIds: lines.map((l) => l.id), to: 'PK', userId: user.sub });
 
       await this.audit.write({
         tenantId,
         actorUserId: user.sub,
         moduleCode: 'NX03',
         action: 'UPDATE',
-        entityTable: 'nx03_pk',
-        entityId: pk.id,
-        entityCode: pk.docNo,
-        summary: `開始撿貨（銷貨單 ${so.docNo}、${added} 行進撿貨中）`,
+        entityTable: 'nx03_pk_item',
+        entityId: partId,
+        entityCode: lines[0].partNo,
+        summary: `撿貨完成（${lines[0].partNo}、${bySo.size} 張單 / ${lines.length} 行）`,
       });
-      return { pkId: pk.id, pkDocNo: pk.docNo, soId: so.id, added };
+      return { picked: lines.length, soCount: bySo.size };
     });
   }
 
-  /** 標記某行「撿到了」＝已撿完（pk_item P→C）；全數非 P 時隱形 PK C→F。 */
-  async pickLine(user: RequestUser, dto: PickLineDto) {
+  /** 撿貨異常：開正式異常回報單（損毀 D / 數量短缺 S），接六處置流程。 */
+  async reportPickIssue(user: RequestUser, dto: ReportPickIssueDto) {
     const tenantId = requireTenantId(user);
-    return this.prisma.$transaction(async (tx) => {
-      const { pkItem, pk } = await this.loadActivePkItem(tx, tenantId, dto.soItemId.trim());
-      let locationId = pkItem.locationId;
-      if (dto.locationId?.trim()) {
-        const loc = await tx.nx01Location.findFirst({
-          where: { id: dto.locationId.trim(), tenantId, warehouseId: pk.warehouseId },
-          select: { id: true },
-        });
-        if (!loc) throw new BadRequestException('locationId 必須屬於撿貨倉庫');
-        locationId = loc.id;
-      }
-      await tx.nx03PkItem.update({
-        where: { id: pkItem.id },
-        data: { status: 'C', locationId, updatedBy: user.sub },
-      });
-      await this.autoFinishPk(tx, user, pk.id);
-      return { ok: true };
+    const setting = await this.prisma.nx03PartStockSetting.findFirst({
+      where: { tenantId, partId: dto.partId.trim(), warehouseId: dto.warehouseId.trim() },
+      select: { defaultLocationId: true },
+    });
+    return this.issueReport.create(user, {
+      reportDate: new Date().toISOString().slice(0, 10),
+      warehouseId: dto.warehouseId.trim(),
+      partId: dto.partId.trim(),
+      qty: dto.qty,
+      issueType: dto.issueType,
+      locationId: setting?.defaultLocationId ?? undefined,
+      description: dto.reason?.trim() || undefined,
+      sourceModule: 'NX03',
     });
   }
-
-  /** 標記某行「找不到貨」（pk_item →M、須原因）；全數非 P 時隱形 PK C→F。 */
-  async notFoundLine(user: RequestUser, dto: NotFoundLineDto) {
-    const tenantId = requireTenantId(user);
-    return this.prisma.$transaction(async (tx) => {
-      const { pkItem, pk } = await this.loadActivePkItem(tx, tenantId, dto.soItemId.trim());
-      await tx.nx03PkItem.update({
-        where: { id: pkItem.id },
-        data: { status: 'M', notFoundReason: dto.reason.trim(), updatedBy: user.sub },
-      });
-      await this.autoFinishPk(tx, user, pk.id);
-      return { ok: true };
-    });
-  }
-
-  // ---- 內部 helpers ----
 
   /** 找/開該 SO 的隱形撿貨單（未完成 P/C）。 */
   private async ensureHiddenPk(
     tx: Prisma.TransactionClient,
     user: RequestUser,
     tenantId: string,
-    so: { id: string; deliveryType: string; warehouseId: string; warehouse: { code: string } },
-  ): Promise<{ id: string; docNo: string; status: string; warehouseId: string }> {
+    so: { id: string; deliveryType: string; warehouseId: string; warehouseCode: string },
+  ): Promise<{ id: string; status: string }> {
     const found = await tx.nx03Pk.findFirst({
       where: {
         tenantId,
@@ -343,11 +313,11 @@ export class PickPoolService {
         status: { in: [PkStatus.PENDING, PkStatus.COUNTING] },
         rev_Nx03PkItem_pkId: { some: { refSoId: so.id } },
       },
-      select: { id: true, docNo: true, status: true, warehouseId: true },
+      select: { id: true, status: true },
     });
     if (found) return found;
-    const docNo = await allocNx03DocNo(tx, tenantId, 'PK', so.warehouse.code);
-    const created = await tx.nx03Pk.create({
+    const docNo = await allocNx03DocNo(tx, tenantId, 'PK', so.warehouseCode);
+    return tx.nx03Pk.create({
       data: {
         tenantId,
         warehouseId: so.warehouseId,
@@ -359,39 +329,7 @@ export class PickPoolService {
         createdBy: user.sub,
         updatedBy: user.sub,
       },
-      select: { id: true, docNo: true, status: true, warehouseId: true },
-    });
-    return created;
-  }
-
-  /** 由 soItemId 反查其進行中隱形撿貨單明細（撿貨中的行）。 */
-  private async loadActivePkItem(tx: Prisma.TransactionClient, tenantId: string, soItemId: string) {
-    const pkItem = await tx.nx03PkItem.findFirst({
-      where: {
-        refSoItemId: soItemId,
-        pk: { tenantId, status: { in: [PkStatus.PENDING, PkStatus.COUNTING] } },
-      },
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        status: true,
-        locationId: true,
-        pk: { select: { id: true, warehouseId: true } },
-      },
-    });
-    if (!pkItem) throw new BadRequestException('此行尚未開始撿貨（請先「開始撿貨」）');
-    return { pkItem, pk: pkItem.pk };
-  }
-
-  /** 隱形撿貨單所有行都非「待撿(P)」→ 自動完成 C→F（供包貨撈貨）。 */
-  private async autoFinishPk(tx: Prisma.TransactionClient, user: RequestUser, pkId: string) {
-    const pending = await tx.nx03PkItem.count({ where: { pkId, status: 'P' } });
-    if (pending > 0) return;
-    const pk = await tx.nx03Pk.findUnique({ where: { id: pkId }, select: { status: true } });
-    if (pk?.status !== PkStatus.COUNTING) return;
-    await tx.nx03Pk.update({
-      where: { id: pkId },
-      data: { status: PkStatus.FINISHED, completedAt: new Date(), completedBy: user.sub, updatedBy: user.sub },
+      select: { id: true, status: true },
     });
   }
 }
