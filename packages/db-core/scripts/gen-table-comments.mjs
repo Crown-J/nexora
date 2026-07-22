@@ -98,8 +98,9 @@ const TABLE_SUPPLEMENT = {
   nx03_inbound: '入庫單單頭——通用入庫。', nx03_inbound_item: '入庫單明細行。',
   nx03_outbound: '出庫單單頭——通用出庫。', nx03_outbound_item: '出庫單明細行。',
   // NX04 銷售
-  nx04_co: '客戶訂單單頭（CO 單）。', nx04_order: '訂單單頭（ORDR 單）。⚠️與 co/so 疑似重疊、待確認是否為舊表。',
-  nx04_order_item: '訂單明細行。',
+  // nx04_order 的表描述已由 schema.prisma 的 /// 提供（偉盟 G9 匯入專用 + 非產品表標記），故此處不補
+  nx04_co: '補貨單（CO 單）——D4 翻譯器對缺貨銷貨行的 B 型補貨派發（refreshment-doc-creator）；活躍功能、目前 0 筆僅因該分支未觸發。',
+  nx04_order_item: '⚠️偉盟訂單匯入明細（G9 專用、隨 nx04_order）；非產品表。',
   nx04_quote: '報價單單頭。', nx04_quote_item: '報價單明細行。',
   nx04_so: '銷貨單單頭。', nx04_so_item: '銷貨單明細行。',
   nx04_sr: '銷退單單頭——銷貨退回。', nx04_sr_item: '銷退單明細行。',

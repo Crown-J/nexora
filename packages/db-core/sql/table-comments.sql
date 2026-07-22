@@ -1649,7 +1649,7 @@ COMMENT ON COLUMN "nx03_brand_allocation_rule"."updated_at" IS '更新時間';
 COMMENT ON COLUMN "nx03_brand_allocation_rule"."updated_by" IS '更新人';
 
 -- Nx04Co  →  nx04_co
-COMMENT ON TABLE "nx04_co" IS '客戶訂單單頭（CO 單）。';
+COMMENT ON TABLE "nx04_co" IS '補貨單（CO 單）——D4 翻譯器對缺貨銷貨行的 B 型補貨派發（refreshment-doc-creator）；活躍功能、目前 0 筆僅因該分支未觸發。';
 COMMENT ON COLUMN "nx04_co"."id" IS '[NX04]+[COHD]+[7碼流水號]，EX : NX04COHD0000001';
 COMMENT ON COLUMN "nx04_co"."tenant_id" IS '租戶 ID（外鍵）。';
 COMMENT ON COLUMN "nx04_co"."warehouse_id" IS '對應倉庫 ID（FK nx01_warehouse）。';
@@ -1668,7 +1668,7 @@ COMMENT ON COLUMN "nx04_co"."updated_at" IS '更新時間。';
 COMMENT ON COLUMN "nx04_co"."updated_by" IS '更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）';
 
 -- Nx04Order  →  nx04_order
-COMMENT ON TABLE "nx04_order" IS '2026-07-20 Crown 拍板 G9：NEXORA 原生無獨立客戶訂單文件（動線報價→SO）， 為忠實容納偉盟訂單 RORA/RORB（多行、含金額）新增此專用表。與 Nx04Co（缺貨補單、綁 SO）語意不同。 純量外鍵（FK 約束於 migration 建立），不參與現有關聯圖以縮小 schema 變更面。';
+COMMENT ON TABLE "nx04_order" IS '2026-07-20 Crown 拍板 G9：NEXORA 原生無獨立客戶訂單文件（動線報價→SO）， 為忠實容納偉盟訂單 RORA/RORB（多行、含金額）新增此專用表。與 Nx04Co（缺貨補單、綁 SO）語意不同。 純量外鍵（FK 約束於 migration 建立），不參與現有關聯圖以縮小 schema 變更面。 ⚠️非產品表：現行應用程式（nx-api/nx-ui）不讀寫，僅 weimeng-v2-load-order.ts 匯入用；2026-07-22 查證後保留備查、暫不清除。';
 COMMENT ON COLUMN "nx04_order"."id" IS '[NX04]+[ORDR]+[7碼流水號]，EX：NX04ORDR0000001';
 COMMENT ON COLUMN "nx04_order"."tenant_id" IS '租戶 ID（FK nx99_tenant）';
 COMMENT ON COLUMN "nx04_order"."warehouse_id" IS '對應倉庫/門市（FK nx01_warehouse）';
@@ -1691,7 +1691,7 @@ COMMENT ON COLUMN "nx04_order"."updated_at" IS '最後更新時間';
 COMMENT ON COLUMN "nx04_order"."updated_by" IS '最後更新人員（FK nx01_user）';
 
 -- Nx04OrderItem  →  nx04_order_item
-COMMENT ON TABLE "nx04_order_item" IS '訂單明細行。';
+COMMENT ON TABLE "nx04_order_item" IS '⚠️偉盟訂單匯入明細（G9 專用、隨 nx04_order）；非產品表。';
 COMMENT ON COLUMN "nx04_order_item"."id" IS '[NX04]+[ORIT]+[7碼流水號]';
 COMMENT ON COLUMN "nx04_order_item"."order_id" IS '對應訂單頭 ID（FK nx04_order）';
 COMMENT ON COLUMN "nx04_order_item"."line_no" IS '明細行號';
