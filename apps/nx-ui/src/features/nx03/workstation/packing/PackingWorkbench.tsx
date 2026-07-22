@@ -25,9 +25,9 @@ import {
 import { cx } from '@design/utils/cx';
 
 const DELIVERY_TONE: Record<string, string> = {
-  D: 'border-[#4C8BF5]/40 bg-[#4C8BF5]/10 text-[#7FB0FF]',
-  P: 'border-[#E8A020]/40 bg-[#E8A020]/10 text-[#E8A020]',
-  C: 'border-[#1D9E75]/40 bg-[#1D9E75]/10 text-[#3FD199]',
+  D: 'border-blue-500/40 bg-blue-500/10 text-blue-600',
+  P: 'border-primary/40 bg-primary/10 text-primary',
+  C: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600',
 };
 
 function printLabels(detail: PackingDetail) {
@@ -69,28 +69,28 @@ function ParcelCard({
   onMergeInto: (targetId: string) => void;
 }) {
   return (
-    <div className="space-y-2 rounded-lg border border-white/10 bg-white/5 p-3">
+    <div className="space-y-2 rounded-lg border border-border bg-card p-3">
       <div className="flex items-center justify-between gap-2">
-        <span className="font-mono text-sm text-[#E8A020]">{parcel.parcelNo}</span>
-        <span className="text-xs text-white/50 tabular-nums">{parcel.lines.length} 項</span>
+        <span className="font-mono text-sm text-primary">{parcel.parcelNo}</span>
+        <span className="text-xs text-muted-foreground tabular-nums">{parcel.lines.length} 項</span>
       </div>
       <ul className="space-y-1">
         {parcel.lines.map((l) => (
-          <li key={l.id} className="flex items-center justify-between gap-2 text-xs text-white/70">
+          <li key={l.id} className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
             <span className="min-w-0 truncate">
-              <span className="font-mono text-white/80">{l.partNo}</span>
-              <span className="ml-2 text-white/45">{l.partName}</span>
+              <span className="font-mono text-foreground">{l.partNo}</span>
+              <span className="ml-2 text-muted-foreground">{l.partName}</span>
             </span>
-            <span className="shrink-0 font-mono tabular-nums text-white/80">
+            <span className="shrink-0 font-mono tabular-nums text-foreground">
               ×{l.qty}
-              {l.soDocNo ? <span className="ml-2 text-white/35">{l.soDocNo}</span> : null}
+              {l.soDocNo ? <span className="ml-2 text-muted-foreground">{l.soDocNo}</span> : null}
             </span>
           </li>
         ))}
       </ul>
       {otherParcels.length > 0 ? (
-        <div className="flex items-center gap-1 border-t border-white/5 pt-2">
-          <Merge className="h-3.5 w-3.5 text-white/40" aria-hidden />
+        <div className="flex items-center gap-1 border-t border-border/60 pt-2">
+          <Merge className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />
           <select
             disabled={busy}
             defaultValue=""
@@ -98,13 +98,13 @@ function ParcelCard({
               if (e.target.value) onMergeInto(e.target.value);
               e.target.value = '';
             }}
-            className="flex-1 rounded border border-white/10 bg-transparent px-2 py-1 text-xs text-white/70 focus:outline-none disabled:opacity-40"
+            className="flex-1 rounded border border-border bg-transparent px-2 py-1 text-xs text-muted-foreground focus:outline-none disabled:opacity-40"
           >
-            <option value="" className="bg-neutral-900">
+            <option value="" className="bg-background">
               併入其他箱…
             </option>
             {otherParcels.map((p) => (
-              <option key={p.id} value={p.id} className="bg-neutral-900">
+              <option key={p.id} value={p.id} className="bg-background">
                 併入 {p.parcelNo}
               </option>
             ))}
@@ -134,23 +134,23 @@ function ActivePackingView({
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="space-y-0.5">
           <div className="flex items-center gap-2">
-            <span className="font-mono text-sm text-white/90">{detail.docNo}</span>
-            <span className={cx('rounded px-1.5 py-0.5 text-[10px]', DELIVERY_TONE[detail.plType] ?? 'text-white/60')}>
+            <span className="font-mono text-sm text-foreground">{detail.docNo}</span>
+            <span className={cx('rounded px-1.5 py-0.5 text-[10px]', DELIVERY_TONE[detail.plType] ?? 'text-muted-foreground')}>
               {detail.plType === 'D' ? '配送' : detail.plType === 'P' ? '自取' : '寄貨'}
             </span>
             {sealed ? (
-              <span className="rounded bg-[#1D9E75]/15 px-1.5 py-0.5 text-[10px] text-[#3FD199]">已封箱</span>
+              <span className="rounded bg-emerald-500/15 px-1.5 py-0.5 text-[10px] text-emerald-600">已封箱</span>
             ) : null}
           </div>
-          <p className="text-sm text-white/70">{detail.customerName}</p>
-          <p className="text-xs text-white/40">
+          <p className="text-sm text-muted-foreground">{detail.customerName}</p>
+          <p className="text-xs text-muted-foreground">
             {detail.warehouseName} · {detail.parcels.length} 箱
           </p>
         </div>
         <button
           type="button"
           onClick={onBack}
-          className="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-white/60 hover:border-white/20"
+          className="rounded-lg border border-border px-3 py-1.5 text-xs text-muted-foreground hover:border-border"
         >
           ← 返回包貨台
         </button>
@@ -172,7 +172,7 @@ function ActivePackingView({
         <button
           type="button"
           onClick={() => printLabels(detail)}
-          className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-white/15 px-4 text-sm text-white/80 transition-colors hover:bg-white/5"
+          className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-border px-4 text-sm text-foreground transition-colors hover:bg-card"
         >
           <Printer className="h-4 w-4" aria-hidden />
           列印 BX 標籤
@@ -182,7 +182,7 @@ function ActivePackingView({
             type="button"
             disabled={busy}
             onClick={onSeal}
-            className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-[#1D9E75] px-4 text-sm font-medium text-black transition-colors hover:bg-[#1D9E75]/90 disabled:opacity-40"
+            className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-emerald-600 px-4 text-sm font-medium text-white transition-colors hover:bg-emerald-600/90 disabled:opacity-40"
           >
             <PackageCheck className="h-4 w-4" aria-hidden />
             封箱（包貨完成）
@@ -203,24 +203,24 @@ function GroupCard({
   onBuild: () => void;
 }) {
   return (
-    <div className="space-y-2 rounded-xl border border-white/10 bg-white/5 p-3">
+    <div className="space-y-2 rounded-xl border border-border bg-card p-3">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 space-y-0.5">
-          <p className="truncate text-sm text-white/90">{group.customerName}</p>
-          <p className="text-xs text-white/45">{group.warehouseName}</p>
+          <p className="truncate text-sm text-foreground">{group.customerName}</p>
+          <p className="text-xs text-muted-foreground">{group.warehouseName}</p>
         </div>
-        <span className={cx('shrink-0 rounded px-2 py-0.5 text-[10px]', DELIVERY_TONE[group.deliveryType] ?? 'text-white/60')}>
+        <span className={cx('shrink-0 rounded px-2 py-0.5 text-[10px]', DELIVERY_TONE[group.deliveryType] ?? 'text-muted-foreground')}>
           {group.deliveryLabel}
         </span>
       </div>
-      <p className="text-xs text-white/50 tabular-nums">
+      <p className="text-xs text-muted-foreground tabular-nums">
         {group.soCount} 張銷貨單 · {group.lineCount} 項待包
       </p>
       <button
         type="button"
         disabled={busy}
         onClick={onBuild}
-        className="inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-lg border border-[#E8A020]/60 bg-[#E8A020]/5 text-sm font-medium text-[#E8A020] transition-colors hover:bg-[#E8A020]/10 disabled:opacity-40"
+        className="inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-lg border border-primary/50 bg-primary/5 text-sm font-medium text-primary transition-colors hover:bg-primary/10 disabled:opacity-40"
       >
         <Boxes className="h-4 w-4" aria-hidden />
         建包貨單（預設一箱一單）
@@ -305,18 +305,18 @@ export function PackingWorkbench() {
     <div className="mx-auto max-w-4xl space-y-4 p-4 pb-[calc(env(safe-area-inset-bottom)+2rem)]">
       <header className="flex items-start justify-between gap-2">
         <div className="space-y-1">
-          <h1 className="flex items-center gap-2 text-lg text-white">
-            <Boxes className="h-5 w-5 text-[#E8A020]" aria-hidden />
+          <h1 className="flex items-center gap-2 text-lg text-foreground">
+            <Boxes className="h-5 w-5 text-primary" aria-hidden />
             庫存中心 · 包貨台
           </h1>
-          <p className="text-xs text-white/50">撿好的貨依客戶包箱；預設一箱一單、同客戶小件可併箱省包材</p>
+          <p className="text-xs text-muted-foreground">撿好的貨依客戶包箱；預設一箱一單、同客戶小件可併箱省包材</p>
         </div>
         {!active ? (
           <button
             type="button"
             onClick={() => void load()}
             aria-label="重新整理"
-            className="rounded-lg border border-white/10 p-2 text-white/60 hover:border-white/20"
+            className="rounded-lg border border-border p-2 text-muted-foreground hover:border-border"
           >
             <RefreshCw className="h-4 w-4" aria-hidden />
           </button>
@@ -324,33 +324,33 @@ export function PackingWorkbench() {
       </header>
 
       {err ? (
-        <div className="rounded-lg border border-red-400/40 bg-red-400/10 p-3 text-xs text-red-300">{err}</div>
+        <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive">{err}</div>
       ) : null}
 
       {active ? (
         <ActivePackingView detail={active} busy={busy} onMerge={merge} onSeal={seal} onBack={() => setActive(null)} />
       ) : (
         <>
-          <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3">
-            <Search className="h-4 w-4 shrink-0 text-white/40" aria-hidden />
+          <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-3">
+            <Search className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="搜尋 客戶 / 銷貨單號 / 料號"
-              className="h-10 flex-1 bg-transparent text-sm text-white placeholder:text-white/30 focus:outline-none"
+              className="h-10 flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
             />
           </div>
 
-          <div className="text-xs text-white/50 tabular-nums">
+          <div className="text-xs text-muted-foreground tabular-nums">
             {groups.length} 組待包 · 共 {totalLines} 項
           </div>
 
           {loading ? (
-            <div className="rounded-lg border border-dashed border-white/10 p-6 text-center text-xs text-white/50">
+            <div className="rounded-lg border border-dashed border-border p-6 text-center text-xs text-muted-foreground">
               載入中…
             </div>
           ) : groups.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-white/10 p-6 text-center text-xs text-white/50">
+            <div className="rounded-lg border border-dashed border-border p-6 text-center text-xs text-muted-foreground">
               目前沒有撿好待包的貨
             </div>
           ) : (

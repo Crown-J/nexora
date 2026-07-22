@@ -37,10 +37,10 @@ const FILTERS: readonly { id: FilterValue; label: string }[] = [
 const DELIVERY_LABEL: Record<string, string> = { D: '配送', P: '自取', C: '寄貨', T: '調撥' };
 
 const LINE_TONE: Record<PoolLineStatus, string> = {
-  W: 'border-white/10 bg-white/5 text-white/70',
-  K: 'border-[#E8A020]/40 bg-[#E8A020]/5 text-[#E8A020]',
-  D: 'border-[#1D9E75]/40 bg-[#1D9E75]/5 text-[#1D9E75]',
-  M: 'border-red-400/40 bg-red-400/5 text-red-300',
+  W: 'border-border bg-card text-muted-foreground',
+  K: 'border-primary/40 bg-primary/5 text-primary',
+  D: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600',
+  M: 'border-destructive/40 bg-destructive/10 text-destructive',
 };
 const LINE_LABEL: Record<PoolLineStatus, string> = { W: '待撿', K: '撿貨中', D: '已撿完', M: '找不到' };
 
@@ -56,14 +56,14 @@ function LineRow({
   onNotFound: () => void;
 }) {
   return (
-    <div className="flex flex-col gap-2 border-t border-white/5 py-2.5 first:border-t-0">
+    <div className="flex flex-col gap-2 border-t border-border/60 py-2.5 first:border-t-0">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 space-y-0.5">
-          <p className="truncate font-mono text-xs text-white/80">{line.partNo}</p>
-          <p className="truncate text-xs text-white/50">{line.partName}</p>
+          <p className="truncate font-mono text-xs text-foreground">{line.partNo}</p>
+          <p className="truncate text-xs text-muted-foreground">{line.partName}</p>
         </div>
         <div className="flex shrink-0 flex-col items-end">
-          <span className="font-mono text-sm text-white/90 tabular-nums">×{line.qty}</span>
+          <span className="font-mono text-sm text-foreground tabular-nums">×{line.qty}</span>
           <span className={cx('mt-1 rounded px-1.5 py-0.5 text-[10px]', LINE_TONE[line.status])}>
             {LINE_LABEL[line.status]}
           </span>
@@ -75,7 +75,7 @@ function LineRow({
             type="button"
             disabled={busy}
             onClick={onPick}
-            className="inline-flex h-9 flex-1 items-center justify-center gap-1 rounded-lg bg-[#1D9E75] text-xs font-medium text-black transition-colors hover:bg-[#1D9E75]/90 disabled:opacity-40"
+            className="inline-flex h-9 flex-1 items-center justify-center gap-1 rounded-lg bg-emerald-600 text-xs font-medium text-white transition-colors hover:bg-emerald-600/90 disabled:opacity-40"
           >
             <CheckCircle2 className="h-4 w-4" aria-hidden />
             撿到了
@@ -84,7 +84,7 @@ function LineRow({
             type="button"
             disabled={busy}
             onClick={onNotFound}
-            className="inline-flex h-9 items-center justify-center gap-1 rounded-lg border border-red-400/40 px-3 text-xs text-red-300 transition-colors hover:bg-red-400/10 disabled:opacity-40"
+            className="inline-flex h-9 items-center justify-center gap-1 rounded-lg border border-destructive/40 px-3 text-xs text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-40"
           >
             <XCircle className="h-4 w-4" aria-hidden />
             找不到
@@ -110,24 +110,24 @@ function GroupCard({
 }) {
   const hasPending = group.pendingCount > 0;
   return (
-    <div className="space-y-2 rounded-xl border border-white/10 bg-white/5 p-3">
+    <div className="space-y-2 rounded-xl border border-border bg-card p-3">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 space-y-0.5">
-          <span className="font-mono text-sm text-white/90">{group.soDocNo}</span>
-          <p className="truncate text-xs text-white/60">{group.customerName}</p>
+          <span className="font-mono text-sm text-foreground">{group.soDocNo}</span>
+          <p className="truncate text-xs text-muted-foreground">{group.customerName}</p>
         </div>
-        <span className="shrink-0 rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-white/70">
+        <span className="shrink-0 rounded-full border border-border bg-card px-2 py-0.5 text-[10px] text-muted-foreground">
           {DELIVERY_LABEL[group.deliveryType] ?? group.deliveryType} · {group.warehouseCode}
         </span>
       </div>
 
-      <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-white/50 tabular-nums">
+      <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground tabular-nums">
         <span>待撿 {group.pendingCount}</span>
-        <span className="text-[#E8A020]/80">撿貨中 {group.pickingCount}</span>
-        <span className="text-[#1D9E75]/80">已撿完 {group.doneCount}</span>
+        <span className="text-primary/80">撿貨中 {group.pickingCount}</span>
+        <span className="text-emerald-600">已撿完 {group.doneCount}</span>
       </div>
 
-      <div className="rounded-lg bg-black/20 px-2">
+      <div className="rounded-lg bg-muted/40 px-2">
         {group.lines.map((line) => (
           <LineRow
             key={line.soItemId}
@@ -144,7 +144,7 @@ function GroupCard({
           type="button"
           disabled={busy}
           onClick={onStart}
-          className="inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-lg border border-[#E8A020]/60 bg-[#E8A020]/5 text-sm font-medium text-[#E8A020] transition-colors hover:bg-[#E8A020]/10 disabled:opacity-40"
+          className="inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-lg border border-primary/50 bg-primary/5 text-sm font-medium text-primary transition-colors hover:bg-primary/10 disabled:opacity-40"
         >
           <PlayCircle className="h-4 w-4" aria-hidden />
           開始撿貨（{group.pendingCount} 行待撿）
@@ -214,29 +214,29 @@ export function MobilePickPoolPage() {
     <div className="mx-auto max-w-2xl space-y-4 p-4 pb-[calc(env(safe-area-inset-bottom)+4rem)]">
       <header className="flex items-start justify-between gap-2">
         <div className="space-y-1">
-          <h1 className="flex items-center gap-2 text-lg text-white">
-            <PackageSearch className="h-5 w-5 text-[#E8A020]" aria-hidden />
+          <h1 className="flex items-center gap-2 text-lg text-foreground">
+            <PackageSearch className="h-5 w-5 text-primary" aria-hidden />
             庫存中心 · 撿貨池
           </h1>
-          <p className="text-xs text-white/50">要出貨的現貨自動進池；開始撿 → 逐行點撿到／找不到</p>
+          <p className="text-xs text-muted-foreground">要出貨的現貨自動進池；開始撿 → 逐行點撿到／找不到</p>
         </div>
         <button
           type="button"
           onClick={() => void load()}
           aria-label="重新整理"
-          className="rounded-lg border border-white/10 p-2 text-white/60 hover:border-white/20"
+          className="rounded-lg border border-border p-2 text-muted-foreground hover:border-border"
         >
           <RefreshCw className="h-4 w-4" aria-hidden />
         </button>
       </header>
 
-      <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3">
-        <Search className="h-4 w-4 shrink-0 text-white/40" aria-hidden />
+      <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-3">
+        <Search className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="搜尋 銷貨單號 / 客戶 / 料號"
-          className="h-10 flex-1 bg-transparent text-sm text-white placeholder:text-white/30 focus:outline-none"
+          className="h-10 flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
         />
       </div>
 
@@ -251,8 +251,8 @@ export function MobilePickPoolPage() {
               className={cx(
                 'inline-flex h-8 items-center rounded-full border px-3 text-xs transition-colors',
                 isActive
-                  ? 'border-[#E8A020]/60 bg-[#E8A020]/10 text-[#E8A020]'
-                  : 'border-white/10 bg-white/5 text-white/60 hover:border-white/20',
+                  ? 'border-primary/60 bg-primary/10 text-primary'
+                  : 'border-border bg-card text-muted-foreground hover:border-border',
               )}
             >
               {f.label}
@@ -261,20 +261,20 @@ export function MobilePickPoolPage() {
         })}
       </div>
 
-      <div className="text-xs text-white/50 tabular-nums">
+      <div className="text-xs text-muted-foreground tabular-nums">
         {groups.length} 張單 · 共 {totalLines} 行 · 撿貨中 {pickingLines} 行
       </div>
 
       {err ? (
-        <div className="rounded-lg border border-red-400/40 bg-red-400/10 p-3 text-xs text-red-300">{err}</div>
+        <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive">{err}</div>
       ) : null}
 
       {loading ? (
-        <div className="rounded-lg border border-dashed border-white/10 p-6 text-center text-xs text-white/50">
+        <div className="rounded-lg border border-dashed border-border p-6 text-center text-xs text-muted-foreground">
           載入中…
         </div>
       ) : groups.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-white/10 p-6 text-center text-xs text-white/50">
+        <div className="rounded-lg border border-dashed border-border p-6 text-center text-xs text-muted-foreground">
           目前撿貨池沒有待撿的貨
         </div>
       ) : (

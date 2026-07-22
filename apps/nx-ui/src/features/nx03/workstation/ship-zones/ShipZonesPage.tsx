@@ -39,13 +39,13 @@ function ItemHeader({ item }: { item: ShipZoneItem }) {
     <div className="flex items-start justify-between gap-2">
       <div className="min-w-0 space-y-0.5">
         <div className="flex items-center gap-2">
-          <span className="font-mono text-sm text-white/90">{item.docNo}</span>
-          <span className="text-xs text-white/50 tabular-nums">{item.parcelCount} 箱</span>
+          <span className="font-mono text-sm text-foreground">{item.docNo}</span>
+          <span className="text-xs text-muted-foreground tabular-nums">{item.parcelCount} 箱</span>
         </div>
-        <p className="truncate text-xs text-white/60">{item.customerName}</p>
-        <p className="truncate text-[11px] text-white/35">{item.soDocNos.join('、')}</p>
+        <p className="truncate text-xs text-muted-foreground">{item.customerName}</p>
+        <p className="truncate text-[11px] text-muted-foreground">{item.soDocNos.join('、')}</p>
       </div>
-      <span className="shrink-0 rounded border border-white/10 px-2 py-0.5 text-[10px] text-white/50">
+      <span className="shrink-0 rounded border border-border px-2 py-0.5 text-[10px] text-muted-foreground">
         {item.warehouseCode}
       </span>
     </div>
@@ -54,7 +54,7 @@ function ItemHeader({ item }: { item: ShipZoneItem }) {
 
 function PickupCard({ item, busy, onSign }: { item: ShipZoneItem; busy: boolean; onSign: (name: string) => void }) {
   return (
-    <div className="space-y-2 rounded-lg border border-white/10 bg-white/5 p-3">
+    <div className="space-y-2 rounded-lg border border-border bg-card p-3">
       <ItemHeader item={item} />
       <button
         type="button"
@@ -63,7 +63,7 @@ function PickupCard({ item, busy, onSign }: { item: ShipZoneItem; busy: boolean;
           const name = window.prompt('簽收人姓名：', item.customerName);
           if (name?.trim()) onSign(name.trim());
         }}
-        className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg bg-[#1D9E75] text-sm font-medium text-black transition-colors hover:bg-[#1D9E75]/90 disabled:opacity-40"
+        className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg bg-emerald-600 text-sm font-medium text-white transition-colors hover:bg-emerald-600/90 disabled:opacity-40"
       >
         <PackageCheck className="h-4 w-4" aria-hidden />
         簽收（客人已取）
@@ -84,27 +84,27 @@ function MailCard({
   const [provider, setProvider] = useState('');
   const [tracking, setTracking] = useState('');
   return (
-    <div className="space-y-2 rounded-lg border border-white/10 bg-white/5 p-3">
+    <div className="space-y-2 rounded-lg border border-border bg-card p-3">
       <ItemHeader item={item} />
       <div className="grid grid-cols-2 gap-2">
         <input
           value={provider}
           onChange={(e) => setProvider(e.target.value)}
           placeholder="物流公司"
-          className="h-9 rounded border border-white/10 bg-transparent px-2 text-xs text-white placeholder:text-white/30 focus:outline-none"
+          className="h-9 rounded border border-border bg-transparent px-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none"
         />
         <input
           value={tracking}
           onChange={(e) => setTracking(e.target.value)}
           placeholder="物流單號"
-          className="h-9 rounded border border-white/10 bg-transparent px-2 font-mono text-xs text-white placeholder:text-white/30 focus:outline-none"
+          className="h-9 rounded border border-border bg-transparent px-2 font-mono text-xs text-foreground placeholder:text-muted-foreground focus:outline-none"
         />
       </div>
       <button
         type="button"
         disabled={busy || !provider.trim() || !tracking.trim()}
         onClick={() => onShip(provider.trim(), tracking.trim())}
-        className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg bg-[#1D9E75] text-sm font-medium text-black transition-colors hover:bg-[#1D9E75]/90 disabled:opacity-40"
+        className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg bg-emerald-600 text-sm font-medium text-white transition-colors hover:bg-emerald-600/90 disabled:opacity-40"
       >
         <Send className="h-4 w-4" aria-hidden />
         寄出（交物流）
@@ -128,7 +128,7 @@ function DeliveryCard({
     <label
       className={cx(
         'flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors',
-        checked ? 'border-[#E8A020]/60 bg-[#E8A020]/5' : 'border-white/10 bg-white/5 hover:border-white/20',
+        checked ? 'border-primary/50 bg-primary/5' : 'border-border bg-card hover:border-border',
       )}
     >
       <input
@@ -136,15 +136,15 @@ function DeliveryCard({
         checked={checked}
         disabled={busy}
         onChange={onToggle}
-        className="mt-1 h-4 w-4 shrink-0 accent-[#E8A020]"
+        className="mt-1 h-4 w-4 shrink-0 accent-primary"
       />
       <div className="min-w-0 flex-1 space-y-0.5">
         <div className="flex items-center gap-2">
-          <span className="font-mono text-sm text-white/90">{item.docNo}</span>
-          <span className="text-xs text-white/50 tabular-nums">{item.parcelCount} 箱</span>
+          <span className="font-mono text-sm text-foreground">{item.docNo}</span>
+          <span className="text-xs text-muted-foreground tabular-nums">{item.parcelCount} 箱</span>
         </div>
-        <p className="truncate text-xs text-white/60">{item.customerName}</p>
-        <p className="truncate text-[11px] text-white/40">{item.deliveryAddress ?? '（未填送貨地址）'}</p>
+        <p className="truncate text-xs text-muted-foreground">{item.customerName}</p>
+        <p className="truncate text-[11px] text-muted-foreground">{item.deliveryAddress ?? '（未填送貨地址）'}</p>
       </div>
     </label>
   );
@@ -228,17 +228,17 @@ export function ShipZonesPage() {
     <div className="mx-auto max-w-4xl space-y-4 p-4 pb-[calc(env(safe-area-inset-bottom)+2rem)]">
       <header className="flex items-start justify-between gap-2">
         <div className="space-y-1">
-          <h1 className="flex items-center gap-2 text-lg text-white">
-            <Truck className="h-5 w-5 text-[#E8A020]" aria-hidden />
+          <h1 className="flex items-center gap-2 text-lg text-foreground">
+            <Truck className="h-5 w-5 text-primary" aria-hidden />
             庫存中心 · 出貨三區
           </h1>
-          <p className="text-xs text-white/50">封箱後依出貨方式：自取簽收 / 寄貨寄出 / 配送配單。完成即扣帳</p>
+          <p className="text-xs text-muted-foreground">封箱後依出貨方式：自取簽收 / 寄貨寄出 / 配送配單。完成即扣帳</p>
         </div>
         <button
           type="button"
           onClick={() => void load()}
           aria-label="重新整理"
-          className="rounded-lg border border-white/10 p-2 text-white/60 hover:border-white/20"
+          className="rounded-lg border border-border p-2 text-muted-foreground hover:border-border"
         >
           <RefreshCw className="h-4 w-4" aria-hidden />
         </button>
@@ -256,8 +256,8 @@ export function ShipZonesPage() {
               className={cx(
                 'inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg border text-sm transition-colors',
                 isActive
-                  ? 'border-[#E8A020]/60 bg-[#E8A020]/10 text-[#E8A020]'
-                  : 'border-white/10 bg-white/5 text-white/60 hover:border-white/20',
+                  ? 'border-primary/60 bg-primary/10 text-primary'
+                  : 'border-border bg-card text-muted-foreground hover:border-border',
               )}
             >
               <Icon className="h-4 w-4" aria-hidden />
@@ -268,14 +268,14 @@ export function ShipZonesPage() {
       </div>
 
       {err ? (
-        <div className="rounded-lg border border-red-400/40 bg-red-400/10 p-3 text-xs text-red-300">{err}</div>
+        <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive">{err}</div>
       ) : null}
       {msg ? (
-        <div className="rounded-lg border border-[#1D9E75]/40 bg-[#1D9E75]/10 p-3 text-xs text-[#3FD199]">{msg}</div>
+        <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 p-3 text-xs text-emerald-600">{msg}</div>
       ) : null}
 
       {loading ? (
-        <div className="rounded-lg border border-dashed border-white/10 p-6 text-center text-xs text-white/50">
+        <div className="rounded-lg border border-dashed border-border p-6 text-center text-xs text-muted-foreground">
           載入中…
         </div>
       ) : tab === 'pickup' ? (
@@ -312,18 +312,18 @@ export function ShipZonesPage() {
         <EmptyZone text="配送區沒有待配的包裹" />
       ) : (
         <div className="space-y-3">
-          <div className="flex flex-wrap items-center gap-2 rounded-lg border border-white/10 bg-white/5 p-3">
-            <span className="text-xs text-white/60">配單給外務：</span>
+          <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card p-3">
+            <span className="text-xs text-muted-foreground">配單給外務：</span>
             <select
               value={driverId}
               onChange={(e) => setDriverId(e.target.value)}
-              className="h-9 flex-1 rounded border border-white/10 bg-transparent px-2 text-sm text-white/80 focus:outline-none"
+              className="h-9 flex-1 rounded border border-border bg-transparent px-2 text-sm text-foreground focus:outline-none"
             >
-              <option value="" className="bg-neutral-900">
+              <option value="" className="bg-background">
                 選擇外務…
               </option>
               {drivers.map((d) => (
-                <option key={d.id} value={d.id} className="bg-neutral-900">
+                <option key={d.id} value={d.id} className="bg-background">
                   {d.displayName}
                 </option>
               ))}
@@ -332,7 +332,7 @@ export function ShipZonesPage() {
               type="button"
               disabled={busy || !selected.size || !driverId}
               onClick={dispatchRun}
-              className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#E8A020] px-4 text-sm font-medium text-black transition-colors hover:bg-[#E8A020]/90 disabled:opacity-40"
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-40"
             >
               <Truck className="h-4 w-4" aria-hidden />
               配單成一趟（{selected.size}）
@@ -357,6 +357,6 @@ export function ShipZonesPage() {
 
 function EmptyZone({ text }: { text: string }) {
   return (
-    <div className="rounded-lg border border-dashed border-white/10 p-6 text-center text-xs text-white/50">{text}</div>
+    <div className="rounded-lg border border-dashed border-border p-6 text-center text-xs text-muted-foreground">{text}</div>
   );
 }
