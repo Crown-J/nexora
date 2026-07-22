@@ -28,7 +28,7 @@ import {
   SoStatus,
 } from '../../shared/nx04/nx04-state-machine';
 import { autoCreateTransferFromSo } from '../../shared/nx03/nx03-auto-transfer-from-so';
-import { applyQtyOutWithLedger } from '../../shared/nx03/nx03-inventory';
+import { postSoStockOut } from '../../shared/nx04/post-so-stock-out';
 import { createArFromShippedSo } from '../../shared/nx05/nx05-create-ar-from-so';
 import { createDeliveryDnFromShippedSo } from '../../shared/nx06/nx06-create-delivery-from-so';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
@@ -359,43 +359,9 @@ export class SoService {
     };
   }
 
-  private async applySoShipping(
-    tx: Prisma.TransactionClient,
-    so: { id: string; tenantId: string },
-    userId: string,
-  ) {
-    const items = await tx.nx04SoItem.findMany({
-      where: { soId: so.id },
-      select: { ...SO_ITEM_SEL },
-    });
-    if (!items.length) throw new BadRequestException('SO has no items to ship');
-    for (const item of items) {
-      const qtyOut = new PrismaNs.Decimal(String(item.qty));
-      if (!qtyOut.gt(0)) continue;
-      const locId =
-        item.locationId?.trim() ||
-        (await requireDefaultLocationId(tx, so.tenantId, item.warehouseId));
-      // M1 配套：load active part_version snapshot 帶入 ledger（NX03-IMPL-01 Phase 5 commit 1）
-      const partVersion = await tx.nx01PartVersion.findFirst({
-        where: { tenantId: so.tenantId, partId: item.partId, effectiveTo: null },
-        orderBy: { versionNo: 'desc' },
-        select: { id: true },
-      });
-      await applyQtyOutWithLedger(tx, {
-        tenantId: so.tenantId,
-        userId,
-        partId: item.partId,
-        warehouseId: item.warehouseId,
-        locationId: locId,
-        qtyOut,
-        sourceModule: 'NX04',
-        sourceDocType: 'S',
-        sourceDocId: so.id,
-        sourceItemId: item.id,
-        partVersionId: partVersion?.id ?? null,
-      });
-    }
-  }
+  // SALES-FLOW 階段3（2026-07-22 D4/D6）：原 applySoShipping 出庫扣帳已抽成共用 helper
+  // postSoStockOut，並把觸發時點從「出庫 SHIPPED」搬到「簽收完成 COMPLETED」
+  // （maybeCompleteAfterDelivery）。此處不再保留私有方法。
 
   async list(user: RequestUser, q: Nx04ListQueryDto) {
     const tenantId = requireTenantId(user);
@@ -1014,9 +980,8 @@ export class SoService {
         await autoCreateTransferFromSo(tx, { tenantId, soId: id, userId: user.sub });
       }
 
-      if (dto.status === SoStatus.SHIPPED && headBefore.status === SoStatus.PICKING) {
-        await this.applySoShipping(tx, { id: headBefore.id, tenantId: headBefore.tenantId }, user.sub);
-      }
+      // SALES-FLOW 階段3（D4/D6）：手動翻 SHIPPED 保留當逃生門（執行長 Q3=A），但不再於此扣庫存。
+      // 扣庫存 + 開應收一律移到簽收完成（maybeCompleteAfterDelivery）。
       // W4 [3-6] 散客 L 銷貨單不允許改 invoiceCopies（service 守門）；其他 partner 可逐筆改
       let invoiceCopiesUpdate: number | undefined;
       if (dto.invoiceCopies !== undefined) {
@@ -1061,7 +1026,7 @@ export class SoService {
         },
       });
       if (dto.status === SoStatus.SHIPPED && headBefore.status === SoStatus.PICKING) {
-        await createArFromShippedSo(tx, { tenantId, soId: id, userId: user.sub });
+        // SALES-FLOW 階段3：開應收也搬到簽收完成；此處僅產配送單草稿（逃生門用；3b 將改由配送區配單組單）。
         await createDeliveryDnFromShippedSo(tx, { tenantId, soId: id, userId: user.sub });
       }
       // v1.2 階段 I P3：SO CANCELLED → 對應 demand 自動 status='I'（Alex Q2=a 拍板）
@@ -1284,13 +1249,20 @@ export class SoService {
     if (!isAllLinesDelivered(items)) return false;
 
     assertSoStatusTransition(so.status, SoStatus.COMPLETED);
-    await this.prisma.nx04So.update({
-      where: { id: soId },
-      data: {
-        status: SoStatus.COMPLETED,
-        completedAt: new Date(),
-        updatedBy: actorUserId,
-      },
+    // SALES-FLOW 階段3（D4/D6）：簽收完成才過帳＝扣庫存 + 開應收（原在出庫 SHIPPED、已移除）。
+    // 此鉤為各簽收點（配送/自取/寄貨）唯一集中處、且只在 SHIPPED/INVOICED→COMPLETED 那次進來
+    // → 天然冪等、扣帳恰一次。包一層 tx 保證扣庫存/AR/狀態原子性。
+    await this.prisma.$transaction(async (tx) => {
+      await postSoStockOut(tx, { tenantId, soId, userId: actorUserId });
+      await createArFromShippedSo(tx, { tenantId, soId, userId: actorUserId });
+      await tx.nx04So.update({
+        where: { id: soId },
+        data: {
+          status: SoStatus.COMPLETED,
+          completedAt: new Date(),
+          updatedBy: actorUserId,
+        },
+      });
     });
     await this.audit.write({
       tenantId,

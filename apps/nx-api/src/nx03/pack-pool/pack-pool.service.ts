@@ -18,6 +18,8 @@ import { requireTenantId } from '../../shared/nx01/require-tenant';
 import { allocNx03DocNo } from '../../shared/nx03/nx03-doc-no';
 import { advanceSoItemsFulfill } from '../../shared/nx03/nx03-fulfill-advance';
 import { PkStatus, PlStatus } from '../../shared/nx03/nx03-state-machine';
+import { SoStatus } from '../../shared/nx04/nx04-state-machine';
+import { createDeliveryDnFromShippedSo } from '../../shared/nx06/nx06-create-delivery-from-so';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 
 import type { CreatePackingDto, MergeParcelsDto, PackPoolQueryDto, SealPackingDto } from './dto/pack-pool.dto';
@@ -352,6 +354,34 @@ export class PackPoolService {
         where: { id: pl.id },
         data: { status: PlStatus.FINISHED, completedAt: new Date(), completedBy: user.sub, updatedBy: user.sub },
       });
+
+      // SALES-FLOW 階段3（D6）：封箱→涵蓋的 SO 全部 PICKING→SHIPPED（已出倉待簽收、不過帳）。
+      // 配送於此產 DN 草稿（逃生門用；3b 將改由配送區配單組單、含多 SO）。
+      const soRows = await tx.nx03PlItem.findMany({
+        where: { plId: pl.id },
+        select: {
+          pkItem: {
+            select: { refSoId: true, refSo: { select: { status: true, deliveryType: true } } },
+          },
+        },
+      });
+      const soMap = new Map<string, { status: string; deliveryType: string }>();
+      for (const r of soRows) {
+        const so = r.pkItem?.refSo;
+        const soId = r.pkItem?.refSoId;
+        if (soId && so) soMap.set(soId, { status: so.status, deliveryType: so.deliveryType });
+      }
+      for (const [soId, so] of soMap) {
+        if (so.status !== SoStatus.PICKING) continue;
+        await tx.nx04So.update({
+          where: { id: soId },
+          data: { status: SoStatus.SHIPPED, updatedBy: user.sub },
+        });
+        if (so.deliveryType === 'D') {
+          await createDeliveryDnFromShippedSo(tx, { tenantId, soId, userId: user.sub });
+        }
+      }
+
       await this.audit.write({
         tenantId,
         actorUserId: user.sub,
@@ -360,7 +390,7 @@ export class PackPoolService {
         entityTable: 'nx03_pl',
         entityId: pl.id,
         entityCode: pl.docNo,
-        summary: '封箱（包貨完成）',
+        summary: `封箱（包貨完成、涵蓋 ${soMap.size} 張 SO→已出倉待簽收）`,
       });
       return this.getPackingDetail(tx, tenantId, pl.id);
     });
