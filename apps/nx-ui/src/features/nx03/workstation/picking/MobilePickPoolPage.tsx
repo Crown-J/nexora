@@ -49,29 +49,29 @@ function ItemCard({ item, selected, onSelect }: { item: PickItem; selected: bool
       type="button"
       onClick={onSelect}
       className={cx(
-        'flex w-full items-center gap-3 border-t border-border/60 py-2.5 text-left first:border-t-0',
+        'flex w-full items-center gap-3.5 border-t border-border/60 py-3.5 text-left first:border-t-0',
         selected ? 'bg-primary/5' : '',
       )}
     >
-      <Thumb partId={item.partId} photoId={item.photoId} size="h-14 w-14" />
-      <div className="min-w-0 flex-1 space-y-0.5">
-        <div className="flex items-center gap-1.5">
-          <span className="truncate font-mono text-xs text-foreground">{item.partNo}</span>
+      <Thumb partId={item.partId} photoId={item.photoId} size="h-16 w-16" />
+      <div className="min-w-0 flex-1 space-y-1">
+        <div className="flex items-center gap-2">
+          <span className="truncate font-mono text-base text-foreground">{item.partNo}</span>
           {item.brandName ? (
-            <span className="shrink-0 rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">{item.brandName}</span>
+            <span className="shrink-0 rounded bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">{item.brandName}</span>
           ) : null}
         </div>
-        <p className="truncate text-xs text-muted-foreground">{item.partName}</p>
-        <div className="flex items-center gap-2">
-          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+        <p className="truncate text-sm text-muted-foreground">{item.partName}</p>
+        <div className="flex items-center gap-2.5">
+          <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
             <div className={cx('h-full rounded-full', picked >= need ? 'bg-emerald-600' : 'bg-primary')} style={{ width: `${pct}%` }} />
           </div>
-          <span className="shrink-0 text-xs tabular-nums text-foreground">
-            已撿 <span className={picked > 0 ? 'font-semibold text-primary' : ''}>{picked}</span> / 需 {need}
+          <span className="shrink-0 text-sm tabular-nums text-foreground">
+            已撿 <span className={cx('text-base', picked > 0 ? 'font-semibold text-primary' : '')}>{picked}</span> / 需 {need}
           </span>
         </div>
       </div>
-      <div className={cx('h-4 w-4 shrink-0 rounded-full border-2', selected ? 'border-primary bg-primary' : 'border-border')} />
+      <div className={cx('h-6 w-6 shrink-0 rounded-full border-2', selected ? 'border-primary bg-primary' : 'border-border')} />
     </button>
   );
 }
@@ -216,7 +216,7 @@ export function MobilePickPoolPage() {
   const doReset = () => sel && void run(() => resetPick(sel.warehouseId, sel.partId), `已重置：${sel.partNo}`, '重置失敗');
 
   return (
-    <div className="mx-auto max-w-2xl space-y-4 p-4 pb-28">
+    <div className="w-full space-y-3 px-2 py-3 pb-28">
       <header className="flex items-start justify-between gap-2">
         <div className="space-y-1">
           <h1 className="flex items-center gap-2 text-lg text-foreground">
@@ -249,12 +249,12 @@ export function MobilePickPoolPage() {
           {groups.map((g) => (
             <div key={g.locationId ?? '__none__'} className="space-y-1">
               <div className="flex items-center gap-1.5 px-1">
-                <MapPin className="h-4 w-4 text-primary" aria-hidden />
-                <span className="text-sm font-semibold text-foreground">{g.locationCode ?? '未指定庫位'}</span>
-                <span className="text-[11px] text-muted-foreground">· {g.warehouseCode}</span>
-                <span className="ml-auto text-[11px] text-muted-foreground tabular-nums">{g.items.length} 項</span>
+                <MapPin className="h-5 w-5 text-primary" aria-hidden />
+                <span className="text-base font-semibold text-foreground">{g.locationCode ?? '未指定庫位'}</span>
+                <span className="text-xs text-muted-foreground">· {g.warehouseCode}</span>
+                <span className="ml-auto text-xs text-muted-foreground tabular-nums">{g.items.length} 項</span>
               </div>
-              <div className="rounded-xl border border-border bg-card px-3">
+              <div className="rounded-xl border border-border bg-card px-3.5">
                 {g.items.map((it) => (
                   <ItemCard key={keyOf(it)} item={it} selected={selected === keyOf(it)} onSelect={() => setSelected(keyOf(it))} />
                 ))}
@@ -266,18 +266,18 @@ export function MobilePickPoolPage() {
 
       {/* 底部 dock */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur pb-[env(safe-area-inset-bottom)]">
-        <div className="mx-auto grid max-w-2xl grid-cols-4 gap-1 p-2">
+        <div className="grid w-full grid-cols-4 gap-1 p-2">
           <DockBtn icon={PackageMinus} label="部分撿取" disabled={!sel || busy} onClick={() => setDialog('partial')} />
           <DockBtn icon={CheckCheck} label="全部撿取" tone="emerald" disabled={!sel || busy} onClick={doFull} />
           <DockBtn icon={AlertTriangle} label="異常回報" tone="amber" disabled={!sel || busy} onClick={() => setDialog('issue')} />
           <DockBtn icon={RotateCcw} label="重置數量" disabled={!sel || busy} onClick={doReset} />
         </div>
         {sel ? (
-          <div className="border-t border-border/60 px-3 py-1 text-center text-[11px] text-muted-foreground">
-            已選：<span className="font-mono text-foreground">{sel.partNo}</span> · 剩 {sel.remainingQty}
+          <div className="border-t border-border/60 px-3 py-1.5 text-center text-xs text-muted-foreground">
+            已選：<span className="font-mono text-sm text-foreground">{sel.partNo}</span> · 剩 {sel.remainingQty}
           </div>
         ) : (
-          <div className="border-t border-border/60 px-3 py-1 text-center text-[11px] text-muted-foreground">先點一張卡片</div>
+          <div className="border-t border-border/60 px-3 py-1.5 text-center text-xs text-muted-foreground">先點一張卡片作用</div>
         )}
       </div>
 
@@ -294,10 +294,10 @@ function DockBtn({ icon: Icon, label, tone, disabled, onClick }: { icon: typeof 
       type="button"
       disabled={disabled}
       onClick={onClick}
-      className="flex flex-col items-center justify-center gap-1 rounded-lg py-2 transition-colors hover:bg-muted/40 disabled:opacity-30"
+      className="flex flex-col items-center justify-center gap-1 rounded-lg py-2.5 transition-colors hover:bg-muted/40 disabled:opacity-30"
     >
-      <Icon className={cx('h-6 w-6', toneCls)} aria-hidden />
-      <span className="text-[11px] text-foreground">{label}</span>
+      <Icon className={cx('h-7 w-7', toneCls)} aria-hidden />
+      <span className="text-xs font-medium text-foreground">{label}</span>
     </button>
   );
 }
