@@ -364,6 +364,65 @@ export function sealPacking(plId: string): Promise<PackingDetail> {
 }
 
 // ────────────────────────────────────────────────────────────
+// nx03/ship-zones（出貨三區、SALES-FLOW 階段 3b）
+// 封箱後路由：自取(P) / 寄貨(C) / 配送(D)。完成事件觸發過帳（扣庫存+開應收）。
+// ────────────────────────────────────────────────────────────
+
+export interface ShipZoneItem {
+  plId: string;
+  docNo: string;
+  customerId: string | null;
+  customerName: string;
+  warehouseCode: string;
+  parcelCount: number;
+  soDocNos: string[];
+  deliveryAddress: string | null;
+  logisticsProvider: string | null;
+  logisticsTrackingNo: string | null;
+}
+
+export interface ShipZones {
+  pickup: ShipZoneItem[];
+  mail: ShipZoneItem[];
+  delivery: ShipZoneItem[];
+}
+
+export function getShipZones(warehouseId?: string): Promise<ShipZones> {
+  return apiJson(`/nx03/ship-zones${buildQueryString({ warehouseId })}`);
+}
+
+/** 自取簽收。 */
+export function signPickup(plId: string, signerName: string): Promise<{ ok: true; completedSoCount: number }> {
+  return apiJson(`/nx03/ship-zones/pickup/sign`, {
+    method: 'POST',
+    body: JSON.stringify({ plId, signerName }),
+  });
+}
+
+/** 寄貨寄出。 */
+export function shipMail(
+  plId: string,
+  logisticsProvider: string,
+  trackingNo: string,
+): Promise<{ ok: true; completedSoCount: number }> {
+  return apiJson(`/nx03/ship-zones/mail/ship`, {
+    method: 'POST',
+    body: JSON.stringify({ plId, logisticsProvider, trackingNo }),
+  });
+}
+
+/** 配送配單（組多張包貨單成一趟、派外務）。 */
+export function createDeliveryRun(
+  plIds: string[],
+  driverUserId: string,
+): Promise<{ dnId: string; docNo: string; stopCount: number; plCount: number }> {
+  return apiJson(`/nx03/ship-zones/delivery/run`, {
+    method: 'POST',
+    body: JSON.stringify({ plIds, driverUserId }),
+  });
+}
+
+// ────────────────────────────────────────────────────────────
 // nx03/pl
 // ────────────────────────────────────────────────────────────
 

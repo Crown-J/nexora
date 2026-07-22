@@ -197,8 +197,7 @@ export const MENU_BAR: MenuNode[] = [
         children: [
           { key: 'picking', label: '撿貨作業', href: '/dashboard/inventory/picking' },
           { key: 'packing', label: '包貨作業', href: '/dashboard/inventory/packing' },
-          { key: 'self-pickup', label: '客戶自取', pending: true },
-          { key: 'consign', label: '寄貨作業', pending: true },
+          { key: 'ship-zones', label: '出貨三區', href: '/dashboard/inventory/ship-zones' },
           { key: 'dispatch', label: '配送作業', href: '/dashboard/delivery' },
           { key: 'delivery', label: '送貨作業', href: '/dashboard/inventory/delivery' },
         ],
