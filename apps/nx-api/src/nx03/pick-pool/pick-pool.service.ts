@@ -30,6 +30,7 @@ interface PickItem {
   partId: string;
   partNo: string;
   partName: string;
+  brandName: string | null; // 廠牌快照（汽配同料號可能不同廠牌、撿貨要看）
   photoId: string | null; // 料件主圖（nx01_part_photo）
   locationId: string | null;
   locationCode: string | null;
@@ -79,6 +80,7 @@ export class PickPoolService {
         partId: true,
         partNo: true,
         partName: true,
+        brandName: true,
         qty: true,
         so: { select: { docNo: true } },
       },
@@ -124,6 +126,7 @@ export class PickPoolService {
           partId: r.partId,
           partNo: r.partNo,
           partName: r.partName,
+          brandName: r.brandName ?? null,
           photoId: photoByPart.get(r.partId) ?? null,
           locationId: locId,
           locationCode: locId ? (locCode.get(locId) ?? null) : null,
@@ -146,6 +149,7 @@ export class PickPoolService {
       partId: a.partId,
       partNo: a.partNo,
       partName: a.partName,
+      brandName: a.brandName,
       photoId: a.photoId,
       locationId: a.locationId,
       locationCode: a.locationCode,

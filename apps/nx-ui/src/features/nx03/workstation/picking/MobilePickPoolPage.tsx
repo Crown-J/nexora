@@ -58,7 +58,14 @@ function ItemRow({
     <div className="flex items-center gap-3 border-t border-border/60 py-2.5 first:border-t-0">
       <PartThumb partId={item.partId} photoId={item.photoId} />
       <div className="min-w-0 flex-1 space-y-0.5">
-        <p className="truncate font-mono text-xs text-foreground">{item.partNo}</p>
+        <div className="flex items-center gap-1.5">
+          <p className="truncate font-mono text-xs text-foreground">{item.partNo}</p>
+          {item.brandName ? (
+            <span className="shrink-0 rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">
+              {item.brandName}
+            </span>
+          ) : null}
+        </div>
         <p className="truncate text-xs text-muted-foreground">{item.partName}</p>
         <p className="text-sm font-semibold text-foreground tabular-nums">
           撿 <span className="text-base text-primary">×{item.totalQty}</span>

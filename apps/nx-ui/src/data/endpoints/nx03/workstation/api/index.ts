@@ -197,6 +197,7 @@ export interface PickItem {
   partId: string;
   partNo: string;
   partName: string;
+  brandName: string | null; // 廠牌快照
   photoId: string | null; // 料件主圖 id（配 partPhotoUrl 取圖）
   locationId: string | null;
   locationCode: string | null;
