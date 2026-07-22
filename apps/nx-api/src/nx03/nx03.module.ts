@@ -26,6 +26,8 @@ import { OutboundController } from './outbound/outbound.controller';
 import { OutboundService } from './outbound/outbound.service';
 import { PartStockSettingController } from './part-stock-setting/part-stock-setting.controller';
 import { PartStockSettingService } from './part-stock-setting/part-stock-setting.service';
+import { PackPoolController } from './pack-pool/pack-pool.controller';
+import { PackPoolService } from './pack-pool/pack-pool.service';
 import { ParcelController } from './parcel/parcel.controller';
 import { ParcelService } from './parcel/parcel.service';
 import { PickPoolController } from './pick-pool/pick-pool.controller';
@@ -69,6 +71,7 @@ import { TransferService } from './transfer/transfer.service';
     PickPoolController,
     PlController,
     ParcelController,
+    PackPoolController,
     InboundController,
     OutboundController,
     StockTakeController,
@@ -93,6 +96,7 @@ import { TransferService } from './transfer/transfer.service';
     PickPoolService,
     PlService,
     ParcelService,
+    PackPoolService,
     InboundService,
     OutboundService,
     StockTakeService,
