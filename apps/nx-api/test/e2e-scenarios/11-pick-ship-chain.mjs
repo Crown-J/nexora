@@ -108,22 +108,26 @@ try {
     [T, so.id]);
   ctx.check('2f 通知建單人「調撥料已到」', !!notice && notice.title.includes('調撥料已到'), notice?.title ?? '無');
 
-  // ══ 3. 撿貨池：開始撿(行 W→PK) → 逐行撿完 → 隱形撿貨單自動 F ══
-  console.log('\n══ 3. 撿貨池（開始撿 W→PK、逐行撿完、隱形撿貨單自動完成） ══');
-  const startPick = await ctx.call('POST', '/nx03/pick-pool/start', { soId: so.id });
-  ctx.check('3a 開始撿貨（現貨備妥行整批進撿貨中）', startPick.status === 201 && startPick.data?.added >= 3,
-    JSON.stringify(startPick.data));
-  let fs = await many(`SELECT DISTINCT fulfill_status FROM nx04_so_item WHERE so_id=$1`, [so.id]);
-  ctx.check('3b ⭐行 fulfillStatus W→PK（撿貨中、銷貨單看得到進度）',
-    fs.length === 1 && fs[0].fulfill_status === 'PK', JSON.stringify(fs));
-  const soItemRows = await many(`SELECT id FROM nx04_so_item WHERE so_id=$1 ORDER BY line_no`, [so.id]);
-  for (const r of soItemRows) {
-    const pick = await ctx.call('POST', '/nx03/pick-pool/pick', { soItemId: r.id });
-    ctx.check(`3c 撿完行 …${r.id.slice(-4)}`, pick.status === 201 && pick.data?.ok, JSON.stringify(pick.data));
+  // ══ 3. 撿貨清單（庫位軸）：依料件撿(整批標已撿、W→PK) → 隱形撿貨單自動 F ══
+  console.log('\n══ 3. 撿貨清單（庫位軸、依料件合併撿、W→PK、隱形撿貨單自動完成） ══');
+  // 清單依庫位分組、同（倉×料件）合併總量；撿到了＝某（倉×料件）整批標已撿
+  const list = await ctx.call('GET', '/nx03/pick-pool');
+  ctx.check('3a 撿貨清單載入（依庫位分組）', list.status === 200 && Array.isArray(list.data?.groups),
+    JSON.stringify(list.data)?.slice(0, 120));
+  for (const p of [P1, P2, P3, P4]) {
+    const pick = await ctx.call('POST', '/nx03/pick-pool/pick', { warehouseId: whA.id, partId: p.id });
+    ctx.check(`3b 撿 ${p.code}（整批標已撿）`, pick.status === 201 && pick.data?.picked >= 1, JSON.stringify(pick.data));
   }
-  const pkAfter = await one(
-    `SELECT status FROM nx03_pk WHERE id = (SELECT pk_id FROM nx03_pk_item WHERE ref_so_id=$1 LIMIT 1)`, [so.id]);
-  ctx.check('3d 全撿完 → 隱形撿貨單自動完成 F（接往包貨的橋）', pkAfter?.status === 'F', JSON.stringify(pkAfter));
+  let fs = await many(`SELECT DISTINCT fulfill_status FROM nx04_so_item WHERE so_id=$1`, [so.id]);
+  ctx.check('3c ⭐行 fulfillStatus W→PK（撿貨完、銷貨單看得到進度）',
+    fs.length === 1 && fs[0].fulfill_status === 'PK', JSON.stringify(fs));
+  const pkStat = await one(
+    `SELECT count(*) FILTER (WHERE pk_id IS NOT NULL) AS pk_cnt,
+            count(DISTINCT pk_id) AS pk_uniq,
+            count(*) FILTER (WHERE status='C') AS done
+     FROM nx03_pk_item WHERE ref_so_id=$1`, [so.id]);
+  ctx.check('3d 一張 SO 一張隱形撿貨單（非爆多張）＋ 4 行皆已撿 C',
+    Number(pkStat?.pk_uniq) === 1 && Number(pkStat?.done) === 4, JSON.stringify(pkStat));
 
   // ══ 4. 包貨台：建包貨單(一箱一單) → 封箱 → SO SHIPPED（⭐ 不扣帳） ══
   console.log('\n══ 4. 包貨台（客戶為單位建單、封箱→SHIPPED、⭐ 庫存/應收不動） ══');
@@ -178,7 +182,10 @@ try {
       `SELECT DISTINCT pk_id FROM nx03_pk_item WHERE ref_so_id = ANY($1)`, [created.sos])).rows.map((r) => r.pk_id);
     if (pkIds.length) {
       const plIds = (await ctx.db.query(
-        `SELECT id FROM nx03_pl WHERE pk_id = ANY($1)`, [pkIds])).rows.map((r) => r.id);
+        `SELECT id FROM nx03_pl WHERE pk_id = ANY($1)
+         UNION
+         SELECT DISTINCT pl_id FROM nx03_pl_item
+           WHERE pk_item_id IN (SELECT id FROM nx03_pk_item WHERE pk_id = ANY($1))`, [pkIds])).rows.map((r) => r.id);
       if (plIds.length) {
         await ctx.db.query(`DELETE FROM nx03_pl_item WHERE pl_id = ANY($1)`, [plIds]);
         await ctx.db.query(`DELETE FROM nx03_parcel WHERE pl_id = ANY($1)`, [plIds]);

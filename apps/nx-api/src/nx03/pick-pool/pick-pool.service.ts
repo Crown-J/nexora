@@ -243,18 +243,13 @@ export class PickPoolService {
             },
           });
         }
-        // 隱形 PK：P→C（啟動）→ 全數非 P 時 C→F（供包貨撈貨）
+        // 隱形 PK 停在 C（COUNTING）：讓同一張 SO 後續各料件的撿貨累積到同一張橋（ensureHiddenPk 找 P/C）。
+        // 不每次 finish——否則每撿一料件就開新 PK、一張 SO 爆多張 PK、包貨單 pkId 變 null。
+        // pack-pool 撈貨只認 pk_item.status=C + 行 fulfillStatus=PK、不要求 PK=F。
         if (pk.status === PkStatus.PENDING) {
           await tx.nx03Pk.update({
             where: { id: pk.id },
             data: { status: PkStatus.COUNTING, startedAt: new Date(), updatedBy: user.sub },
-          });
-        }
-        const pending = await tx.nx03PkItem.count({ where: { pkId: pk.id, status: 'P' } });
-        if (pending === 0) {
-          await tx.nx03Pk.update({
-            where: { id: pk.id },
-            data: { status: PkStatus.FINISHED, completedAt: new Date(), completedBy: user.sub, updatedBy: user.sub },
           });
         }
         // SO CONFIRMED→PICKING（撿貨啟動）
