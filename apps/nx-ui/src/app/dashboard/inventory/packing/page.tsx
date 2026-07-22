@@ -1,8 +1,9 @@
 // apps/nx-ui/src/app/dashboard/inventory/packing/page.tsx
-// 撿包送 LITE-OP-UI 軌 2 2026-06-09：包貨單清單路由
+// 包貨＝包貨台工作檯（SALES-FLOW 階段 2、2026-07-22 D2）：取代舊「新增包貨單」清單。
+// 以客戶為單位、預設一箱一單、同客戶小件可併箱、封箱。平板/桌機、響應式。
 
-import { PackingListView } from '@/features/nx03/packing/ui/PackingListView';
+import { PackingWorkbench } from '@/features/nx03/workstation/packing/PackingWorkbench';
 
 export default function InventoryPackingRoute() {
-  return <PackingListView />;
+  return <PackingWorkbench />;
 }

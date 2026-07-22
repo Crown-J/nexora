@@ -265,6 +265,105 @@ export function notFoundPoolLine(soItemId: string, reason: string): Promise<{ ok
 }
 
 // ────────────────────────────────────────────────────────────
+// nx03/pack-pool（包貨台、SALES-FLOW 階段 2）
+// 以客戶為單位、預設一箱一單、同客戶小件可併箱、封箱。
+// ────────────────────────────────────────────────────────────
+
+export interface PackPoolLine {
+  pkItemId: string;
+  soId: string;
+  soDocNo: string;
+  soItemId: string;
+  lineNo: number;
+  partId: string;
+  partNo: string;
+  partName: string;
+  qty: string;
+}
+
+export interface PackPoolGroup {
+  customerId: string;
+  customerName: string;
+  warehouseId: string;
+  warehouseCode: string;
+  warehouseName: string;
+  deliveryType: string; // D=配送 / P=自取 / C=寄貨
+  deliveryLabel: string;
+  soCount: number;
+  lineCount: number;
+  lines: PackPoolLine[];
+}
+
+export interface PackingParcelLine {
+  id: string;
+  lineNo: number;
+  partNo: string;
+  partName: string;
+  qty: string;
+  soDocNo: string | null;
+}
+
+export interface PackingParcel {
+  id: string;
+  parcelNo: string; // BX-YYYYMM-倉碼-NNNNN
+  parcelType: string;
+  weightKg: string | null;
+  logisticsTrackingNo: string | null;
+  lines: PackingParcelLine[];
+}
+
+export interface PackingDetail {
+  id: string;
+  docNo: string;
+  plDate: string | null;
+  plType: string;
+  status: PlStatus;
+  pkId: string | null;
+  customerId: string | null;
+  customerName: string;
+  warehouseId: string;
+  warehouseCode: string;
+  warehouseName: string;
+  parcels: PackingParcel[];
+}
+
+export interface PackPoolQuery {
+  warehouseId?: string;
+  search?: string;
+}
+
+export function getPackPool(q: PackPoolQuery = {}): Promise<{ groups: PackPoolGroup[]; total: number }> {
+  return apiJson(`/nx03/pack-pool${buildQueryString({ warehouseId: q.warehouseId, search: q.search })}`);
+}
+
+export function getPacking(id: string): Promise<PackingDetail> {
+  return apiJson(`/nx03/pack-pool/${encodeURIComponent(id)}`);
+}
+
+/** 建包貨單：某客戶某出貨方式整批進、預設一箱一單。 */
+export function createPacking(payload: {
+  customerId: string;
+  warehouseId: string;
+  deliveryType: 'D' | 'P' | 'C';
+}): Promise<PackingDetail> {
+  return apiJson(`/nx03/pack-pool`, { method: 'POST', body: JSON.stringify(payload) });
+}
+
+/** 併箱：來源包裹併入目標包裹。 */
+export function mergeParcels(payload: {
+  plId: string;
+  sourceParcelId: string;
+  targetParcelId: string;
+}): Promise<PackingDetail> {
+  return apiJson(`/nx03/pack-pool/merge-parcels`, { method: 'POST', body: JSON.stringify(payload) });
+}
+
+/** 封箱：包貨完成。 */
+export function sealPacking(plId: string): Promise<PackingDetail> {
+  return apiJson(`/nx03/pack-pool/seal`, { method: 'POST', body: JSON.stringify({ plId }) });
+}
+
+// ────────────────────────────────────────────────────────────
 // nx03/pl
 // ────────────────────────────────────────────────────────────
 
