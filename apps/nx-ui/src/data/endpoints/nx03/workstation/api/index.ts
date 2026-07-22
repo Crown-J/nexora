@@ -190,7 +190,7 @@ export async function completePicking(id: string, currentStatus: PkStatus): Prom
 // 庫位軸：依庫位分組、同（倉×料件）合併總量。倉管照庫位順路撿到包貨區。
 // ────────────────────────────────────────────────────────────
 
-/** 撿貨任務列（同 倉×料件 合併總量）。 */
+/** 撿貨任務列（同 倉×料件 合併總量、支援部分撿）。 */
 export interface PickItem {
   warehouseId: string;
   warehouseCode: string;
@@ -201,8 +201,9 @@ export interface PickItem {
   photoId: string | null; // 料件主圖 id（配 partPhotoUrl 取圖）
   locationId: string | null;
   locationCode: string | null;
-  totalQty: string;
-  soDocNos: string[]; // 底層來自哪些銷貨單（倉管不需管、備查）
+  neededQty: string; // 需求總量
+  pickedQty: string; // 已撿量
+  remainingQty: string; // 剩餘待撿
   soItemIds: string[];
 }
 
@@ -223,23 +224,27 @@ export function getPickList(q: PickListQuery = {}): Promise<{ groups: PickGroup[
   return apiJson(`/nx03/pick-pool${buildQueryString({ warehouseId: q.warehouseId, search: q.search })}`);
 }
 
-/** 撿到了：某（倉×料件）整批標已撿。 */
-export function pickAggregate(warehouseId: string, partId: string): Promise<{ picked: number; soCount: number }> {
+/** 撿取：qty 省略=全部撿取 / 帶 qty=部分撿取。 */
+export function pickAggregate(warehouseId: string, partId: string, qty?: number): Promise<{ picked: number }> {
   return apiJson(`/nx03/pick-pool/pick`, {
     method: 'POST',
-    body: JSON.stringify({ warehouseId, partId }),
+    body: JSON.stringify({ warehouseId, partId, ...(qty != null ? { qty } : {}) }),
   });
 }
 
-/** 撿貨異常：開正式異常回報單（D=損毀 / S=數量短缺）。 */
+/** 撿貨異常：對剩餘量開正式異常回報單（D=損毀 / S=數量短缺、qty 後端自動）。 */
 export function reportPickIssue(payload: {
   warehouseId: string;
   partId: string;
   issueType: 'D' | 'S';
-  qty: number;
   reason?: string;
 }): Promise<{ id: string; docNo: string }> {
   return apiJson(`/nx03/pick-pool/issue`, { method: 'POST', body: JSON.stringify(payload) });
+}
+
+/** 重置數量：把某（倉×料件）已撿量歸零。 */
+export function resetPick(warehouseId: string, partId: string): Promise<{ reset: number }> {
+  return apiJson(`/nx03/pick-pool/reset`, { method: 'POST', body: JSON.stringify({ warehouseId, partId }) });
 }
 
 // ────────────────────────────────────────────────────────────

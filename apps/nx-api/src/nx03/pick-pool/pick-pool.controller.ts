@@ -11,7 +11,7 @@ import { JwtAuthGuard } from '../../shared/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../shared/guards/permissions.guard';
 import { RolesGuard } from '../../shared/guards/roles.guard';
 
-import { PickAggregateDto, PickListQueryDto, ReportPickIssueDto } from './dto/pick-pool.dto';
+import { PickAggregateDto, PickListQueryDto, ReportPickIssueDto, ResetPickDto } from './dto/pick-pool.dto';
 import { PickPoolService } from './pick-pool.service';
 
 @Controller('nx03/pick-pool')
@@ -27,15 +27,21 @@ export class PickPoolController {
     return this.svc.getPickList(user, q);
   }
 
-  /** 撿到了（某倉×料件整批標已撿）。 */
+  /** 撿取（qty 省略=全部撿取 / 帶 qty=部分撿取）。 */
   @Post('pick')
   pickAggregate(@CurrentUser() user: RequestUser, @Body() dto: PickAggregateDto) {
     return this.svc.pickAggregate(user, dto);
   }
 
-  /** 撿貨異常（開正式異常回報單）。 */
+  /** 撿貨異常（對剩餘量開正式異常回報單）。 */
   @Post('issue')
   reportPickIssue(@CurrentUser() user: RequestUser, @Body() dto: ReportPickIssueDto) {
     return this.svc.reportPickIssue(user, dto);
+  }
+
+  /** 重置數量（把某倉×料件已撿量歸零）。 */
+  @Post('reset')
+  resetPick(@CurrentUser() user: RequestUser, @Body() dto: ResetPickDto) {
+    return this.svc.resetPick(user, dto);
   }
 }
