@@ -19,7 +19,6 @@ import { allocNx03DocNo } from '../../shared/nx03/nx03-doc-no';
 import { advanceSoItemsFulfill } from '../../shared/nx03/nx03-fulfill-advance';
 import { PkStatus, PlStatus } from '../../shared/nx03/nx03-state-machine';
 import { SoStatus } from '../../shared/nx04/nx04-state-machine';
-import { createDeliveryDnFromShippedSo } from '../../shared/nx06/nx06-create-delivery-from-so';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 
 import type { CreatePackingDto, MergeParcelsDto, PackPoolQueryDto, SealPackingDto } from './dto/pack-pool.dto';
@@ -356,20 +355,16 @@ export class PackPoolService {
       });
 
       // SALES-FLOW 階段3（D6）：封箱→涵蓋的 SO 全部 PICKING→SHIPPED（已出倉待簽收、不過帳）。
-      // 配送於此產 DN 草稿（逃生門用；3b 將改由配送區配單組單、含多 SO）。
+      // 配送不在此產 DN——封箱後包裹進「配送區」待配、由組長配單組單（含多 SO）；自取/寄貨進各自區。
       const soRows = await tx.nx03PlItem.findMany({
         where: { plId: pl.id },
-        select: {
-          pkItem: {
-            select: { refSoId: true, refSo: { select: { status: true, deliveryType: true } } },
-          },
-        },
+        select: { pkItem: { select: { refSoId: true, refSo: { select: { status: true } } } } },
       });
-      const soMap = new Map<string, { status: string; deliveryType: string }>();
+      const soMap = new Map<string, { status: string }>();
       for (const r of soRows) {
         const so = r.pkItem?.refSo;
         const soId = r.pkItem?.refSoId;
-        if (soId && so) soMap.set(soId, { status: so.status, deliveryType: so.deliveryType });
+        if (soId && so) soMap.set(soId, { status: so.status });
       }
       for (const [soId, so] of soMap) {
         if (so.status !== SoStatus.PICKING) continue;
@@ -377,9 +372,6 @@ export class PackPoolService {
           where: { id: soId },
           data: { status: SoStatus.SHIPPED, updatedBy: user.sub },
         });
-        if (so.deliveryType === 'D') {
-          await createDeliveryDnFromShippedSo(tx, { tenantId, soId, userId: user.sub });
-        }
       }
 
       await this.audit.write({

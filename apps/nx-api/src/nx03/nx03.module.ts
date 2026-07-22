@@ -34,6 +34,8 @@ import { PickPoolController } from './pick-pool/pick-pool.controller';
 import { PickPoolService } from './pick-pool/pick-pool.service';
 import { PkController } from './pk/pk.controller';
 import { PkService } from './pk/pk.service';
+import { ShipZonesController } from './ship-zones/ship-zones.controller';
+import { ShipZonesService } from './ship-zones/ship-zones.service';
 import { PlController } from './pl/pl.controller';
 import { PlService } from './pl/pl.service';
 import { StockBalanceController } from './stock-balance/stock-balance.controller';
@@ -72,6 +74,7 @@ import { TransferService } from './transfer/transfer.service';
     PlController,
     ParcelController,
     PackPoolController,
+    ShipZonesController,
     InboundController,
     OutboundController,
     StockTakeController,
@@ -97,6 +100,7 @@ import { TransferService } from './transfer/transfer.service';
     PlService,
     ParcelService,
     PackPoolService,
+    ShipZonesService,
     InboundService,
     OutboundService,
     StockTakeService,
