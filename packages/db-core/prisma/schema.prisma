@@ -1148,6 +1148,7 @@ model Nx01Partner {
   rev_Nx02Ti_partnerId                     Nx02Ti[]                     @relation("R_Nx02Ti_partnerId")
   rev_Nx02PartnerPart_partnerId            Nx02PartnerPart[]            @relation("R_Nx02PartnerPart_partnerId")
   rev_Nx03Parcel_toPartnerId               Nx03Parcel[]                 @relation("R_Nx03Parcel_toPartnerId")
+  rev_Nx03Pl_customerId                    Nx03Pl[]                     @relation("R_Nx03Pl_customerId")
   rev_Nx04Co_customerId                    Nx04Co[]                     @relation("R_Nx04Co_customerId")
   rev_Nx04Quote_customerId                 Nx04Quote[]                  @relation("R_Nx04Quote_customerId")
   rev_Nx04QuoteRecord_customerId           Nx04QuoteRecord[]            @relation("R_Nx04QuoteRecord_customerId")
@@ -3188,8 +3189,10 @@ model Nx03Pl {
   docNo               String        @map("doc_no") @db.VarChar(30)
   /// 包貨日期。；啟用最低需求版本：LITE-CORE
   plDate              DateTime      @map("pl_date") @db.Date
-  /// 來源撿貨單ID（FK nx03_pk）。；啟用最低需求版本：LITE-CORE
-  pkId                String        @map("pk_id") @db.VarChar(15)
+  /// 來源撿貨單ID（FK nx03_pk）。單一來源時填；同客戶併箱跨多撿貨單時留 null（逐行靠 plItem.pkItemId 溯源）。SALES-FLOW 階段2 2026-07-22 改 nullable；啟用最低需求版本：LITE-CORE
+  pkId                String?       @map("pk_id") @db.VarChar(15)
+  /// 客戶ID快照（FK nx01_partner）。包貨以客戶為單位、一張包貨單對一個客戶；三區清單/裝箱單免溯源直接顯示。SALES-FLOW 階段2 2026-07-22 新增；啟用最低需求版本：LITE-CORE
+  customerId          String?       @map("customer_id") @db.VarChar(15)
   /// 包貨類型（D=配送/P=自取/C=寄貨/T=調撥）。所有出貨類型均需經過包貨環節。；啟用最低需求版本：LITE-CORE
   plType              String        @map("pl_type") @db.VarChar(1)
   /// 狀態（P=待包貨/C=包貨中/F=已完成/S=已寄出/V=作廢）。；啟用最低需求版本：LITE-CORE
@@ -3220,7 +3223,8 @@ model Nx03Pl {
   updatedBy           String        @map("updated_by") @db.VarChar(15)
   tenant              Nx99Tenant    @relation("R_Nx03Pl_tenantId", fields: [tenantId], references: [id])
   warehouse           Nx01Warehouse @relation("R_Nx03Pl_warehouseId", fields: [warehouseId], references: [id])
-  pk                  Nx03Pk        @relation("R_Nx03Pl_pkId", fields: [pkId], references: [id])
+  pk                  Nx03Pk?       @relation("R_Nx03Pl_pkId", fields: [pkId], references: [id])
+  customer            Nx01Partner?  @relation("R_Nx03Pl_customerId", fields: [customerId], references: [id])
   rev_Nx03Parcel_plId Nx03Parcel[]  @relation("R_Nx03Parcel_plId")
   rev_Nx03PlItem_plId Nx03PlItem[]  @relation("R_Nx03PlItem_plId")
 
