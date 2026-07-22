@@ -1,17 +1,20 @@
 <!-- docs/_team/sales-fulfillment-phase2-packing-schema-proposal.md -->
-<!-- 檔案版本：v0.1（階段 2 schema 提案、待執行長 review 後才實作） -->
-<!-- 檔案說明：撿包送階段 2「包貨可跨多張 SO」(D2) 的 schema 微調提案。
-     2026-07-22 Hank 依 grep 現況撰寫。動 schema 前必經執行長拍板（CLAUDE.md §12）。 -->
+<!-- 檔案版本：v0.2（2026-07-22 執行長澄清「以客戶為單位、預設一箱一單、同客戶小件可 opt-in 併箱」後修正） -->
+<!-- 檔案說明：撿包送階段 2「包貨」的 schema 微調提案。
+     2026-07-22 Hank 依 grep 現況撰寫、當日依執行長澄清修正 D2 語意。動 schema 前必經執行長拍板（CLAUDE.md §12）。 -->
 
-# 階段 2 包貨 schema 提案：一張包貨單跨多張 SO
+# 階段 2 包貨 schema 提案：包貨以客戶為單位、同客戶小件可併箱
 
-**版本** v0.1 提案 ｜ **狀態** 待執行長 review ｜ **依據** [[sales-fulfillment-pick-pack-ship-design]] §5-B D2、§5-D
+**版本** v0.2 提案 ｜ **狀態** 待執行長 review ｜ **依據** [[sales-fulfillment-pick-pack-ship-design]] §5-B D2、§5-D
 
 ---
 
-## 1. 目標（D2 拍板）
-一張包貨單可**跨多張銷貨單（SO）**——同車同客戶的多張 SO 併成一張包貨單一起包、封箱。
-一張 SO 也可拆多箱（多包裹）。
+## 1. 目標（D2 澄清後語意，2026-07-22）
+- **預設：一箱一張銷貨單**——一個包裹裡只有一張 SO 的貨，追溯最乾淨。一張 SO 可拆多箱（大件分箱）。
+- **例外（省包材）：同一客戶的多張小單可 opt-in 併成一箱**——packer 當下手動勾選，非系統自動。
+  背景：即時銷貨會讓同客戶開一堆各含一樣小東西的單，一單一箱浪費包材。
+- 包貨台**以客戶為單位**呈現：同客戶的已撿完貨疊一起，預設各單各箱、需要時才併箱。
+- ⚠️ 併箱三條件：**同倉 + 同出貨方式 + 同客戶**（一箱只能進一個三區、故出貨方式必須一致；配送再要求同送貨地址）。
 
 ## 2. 現況約束（grep 實測、動手前的真相）
 | 欄位 / 邏輯 | 現況 | 對跨 SO 的阻礙 |
@@ -52,15 +55,13 @@ pk    Nx03Pk?  @relation("R_Nx03Pl_pkId", fields: [pkId], references: [id])
 - `Nx03PlItem.pkItemId`：維持必填、維持逐行溯源。
 - 扣庫存 / 開應收：仍不在包貨動（依 D4/D6 留到階段 3 簽收才搬）。
 
-## 6. ⚠️ 待你拍板的小決策
-1. **跨 SO 併單的邊界**：同倉＋同出貨方式是硬條件。要不要再加「**同客戶／同送貨地址**」才准併？（配送＝同地址才有意義；自取／寄貨＝同客戶較合理）
-   - 建議：配送要求同送貨地址；自取／寄貨要求同客戶。
-2. **`pkId` 單源填 / 跨源 null** 這個做法 OK，還是你偏好**一律 null**（完全不靠 pl.pkId、只認 plItem 溯源）？
-   - 建議：保留「單源填」，單張 SO 的常見情況資料較完整、報表好讀。
-3. **要不要在 `Nx03Pl` 加一個 `primaryCustomerId` 客戶快照**（方便包裝箱單／三區清單直接顯示客戶、不用每次溯源）？還是靠 plItem 溯源即可、不加欄？
-   - 建議：先不加、靠溯源；真的嫌慢再補（YAGNI）。
+## 6. 決策狀態
+1. **併箱邊界**：✅ 定案（2026-07-22）＝同倉 + 同出貨方式 + 同客戶；配送再要求同送貨地址。預設一箱一單、併箱為 packer opt-in。
+2. **`pkId` 單源填 / 跨源 null**：⚠️ 待拍。建議保留「單源填、併箱時 null」，單張 SO 的常見情況資料較完整、報表好讀。（替代：一律 null、完全改認 plItem 溯源）
+3. **要不要在 `Nx03Pl` 加 `primaryCustomerId` 客戶快照**：⚠️ 待拍。因包貨改「以客戶為單位」、一張包貨單天然對一個客戶，加一欄客戶快照可讓三區清單／裝箱單免溯源直接顯示。建議**這次加**（比 v0.1 更划算，因為單位就是客戶）。若加，schema 改動變 2 欄（pkId nullable + 新增 customerId）。
 
 ## 7. 影響摘要
-- Schema 動 1 欄（widening、非破壞）。
+- Schema 動 1~2 欄：`pkId` DROP NOT NULL（widening、非破壞）；若拍板 #3 再新增 `customerId`（nullable、additive）。兩者皆非破壞。
 - 破壞性等級：**低**——無資料遷移、無既有讀路徑受損、前端零改。
-- migration 走 `prisma migrate dev` 產生單一 `DROP NOT NULL`；套用後 verify `\d nx03_pl` 確認 pk_id nullable。
+- migration 走 `prisma migrate dev`；套用後 verify `\d nx03_pl` 確認 pk_id nullable（＋ customer_id 若加）。
+- ⚠️ 依 [[feedback_prisma7_quirks]]：migrate dev 產出若含誤植 `DROP INDEX`（PRZ-01）需移除；multi-clause ALTER 拆獨立 statement（PRZ-02）。
