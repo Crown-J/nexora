@@ -71,7 +71,7 @@ export function PutbackBanner() {
               </button>
             </div>
             {t.description ? (
-              <p className="mt-1.5 whitespace-pre-line text-sm leading-relaxed text-foreground/85">{t.description}</p>
+              <p className="mt-1 whitespace-pre-line text-xs leading-relaxed text-muted-foreground">{t.description}</p>
             ) : null}
           </li>
         ))}

@@ -115,7 +115,8 @@ try {
      WHERE tenant_id=$1 AND source_doc_id=$2 AND category='PUTBACK'`, [T, so2.id]);
   ctx.check('C2 開了 PUTBACK 放回待辦', !!putback, JSON.stringify(putback));
   ctx.check('C3 放回待辦高優先 H + 池中 OPEN', putback?.priority === 'H' && putback?.status === 'OPEN', JSON.stringify(putback));
-  ctx.check('C4 放回待辦內文含料號×數量', !!putback?.description && putback.description.includes(P1.code), putback?.description ?? '無');
+  ctx.check('C4 標題主打料號×數量+已取消', !!putback?.title && putback.title.includes(P1.code) && putback.title.includes('已取消'), putback?.title ?? '無');
+  ctx.check('C4b 內文帶單號+項次（參考）', !!putback?.description && putback.description.includes(so2.docNo) && putback.description.includes('項次'), putback?.description ?? '無');
 
   const pkAfter = await one(`SELECT status FROM nx03_pk WHERE id=$1`, [pkBefore.pk_id]);
   ctx.check('C5 隱形撿貨單被作廢 V（排出包貨台）', pkAfter?.status === 'V', JSON.stringify(pkAfter));

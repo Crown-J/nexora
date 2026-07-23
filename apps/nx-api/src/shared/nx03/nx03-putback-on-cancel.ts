@@ -27,7 +27,7 @@ export async function createPutbackOnSoCancel(
   tx: Prisma.TransactionClient,
   p: { tenantId: string; soId: string; soDocNo: string; userId: string },
 ): Promise<PutbackResult> {
-  // 該 SO 已撿(C) 且未包(rev_Nx03PlItem_pkItemId 空) 的撿貨明細
+  // 該 SO 已撿(C) 且未包(rev_Nx03PlItem_pkItemId 空) 的撿貨明細（帶項次 lineNo）
   const items = await tx.nx03PkItem.findMany({
     where: {
       status: 'C',
@@ -35,39 +35,40 @@ export async function createPutbackOnSoCancel(
       pk: { tenantId: p.tenantId, status: { not: PkStatus.VOIDED } },
       rev_Nx03PlItem_pkItemId: { none: {} }, // 未被包貨引用＝還在架下、沒進箱
     },
-    select: { id: true, pkId: true, partNo: true, partName: true, qty: true },
+    select: { id: true, pkId: true, refSoItemId: true, partNo: true, partName: true, qty: true, refSoItem: { select: { lineNo: true } } },
   });
   if (!items.length) return { created: false, putbackLines: 0, voidedPkIds: [] };
 
-  // 依料件彙總數量
-  const byPart = new Map<string, { partNo: string; partName: string; qty: number }>();
+  // 依「銷貨單項次」彙總（一項次一張待辦：標題主打料號×數量、副標帶單號項次）
+  const byLine = new Map<string, { partNo: string; partName: string; lineNo: number; qty: number }>();
   for (const it of items) {
-    const key = it.partNo;
-    const cur = byPart.get(key) ?? { partNo: it.partNo, partName: it.partName, qty: 0 };
+    const key = it.refSoItemId ?? it.id;
+    const cur = byLine.get(key) ?? { partNo: it.partNo, partName: it.partName, lineNo: it.refSoItem?.lineNo ?? 0, qty: 0 };
     cur.qty += Number(it.qty);
-    byPart.set(key, cur);
+    byLine.set(key, cur);
   }
-  const lines = [...byPart.values()];
-  // 精簡：只列品項（料號 品名 ×數量）、每項一行；框架說明交給前端橫幅、不塞待辦內文（執行長回饋：別擠）
-  const desc = lines.map((l) => `${l.partNo}　${l.partName} ×${l.qty}`).join('\n');
+  const lines = [...byLine.values()];
 
-  // ① 開請放回待辦（category=PUTBACK、priority=H、留池中任何倉管可領）
-  await tx.nx98TaskPool.create({
-    data: {
-      tenantId: p.tenantId,
-      title: `銷貨單 ${p.soDocNo} 已取消`,
-      description: desc,
-      category: 'PUTBACK',
-      priority: 'H',
-      sourceModule: 'NX03',
-      sourceDocType: 'SO',
-      sourceDocId: p.soId,
-      sourceDocNo: p.soDocNo,
-      status: 'OPEN',
-      createdBy: p.userId,
-      updatedBy: p.userId,
-    },
-  });
+  // ① 逐項次開請放回待辦（category=PUTBACK、priority=H、留池中任何倉管可領）
+  //    標題（黑字主打）＝料號 ×數量　已取消；內文（淺色參考）＝單號 項次（執行長回饋：料號當主角）
+  for (const l of lines) {
+    await tx.nx98TaskPool.create({
+      data: {
+        tenantId: p.tenantId,
+        title: `${l.partNo} ×${l.qty}　已取消`,
+        description: `${p.soDocNo}　項次 ${l.lineNo}`,
+        category: 'PUTBACK',
+        priority: 'H',
+        sourceModule: 'NX03',
+        sourceDocType: 'SO',
+        sourceDocId: p.soId,
+        sourceDocNo: p.soDocNo,
+        status: 'OPEN',
+        createdBy: p.userId,
+        updatedBy: p.userId,
+      },
+    });
+  }
 
   // ② 作廢這些貨所屬的隱形撿貨單（一 SO 一張隱形 PK；已確認無已包明細＝可安全作廢、剔出包貨台）
   const pkIds = [...new Set(items.map((i) => i.pkId))];
