@@ -48,14 +48,15 @@ export async function createPutbackOnSoCancel(
     byPart.set(key, cur);
   }
   const lines = [...byPart.values()];
-  const desc = lines.map((l) => `· ${l.partNo} ${l.partName} ×${l.qty}`).join('\n');
+  // 精簡：只列品項（料號 品名 ×數量）、每項一行；框架說明交給前端橫幅、不塞待辦內文（執行長回饋：別擠）
+  const desc = lines.map((l) => `${l.partNo}　${l.partName} ×${l.qty}`).join('\n');
 
   // ① 開請放回待辦（category=PUTBACK、priority=H、留池中任何倉管可領）
   await tx.nx98TaskPool.create({
     data: {
       tenantId: p.tenantId,
-      title: `請放回：銷貨單 ${p.soDocNo} 已取消`,
-      description: `此單已取消、以下已撿下架的貨請放回原庫位：\n${desc}`,
+      title: `銷貨單 ${p.soDocNo} 已取消`,
+      description: desc,
       category: 'PUTBACK',
       priority: 'H',
       sourceModule: 'NX03',
