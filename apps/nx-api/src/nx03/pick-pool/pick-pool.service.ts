@@ -38,6 +38,7 @@ interface PickItem {
   photoId: string | null;
   locationId: string | null;
   locationCode: string | null;
+  customerName?: string | null; // 依客戶分組時有值（同客戶×料件合併）
   neededQty: string; // 需求總量（此料件在池內未結行的需求）
   pickedQty: string; // 已撿量
   remainingQty: string; // 剩餘待撿（needed - picked）
@@ -45,6 +46,7 @@ interface PickItem {
 }
 
 interface PickGroup {
+  title: string; // 分組標題（依庫位＝庫位碼 / 依客戶＝客戶名）
   locationId: string | null;
   locationCode: string | null;
   warehouseCode: string;
@@ -75,6 +77,7 @@ export class PickPoolService {
 
   async getPickList(user: RequestUser, q: PickListQueryDto): Promise<{ groups: PickGroup[]; total: number; lineCount: number }> {
     const tenantId = requireTenantId(user);
+    const byCustomer = q.groupBy === 'customer';
     const where: Prisma.Nx04SoItemWhereInput = {
       transferStatus: 'C',
       fulfillStatus: 'W', // 未結行（全數帳平才推進 PK 離開清單）
@@ -87,18 +90,20 @@ export class PickPoolService {
         { partNo: { contains: s, mode: 'insensitive' } },
         { partName: { contains: s, mode: 'insensitive' } },
         { brandName: { contains: s, mode: 'insensitive' } },
+        { so: { is: { customer: { name: { contains: s, mode: 'insensitive' } } } } },
       ];
     }
 
     const rows = await this.prisma.nx04SoItem.findMany({
       where,
-      select: { id: true, warehouseId: true, partId: true, partNo: true, partName: true, brandName: true, qty: true },
+      select: {
+        id: true, warehouseId: true, partId: true, partNo: true, partName: true, brandName: true, qty: true,
+        so: { select: { customerId: true, customer: { select: { name: true } } } },
+      },
     });
     if (!rows.length) return { groups: [], total: 0, lineCount: 0 };
 
-    // 每行已撿量（C pk_items 加總）
     const pickedByLine = await this.pickedQtyByLine(this.prisma, rows.map((r) => r.id));
-
     const partIds = [...new Set(rows.map((r) => r.partId))];
     const whIds = [...new Set(rows.map((r) => r.warehouseId))];
     const settings = await this.prisma.nx03PartStockSetting.findMany({
@@ -114,78 +119,63 @@ export class PickPoolService {
     const whs = await this.prisma.nx01Warehouse.findMany({ where: { id: { in: whIds } }, select: { id: true, code: true } });
     const whCode = new Map(whs.map((w) => [w.id, w.code]));
     const photos = await this.prisma.nx01PartPhoto.findMany({
-      where: { partId: { in: partIds } },
-      orderBy: { sortNo: 'asc' },
-      select: { id: true, partId: true },
+      where: { partId: { in: partIds } }, orderBy: { sortNo: 'asc' }, select: { id: true, partId: true },
     });
     const photoByPart = new Map<string, string>();
     for (const p of photos) if (!photoByPart.has(p.partId)) photoByPart.set(p.partId, p.id);
 
-    const agg = new Map<
-      string,
-      Omit<PickItem, 'neededQty' | 'pickedQty' | 'remainingQty'> & { _need: number; _picked: number }
-    >();
+    // 分組維度：依庫位＝合併同（倉×料件）；依客戶＝合併同（客戶×料件）
+    interface Agg extends Omit<PickItem, 'neededQty' | 'pickedQty' | 'remainingQty'> { customerId: string | null; customerName: string | null; _need: number; _picked: number }
+    const agg = new Map<string, Agg>();
     let lineCount = 0;
     for (const r of rows) {
       const need = Number(r.qty);
       const picked = pickedByLine.get(r.id) ?? 0;
-      if (need - picked <= 0) continue; // 已結（理論上 fulfillStatus 已離 W、保險）
+      if (need - picked <= 0) continue;
       lineCount++;
-      const key = `${r.warehouseId}|${r.partId}`;
+      const whPartKey = `${r.warehouseId}|${r.partId}`;
+      const custId = r.so?.customerId ?? null;
+      const key = byCustomer ? `${custId ?? '_'}|${r.partId}` : whPartKey;
       let a = agg.get(key);
       if (!a) {
-        const locId = locByKey.get(key) ?? null;
+        const locId = locByKey.get(whPartKey) ?? null;
         a = {
-          warehouseId: r.warehouseId,
-          warehouseCode: whCode.get(r.warehouseId) ?? '',
-          partId: r.partId,
-          partNo: r.partNo,
-          partName: r.partName,
-          brandName: r.brandName ?? null,
+          warehouseId: r.warehouseId, warehouseCode: whCode.get(r.warehouseId) ?? '',
+          partId: r.partId, partNo: r.partNo, partName: r.partName, brandName: r.brandName ?? null,
           photoId: photoByPart.get(r.partId) ?? null,
-          locationId: locId,
-          locationCode: locId ? (locCode.get(locId) ?? null) : null,
-          soItemIds: [],
-          _need: 0,
-          _picked: 0,
+          locationId: locId, locationCode: locId ? (locCode.get(locId) ?? null) : null,
+          customerId: custId, customerName: r.so?.customer?.name ?? null,
+          soItemIds: [], _need: 0, _picked: 0,
         };
         agg.set(key, a);
       }
-      a._need += need;
-      a._picked += picked;
-      a.soItemIds.push(r.id);
+      a._need += need; a._picked += picked; a.soItemIds.push(r.id);
     }
 
     const items: PickItem[] = [...agg.values()].map((a) => ({
-      warehouseId: a.warehouseId,
-      warehouseCode: a.warehouseCode,
-      partId: a.partId,
-      partNo: a.partNo,
-      partName: a.partName,
-      brandName: a.brandName,
-      photoId: a.photoId,
-      locationId: a.locationId,
-      locationCode: a.locationCode,
-      neededQty: String(a._need),
-      pickedQty: String(a._picked),
-      remainingQty: String(a._need - a._picked),
+      warehouseId: a.warehouseId, warehouseCode: a.warehouseCode,
+      partId: a.partId, partNo: a.partNo, partName: a.partName, brandName: a.brandName, photoId: a.photoId,
+      locationId: a.locationId, locationCode: a.locationCode, customerName: a.customerName,
+      neededQty: String(a._need), pickedQty: String(a._picked), remainingQty: String(a._need - a._picked),
       soItemIds: a.soItemIds,
     }));
 
-    const locKeyOf = (c: string | null) => (c == null ? '￿' : c);
-    items.sort((x, y) => locKeyOf(x.locationCode).localeCompare(locKeyOf(y.locationCode)) || x.partNo.localeCompare(y.partNo));
-
+    const keyOf = (c: string | null) => (c == null ? '￿' : c);
     const groups = new Map<string, PickGroup>();
     for (const it of items) {
-      const gk = it.locationId ?? '__none__';
+      const gk = byCustomer ? (it.customerName ?? '__none__') : (it.locationId ?? '__none__');
       let g = groups.get(gk);
       if (!g) {
-        g = { locationId: it.locationId, locationCode: it.locationCode, warehouseCode: it.warehouseCode, items: [] };
+        g = {
+          title: byCustomer ? (it.customerName ?? '未指定客戶') : (it.locationCode ?? '未指定庫位'),
+          locationId: it.locationId, locationCode: it.locationCode, warehouseCode: it.warehouseCode, items: [],
+        };
         groups.set(gk, g);
       }
       g.items.push(it);
     }
-    const groupList = [...groups.values()].sort((a, b) => locKeyOf(a.locationCode).localeCompare(locKeyOf(b.locationCode)));
+    for (const g of groups.values()) g.items.sort((x, y) => x.partNo.localeCompare(y.partNo));
+    const groupList = [...groups.values()].sort((a, b) => keyOf(a.title).localeCompare(keyOf(b.title)));
     return { groups: groupList, total: items.length, lineCount };
   }
 
@@ -428,37 +418,45 @@ export class PickPoolService {
         partId: true, partNo: true, partName: true, qty: true,
         refSoId: true,
         pk: { select: { warehouseId: true, warehouse: { select: { code: true } } } },
-        refSoItem: { select: { lineNo: true } },
-        refSo: { select: { docNo: true, deliveryType: true, customerId: true, customer: { select: { name: true } } } },
+        refSo: { select: { docNo: true, customerId: true, customer: { select: { name: true } } } },
       },
     });
 
-    interface StagedItem { partId: string; partNo: string; partName: string; qty: number; lineNo: number }
-    interface StagedGroup {
-      soId: string; soDocNo: string; customerId: string | null; customerName: string;
-      deliveryType: string; warehouseId: string; warehouseCode: string;
-      items: StagedItem[]; _byPart: Map<string, StagedItem>;
-    }
+    // 料件原儲位（供「依庫位」分組；同 stagedList 只掛顯示、不影響動作）
+    const partWh = [...new Set(rows.map((r) => `${r.partId}|${r.pk?.warehouseId ?? ''}`))];
+    const settings = await this.prisma.nx03PartStockSetting.findMany({
+      where: { tenantId, OR: partWh.map((k) => ({ partId: k.split('|')[0], warehouseId: k.split('|')[1] })) },
+      select: { partId: true, warehouseId: true, defaultLocationId: true },
+    });
+    const locIds = [...new Set(settings.map((s) => s.defaultLocationId).filter((x): x is string => !!x))];
+    const locCode = new Map((locIds.length ? await this.prisma.nx01Location.findMany({ where: { id: { in: locIds } }, select: { id: true, code: true } }) : []).map((l) => [l.id, l.code]));
+    const locByKey = new Map(settings.map((s) => [`${s.partId}|${s.warehouseId}`, s.defaultLocationId ? (locCode.get(s.defaultLocationId) ?? null) : null]));
+
+    const byLocation = q.groupBy === 'location';
+    interface StagedItem { soId: string; soDocNo: string; customerName: string; partId: string; partNo: string; partName: string; qty: number; warehouseId: string; locationCode: string | null }
+    interface StagedGroup { title: string; items: StagedItem[]; _byKey: Map<string, StagedItem> }
     const groups = new Map<string, StagedGroup>();
     for (const r of rows) {
       const so = r.refSo;
       if (!r.refSoId || !so) continue;
-      let g = groups.get(r.refSoId);
-      if (!g) {
-        g = {
-          soId: r.refSoId, soDocNo: so.docNo, customerId: so.customerId,
-          customerName: so.customer?.name ?? '—', deliveryType: so.deliveryType,
-          warehouseId: r.pk?.warehouseId ?? '', warehouseCode: r.pk?.warehouse?.code ?? '',
-          items: [], _byPart: new Map(),
-        };
-        groups.set(r.refSoId, g);
+      const whId = r.pk?.warehouseId ?? '';
+      const custName = so.customer?.name ?? '—';
+      const locCodeVal = locByKey.get(`${r.partId}|${whId}`) ?? null;
+      const gk = byLocation ? (locCodeVal ?? '未指定庫位') : custName;
+      let g = groups.get(gk);
+      if (!g) { g = { title: gk, items: [], _byKey: new Map() }; groups.set(gk, g); }
+      // 同組內合併同（單×料件）
+      const ik = `${r.refSoId}|${r.partId}`;
+      let it = g._byKey.get(ik);
+      if (!it) {
+        it = { soId: r.refSoId, soDocNo: so.docNo, customerName: custName, partId: r.partId, partNo: r.partNo, partName: r.partName, qty: 0, warehouseId: whId, locationCode: locCodeVal };
+        g._byKey.set(ik, it); g.items.push(it);
       }
-      const key = r.partId;
-      let it = g._byPart.get(key);
-      if (!it) { it = { partId: r.partId, partNo: r.partNo, partName: r.partName, qty: 0, lineNo: r.refSoItem?.lineNo ?? 0 }; g._byPart.set(key, it); g.items.push(it); }
       it.qty += Number(r.qty);
     }
-    const groupList = [...groups.values()].map(({ _byPart, ...g }) => ({ ...g, lineCount: g.items.length }));
+    const groupList = [...groups.values()]
+      .map(({ _byKey, ...g }) => ({ ...g, lineCount: g.items.length }))
+      .sort((a, b) => a.title.localeCompare(b.title));
     return { groups: groupList, total: groupList.reduce((n, g) => n + g.items.length, 0) };
   }
 

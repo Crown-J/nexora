@@ -12,12 +12,12 @@
 'use client';
 
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
-import { AlertTriangle, Boxes, CheckCheck, ImageOff, MapPin, PackageCheck, RefreshCw, RotateCcw, Search, Undo2 } from 'lucide-react';
+import { AlertTriangle, Boxes, CheckCheck, ImageOff, MapPin, PackageCheck, RefreshCw, Search, Undo2, Users } from 'lucide-react';
 
 import { partPhotoUrl } from '@data/endpoints/shared/part-photo/part-photo-api';
 import {
   cancelPick, getCancelledList, getPickedList, getPickList, pickAggregate, putBack, reportPickIssue, stagedIssue,
-  type PickGroup, type PickItem, type StagedGroup,
+  type GroupBy, type PickGroup, type PickItem, type StagedGroup, type StagedItem,
 } from '@data/endpoints/nx03/workstation/api';
 import { cx } from '@design/utils/cx';
 
@@ -94,6 +94,7 @@ export function PickBoard() {
   const [err, setErr] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+  const [groupBy, setGroupBy] = useState<GroupBy>('location'); // 分組方式：依庫位 / 依客戶
   const [tab, setTab] = useState<Col>('L'); // 手機分頁
 
   const [selL, setSelL] = useState<SelLeft>(null);
@@ -108,7 +109,7 @@ export function PickBoard() {
     setErr(null);
     try {
       const s = search.trim() || undefined;
-      const [l, m, r] = await Promise.all([getPickList({ search: s }), getPickedList({ search: s }), getCancelledList({ search: s })]);
+      const [l, m, r] = await Promise.all([getPickList({ search: s, groupBy }), getPickedList({ search: s, groupBy }), getCancelledList({ search: s, groupBy })]);
       setLeft(l.groups); setLeftLineCount(l.lineCount);
       setMiddle(m.groups); setRight(r.groups);
     } catch (e) {
@@ -116,7 +117,7 @@ export function PickBoard() {
     } finally {
       setLoading(false);
     }
-  }, [search]);
+  }, [search, groupBy]);
 
   useEffect(() => { void load(); }, [load]);
 
@@ -144,17 +145,17 @@ export function PickBoard() {
       ? <Empty text="目前沒有待撿的貨" />
       : <div className="space-y-4">
           {left.map((g) => (
-            <div key={g.locationId ?? '__none__'} className="overflow-hidden rounded-xl border border-border">
+            <div key={g.title} className="overflow-hidden rounded-xl border border-border">
               <div className="flex items-center gap-2 border-b border-border bg-muted/30 px-3 py-2">
-                <MapPin className="h-4 w-4 text-primary" aria-hidden />
-                <span className="text-sm font-semibold text-foreground">{g.locationCode ?? '未指定庫位'}</span>
-                <span className="text-xs text-muted-foreground">· {g.warehouseCode}</span>
-                <span className="ml-auto text-xs text-muted-foreground tabular-nums">{g.items.length} 項</span>
+                {groupBy === 'location' ? <MapPin className="h-4 w-4 text-primary" aria-hidden /> : <Users className="h-4 w-4 text-primary" aria-hidden />}
+                <span className="truncate text-sm font-semibold text-foreground">{g.title}</span>
+                {groupBy === 'location' && g.warehouseCode ? <span className="shrink-0 text-xs text-muted-foreground">· {g.warehouseCode}</span> : null}
+                <span className="ml-auto shrink-0 text-xs text-muted-foreground tabular-nums">{g.items.length} 項</span>
               </div>
               <div className="bg-card">
                 {g.items.map((it) => {
                   const sel = selL?.warehouseId === it.warehouseId && selL?.partId === it.partId;
-                  return <LeftCard key={`${it.warehouseId}|${it.partId}`} it={it} sel={sel} onSelect={() => setSelL(sel ? null : { warehouseId: it.warehouseId, partId: it.partId, partNo: it.partNo })} />;
+                  return <LeftCard key={`${it.warehouseId}|${it.partId}`} it={it} showLoc={groupBy === 'customer'} sel={sel} onSelect={() => setSelL(sel ? null : { warehouseId: it.warehouseId, partId: it.partId, partNo: it.partNo })} />;
                 })}
               </div>
             </div>
@@ -169,17 +170,17 @@ export function PickBoard() {
       ? <Empty text={col === 'M' ? '目前沒有已撿待包的貨' : '目前沒有待放回的貨'} />
       : <div className="space-y-4">
           {groups.map((g) => (
-            <div key={g.soId} className="overflow-hidden rounded-xl border border-border">
+            <div key={g.title} className="overflow-hidden rounded-xl border border-border">
               <div className="flex items-center gap-2 border-b border-border bg-muted/30 px-3 py-2">
-                <span className="truncate text-sm font-semibold text-foreground">{g.customerName}</span>
-                <span className="shrink-0 rounded bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] text-primary">{g.soDocNo}</span>
-                <span className="ml-auto text-xs text-muted-foreground tabular-nums">{g.items.length} 項</span>
+                {groupBy === 'location' ? <MapPin className="h-4 w-4 text-primary" aria-hidden /> : <Users className="h-4 w-4 text-primary" aria-hidden />}
+                <span className="truncate text-sm font-semibold text-foreground">{g.title}</span>
+                <span className="ml-auto shrink-0 text-xs text-muted-foreground tabular-nums">{g.items.length} 項</span>
               </div>
               <div className="bg-card">
                 {g.items.map((it) => {
-                  const s = sel?.soId === g.soId && sel?.partId === it.partId;
-                  return <StagedCard key={`${g.soId}|${it.partId}`} partNo={it.partNo} partName={it.partName} qty={it.qty} sel={s}
-                    onSelect={() => setSel(s ? null : { soId: g.soId, partId: it.partId, warehouseId: g.warehouseId, partNo: it.partNo })} />;
+                  const s = sel?.soId === it.soId && sel?.partId === it.partId;
+                  return <StagedCard key={`${it.soId}|${it.partId}`} it={it} showCustomer={groupBy === 'location'} sel={s}
+                    onSelect={() => setSel(s ? null : { soId: it.soId, partId: it.partId, warehouseId: it.warehouseId, partNo: it.partNo })} />;
                 })}
               </div>
             </div>
@@ -231,10 +232,20 @@ export function PickBoard() {
   const colCount: Record<Col, number> = { L: leftItems.length, M: midCount, R: rightCount };
 
   return (
-    <div className="mx-auto max-w-7xl space-y-4 p-4 md:p-6">
+    <div className="w-full space-y-4 p-4 md:p-6">
       <header className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="flex items-center gap-2 text-xl text-foreground"><Boxes className="h-5 w-5 text-primary" aria-hidden />撿貨看板</h1>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* 分組切換：依庫位 / 依客戶 */}
+          <div className="flex items-center gap-1 rounded-lg border border-border bg-card p-1">
+            {(['location', 'customer'] as GroupBy[]).map((gb) => (
+              <button key={gb} type="button" onClick={() => setGroupBy(gb)}
+                className={cx('inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-medium', groupBy === gb ? 'bg-primary/10 text-primary' : 'text-muted-foreground')}>
+                {gb === 'location' ? <MapPin className="h-3.5 w-3.5" aria-hidden /> : <Users className="h-3.5 w-3.5" aria-hidden />}
+                {gb === 'location' ? '依庫位' : '依客戶'}
+              </button>
+            ))}
+          </div>
           <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-3">
             <Search className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
             <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="搜尋 料號 / 品名 / 單號 / 客戶" className="h-9 w-52 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none" />
@@ -299,7 +310,7 @@ function Empty({ text }: { text: string }) {
   return <div className="rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">{text}</div>;
 }
 
-function LeftCard({ it, sel, onSelect }: { it: PickItem; sel: boolean; onSelect: () => void }) {
+function LeftCard({ it, showLoc, sel, onSelect }: { it: PickItem; showLoc: boolean; sel: boolean; onSelect: () => void }) {
   const need = Number(it.neededQty), picked = Number(it.pickedQty), rem = Number(it.remainingQty);
   const pct = need > 0 ? Math.min(100, Math.round((picked / need) * 100)) : 0;
   return (
@@ -309,6 +320,7 @@ function LeftCard({ it, sel, onSelect }: { it: PickItem; sel: boolean; onSelect:
         <div className="flex items-center gap-1.5">
           <span className="truncate font-mono text-sm text-foreground">{it.partNo}</span>
           {it.brandName ? <span className="shrink-0 rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">{it.brandName}</span> : null}
+          {showLoc && it.locationCode ? <span className="ml-auto inline-flex shrink-0 items-center gap-0.5 rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground"><MapPin className="h-3 w-3" aria-hidden />{it.locationCode}</span> : null}
         </div>
         <p className="truncate text-xs text-muted-foreground">{it.partName}</p>
         <div className="mt-1 flex items-center gap-2">
@@ -320,16 +332,20 @@ function LeftCard({ it, sel, onSelect }: { it: PickItem; sel: boolean; onSelect:
   );
 }
 
-function StagedCard({ partNo, partName, qty, sel, onSelect }: { partNo: string; partName: string; qty: number; sel: boolean; onSelect: () => void }) {
+function StagedCard({ it, showCustomer, sel, onSelect }: { it: StagedItem; showCustomer: boolean; sel: boolean; onSelect: () => void }) {
   return (
     <button type="button" onClick={onSelect} className={cx('flex w-full items-center gap-3 border-t border-border/60 px-3 py-2.5 text-left first:border-t-0', sel ? 'bg-primary/10' : 'hover:bg-muted/20')}>
-      <RotateCcw className="hidden" aria-hidden />
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-2">
-          <span className="truncate font-mono text-sm font-semibold text-foreground">{partNo}</span>
-          <span className="shrink-0 text-sm font-semibold text-primary tabular-nums">×{qty}</span>
+          <span className="truncate font-mono text-sm font-semibold text-foreground">{it.partNo}</span>
+          <span className="shrink-0 text-sm font-semibold text-primary tabular-nums">×{it.qty}</span>
         </div>
-        <p className="truncate text-xs text-muted-foreground">{partName}</p>
+        <p className="truncate text-xs text-muted-foreground">{it.partName}</p>
+        <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+          <span className="font-mono">{it.soDocNo}</span>
+          {showCustomer ? <span className="truncate">· {it.customerName}</span> : null}
+          {it.locationCode ? <span className="shrink-0 rounded bg-muted px-1 py-0.5">{it.locationCode}</span> : null}
+        </div>
       </div>
     </button>
   );

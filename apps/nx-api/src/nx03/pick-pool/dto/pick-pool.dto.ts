@@ -3,7 +3,7 @@
 
 import { IsIn, IsNumber, IsOptional, IsString, MaxLength, Min, MinLength } from 'class-validator';
 
-/** 撿貨清單查詢：可選倉別 + 關鍵字。 */
+/** 撿貨清單查詢：可選倉別 + 關鍵字 + 分組方式。 */
 export class PickListQueryDto {
   @IsOptional()
   @IsString()
@@ -13,6 +13,11 @@ export class PickListQueryDto {
   @IsOptional()
   @IsString()
   search?: string;
+
+  /** 分組方式：location=依庫位（預設、順路撿）/ customer=依客戶。 */
+  @IsOptional()
+  @IsIn(['location', 'customer'])
+  groupBy?: 'location' | 'customer';
 }
 
 /**
@@ -68,7 +73,7 @@ export class ResetPickDto {
   partId!: string;
 }
 
-/** 已撿貨／已取消清單查詢（WMS P2 中欄/右欄）：可選倉別 + 關鍵字。 */
+/** 已撿貨／已取消清單查詢（WMS P2 中欄/右欄）：可選倉別 + 關鍵字 + 分組方式。 */
 export class StagedListQueryDto {
   @IsOptional()
   @IsString()
@@ -77,6 +82,11 @@ export class StagedListQueryDto {
   @IsOptional()
   @IsString()
   search?: string;
+
+  /** 分組方式：customer=依客戶（預設）/ location=依庫位（原儲位）。 */
+  @IsOptional()
+  @IsIn(['location', 'customer'])
+  groupBy?: 'location' | 'customer';
 }
 
 /** 中欄「取消撿貨」/右欄「已放回」：對某（單 × 料件）操作（誤按修正 / 訂單取消歸位）。 */

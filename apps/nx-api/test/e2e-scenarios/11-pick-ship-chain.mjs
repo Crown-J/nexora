@@ -172,6 +172,12 @@ try {
   const arAfter = await one(
     `SELECT count(*)::int AS n FROM nx05_ar_ledger WHERE tenant_id=$1 AND so_id=$2`, [T, so.id]);
   ctx.check('5g ⭐ 簽收後才開應收 1 筆', arAfter?.n === 1, `AR ${arAfter?.n}`);
+  // WMS 恆等式：撿→包→簽收(從待包扣)全鏈後，每料每倉 Σ庫位 = 倉庫 onHand
+  const inv = async (pid, whId) => Number((await one(
+    `SELECT (SELECT COALESCE(SUM(on_hand_qty),0) FROM nx03_stock_location_balance WHERE tenant_id=$1 AND part_id=$2 AND warehouse_id=$3)
+          - (SELECT COALESCE(on_hand_qty,0) FROM nx03_stock_balance WHERE tenant_id=$1 AND part_id=$2 AND warehouse_id=$3) AS d`, [T, pid, whId]))?.d ?? 0);
+  const invP1 = await inv(P1.id, whA.id), invP3 = await inv(P3.id, whA.id);
+  ctx.check('5h ⭐ WMS 全鏈恆等式 Σ庫位=倉庫（P1/P3）', invP1 === 0 && invP3 === 0, `P1差${invP1} P3差${invP3}`);
 } finally {
   // 還原庫存 + 清單據/通知（PK/PL 依 refSoId 反查清、wipeDocs 未涵蓋）
   for (const b of balBaks) await ctx.restoreBalances(b);

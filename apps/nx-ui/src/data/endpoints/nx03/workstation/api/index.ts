@@ -201,27 +201,32 @@ export interface PickItem {
   photoId: string | null; // 料件主圖 id（配 partPhotoUrl 取圖）
   locationId: string | null;
   locationCode: string | null;
+  customerName?: string | null; // 依客戶分組時有值
   neededQty: string; // 需求總量
   pickedQty: string; // 已撿量
   remainingQty: string; // 剩餘待撿
   soItemIds: string[];
 }
 
-/** 依庫位分組。 */
+/** 分組（依庫位＝庫位碼標題 / 依客戶＝客戶名標題）。 */
 export interface PickGroup {
+  title: string;
   locationId: string | null;
-  locationCode: string | null; // null=未指定庫位
+  locationCode: string | null;
   warehouseCode: string;
   items: PickItem[];
 }
 
+export type GroupBy = 'location' | 'customer';
+
 export interface PickListQuery {
   warehouseId?: string;
   search?: string;
+  groupBy?: GroupBy;
 }
 
 export function getPickList(q: PickListQuery = {}): Promise<{ groups: PickGroup[]; total: number; lineCount: number }> {
-  return apiJson(`/nx03/pick-pool${buildQueryString({ warehouseId: q.warehouseId, search: q.search })}`);
+  return apiJson(`/nx03/pick-pool${buildQueryString({ warehouseId: q.warehouseId, search: q.search, groupBy: q.groupBy })}`);
 }
 
 /** 撿取：qty 省略=全部撿取 / 帶 qty=部分撿取。 */
@@ -249,36 +254,34 @@ export function resetPick(warehouseId: string, partId: string): Promise<{ reset:
 
 // ── WMS P2 撿貨三欄：中欄「已撿貨」/右欄「已取消」（依單號/客戶） ──
 
-/** 已撿貨/已取消清單的一個料件（同單同料件合併）。 */
+/** 已撿貨/已取消清單的一個料件（同單×料件合併、帶單號/客戶/儲位供顯示）。 */
 export interface StagedItem {
+  soId: string;
+  soDocNo: string;
+  customerName: string;
   partId: string;
   partNo: string;
   partName: string;
   qty: number;
-  lineNo: number;
+  warehouseId: string;
+  locationCode: string | null;
 }
 
-/** 已撿貨/已取消清單一組（依單號）。 */
+/** 已撿貨/已取消清單一組（依客戶名 或 依儲位碼）。 */
 export interface StagedGroup {
-  soId: string;
-  soDocNo: string;
-  customerId: string | null;
-  customerName: string;
-  deliveryType: string;
-  warehouseId: string;
-  warehouseCode: string;
+  title: string;
   lineCount: number;
   items: StagedItem[];
 }
 
 /** 中欄：已撿完待包的貨。 */
 export function getPickedList(q: PickListQuery = {}): Promise<{ groups: StagedGroup[]; total: number }> {
-  return apiJson(`/nx03/pick-pool/picked${buildQueryString({ warehouseId: q.warehouseId, search: q.search })}`);
+  return apiJson(`/nx03/pick-pool/picked${buildQueryString({ warehouseId: q.warehouseId, search: q.search, groupBy: q.groupBy })}`);
 }
 
 /** 右欄：訂單取消、貨已撿待放回。 */
 export function getCancelledList(q: PickListQuery = {}): Promise<{ groups: StagedGroup[]; total: number }> {
-  return apiJson(`/nx03/pick-pool/cancelled${buildQueryString({ warehouseId: q.warehouseId, search: q.search })}`);
+  return apiJson(`/nx03/pick-pool/cancelled${buildQueryString({ warehouseId: q.warehouseId, search: q.search, groupBy: q.groupBy })}`);
 }
 
 /** 中欄「取消撿貨」（誤按修正、退回左邊待撿）。 */
