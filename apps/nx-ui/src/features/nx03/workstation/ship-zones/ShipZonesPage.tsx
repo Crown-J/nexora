@@ -225,7 +225,7 @@ export function ShipZonesPage() {
   );
 
   return (
-    <div className="mx-auto max-w-4xl space-y-4 p-4 pb-[calc(env(safe-area-inset-bottom)+2rem)]">
+    <div className="w-full space-y-4 p-4 md:p-6 pb-[calc(env(safe-area-inset-bottom)+2rem)]">
       <header className="flex items-start justify-between gap-2">
         <div className="space-y-1">
           <h1 className="flex items-center gap-2 text-lg text-foreground">
@@ -244,7 +244,7 @@ export function ShipZonesPage() {
         </button>
       </header>
 
-      <div className="flex gap-2">
+      <div className="flex max-w-2xl gap-2">
         {TABS.map((t) => {
           const Icon = t.icon;
           const isActive = tab === t.id;
@@ -282,7 +282,7 @@ export function ShipZonesPage() {
         zones.pickup.length === 0 ? (
           <EmptyZone text="自取區沒有待取的包裹" />
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
             {zones.pickup.map((it) => (
               <PickupCard
                 key={it.plId}
@@ -297,7 +297,7 @@ export function ShipZonesPage() {
         zones.mail.length === 0 ? (
           <EmptyZone text="寄貨區沒有待寄的包裹" />
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
             {zones.mail.map((it) => (
               <MailCard
                 key={it.plId}
@@ -338,7 +338,7 @@ export function ShipZonesPage() {
               配單成一趟（{selected.size}）
             </button>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
             {zones.delivery.map((it) => (
               <DeliveryCard
                 key={it.plId}

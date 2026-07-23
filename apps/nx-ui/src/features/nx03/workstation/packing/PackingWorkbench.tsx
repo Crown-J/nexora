@@ -302,7 +302,7 @@ export function PackingWorkbench() {
   const totalLines = useMemo(() => groups.reduce((n, g) => n + g.lineCount, 0), [groups]);
 
   return (
-    <div className="mx-auto max-w-4xl space-y-4 p-4 pb-[calc(env(safe-area-inset-bottom)+2rem)]">
+    <div className="w-full space-y-4 p-4 md:p-6 pb-[calc(env(safe-area-inset-bottom)+2rem)]">
       <header className="flex items-start justify-between gap-2">
         <div className="space-y-1">
           <h1 className="flex items-center gap-2 text-lg text-foreground">
@@ -328,10 +328,12 @@ export function PackingWorkbench() {
       ) : null}
 
       {active ? (
-        <ActivePackingView detail={active} busy={busy} onMerge={merge} onSeal={seal} onBack={() => setActive(null)} />
+        <div className="mx-auto max-w-3xl">
+          <ActivePackingView detail={active} busy={busy} onMerge={merge} onSeal={seal} onBack={() => setActive(null)} />
+        </div>
       ) : (
         <>
-          <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-3">
+          <div className="flex max-w-md items-center gap-2 rounded-lg border border-border bg-card px-3">
             <Search className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
             <input
               value={search}
@@ -354,7 +356,7 @@ export function PackingWorkbench() {
               目前沒有撿好待包的貨
             </div>
           ) : (
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
               {groups.map((g) => (
                 <GroupCard key={`${g.customerId}|${g.deliveryType}|${g.warehouseId}`} group={g} busy={busy} onBuild={() => build(g)} />
               ))}
