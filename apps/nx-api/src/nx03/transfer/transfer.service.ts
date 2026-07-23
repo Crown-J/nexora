@@ -36,6 +36,8 @@ const TR_SEL = {
   postedBy: true,
   receivedAt: true,
   receivedBy: true,
+  // DOC-TIMING-KPI 2026-07-23：發貨出庫戳（發貨→收貨全鏈起點），mapDetail 算時長
+  dispatchedAt: true,
   createdAt: true,
   createdBy: true,
   updatedAt: true,
@@ -78,6 +80,23 @@ function flattenStRefs<T extends Record<string, unknown>>(rest: T) {
     fromWarehouseName: fromWarehouse?.name ?? null,
     toWarehouseCode: toWarehouse?.code ?? null,
     toWarehouseName: toWarehouse?.name ?? null,
+  };
+}
+
+/**
+ * DOC-TIMING-KPI 2026-07-23：算調撥全鏈時長（分鐘、四捨五入）。
+ *   發貨出庫(dispatchedAt) → 收貨完成(receivedAt)。調撥無撿/包/送三段。
+ *   任一端點缺 → null（未走到收貨）。UI/報表拿分鐘顯示「這張調撥花多久」。
+ */
+function computeStTiming(t: { dispatchedAt?: Date | null; receivedAt?: Date | null }) {
+  const total =
+    t.dispatchedAt && t.receivedAt
+      ? Math.round((t.receivedAt.getTime() - t.dispatchedAt.getTime()) / 60000)
+      : null;
+  return {
+    dispatchedAt: t.dispatchedAt ?? null,
+    receivedAt: t.receivedAt ?? null,
+    totalMinutes: total, // 全鏈：發貨出庫→收貨完成
   };
 }
 
@@ -186,7 +205,12 @@ export class TransferService {
 
   private mapDetail(row: { rev_Nx03StItem_stId: unknown[] } & Record<string, unknown>) {
     const { rev_Nx03StItem_stId: items, ...rest } = row;
-    return { ...flattenStRefs(rest), items };
+    return {
+      ...flattenStRefs(rest),
+      // DOC-TIMING-KPI 2026-07-23：發貨→收貨全鏈時長（分鐘）供 UI/報表顯示
+      timing: computeStTiming(rest as { dispatchedAt?: Date | null; receivedAt?: Date | null }),
+      items,
+    };
   }
 
   async list(user: RequestUser, q: Nx03ListQueryDto) {    const tenantId = requireTenantId(user);

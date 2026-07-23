@@ -113,6 +113,10 @@ const SO_SEL = {
   cancelledAt: true,
   cancelledBy: true,
   cancelReason: true,
+  // DOC-TIMING-KPI 2026-07-23：單據計時戳（撿貨開始→封箱→簽收完成），mapDetail 算全鏈時長
+  pickStartedAt: true,
+  sealedAt: true,
+  completedAt: true,
   createdAt: true,
   createdBy: true,
   updatedAt: true,
@@ -202,6 +206,24 @@ function flattenSoRefs<T extends Record<string, unknown>>(rest: T) {
     warehouseName: warehouse?.name ?? null,
     currencyCode: currency?.code ?? null,
     salesPersonName: salesPerson?.userName ?? null,
+  };
+}
+
+/**
+ * DOC-TIMING-KPI 2026-07-23：算單據全鏈時長（分鐘、四捨五入）。
+ *   撿貨開始(pickStartedAt) → 封箱(sealedAt) → 簽收完成(completedAt)。
+ *   各段任一端點缺 → 該段 null（未走到那步）。UI/報表直接拿分鐘顯示「這張單花多久」。
+ */
+function computeSoTiming(t: { pickStartedAt?: Date | null; sealedAt?: Date | null; completedAt?: Date | null }) {
+  const diffMin = (a?: Date | null, b?: Date | null): number | null =>
+    a && b ? Math.round((b.getTime() - a.getTime()) / 60000) : null;
+  return {
+    pickStartedAt: t.pickStartedAt ?? null,
+    sealedAt: t.sealedAt ?? null,
+    completedAt: t.completedAt ?? null,
+    pickToSealMinutes: diffMin(t.pickStartedAt, t.sealedAt), // 撿貨→封箱
+    sealToSignMinutes: diffMin(t.sealedAt, t.completedAt), // 封箱→簽收
+    totalMinutes: diffMin(t.pickStartedAt, t.completedAt), // 全鏈：撿貨開始→簽收完成
   };
 }
 
@@ -355,6 +377,8 @@ export class SoService {
       // 值序：W(等貨) < PK(撿貨中) < PL(包貨中) < D(配送中) < F(已送達)
       // null=無 lines；UI 直接拿這欄顯示「header 揀貨狀態」
       pickingStatus: derivePickingStatus(mappedItems as { fulfillStatus?: string }[]),
+      // DOC-TIMING-KPI 2026-07-23：全鏈時長（撿→封→簽三段 + 總計、分鐘）供 UI/報表顯示
+      timing: computeSoTiming(rest as { pickStartedAt?: Date | null; sealedAt?: Date | null; completedAt?: Date | null }),
       items: mappedItems,
     };
   }
