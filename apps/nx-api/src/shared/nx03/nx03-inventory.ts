@@ -2,6 +2,44 @@ import { BadRequestException } from '@nestjs/common';
 import type { Prisma } from 'db-core';
 import { Prisma as PrismaNs } from 'db-core';
 
+/**
+ * WMS 庫位級庫存 P1（2026-07-23）：進出時同步維護庫位餘額（nx03_stock_location_balance）。
+ * 精確鏡射倉庫異動：IN +qty、OUT -qty，同一 locationId → 保持恆等式 Σ(庫位)=倉庫 onHand。
+ * 容許負值（不夾 0，否則恆等式破）＝「從系統以為空的格取貨」的對帳訊號、不擋交易；
+ * locationId 空則跳過（防呆、不維護）。倉庫餘額仍是賣貨/成本主帳、此表只記實體在哪格。
+ */
+async function applyLocationBalanceDelta(
+  tx: Prisma.TransactionClient,
+  p: { tenantId: string; partId: string; warehouseId: string; locationId: string; delta: PrismaNs.Decimal; userId: string; now: Date },
+): Promise<void> {
+  if (!p.locationId) return;
+  await tx.nx03StockLocationBalance.upsert({
+    where: {
+      tenantId_partId_warehouseId_locationId: {
+        tenantId: p.tenantId,
+        partId: p.partId,
+        warehouseId: p.warehouseId,
+        locationId: p.locationId,
+      },
+    },
+    create: {
+      tenantId: p.tenantId,
+      partId: p.partId,
+      warehouseId: p.warehouseId,
+      locationId: p.locationId,
+      onHandQty: p.delta,
+      lastMoveAt: p.now,
+      createdBy: p.userId,
+      updatedBy: p.userId,
+    },
+    update: {
+      onHandQty: { increment: p.delta },
+      lastMoveAt: p.now,
+      updatedBy: p.userId,
+    },
+  });
+}
+
 export type QtyLedgerParams = {
   tenantId: string;
   userId: string;
@@ -71,6 +109,17 @@ export async function applyQtyInWithLedger(
     },
   });
 
+  // P1：同步庫位餘額 +qtyIn（此格入貨）
+  await applyLocationBalanceDelta(tx, {
+    tenantId: p.tenantId,
+    partId: p.partId,
+    warehouseId: p.warehouseId,
+    locationId: p.locationId,
+    delta: qtyIn,
+    userId: p.userId,
+    now,
+  });
+
   await tx.nx03StockLedger.create({
     data: {
       tenantId: p.tenantId,
@@ -126,6 +175,17 @@ export async function applyQtyOutWithLedger(
       lastMoveAt: now,
       updatedBy: p.userId,
     },
+  });
+
+  // P1：同步庫位餘額 -qtyOut（此格出貨；容許負值＝對帳訊號、不擋交易）
+  await applyLocationBalanceDelta(tx, {
+    tenantId: p.tenantId,
+    partId: p.partId,
+    warehouseId: p.warehouseId,
+    locationId: p.locationId,
+    delta: qtyOut.neg(),
+    userId: p.userId,
+    now,
   });
 
   await tx.nx03StockLedger.create({

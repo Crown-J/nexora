@@ -128,7 +128,10 @@ export async function makeCtx(name) {
     async backupBalances(partId) {
       const rows = (await db.query(
         `SELECT * FROM nx03_stock_balance WHERE tenant_id=$1 AND part_id=$2`, [tenant, partId])).rows;
-      return { partId, rows };
+      // WMS 2026-07-23：庫位級餘額也快照（移動類 e2e 不漂移庫位餘額）
+      const locRows = (await db.query(
+        `SELECT * FROM nx03_stock_location_balance WHERE tenant_id=$1 AND part_id=$2`, [tenant, partId])).rows;
+      return { partId, rows, locRows };
     },
     async restoreBalances(bak) {
       const keep = new Set(bak.rows.map((r) => r.id));
@@ -142,6 +145,16 @@ export async function makeCtx(name) {
            WHERE id=$1`,
           [r.id, r.on_hand_qty, r.reserved_qty, r.available_qty, r.in_transit_qty,
            r.avg_cost, r.stock_value, r.last_in_at, r.last_out_at, r.last_move_at, r.updated_at, r.updated_by]);
+      }
+      // WMS 2026-07-23：還原庫位級餘額（多的列刪、快照列回寫）
+      const keepLoc = new Set(bak.locRows.map((r) => r.id));
+      await db.query(
+        `DELETE FROM nx03_stock_location_balance WHERE tenant_id=$1 AND part_id=$2 AND NOT (id = ANY($3))`,
+        [tenant, bak.partId, [...keepLoc]]);
+      for (const r of bak.locRows) {
+        await db.query(
+          `UPDATE nx03_stock_location_balance SET on_hand_qty=$2, last_move_at=$3, is_active=$4, updated_at=$5, updated_by=$6 WHERE id=$1`,
+          [r.id, r.on_hand_qty, r.last_move_at, r.is_active, r.updated_at, r.updated_by]);
       }
       await db.query(
         `DELETE FROM nx03_stock_ledger WHERE tenant_id=$1 AND part_id=$2 AND created_at::date=CURRENT_DATE`,
