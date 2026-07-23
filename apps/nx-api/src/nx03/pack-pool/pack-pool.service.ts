@@ -94,6 +94,7 @@ export class PackPoolService {
       refSoId: { not: null },
       pk: pkWhere,
       refSoItem: { fulfillStatus: 'PK' }, // 已撿完、還沒進包貨
+      refSo: { cancelledAt: null }, // DOC-TIMING-KPI 2026-07-23：排除已取消 SO（對齊撿貨清單、防漏網）
     };
     if (q.search?.trim()) {
       const s = q.search.trim();
@@ -194,7 +195,7 @@ export class PackPoolService {
           refSoId: { not: null },
           pk: { tenantId, status: { not: PkStatus.VOIDED }, warehouseId: wh.id },
           refSoItem: { fulfillStatus: 'PK' },
-          refSo: { customerId: dto.customerId.trim(), deliveryType: dto.deliveryType },
+          refSo: { customerId: dto.customerId.trim(), deliveryType: dto.deliveryType, cancelledAt: null },
         },
         orderBy: [{ refSoId: 'asc' }, { lineNo: 'asc' }],
         select: {

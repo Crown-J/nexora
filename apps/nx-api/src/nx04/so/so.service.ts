@@ -28,6 +28,7 @@ import {
   SoStatus,
 } from '../../shared/nx04/nx04-state-machine';
 import { autoCreateTransferFromSo } from '../../shared/nx03/nx03-auto-transfer-from-so';
+import { createPutbackOnSoCancel } from '../../shared/nx03/nx03-putback-on-cancel';
 import { postSoStockOut } from '../../shared/nx04/post-so-stock-out';
 import { createArFromShippedSo } from '../../shared/nx05/nx05-create-ar-from-so';
 import { createDeliveryDnFromShippedSo } from '../../shared/nx06/nx06-create-delivery-from-so';
@@ -1056,6 +1057,8 @@ export class SoService {
       // v1.2 階段 I P3：SO CANCELLED → 對應 demand 自動 status='I'（Alex Q2=a 拍板）
       if (dto.status === SoStatus.CANCELLED && headBefore.status !== SoStatus.CANCELLED) {
         await ignoreDemandsForCancelledSo(tx, { tenantId, soId: id, userId: user.sub });
+        // DOC-TIMING-KPI 同軌 2026-07-23：撿貨中被取消 → 對已撿未包的貨開「請放回」待辦 + 作廢隱形撿貨單
+        await createPutbackOnSoCancel(tx, { tenantId, soId: id, soDocNo: existing.docNo, userId: user.sub });
       }
       const full = await tx.nx04So.findFirst({
         where: { id },

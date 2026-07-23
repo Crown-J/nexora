@@ -23,6 +23,8 @@ import {
 } from '@data/endpoints/nx03/workstation/api';
 import { cx } from '@design/utils/cx';
 
+import { PutbackBanner } from './PutbackBanner';
+
 function Thumb({ partId, photoId }: { partId: string; photoId: string | null }) {
   const [failed, setFailed] = useState(false);
   if (!photoId || failed) {
@@ -203,6 +205,8 @@ export function PickWorkbench() {
         </div>
         <span className="text-xs text-muted-foreground tabular-nums">{groups.length} 個庫位 · {allItems.length} 項待撿 · {lineCount} 筆需求</span>
       </div>
+
+      <PutbackBanner />
 
       {err ? <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">{err}</div> : null}
       {msg ? <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 p-3 text-sm text-emerald-600">{msg}</div> : null}

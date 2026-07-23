@@ -25,6 +25,8 @@ import {
 } from '@data/endpoints/nx03/workstation/api';
 import { cx } from '@design/utils/cx';
 
+import { PutbackBanner } from './PutbackBanner';
+
 const keyOf = (it: { warehouseId: string; partId: string }) => `${it.warehouseId}|${it.partId}`;
 
 function Thumb({ partId, photoId, size }: { partId: string; photoId: string | null; size: string }) {
@@ -236,6 +238,8 @@ export function MobilePickPoolPage() {
       </div>
 
       <div className="text-xs text-muted-foreground tabular-nums">{groups.length} 個庫位 · {allItems.length} 項待撿 · {lineCount} 筆需求</div>
+
+      <PutbackBanner />
 
       {err ? <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive">{err}</div> : null}
       {msg ? <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 p-3 text-xs text-emerald-600">{msg}</div> : null}

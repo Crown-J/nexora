@@ -72,6 +72,7 @@ export const CATEGORY_LABEL: Record<string, string> = {
   SALES_DELIVERY: '待配送',
   INVENTORY_DISPOSAL: '異常處理',
   INVENTORY_STOCKTAKE: '盤點作業',
+  PUTBACK: '待放回',
   FINANCE_AR_FOLLOW: '應收追款',
   FINANCE_AP_DUE: '應付到期',
   OTHER: '其他',
