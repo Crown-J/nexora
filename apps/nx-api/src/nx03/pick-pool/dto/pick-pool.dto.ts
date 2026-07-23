@@ -67,3 +67,40 @@ export class ResetPickDto {
   @MinLength(1)
   partId!: string;
 }
+
+/** 已撿貨／已取消清單查詢（WMS P2 中欄/右欄）：可選倉別 + 關鍵字。 */
+export class StagedListQueryDto {
+  @IsOptional()
+  @IsString()
+  warehouseId?: string;
+
+  @IsOptional()
+  @IsString()
+  search?: string;
+}
+
+/** 中欄「取消撿貨」/右欄「已放回」：對某（單 × 料件）操作（誤按修正 / 訂單取消歸位）。 */
+export class StagedActionDto {
+  @IsString()
+  @MinLength(1)
+  soId!: string;
+
+  @IsString()
+  @MinLength(1)
+  partId!: string;
+
+  @IsString()
+  @MinLength(1)
+  warehouseId!: string;
+}
+
+/** 中/右欄「異常回報」：對某（單 × 料件）的已撿/待放回貨開異常回報單（接六處置）。 */
+export class StagedIssueDto extends StagedActionDto {
+  @IsIn(['D', 'S'])
+  issueType!: 'D' | 'S';
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  reason?: string;
+}

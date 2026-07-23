@@ -25,7 +25,7 @@ import { SoStatus } from '../../shared/nx04/nx04-state-machine';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 import { IssueReportService } from '../issue-report/issue-report.service';
 
-import type { PickAggregateDto, PickListQueryDto, ReportPickIssueDto, ResetPickDto } from './dto/pick-pool.dto';
+import type { PickAggregateDto, PickListQueryDto, ReportPickIssueDto, ResetPickDto, StagedActionDto, StagedIssueDto, StagedListQueryDto } from './dto/pick-pool.dto';
 
 /** 撿貨任務列（同 倉×料件 合併總量）。 */
 interface PickItem {
@@ -380,6 +380,200 @@ export class PickPoolService {
       });
       return { reset: resetLines.size };
     });
+  }
+
+  // ── 中欄「已撿貨」／右欄「已取消」清單（WMS P2、依單號/客戶分組） ──────────
+
+  /** 中欄：已撿完待包的貨（撿貨中→待包暫存 K、SO 未取消、未進包貨）。 */
+  async getPickedList(user: RequestUser, q: StagedListQueryDto) {
+    const tenantId = requireTenantId(user);
+    return this.stagedList(tenantId, q, {
+      pk: { tenantId, status: { not: PkStatus.VOIDED } },
+      refSoItem: { fulfillStatus: 'PK' },
+      refSo: { cancelledAt: null },
+    });
+  }
+
+  /** 右欄：訂單被取消、貨已撿待放回（在待上架 B、隱形撿貨單已作廢）。 */
+  async getCancelledList(user: RequestUser, q: StagedListQueryDto) {
+    const tenantId = requireTenantId(user);
+    return this.stagedList(tenantId, q, {
+      pk: { tenantId, status: PkStatus.VOIDED },
+      refSo: { cancelledAt: { not: null } },
+    });
+  }
+
+  /** 中/右欄共用：撈 C 撿貨明細、依「單號」分組、同單同料件合併數量。 */
+  private async stagedList(tenantId: string, q: StagedListQueryDto, extra: Prisma.Nx03PkItemWhereInput) {
+    const where: Prisma.Nx03PkItemWhereInput = {
+      status: 'C',
+      refSoId: { not: null },
+      rev_Nx03PlItem_pkItemId: { none: {} }, // 未進包貨
+      ...extra,
+    };
+    if (q.warehouseId?.trim()) where.pk = { ...(where.pk as object), warehouseId: q.warehouseId.trim() };
+    if (q.search?.trim()) {
+      const s = q.search.trim();
+      where.OR = [
+        { partNo: { contains: s, mode: 'insensitive' } },
+        { partName: { contains: s, mode: 'insensitive' } },
+        { refSo: { is: { docNo: { contains: s, mode: 'insensitive' } } } },
+        { refSo: { is: { customer: { name: { contains: s, mode: 'insensitive' } } } } },
+      ];
+    }
+    const rows = await this.prisma.nx03PkItem.findMany({
+      where,
+      orderBy: [{ refSoId: 'asc' }, { lineNo: 'asc' }],
+      select: {
+        partId: true, partNo: true, partName: true, qty: true,
+        refSoId: true,
+        pk: { select: { warehouseId: true, warehouse: { select: { code: true } } } },
+        refSoItem: { select: { lineNo: true } },
+        refSo: { select: { docNo: true, deliveryType: true, customerId: true, customer: { select: { name: true } } } },
+      },
+    });
+
+    interface StagedItem { partId: string; partNo: string; partName: string; qty: number; lineNo: number }
+    interface StagedGroup {
+      soId: string; soDocNo: string; customerId: string | null; customerName: string;
+      deliveryType: string; warehouseId: string; warehouseCode: string;
+      items: StagedItem[]; _byPart: Map<string, StagedItem>;
+    }
+    const groups = new Map<string, StagedGroup>();
+    for (const r of rows) {
+      const so = r.refSo;
+      if (!r.refSoId || !so) continue;
+      let g = groups.get(r.refSoId);
+      if (!g) {
+        g = {
+          soId: r.refSoId, soDocNo: so.docNo, customerId: so.customerId,
+          customerName: so.customer?.name ?? '—', deliveryType: so.deliveryType,
+          warehouseId: r.pk?.warehouseId ?? '', warehouseCode: r.pk?.warehouse?.code ?? '',
+          items: [], _byPart: new Map(),
+        };
+        groups.set(r.refSoId, g);
+      }
+      const key = r.partId;
+      let it = g._byPart.get(key);
+      if (!it) { it = { partId: r.partId, partNo: r.partNo, partName: r.partName, qty: 0, lineNo: r.refSoItem?.lineNo ?? 0 }; g._byPart.set(key, it); g.items.push(it); }
+      it.qty += Number(r.qty);
+    }
+    const groupList = [...groups.values()].map(({ _byPart, ...g }) => ({ ...g, lineCount: g.items.length }));
+    return { groups: groupList, total: groupList.reduce((n, g) => n + g.items.length, 0) };
+  }
+
+  // ── 中欄「取消撿貨」：誤按已撿貨、貨其實還沒撿 → 退回左邊待撿（待包 K→原儲位） ──────
+
+  async cancelPickedLine(user: RequestUser, dto: StagedActionDto) {
+    const tenantId = requireTenantId(user);
+    const { soId, partId, warehouseId } = { soId: dto.soId.trim(), partId: dto.partId.trim(), warehouseId: dto.warehouseId.trim() };
+    return this.prisma.$transaction(async (tx) => {
+      const items = await tx.nx03PkItem.findMany({
+        where: {
+          status: 'C', refSoId: soId, partId,
+          pk: { tenantId, status: { not: PkStatus.VOIDED }, warehouseId },
+          rev_Nx03PlItem_pkItemId: { none: {} },
+          refSo: { cancelledAt: null },
+        },
+        select: { id: true, refSoItemId: true, qty: true },
+      });
+      if (!items.length) throw new BadRequestException('沒有可取消的已撿貨（可能已包貨或狀態已變）');
+      const qty = items.reduce((n, i) => n + Number(i.qty), 0);
+      const lineIds = [...new Set(items.map((i) => i.refSoItemId).filter((x): x is string => !!x))];
+      await tx.nx03PkItem.deleteMany({ where: { id: { in: items.map((i) => i.id) } } });
+      // 待包暫存 → 原儲位（貨歸位、好重撿）
+      await moveLocationBalance(tx, {
+        tenantId, partId, warehouseId,
+        fromLocationId: await resolveSystemBin(tx, tenantId, warehouseId, SystemBinType.PACK_STAGING),
+        toLocationId: await resolveStorageBin(tx, tenantId, partId, warehouseId),
+        qty, userId: user.sub,
+      });
+      // 該行回待撿 W
+      if (lineIds.length) await tx.nx04SoItem.updateMany({ where: { id: { in: lineIds } }, data: { fulfillStatus: 'W', updatedBy: user.sub } });
+      await this.audit.write({
+        tenantId, actorUserId: user.sub, moduleCode: 'NX03', action: 'UPDATE',
+        entityTable: 'nx03_pk_item', entityId: partId, entityCode: partId,
+        summary: `取消撿貨（誤按修正、${lineIds.length} 行退回待撿）`,
+      });
+      return { cancelled: lineIds.length, qty };
+    });
+  }
+
+  // ── 右欄「已放回」：訂單取消、貨已撿 → 確認搬回架上（待上架 B→原儲位、結束右欄項） ──────
+
+  async putBack(user: RequestUser, dto: StagedActionDto) {
+    const tenantId = requireTenantId(user);
+    const { soId, partId, warehouseId } = { soId: dto.soId.trim(), partId: dto.partId.trim(), warehouseId: dto.warehouseId.trim() };
+    return this.prisma.$transaction(async (tx) => {
+      const items = await tx.nx03PkItem.findMany({
+        where: {
+          status: 'C', refSoId: soId, partId,
+          pk: { tenantId, status: PkStatus.VOIDED, warehouseId },
+          rev_Nx03PlItem_pkItemId: { none: {} },
+          refSo: { cancelledAt: { not: null } },
+        },
+        select: { id: true, qty: true },
+      });
+      if (!items.length) throw new BadRequestException('沒有可放回的貨（可能已放回）');
+      const qty = items.reduce((n, i) => n + Number(i.qty), 0);
+      // 待上架 → 原儲位（真的回架上）
+      await moveLocationBalance(tx, {
+        tenantId, partId, warehouseId,
+        fromLocationId: await resolveSystemBin(tx, tenantId, warehouseId, SystemBinType.PUTBACK_PENDING),
+        toLocationId: await resolveStorageBin(tx, tenantId, partId, warehouseId),
+        qty, userId: user.sub,
+      });
+      await tx.nx03PkItem.deleteMany({ where: { id: { in: items.map((i) => i.id) } } });
+      await this.audit.write({
+        tenantId, actorUserId: user.sub, moduleCode: 'NX03', action: 'UPDATE',
+        entityTable: 'nx03_pk_item', entityId: partId, entityCode: partId,
+        summary: `已放回（訂單取消、${qty} 個搬回原儲位）`,
+      });
+      return { putBack: items.length, qty };
+    });
+  }
+
+  // ── 中/右欄「異常回報」：對已撿/待放回貨開異常回報單（接六處置）＋移出本區 ──────
+
+  async reportStagedIssue(user: RequestUser, dto: StagedIssueDto) {
+    const tenantId = requireTenantId(user);
+    const { soId, partId, warehouseId } = { soId: dto.soId.trim(), partId: dto.partId.trim(), warehouseId: dto.warehouseId.trim() };
+    const { qty, cancelled } = await this.prisma.$transaction(async (tx) => {
+      const so = await tx.nx04So.findFirst({ where: { id: soId, tenantId }, select: { cancelledAt: true } });
+      const isCancelled = !!so?.cancelledAt;
+      const items = await tx.nx03PkItem.findMany({
+        where: {
+          status: 'C', refSoId: soId, partId,
+          pk: { tenantId, warehouseId, status: isCancelled ? PkStatus.VOIDED : { not: PkStatus.VOIDED } },
+          rev_Nx03PlItem_pkItemId: { none: {} },
+        },
+        select: { id: true, refSoItemId: true, qty: true },
+      });
+      if (!items.length) throw new BadRequestException('沒有可回報異常的貨');
+      const q = items.reduce((n, i) => n + Number(i.qty), 0);
+      const lineIds = [...new Set(items.map((i) => i.refSoItemId).filter((x): x is string => !!x))];
+      // 目前所在暫存格（中=待包 K / 右=待上架 B）→ 原儲位（交六處置從架上處置）
+      await moveLocationBalance(tx, {
+        tenantId, partId, warehouseId,
+        fromLocationId: await resolveSystemBin(tx, tenantId, warehouseId, isCancelled ? SystemBinType.PUTBACK_PENDING : SystemBinType.PACK_STAGING),
+        toLocationId: await resolveStorageBin(tx, tenantId, partId, warehouseId),
+        qty: q, userId: user.sub,
+      });
+      await tx.nx03PkItem.deleteMany({ where: { id: { in: items.map((i) => i.id) } } });
+      // 未取消單的行退回待撿（好重撿良品）
+      if (!isCancelled && lineIds.length) await tx.nx04SoItem.updateMany({ where: { id: { in: lineIds } }, data: { fulfillStatus: 'W', updatedBy: user.sub } });
+      return { qty: q, cancelled: isCancelled };
+    });
+    const locId = await this.defaultLocationId(this.prisma, tenantId, partId, warehouseId);
+    await this.issueReport.create(user, {
+      reportDate: new Date().toISOString().slice(0, 10),
+      warehouseId, partId, qty,
+      issueType: dto.issueType,
+      locationId: locId ?? undefined,
+      description: dto.reason?.trim() || `${cancelled ? '待放回' : '已撿'}貨異常回報`,
+      sourceModule: 'NX03',
+    });
+    return { reported: true, qty };
   }
 
   // ── 內部 helpers ─────────────────────────────────────────

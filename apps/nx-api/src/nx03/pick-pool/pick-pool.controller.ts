@@ -11,7 +11,7 @@ import { JwtAuthGuard } from '../../shared/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../shared/guards/permissions.guard';
 import { RolesGuard } from '../../shared/guards/roles.guard';
 
-import { PickAggregateDto, PickListQueryDto, ReportPickIssueDto, ResetPickDto } from './dto/pick-pool.dto';
+import { PickAggregateDto, PickListQueryDto, ReportPickIssueDto, ResetPickDto, StagedActionDto, StagedIssueDto, StagedListQueryDto } from './dto/pick-pool.dto';
 import { PickPoolService } from './pick-pool.service';
 
 @Controller('nx03/pick-pool')
@@ -43,5 +43,37 @@ export class PickPoolController {
   @Post('reset')
   resetPick(@CurrentUser() user: RequestUser, @Body() dto: ResetPickDto) {
     return this.svc.resetPick(user, dto);
+  }
+
+  // ── WMS P2 撿貨三欄：中欄「已撿貨」/右欄「已取消」清單 + 動作 ──
+
+  /** 中欄：已撿完待包的貨（依單號/客戶）。 */
+  @Get('picked')
+  getPickedList(@CurrentUser() user: RequestUser, @Query() q: StagedListQueryDto) {
+    return this.svc.getPickedList(user, q);
+  }
+
+  /** 右欄：訂單取消、貨已撿待放回（依單號/客戶）。 */
+  @Get('cancelled')
+  getCancelledList(@CurrentUser() user: RequestUser, @Query() q: StagedListQueryDto) {
+    return this.svc.getCancelledList(user, q);
+  }
+
+  /** 中欄「取消撿貨」：誤按修正、退回左邊待撿。 */
+  @Post('cancel-pick')
+  cancelPickedLine(@CurrentUser() user: RequestUser, @Body() dto: StagedActionDto) {
+    return this.svc.cancelPickedLine(user, dto);
+  }
+
+  /** 右欄「已放回」：訂單取消貨搬回原儲位（前端需二次確認）。 */
+  @Post('put-back')
+  putBack(@CurrentUser() user: RequestUser, @Body() dto: StagedActionDto) {
+    return this.svc.putBack(user, dto);
+  }
+
+  /** 中/右欄「異常回報」：開異常回報單（接六處置）+ 移出本區。 */
+  @Post('staged-issue')
+  reportStagedIssue(@CurrentUser() user: RequestUser, @Body() dto: StagedIssueDto) {
+    return this.svc.reportStagedIssue(user, dto);
   }
 }
