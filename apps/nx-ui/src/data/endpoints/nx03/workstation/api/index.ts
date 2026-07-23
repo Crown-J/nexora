@@ -381,6 +381,23 @@ export function getPacking(id: string): Promise<PackingDetail> {
   return apiJson(`/nx03/pack-pool/${encodeURIComponent(id)}`);
 }
 
+/** 包貨中（已建、未封箱）的一張包貨單摘要。 */
+export interface InProgressPacking {
+  id: string;
+  docNo: string;
+  plType: string;
+  customerName: string;
+  warehouseCode: string;
+  parcelCount: number;
+  lineCount: number;
+  createdAt: string;
+}
+
+/** 列包貨中（未封箱）——接續封箱用。 */
+export function listInProgressPacking(q: PackPoolQuery = {}): Promise<{ rows: InProgressPacking[]; total: number }> {
+  return apiJson(`/nx03/pack-pool/in-progress${buildQueryString({ warehouseId: q.warehouseId, search: q.search })}`);
+}
+
 /** 建包貨單：某客戶某出貨方式整批進、預設一箱一單。 */
 export function createPacking(payload: {
   customerId: string;

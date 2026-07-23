@@ -27,6 +27,12 @@ export class PackPoolController {
     return this.svc.getPackPool(user, q);
   }
 
+  /** 包貨中（已建、未封箱）清單——接續封箱用（需在 :id 之前）。 */
+  @Get('in-progress')
+  listInProgress(@CurrentUser() user: RequestUser, @Query() q: PackPoolQueryDto) {
+    return this.svc.listInProgress(user, q);
+  }
+
   /** 包貨單詳情（含包裹 + 每箱行）。 */
   @Get(':id')
   getById(@CurrentUser() user: RequestUser, @Param('id') id: string) {

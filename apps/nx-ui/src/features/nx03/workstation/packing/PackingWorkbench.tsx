@@ -16,8 +16,11 @@ import { Boxes, Merge, PackageCheck, Printer, RefreshCw, Search } from 'lucide-r
 import {
   createPacking,
   getPackPool,
+  getPacking,
+  listInProgressPacking,
   mergeParcels,
   sealPacking,
+  type InProgressPacking,
   type PackingDetail,
   type PackingParcel,
   type PackPoolGroup,
@@ -231,6 +234,7 @@ function GroupCard({
 
 export function PackingWorkbench() {
   const [groups, setGroups] = useState<PackPoolGroup[]>([]);
+  const [inProgress, setInProgress] = useState<InProgressPacking[]>([]);
   const [active, setActive] = useState<PackingDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -241,15 +245,28 @@ export function PackingWorkbench() {
     setLoading(true);
     setErr(null);
     try {
-      const r = await getPackPool({ search: search.trim() || undefined });
-      setGroups(r.groups);
+      const s = search.trim() || undefined;
+      const [pool, prog] = await Promise.all([getPackPool({ search: s }), listInProgressPacking({ search: s })]);
+      setGroups(pool.groups);
+      setInProgress(prog.rows);
     } catch (e) {
       setErr(e instanceof Error ? e.message : '包貨台載入失敗');
-      setGroups([]);
+      setGroups([]); setInProgress([]);
     } finally {
       setLoading(false);
     }
   }, [search]);
+
+  const resume = async (id: string) => {
+    setBusy(true); setErr(null);
+    try {
+      setActive(await getPacking(id));
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : '接續包貨單失敗');
+    } finally {
+      setBusy(false);
+    }
+  };
 
   useEffect(() => {
     if (!active) void load();
@@ -328,9 +345,7 @@ export function PackingWorkbench() {
       ) : null}
 
       {active ? (
-        <div className="mx-auto max-w-3xl">
-          <ActivePackingView detail={active} busy={busy} onMerge={merge} onSeal={seal} onBack={() => setActive(null)} />
-        </div>
+        <ActivePackingView detail={active} busy={busy} onMerge={merge} onSeal={seal} onBack={() => setActive(null)} />
       ) : (
         <>
           <div className="flex max-w-md items-center gap-2 rounded-lg border border-border bg-card px-3">
@@ -342,6 +357,28 @@ export function PackingWorkbench() {
               className="h-10 flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
             />
           </div>
+
+          {/* 包貨中（未封箱）——建了包貨單又離開的接續封箱、不會消失 */}
+          {inProgress.length > 0 ? (
+            <div className="space-y-2 rounded-xl border border-amber-500/40 bg-amber-500/5 p-3">
+              <div className="text-sm font-semibold text-amber-700 dark:text-amber-500">包貨中 · {inProgress.length} 張（未封箱、可接續）</div>
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+                {inProgress.map((p) => (
+                  <button key={p.id} type="button" disabled={busy} onClick={() => void resume(p.id)}
+                    className="flex items-center justify-between gap-2 rounded-lg border border-border bg-card p-3 text-left hover:border-amber-500/50 disabled:opacity-40">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono text-sm text-foreground">{p.docNo}</span>
+                        <span className={cx('shrink-0 rounded border px-1.5 py-0.5 text-[10px]', DELIVERY_TONE[p.plType] ?? 'border-border text-muted-foreground')}>{p.plType === 'D' ? '配送' : p.plType === 'P' ? '自取' : '寄貨'}</span>
+                      </div>
+                      <p className="truncate text-xs text-muted-foreground">{p.customerName} · {p.parcelCount} 箱 / {p.lineCount} 項</p>
+                    </div>
+                    <span className="shrink-0 text-xs font-medium text-amber-600">接續 →</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
 
           <div className="text-xs text-muted-foreground tabular-nums">
             {groups.length} 組待包 · 共 {totalLines} 項

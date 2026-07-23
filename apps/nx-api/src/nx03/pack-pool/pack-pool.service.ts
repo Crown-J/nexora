@@ -175,6 +175,33 @@ export class PackPoolService {
     return { groups: groupList, total: groupList.reduce((n, g) => n + g.lineCount, 0) };
   }
 
+  /** 包貨中（已建、未封箱）清單：讓建了包貨單又離開的人能接續封箱（不會消失）。 */
+  async listInProgress(user: RequestUser, q: PackPoolQueryDto) {
+    const tenantId = requireTenantId(user);
+    const where: Prisma.Nx03PlWhereInput = { tenantId, status: PlStatus.COUNTING };
+    if (q.warehouseId?.trim()) where.warehouseId = q.warehouseId.trim();
+    const rows = await this.prisma.nx03Pl.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true, docNo: true, plType: true, createdAt: true,
+        customer: { select: { name: true } },
+        warehouse: { select: { code: true } },
+        rev_Nx03Parcel_plId: { select: { id: true } },
+        rev_Nx03PlItem_plId: { select: { id: true } },
+      },
+    });
+    return {
+      rows: rows.map((r) => ({
+        id: r.id, docNo: r.docNo, plType: r.plType,
+        customerName: r.customer?.name ?? '—', warehouseCode: r.warehouse?.code ?? '',
+        parcelCount: r.rev_Nx03Parcel_plId.length, lineCount: r.rev_Nx03PlItem_plId.length,
+        createdAt: r.createdAt,
+      })),
+      total: rows.length,
+    };
+  }
+
   /**
    * 建包貨單：把某客戶某出貨方式的已撿完待包行整批進一張包貨單。
    * 預設一箱一張銷貨單（每張 SO 自動產一個包裹 BX）；同客戶小件併箱另走 mergeParcels。
