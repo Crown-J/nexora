@@ -10,6 +10,7 @@ import type { Prisma } from 'db-core';
 import { Prisma as PrismaNs } from 'db-core';
 
 import { applyQtyOutWithLedger } from '../nx03/nx03-inventory';
+import { resolveSystemBin, SystemBinType } from '../nx03/nx03-location-move';
 import { requireDefaultLocationId } from './nx04-location';
 
 /** 銷貨出庫扣帳（扣庫存 + 寫 ledger）。caller 控 tx、須保證只呼叫一次。 */
@@ -25,8 +26,16 @@ export async function postSoStockOut(
   for (const item of items) {
     const qtyOut = new PrismaNs.Decimal(String(item.qty));
     if (!qtyOut.gt(0)) continue;
-    const locId =
-      item.locationId?.trim() || (await requireDefaultLocationId(tx, p.tenantId, item.warehouseId));
+    // WMS P2：撿貨已把貨搬到待包暫存 K → 從 K 扣（分佈才準）；K 不足(如即時直出未經撿貨池)才退預設庫位。
+    let locId = item.locationId?.trim() || (await requireDefaultLocationId(tx, p.tenantId, item.warehouseId));
+    const packBin = await resolveSystemBin(tx, p.tenantId, item.warehouseId, SystemBinType.PACK_STAGING);
+    if (packBin) {
+      const kBal = await tx.nx03StockLocationBalance.findUnique({
+        where: { tenantId_partId_warehouseId_locationId: { tenantId: p.tenantId, partId: item.partId, warehouseId: item.warehouseId, locationId: packBin } },
+        select: { onHandQty: true },
+      });
+      if (kBal && new PrismaNs.Decimal(kBal.onHandQty).gte(qtyOut)) locId = packBin;
+    }
     const partVersion = await tx.nx01PartVersion.findFirst({
       where: { tenantId: p.tenantId, partId: item.partId, effectiveTo: null },
       orderBy: { versionNo: 'desc' },

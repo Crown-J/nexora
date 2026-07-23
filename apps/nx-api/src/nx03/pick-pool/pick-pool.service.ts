@@ -19,6 +19,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
 import { allocNx03DocNo } from '../../shared/nx03/nx03-doc-no';
 import { advanceSoItemsFulfill } from '../../shared/nx03/nx03-fulfill-advance';
+import { moveLocationBalance, resolveStorageBin, resolveSystemBin, SystemBinType } from '../../shared/nx03/nx03-location-move';
 import { PkStatus } from '../../shared/nx03/nx03-state-machine';
 import { SoStatus } from '../../shared/nx04/nx04-state-machine';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
@@ -204,6 +205,9 @@ export class PickPoolService {
       const wh = await tx.nx01Warehouse.findFirst({ where: { id: warehouseId, tenantId }, select: { code: true } });
       if (!wh) throw new BadRequestException('warehouseId invalid');
       const locId = await this.defaultLocationId(tx, tenantId, partId, warehouseId);
+      // WMS P2：撿貨＝把貨從原儲位搬到待包暫存（K）
+      const storageBin = await resolveStorageBin(tx, tenantId, partId, warehouseId);
+      const packBin = await resolveSystemBin(tx, tenantId, warehouseId, SystemBinType.PACK_STAGING);
 
       const fullyDone: string[] = [];
       const touchedSoIds = new Set<string>();
@@ -220,6 +224,11 @@ export class PickPoolService {
           warehouseCode: wh.code,
         });
         await this.appendPkItem(tx, user, pk.id, partId, l, locId, take, 'C');
+        // WMS P2：實體搬移 原儲位 → 待包暫存（倉庫餘額不變、只重分佈庫位）
+        await moveLocationBalance(tx, {
+          tenantId, partId, warehouseId,
+          fromLocationId: storageBin, toLocationId: packBin, qty: take, userId: user.sub,
+        });
         if (pk.status === PkStatus.PENDING) {
           await tx.nx03Pk.update({
             where: { id: pk.id },
@@ -334,20 +343,29 @@ export class PickPoolService {
       // 該行的 C pk_item（未被包貨引用）；有 M 異常的行不重置
       const items = await tx.nx03PkItem.findMany({
         where: { refSoItemId: { in: ids }, pk: { tenantId } },
-        select: { id: true, refSoItemId: true, status: true, rev_Nx03PlItem_pkItemId: { select: { id: true } } },
+        select: { id: true, refSoItemId: true, status: true, qty: true, rev_Nx03PlItem_pkItemId: { select: { id: true } } },
       });
       const hasIssue = new Set(items.filter((i) => i.status === 'M').map((i) => i.refSoItemId));
       const delIds: string[] = [];
       const resetLines = new Set<string>();
+      let resetQty = 0;
       for (const it of items) {
         if (it.status !== 'C') continue;
         if (it.rev_Nx03PlItem_pkItemId.length > 0) continue; // 已包貨、不重置
         if (hasIssue.has(it.refSoItemId!)) continue; // 該行有異常、不重置
         delIds.push(it.id);
+        resetQty += Number(it.qty);
         if (it.refSoItemId) resetLines.add(it.refSoItemId);
       }
       if (!delIds.length) throw new BadRequestException('沒有可重置的已撿量（可能已包貨或已回報異常）');
       await tx.nx03PkItem.deleteMany({ where: { id: { in: delIds } } });
+      // WMS P2：取消撿貨＝把貨從待包暫存搬回原儲位（誤按修正、貨歸位好重撿）
+      await moveLocationBalance(tx, {
+        tenantId, partId, warehouseId,
+        fromLocationId: await resolveSystemBin(tx, tenantId, warehouseId, SystemBinType.PACK_STAGING),
+        toLocationId: await resolveStorageBin(tx, tenantId, partId, warehouseId),
+        qty: resetQty, userId: user.sub,
+      });
       // 這些行回到待撿 W
       await tx.nx04SoItem.updateMany({ where: { id: { in: [...resetLines] } }, data: { fulfillStatus: 'W', updatedBy: user.sub } });
       await this.audit.write({

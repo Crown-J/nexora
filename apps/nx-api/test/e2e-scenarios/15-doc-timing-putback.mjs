@@ -93,8 +93,8 @@ try {
     console.log('（跳過 B：找不到他倉庫存+庫位）');
   }
 
-  // ══ C. 撿貨中被取消 → 放回待辦 + 隱形撿貨單作廢 ══
-  console.log('\n══ C. 撿貨中被取消 → 放回待辦 ══');
+  // ══ C. 撿貨中被取消 → 貨搬待上架 B + 隱形撿貨單作廢（WMS P2） ══
+  console.log('\n══ C. 撿貨中被取消 → 待上架 B ══');
   const so2Res = await ctx.call('POST', '/nx04/so', {
     customerId: customer.id, warehouseId: whA.id, soDate: ctx.today,
     deliveryType: 'P', deliveryAddress: '自取（取消測試）', taxRate: 5, invoiceCopies: 3,
@@ -105,18 +105,23 @@ try {
   await ctx.call('POST', '/nx03/pick-pool/pick', { warehouseId: whA.id, partId: P1.id });
   const pkBefore = await one(`SELECT DISTINCT pk_id FROM nx03_pk_item WHERE ref_so_id=$1`, [so2.id]);
   ctx.check('C0 撿貨後有隱形撿貨單', !!pkBefore?.pk_id, JSON.stringify(pkBefore));
+  const binQty = async (type) => Number((await one(
+    `SELECT COALESCE(SUM(lb.on_hand_qty),0) AS q FROM nx03_stock_location_balance lb
+     JOIN nx01_location l ON l.id=lb.location_id AND l.location_type=$4
+     WHERE lb.tenant_id=$1 AND lb.part_id=$2 AND lb.warehouse_id=$3`, [T, P1.id, whA.id, type])).q);
+  const bBefore = await binQty('B');
 
   // 取消
   const cancel = await ctx.call('PATCH', `/nx04/so/${so2.id}`, { status: 'CANCELLED', cancelReason: '計時測試-撿貨中取消' });
   ctx.check('C1 SO 取消成功', cancel.status === 200, JSON.stringify(cancel.data));
 
-  const putback = await one(
-    `SELECT title, description, priority, status FROM nx98_task_pool
-     WHERE tenant_id=$1 AND source_doc_id=$2 AND category='PUTBACK'`, [T, so2.id]);
-  ctx.check('C2 開了 PUTBACK 放回待辦', !!putback, JSON.stringify(putback));
-  ctx.check('C3 放回待辦高優先 H + 池中 OPEN', putback?.priority === 'H' && putback?.status === 'OPEN', JSON.stringify(putback));
-  ctx.check('C4 標題主打料號×數量+已取消', !!putback?.title && putback.title.includes(P1.code) && putback.title.includes('已取消'), putback?.title ?? '無');
-  ctx.check('C4b 內文帶單號+項次（參考）', !!putback?.description && putback.description.includes(so2.docNo) && putback.description.includes('項次'), putback?.description ?? '無');
+  const bAfter = await binQty('B');
+  ctx.check('C2 貨搬到待上架 B（+1）', bAfter - bBefore === 1, `待上架 B ${bBefore}→${bAfter}`);
+  const wmsInv = Number((await one(
+    `SELECT (SELECT COALESCE(SUM(on_hand_qty),0) FROM nx03_stock_location_balance WHERE tenant_id=$1 AND part_id=$2 AND warehouse_id=$3)
+          - (SELECT COALESCE(on_hand_qty,0) FROM nx03_stock_balance WHERE tenant_id=$1 AND part_id=$2 AND warehouse_id=$3) AS d`,
+    [T, P1.id, whA.id])).d);
+  ctx.check('C3 取消後恆等式仍成立（Σ庫位=倉庫）', wmsInv === 0, `差 ${wmsInv}`);
 
   const pkAfter = await one(`SELECT status FROM nx03_pk WHERE id=$1`, [pkBefore.pk_id]);
   ctx.check('C5 隱形撿貨單被作廢 V（排出包貨台）', pkAfter?.status === 'V', JSON.stringify(pkAfter));
