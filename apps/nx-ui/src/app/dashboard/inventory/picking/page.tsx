@@ -1,8 +1,8 @@
 // apps/nx-ui/src/app/dashboard/inventory/picking/page.tsx
-// 撿貨作業（SALES-FLOW 撿貨重設計）：響應式分流——窄螢幕手機版(選卡+dock)、桌機電腦版(行內操作)。
+// 撿貨作業（WMS P2 撿貨三欄看板）：電腦左中右三欄、手機三分頁；點卡選取 + 底部 dock。
 
-import { PickingRouteSwitch } from './PickingRouteSwitch';
+import { PickBoard } from '@/features/nx03/workstation/picking/PickBoard';
 
 export default function InventoryPickingRoute() {
-  return <PickingRouteSwitch />;
+  return <PickBoard />;
 }

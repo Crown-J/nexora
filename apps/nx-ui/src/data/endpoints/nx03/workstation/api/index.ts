@@ -247,6 +247,61 @@ export function resetPick(warehouseId: string, partId: string): Promise<{ reset:
   return apiJson(`/nx03/pick-pool/reset`, { method: 'POST', body: JSON.stringify({ warehouseId, partId }) });
 }
 
+// ── WMS P2 撿貨三欄：中欄「已撿貨」/右欄「已取消」（依單號/客戶） ──
+
+/** 已撿貨/已取消清單的一個料件（同單同料件合併）。 */
+export interface StagedItem {
+  partId: string;
+  partNo: string;
+  partName: string;
+  qty: number;
+  lineNo: number;
+}
+
+/** 已撿貨/已取消清單一組（依單號）。 */
+export interface StagedGroup {
+  soId: string;
+  soDocNo: string;
+  customerId: string | null;
+  customerName: string;
+  deliveryType: string;
+  warehouseId: string;
+  warehouseCode: string;
+  lineCount: number;
+  items: StagedItem[];
+}
+
+/** 中欄：已撿完待包的貨。 */
+export function getPickedList(q: PickListQuery = {}): Promise<{ groups: StagedGroup[]; total: number }> {
+  return apiJson(`/nx03/pick-pool/picked${buildQueryString({ warehouseId: q.warehouseId, search: q.search })}`);
+}
+
+/** 右欄：訂單取消、貨已撿待放回。 */
+export function getCancelledList(q: PickListQuery = {}): Promise<{ groups: StagedGroup[]; total: number }> {
+  return apiJson(`/nx03/pick-pool/cancelled${buildQueryString({ warehouseId: q.warehouseId, search: q.search })}`);
+}
+
+/** 中欄「取消撿貨」（誤按修正、退回左邊待撿）。 */
+export function cancelPick(soId: string, partId: string, warehouseId: string): Promise<{ cancelled: number; qty: number }> {
+  return apiJson(`/nx03/pick-pool/cancel-pick`, { method: 'POST', body: JSON.stringify({ soId, partId, warehouseId }) });
+}
+
+/** 右欄「已放回」（訂單取消貨搬回原儲位）。 */
+export function putBack(soId: string, partId: string, warehouseId: string): Promise<{ putBack: number; qty: number }> {
+  return apiJson(`/nx03/pick-pool/put-back`, { method: 'POST', body: JSON.stringify({ soId, partId, warehouseId }) });
+}
+
+/** 中/右欄「異常回報」（開六處置單 + 移出本區）。 */
+export function stagedIssue(payload: {
+  soId: string;
+  partId: string;
+  warehouseId: string;
+  issueType: 'D' | 'S';
+  reason?: string;
+}): Promise<{ reported: boolean; qty: number }> {
+  return apiJson(`/nx03/pick-pool/staged-issue`, { method: 'POST', body: JSON.stringify(payload) });
+}
+
 // ────────────────────────────────────────────────────────────
 // nx03/pack-pool（包貨台、SALES-FLOW 階段 2）
 // 以客戶為單位、預設一箱一單、同客戶小件可併箱、封箱。
