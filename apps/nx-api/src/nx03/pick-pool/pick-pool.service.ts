@@ -206,6 +206,7 @@ export class PickPoolService {
       const locId = await this.defaultLocationId(tx, tenantId, partId, warehouseId);
 
       const fullyDone: string[] = [];
+      const touchedSoIds = new Set<string>();
       let pickedTotal = 0;
       for (const l of lines) {
         if (left <= 0) break;
@@ -230,10 +231,13 @@ export class PickPoolService {
           await tx.nx04So.update({ where: { id: l.soId }, data: { status: SoStatus.PICKING, updatedBy: user.sub } });
           l.soStatus = SoStatus.PICKING;
         }
+        touchedSoIds.add(l.soId);
         left -= take;
         pickedTotal += take;
         if (l.picked + take >= l.qty) fullyDone.push(l.soItemId); // 帳平（已撿=需求）
       }
+      // 撿貨開始時間戳（單據計時 KPI 起點）：第一次撿貨動作只寫一次（pick_started_at null 才蓋）
+      await this.stampPickStarted(tx, user, [...touchedSoIds]);
       // 全數帳平的行 → fulfillStatus W→PK（離開撿貨清單、可包貨）
       if (fullyDone.length) await advanceSoItemsFulfill(tx, { tenantId, soItemIds: fullyDone, to: 'PK', userId: user.sub });
 
@@ -268,6 +272,7 @@ export class PickPoolService {
       const reason = dto.reason?.trim() || `撿貨回報：${label}`;
 
       const done: string[] = [];
+      const touchedSoIds = new Set<string>();
       for (const l of remainingLines) {
         const rem = l.qty - l.picked;
         const pk = await this.ensureHiddenPk(tx, user, tenantId, {
@@ -283,8 +288,11 @@ export class PickPoolService {
             data: { status: PkStatus.COUNTING, startedAt: new Date(), updatedBy: user.sub },
           });
         }
+        touchedSoIds.add(l.soId);
         done.push(l.soItemId); // 帳平（已撿+異常=需求）
       }
+      // 撿貨開始時間戳：異常回報也算撿貨動作、只寫一次
+      await this.stampPickStarted(tx, user, [...touchedSoIds]);
       await advanceSoItemsFulfill(tx, { tenantId, soItemIds: done, to: 'PK', userId: user.sub });
       return remainingLines;
     });
@@ -357,6 +365,18 @@ export class PickPoolService {
   }
 
   // ── 內部 helpers ─────────────────────────────────────────
+
+  /**
+   * 撿貨開始時間戳（單據計時 KPI 起點）：把觸及的 SO 蓋 pick_started_at。
+   * 只在 null 時寫（updateMany where pick_started_at=null）＝第一次撿貨動作只寫一次、之後不動。
+   */
+  private async stampPickStarted(tx: Prisma.TransactionClient, user: RequestUser, soIds: string[]): Promise<void> {
+    if (!soIds.length) return;
+    await tx.nx04So.updateMany({
+      where: { id: { in: soIds }, pickStartedAt: null },
+      data: { pickStartedAt: new Date(), updatedBy: user.sub },
+    });
+  }
 
   /** 每行已撿量（C pk_items 加總）。 */
   private async pickedQtyByLine(

@@ -366,11 +366,17 @@ export class PackPoolService {
         const soId = r.pkItem?.refSoId;
         if (soId && so) soMap.set(soId, { status: so.status });
       }
+      // 封箱時間戳（單據計時 KPI 中段點）：每次封箱覆寫 sealed_at＝取最後一箱那刻。
+      // PICKING 的才順帶推 SHIPPED（已出倉待簽收）；已 SHIPPED 的只覆寫 sealed_at（後續箱）。
+      const sealedAt = new Date();
       for (const [soId, so] of soMap) {
-        if (so.status !== SoStatus.PICKING) continue;
         await tx.nx04So.update({
           where: { id: soId },
-          data: { status: SoStatus.SHIPPED, updatedBy: user.sub },
+          data: {
+            sealedAt,
+            ...(so.status === SoStatus.PICKING ? { status: SoStatus.SHIPPED } : {}),
+            updatedBy: user.sub,
+          },
         });
       }
 

@@ -370,12 +370,15 @@ export class TransferService {
         // 對齊 TI 鏈 applyTiPostedToSo 範式；純倉間調撥（無 sourceSoItemId）無事發生
         await applyStReceivedToSo(tx, { tenantId, stId: id, stDocNo: existing.docNo, userId: user.sub });
       } else {
+        // 發貨出庫時間戳（調撥計時 KPI 起點）：DRAFT→TRANSIT 那刻寫 dispatched_at（發貨→收貨全鏈）
+        const dispatching = dto.status === TransferStatus.TRANSIT && existing.status === TransferStatus.DRAFT;
         await tx.nx03St.update({
           where: { id },
           data: {
             ...(dto.stDate !== undefined ? { stDate: new Date(dto.stDate) } : {}),
             ...(dto.remark !== undefined ? { remark: dto.remark } : {}),
             ...(dto.status !== undefined ? { status: dto.status } : {}),
+            ...(dispatching ? { dispatchedAt: new Date() } : {}),
             updatedBy: user.sub,
           },
         });
