@@ -3370,6 +3370,8 @@ model Nx03St {
   receivedAt             DateTime?     @map("received_at")
   /// 收貨確認人（目標倉倉管專員，使用者ID）。；啟用最低需求版本：LITE-CORE
   receivedBy             String?       @map("received_by") @db.VarChar(15)
+  /// 發貨出庫時間（DRAFT→TRANSIT 那刻寫入）。調撥計時 KPI 起點（發貨→收貨全鏈）；2026-07-23 Crown 拍板。；啟用最低需求版本：PLUS
+  dispatchedAt           DateTime?     @map("dispatched_at")
   tenant                 Nx99Tenant    @relation("R_Nx03St_tenantId", fields: [tenantId], references: [id])
   fromWarehouse          Nx01Warehouse @relation("R_Nx03St_fromWarehouseId", fields: [fromWarehouseId], references: [id])
   toWarehouse            Nx01Warehouse @relation("R_Nx03St_toWarehouseId", fields: [toWarehouseId], references: [id])
@@ -4580,6 +4582,10 @@ model Nx04So {
   cancelledBy            String?        @map("cancelled_by") @db.VarChar(15)
   /// 完成時間（status=C時填入）。；啟用最低需求版本：LITE-CORE
   completedAt            DateTime?      @map("completed_at")
+  /// 撿貨開始時間（第一次撿貨動作、CONFIRMED→PICKING 那刻寫入、只寫一次）。單據計時 KPI 起點；2026-07-23 Crown 拍板。；啟用最低需求版本：LITE-CORE
+  pickStartedAt          DateTime?      @map("pick_started_at")
+  /// 封箱完成時間（最後一箱封箱那刻、每次封箱覆寫＝取最後一箱）。單據計時 KPI 中段點；2026-07-23 Crown 拍板。；啟用最低需求版本：LITE-CORE
+  sealedAt               DateTime?      @map("sealed_at")
   /// F1 特價售出 2026-06-08：標記此 SO 為「異常處置 X 特價售出」產生的特價銷貨單。
   /// 業務語意：來自 Nx03IssueReport.dispositionType='X' 處置流程、單價由業務手動填特價。
   /// 成本走原 avgCost、財務走一般應收（不走折讓）。；啟用最低需求版本：LITE-CORE
