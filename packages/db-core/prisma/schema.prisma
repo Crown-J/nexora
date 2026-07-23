@@ -650,6 +650,9 @@ model Nx01Location {
   levelNo                                    Int?                   @map("level_no")
   /// 格（選填），例：01、02；啟用最低需求版本：LITE
   binNo                                      String?                @map("bin_no") @db.VarChar(20)
+  /// 庫位類型（WMS 庫位級庫存 2026-07-23）：S=一般儲位／R=收貨暫存／K=待包暫存／B=待上架／U=未指定過渡格。
+  /// 系統格（R/K/B/U）流程靠此類型找到、外觀可自訂但類型鎖定、每倉每系統類型至少留一格啟用、非空不給停用刪。；啟用最低需求版本：LITE
+  locationType                               String                 @default("S") @map("location_type") @db.VarChar(1)
   /// 備註（選填）；啟用最低需求版本：LITE
   remark                                     String?                @db.VarChar(200)
   /// 排序用；啟用最低需求版本：LITE
@@ -686,6 +689,7 @@ model Nx01Location {
   rev_Nx04SrItem_locationId                  Nx04SrItem[]           @relation("R_Nx04SrItem_locationId")
   rev_Nx03PartStockSetting_defaultLocationId Nx03PartStockSetting[] @relation("R_Nx03PartStockSetting_defaultLocationId")
   rev_Nx03IssueReport_locationId             Nx03IssueReport[]      @relation("R_Nx03IssueReport_locationId")
+  rev_Nx03StockLocationBalance_locationId    Nx03StockLocationBalance[] @relation("R_Nx03StockLocationBalance_locationId")
 
   @@map("nx01_location")
 }
@@ -832,6 +836,7 @@ model Nx01Part {
   rev_Nx03Shortage_partId         Nx03Shortage[]         @relation("R_Nx03Shortage_partId")
   rev_Nx03StItem_partId           Nx03StItem[]           @relation("R_Nx03StItem_partId")
   rev_Nx03StockBalance_partId     Nx03StockBalance[]     @relation("R_Nx03StockBalance_partId")
+  rev_Nx03StockLocationBalance_partId Nx03StockLocationBalance[] @relation("R_Nx03StockLocationBalance_partId")
   rev_Nx03StockLedger_partId      Nx03StockLedger[]      @relation("R_Nx03StockLedger_partId")
   rev_Nx03StockTakeItem_partId    Nx03StockTakeItem[]    @relation("R_Nx03StockTakeItem_partId")
   rev_Nx03InboundItem_partId      Nx03InboundItem[]      @relation("R_Nx03InboundItem_partId")
@@ -1930,6 +1935,7 @@ model Nx01Warehouse {
   rev_Nx03St_fromWarehouseId            Nx03St[]               @relation("R_Nx03St_fromWarehouseId")
   rev_Nx03St_toWarehouseId              Nx03St[]               @relation("R_Nx03St_toWarehouseId")
   rev_Nx03StockBalance_warehouseId      Nx03StockBalance[]     @relation("R_Nx03StockBalance_warehouseId")
+  rev_Nx03StockLocationBalance_warehouseId Nx03StockLocationBalance[] @relation("R_Nx03StockLocationBalance_warehouseId")
   rev_Nx03StockLedger_warehouseId       Nx03StockLedger[]      @relation("R_Nx03StockLedger_warehouseId")
   rev_Nx03StockTake_warehouseId         Nx03StockTake[]        @relation("R_Nx03StockTake_warehouseId")
   rev_Nx03StockTakeItem_warehouseId     Nx03StockTakeItem[]    @relation("R_Nx03StockTakeItem_warehouseId")
@@ -3487,6 +3493,48 @@ model Nx03StockBalance {
 
   @@unique([tenantId, partId, warehouseId])
   @@map("nx03_stock_balance")
+}
+
+/// =======================================================
+/// Nx03StockLocationBalance — DB table `nx03_stock_location_balance`
+/// 庫位級庫存餘額（WMS 2026-07-23 執行長拍板）：把 onHand 從「只到倉庫」延伸到「到庫位」。
+/// 只放實體 onHand；可用量/保留量/成本(avgCost) 維持倉庫級（nx03_stock_balance）不動。
+/// 恆等式：某料某倉 Σ(各庫位 onHand) ＝ 該倉 nx03_stock_balance.on_hand_qty（交易內維護）。
+/// =======================================================
+model Nx03StockLocationBalance {
+  /// [NX03]+[SLLB]+[7碼流水號]；啟用最低需求版本：LITE
+  id          String        @id @default(dbgenerated("gen_nx03_stock_location_balance_id()")) @db.VarChar(15)
+  /// 租戶 ID (@@unique([tenantId, partId, warehouseId, locationId]))；啟用最低需求版本：LITE
+  tenantId    String        @map("tenant_id") @db.VarChar(15)
+  /// 零件 ID (@@unique)；啟用最低需求版本：LITE
+  partId      String        @map("part_id") @db.VarChar(15)
+  /// 倉庫 ID (@@unique)；啟用最低需求版本：LITE
+  warehouseId String        @map("warehouse_id") @db.VarChar(15)
+  /// 庫位 ID (@@unique)：這一格；啟用最低需求版本：LITE
+  locationId  String        @map("location_id") @db.VarChar(15)
+  /// 這一格的現存量（實體幾個在這格；可負值容錯，正常 >=0）；啟用最低需求版本：LITE
+  onHandQty   Decimal       @default(0) @map("on_hand_qty") @db.Decimal(14, 4)
+  /// 最近一次異動時間；啟用最低需求版本：LITE
+  lastMoveAt  DateTime      @default(now()) @map("last_move_at")
+  /// 是否啟用；啟用最低需求版本：LITE
+  isActive    Boolean       @default(true) @map("is_active")
+  /// 建立時間。；啟用最低需求版本：LITE
+  createdAt   DateTime      @default(now()) @map("created_at")
+  /// 建立人；啟用最低需求版本：LITE
+  createdBy   String        @map("created_by") @db.VarChar(15)
+  /// 更新時間。；啟用最低需求版本：LITE
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+  /// 更新人；啟用最低需求版本：LITE
+  updatedBy   String        @map("updated_by") @db.VarChar(15)
+  tenant      Nx99Tenant    @relation("R_Nx03StockLocationBalance_tenantId", fields: [tenantId], references: [id])
+  part        Nx01Part      @relation("R_Nx03StockLocationBalance_partId", fields: [partId], references: [id])
+  warehouse   Nx01Warehouse @relation("R_Nx03StockLocationBalance_warehouseId", fields: [warehouseId], references: [id])
+  location    Nx01Location  @relation("R_Nx03StockLocationBalance_locationId", fields: [locationId], references: [id])
+
+  @@unique([tenantId, partId, warehouseId, locationId])
+  @@index([tenantId, warehouseId, locationId])
+  @@index([tenantId, partId])
+  @@map("nx03_stock_location_balance")
 }
 
 /// =======================================================
@@ -7389,6 +7437,7 @@ model Nx99Tenant {
   rev_Nx03Shortage_tenantId                Nx03Shortage[]                @relation("R_Nx03Shortage_tenantId")
   rev_Nx03St_tenantId                      Nx03St[]                      @relation("R_Nx03St_tenantId")
   rev_Nx03StockBalance_tenantId            Nx03StockBalance[]            @relation("R_Nx03StockBalance_tenantId")
+  rev_Nx03StockLocationBalance_tenantId    Nx03StockLocationBalance[]    @relation("R_Nx03StockLocationBalance_tenantId")
   rev_Nx03StockLedger_tenantId             Nx03StockLedger[]             @relation("R_Nx03StockLedger_tenantId")
   rev_Nx03StockTake_tenantId               Nx03StockTake[]               @relation("R_Nx03StockTake_tenantId")
   rev_Nx04Co_tenantId                      Nx04Co[]                      @relation("R_Nx04Co_tenantId")
