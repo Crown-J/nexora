@@ -1,0 +1,92 @@
+<svg width="100%" viewBox="0 0 680 825" role="img" xmlns="http://www.w3.org/2000/svg">
+<rect x="0" y="0" width="680" height="825" fill="#FFFFFF"/>
+<title>NEXORA 完整循環圖：籌資、現金樞紐、營運循環（營運/物流/金流三軌）</title>
+<desc>頂部籌資三源匯入現金樞紐，現金流出到設備薪資還款分紅；營運循環分三軌——左營運決策不動帳、中物流實體貨物、右金流帳務，收貨生應付、出貨簽收生應收，付款收款迴流現金。過帳事件框標注借貸分錄樣板。</desc>
+<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#B4B2A9"/></marker></defs>
+<rect x="50" y="39" width="130" height="42" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5"/>
+<text x="115" y="57" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="13.5" font-weight="500" fill="#26241F">股東投資</text>
+<text x="115" y="73" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="11" fill="#534AB7">借現/貸股本</text>
+<rect x="275" y="39" width="130" height="42" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5"/>
+<text x="340" y="57" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="13.5" font-weight="500" fill="#26241F">本金投入</text>
+<text x="340" y="73" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="11" fill="#534AB7">借現/貸資本</text>
+<rect x="500" y="39" width="130" height="42" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5"/>
+<text x="565" y="57" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="13.5" font-weight="500" fill="#26241F">銀行融資</text>
+<text x="565" y="73" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="11" fill="#534AB7">借現/貸借款</text>
+<rect x="265" y="134" width="150" height="48" rx="8" fill="#FFFFFF" stroke="#B4B2A9" stroke-width="1.3"/>
+<text x="340" y="155" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="13.5" font-weight="500" fill="#26241F">現金</text>
+<text x="340" y="171" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="11" fill="#5F5E5A">資產（樞紐）</text>
+<rect x="45" y="231" width="120" height="42" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5"/>
+<text x="105" y="249" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="13.5" font-weight="500" fill="#26241F">購買設備</text>
+<text x="105" y="265" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="11" fill="#534AB7">借設備/貸現</text>
+<rect x="198" y="231" width="120" height="42" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5"/>
+<text x="258" y="249" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="13.5" font-weight="500" fill="#26241F">薪資租金</text>
+<text x="258" y="265" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="11" fill="#534AB7">借費用/貸現</text>
+<rect x="362" y="231" width="120" height="42" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5"/>
+<text x="422" y="249" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="13.5" font-weight="500" fill="#26241F">還貸款</text>
+<text x="422" y="265" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="11" fill="#534AB7">借款息/貸現</text>
+<rect x="515" y="231" width="120" height="42" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5"/>
+<text x="575" y="249" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="13.5" font-weight="500" fill="#26241F">股東分紅</text>
+<text x="575" y="265" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="11" fill="#534AB7">借盈餘/貸現</text>
+<rect x="45" y="369" width="150" height="46" rx="8" fill="#F1EFE8" stroke="#D3D1C7" stroke-width="1.2" stroke-dasharray="4 3"/>
+<text x="120" y="389" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="13.5" font-weight="500" fill="#26241F">詢價·採購</text>
+<text x="120" y="405" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="11" fill="#888780">承諾·不動帳</text>
+<rect x="265" y="369" width="150" height="46" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5"/>
+<text x="340" y="389" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="13.5" font-weight="500" fill="#26241F">收貨入庫</text>
+<text x="340" y="405" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="11" fill="#534AB7">借存貨/貸應付</text>
+<rect x="485" y="369" width="150" height="46" rx="8" fill="#FFFFFF" stroke="#B4B2A9" stroke-width="1.3"/>
+<text x="560" y="389" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="13.5" font-weight="500" fill="#26241F">應付帳款</text>
+<text x="560" y="405" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="11" fill="#5F5E5A">負債</text>
+<rect x="265" y="447" width="150" height="46" rx="8" fill="#FFFFFF" stroke="#B4B2A9" stroke-width="1.3"/>
+<text x="340" y="467" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="13.5" font-weight="500" fill="#26241F">庫存</text>
+<text x="340" y="483" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="11" fill="#5F5E5A">資產·存貨</text>
+<rect x="485" y="447" width="150" height="46" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5"/>
+<text x="560" y="467" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="13.5" font-weight="500" fill="#26241F">付款</text>
+<text x="560" y="483" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="11" fill="#534AB7">借應付/貸現</text>
+<rect x="45" y="542" width="150" height="46" rx="8" fill="#F1EFE8" stroke="#D3D1C7" stroke-width="1.2" stroke-dasharray="4 3"/>
+<text x="120" y="562" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="13.5" font-weight="500" fill="#26241F">報價·接單</text>
+<text x="120" y="578" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="11" fill="#888780">承諾·不動帳</text>
+<rect x="265" y="542" width="150" height="46" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1.5"/>
+<text x="340" y="562" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="13.5" font-weight="500" fill="#26241F">撿貨·包貨</text>
+<text x="340" y="578" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="11" fill="#0F6E56">搬庫位·不動帳</text>
+<rect x="265" y="620" width="150" height="46" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5"/>
+<text x="340" y="640" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="13.5" font-weight="500" fill="#26241F">出貨·簽收</text>
+<text x="340" y="656" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="11" fill="#534AB7">扣存貨·開應收</text>
+<rect x="485" y="620" width="150" height="46" rx="8" fill="#FFFFFF" stroke="#B4B2A9" stroke-width="1.3"/>
+<text x="560" y="640" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="13.5" font-weight="500" fill="#26241F">應收帳款</text>
+<text x="560" y="656" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="11" fill="#5F5E5A">資產</text>
+<rect x="485" y="698" width="150" height="46" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5"/>
+<text x="560" y="718" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="13.5" font-weight="500" fill="#26241F">收款</text>
+<text x="560" y="734" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="11" fill="#534AB7">借現/貸應收</text>
+<path d="M115 81 L115 118 L340 118 L340 134" fill="none" stroke="#B4B2A9" stroke-width="1.6" marker-end="url(#ah)"/>
+<path d="M340 81 L340 134" fill="none" stroke="#B4B2A9" stroke-width="1.6" marker-end="url(#ah)"/>
+<path d="M565 81 L565 118 L340 118 L340 134" fill="none" stroke="#B4B2A9" stroke-width="1.6" marker-end="url(#ah)"/>
+<path d="M340 182 L340 222 L105 222 L105 231" fill="none" stroke="#B4B2A9" stroke-width="1.6" marker-end="url(#ah)"/>
+<path d="M340 182 L340 222 L258 222 L258 231" fill="none" stroke="#B4B2A9" stroke-width="1.6" marker-end="url(#ah)"/>
+<path d="M340 182 L340 222 L422 222 L422 231" fill="none" stroke="#B4B2A9" stroke-width="1.6" marker-end="url(#ah)"/>
+<path d="M340 182 L340 222 L575 222 L575 231" fill="none" stroke="#B4B2A9" stroke-width="1.6" marker-end="url(#ah)"/>
+<path d="M195 392 L265 392" fill="none" stroke="#B4B2A9" stroke-width="1.6" marker-end="url(#ah)"/>
+<path d="M415 392 L485 392" fill="none" stroke="#B4B2A9" stroke-width="1.6" marker-end="url(#ah)"/>
+<path d="M340 415 L340 447" fill="none" stroke="#B4B2A9" stroke-width="1.6" marker-end="url(#ah)"/>
+<path d="M560 415 L560 447" fill="none" stroke="#B4B2A9" stroke-width="1.6" marker-end="url(#ah)"/>
+<path d="M340 493 L340 542" fill="none" stroke="#B4B2A9" stroke-width="1.6" marker-end="url(#ah)"/>
+<path d="M195 565 L265 565" fill="none" stroke="#B4B2A9" stroke-width="1.6" marker-end="url(#ah)"/>
+<path d="M340 588 L340 620" fill="none" stroke="#B4B2A9" stroke-width="1.6" marker-end="url(#ah)"/>
+<path d="M415 643 L485 643" fill="none" stroke="#B4B2A9" stroke-width="1.6" marker-end="url(#ah)"/>
+<path d="M560 666 L560 698" fill="none" stroke="#B4B2A9" stroke-width="1.6" marker-end="url(#ah)"/>
+<path d="M635 470 L648 470 L648 168 L415 168" fill="none" stroke="#B4B2A9" stroke-width="1.6" marker-end="url(#ah)"/>
+<text x="648" y="462" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="11" font-weight="500" fill="#534AB7">付現</text>
+<path d="M560 744 L560 762 L32 762 L32 158 L265 158" fill="none" stroke="#B4B2A9" stroke-width="1.6" marker-end="url(#ah)"/>
+<text x="32" y="150" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="11" font-weight="500" fill="#534AB7">收現</text>
+<text x="340" y="315" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="12.5" font-weight="500" fill="#26241F">▼ 營運循環（三軌：營運決策 ｜ 物流 ｜ 金流帳務）</text>
+<text x="120" y="345" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="11.5" font-weight="500" fill="#888780">營運決策</text>
+<text x="340" y="345" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="11.5" font-weight="500" fill="#888780">物流·實體貨物</text>
+<text x="560" y="345" text-anchor="middle" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="11.5" font-weight="500" fill="#888780">金流·帳務</text>
+<rect x="70" y="790" width="13" height="13" rx="3" fill="#FFFFFF" stroke="#B4B2A9"/>
+<text x="89" y="801" text-anchor="start" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="11" fill="#5F5E5A">科目餘額</text>
+<rect x="210" y="790" width="13" height="13" rx="3" fill="#EEEDFE" stroke="#534AB7"/>
+<text x="229" y="801" text-anchor="start" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="11" fill="#5F5E5A">過帳事件→生分錄</text>
+<rect x="410" y="790" width="13" height="13" rx="3" fill="#E1F5EE" stroke="#0F6E56"/>
+<text x="429" y="801" text-anchor="start" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="11" fill="#5F5E5A">物流搬運·不動帳</text>
+<rect x="560" y="790" width="13" height="13" rx="3" fill="#F1EFE8" stroke="#D3D1C7" stroke-dasharray="4 3"/>
+<text x="579" y="801" text-anchor="start" font-family="system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif" font-size="11" fill="#5F5E5A">純營運·不動帳</text>
+</svg>
