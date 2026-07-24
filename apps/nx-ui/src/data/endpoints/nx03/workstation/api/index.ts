@@ -398,6 +398,58 @@ export function listInProgressPacking(q: PackPoolQuery = {}): Promise<{ rows: In
   return apiJson(`/nx03/pack-pool/in-progress${buildQueryString({ warehouseId: q.warehouseId, search: q.search })}`);
 }
 
+// ── WMS 包貨兩區（2026-07-24）：左已撿池 + 右三區建箱 ──
+
+/** 左邊已撿池的一張銷貨單（可整張拉、或拉單一 line）。 */
+export interface PackPoolSo {
+  soId: string;
+  soDocNo: string;
+  customerName: string;
+  deliveryType: string; // D/P/C
+  warehouseId: string;
+  lines: { pkItemId: string; partNo: string; partName: string; qty: string }[];
+}
+
+/** 右邊一個箱（建箱中）。 */
+export interface PackBox {
+  plId: string;
+  docNo: string;
+  plType: string; // D/P/C
+  lineCount: number;
+  customerCount: number;
+  mixedCustomer: boolean;
+  lines: { plItemId: string; pkItemId: string; partNo: string; qty: string; soDocNo: string; customerName: string }[];
+}
+
+export interface PackWorkspace {
+  pool: PackPoolSo[];
+  boxes: { P: PackBox[]; C: PackBox[]; D: PackBox[] };
+}
+
+export function getPackWorkspace(q: PackPoolQuery = {}): Promise<PackWorkspace> {
+  return apiJson(`/nx03/pack-pool/workspace${buildQueryString({ warehouseId: q.warehouseId, search: q.search })}`);
+}
+
+/** 建空箱（進對應出貨方式區）。 */
+export function createBox(deliveryType: 'D' | 'P' | 'C', warehouseId: string): Promise<PackWorkspace> {
+  return apiJson(`/nx03/pack-pool/box`, { method: 'POST', body: JSON.stringify({ deliveryType, warehouseId }) });
+}
+
+/** 加貨進箱（整張單多筆或單筆）。 */
+export function addToBox(plId: string, pkItemIds: string[]): Promise<PackWorkspace> {
+  return apiJson(`/nx03/pack-pool/box/add`, { method: 'POST', body: JSON.stringify({ plId, pkItemIds }) });
+}
+
+/** 從箱移出一筆（退回左池）。 */
+export function removeFromBox(plId: string, pkItemId: string): Promise<PackWorkspace> {
+  return apiJson(`/nx03/pack-pool/box/remove`, { method: 'POST', body: JSON.stringify({ plId, pkItemId }) });
+}
+
+/** 丟棄箱（貨全退回池）。 */
+export function discardBox(plId: string): Promise<PackWorkspace> {
+  return apiJson(`/nx03/pack-pool/box/discard`, { method: 'POST', body: JSON.stringify({ plId }) });
+}
+
 /** 建包貨單：某客戶某出貨方式整批進、預設一箱一單。 */
 export function createPacking(payload: {
   customerId: string;

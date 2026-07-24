@@ -197,7 +197,7 @@ export const MENU_BAR: MenuNode[] = [
         children: [
           { key: 'picking', label: '撿貨作業', href: '/dashboard/inventory/picking' },
           { key: 'packing', label: '包貨作業', href: '/dashboard/inventory/packing' },
-          { key: 'ship-zones', label: '出貨三區', href: '/dashboard/inventory/ship-zones' },
+          // 出貨三區（自取/寄貨/配送簽收出貨）移除選單、待值班台（櫃檯出貨）重做；程式碼 ship-zones/ 暫留
           { key: 'dispatch', label: '配送作業', href: '/dashboard/delivery' },
           { key: 'delivery', label: '送貨作業', href: '/dashboard/inventory/delivery' },
         ],
