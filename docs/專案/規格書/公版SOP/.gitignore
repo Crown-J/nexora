@@ -1,0 +1,4 @@
+# docs/專案/規格書/公版SOP/.gitignore
+# Excel 開啟時的暫存鎖定檔，別進版控
+~$*.xlsx
+~$*.xls
