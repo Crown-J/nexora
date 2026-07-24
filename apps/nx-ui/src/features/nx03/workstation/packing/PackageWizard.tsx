@@ -147,8 +147,11 @@ export function PackageWizard({ onCreated, onCancel }: { onCreated: (id: string)
               </div>
             </div>
           ) : (
-            <div className="flex h-full items-center justify-center">
-              <p className="text-sm text-muted-foreground">「{STEPS[step - 1]}」為下階段功能（明細單據/發票、包裹地址、貼紙列印）。本階段建包裹後可直接封箱。</p>
+            <div className="flex h-full items-center justify-center px-6 text-center">
+              <p className="text-sm text-muted-foreground">
+                {step === 3 ? '「明細單據」——發票＋明細單放進包裹、拆多箱時控管發票放哪箱。此段待「財務模組」做出發票後再接（已留連接處）。' : `「${STEPS[step - 1]}」為下階段功能（包裹送貨地址、包裹貼紙列印）。`}
+                <br />本階段建包裹後可直接到「詳細資料」封箱。
+              </p>
             </div>
           )}
         </div>

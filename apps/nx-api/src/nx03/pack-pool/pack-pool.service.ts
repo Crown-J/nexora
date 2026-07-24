@@ -481,6 +481,9 @@ export class PackPoolService {
         if (it.refSoItemId) soItemIds.push(it.refSoItemId);
       }
       await advanceSoItemsFulfill(tx, { tenantId, soItemIds, to: 'PL', userId: user.sub });
+      // 🔌 連接處（Phase B、待財務模組）：發票歸屬控管——一單一發票、拆多包裹時控管發票+明細單放哪箱。
+      //   財務模組做出來後在此掛：為此包裹涵蓋的每張 SO 預設指定「發票放這箱」(so→pl 連結)、
+      //   step3「明細單據」頁提供切換。目前只建包裹、發票歸屬先不落地。
       await this.audit.write({ tenantId, actorUserId: user.sub, moduleCode: 'NX03', action: 'CREATE', entityTable: 'nx03_pl', entityId: pl.id, entityCode: docNo, summary: `建包裹（精靈、${pkItems.length} 項）` });
       return pl.id;
     });
