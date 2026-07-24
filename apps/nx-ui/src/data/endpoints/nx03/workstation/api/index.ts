@@ -450,6 +450,48 @@ export function discardBox(plId: string): Promise<PackWorkspace> {
   return apiJson(`/nx03/pack-pool/box/discard`, { method: 'POST', body: JSON.stringify({ plId }) });
 }
 
+// ── 包貨單據頁 + 5 步精靈（Phase A）──
+
+/** 包裹列表一列（DocWorkbench）。 */
+export interface PackageRow {
+  id: string;
+  docNo: string;
+  status: string; // C/F/S
+  plType: string; // D/P/C
+  plDate: string | null;
+  createdAt: string;
+  warehouseCode: string;
+  lineCount: number;
+  customerCount: number;
+  customerLabel: string;
+}
+
+export interface PackageListQuery {
+  search?: string;
+  status?: string;
+  deliveryType?: string;
+  warehouseId?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export function listPackages(q: PackageListQuery = {}): Promise<{ items: PackageRow[]; total: number }> {
+  return apiJson(`/nx03/pack-pool/packages${buildQueryString({
+    search: q.search, status: q.status, deliveryType: q.deliveryType, warehouseId: q.warehouseId,
+    page: q.page != null ? String(q.page) : undefined, pageSize: q.pageSize != null ? String(q.pageSize) : undefined,
+  })}`);
+}
+
+/** 精靈步驟 1：可撿完待包的銷貨單（可選出貨方式）。 */
+export function listPickableSos(q: { search?: string; deliveryType?: 'D' | 'P' | 'C'; warehouseId?: string } = {}): Promise<{ sos: PackPoolSo[] }> {
+  return apiJson(`/nx03/pack-pool/pickable-sos${buildQueryString({ search: q.search, deliveryType: q.deliveryType, warehouseId: q.warehouseId })}`);
+}
+
+/** 精靈完成：把選定已撿貨一次建成一個包裹。 */
+export function createPackage(deliveryType: 'D' | 'P' | 'C', warehouseId: string, pkItemIds: string[]): Promise<{ id: string }> {
+  return apiJson(`/nx03/pack-pool/package`, { method: 'POST', body: JSON.stringify({ deliveryType, warehouseId, pkItemIds }) });
+}
+
 /** 建包貨單：某客戶某出貨方式整批進、預設一箱一單。 */
 export function createPacking(payload: {
   customerId: string;
