@@ -21,7 +21,7 @@ import { PkStatus, PlStatus } from '../../shared/nx03/nx03-state-machine';
 import { SoStatus } from '../../shared/nx04/nx04-state-machine';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 
-import type { AddToBoxDto, CreateBoxDto, CreatePackingDto, DiscardBoxDto, MergeParcelsDto, PackPoolQueryDto, RemoveFromBoxDto, SealPackingDto } from './dto/pack-pool.dto';
+import type { AddToBoxDto, CreateBoxDto, CreatePackageDto, CreatePackingDto, DiscardBoxDto, MergeParcelsDto, PackageListQueryDto, PackPoolQueryDto, PickableSoQueryDto, RemoveFromBoxDto, SealPackingDto } from './dto/pack-pool.dto';
 
 const DELIVERY_LABEL: Record<string, string> = { D: '配送', P: '自取', C: '寄貨' };
 
@@ -378,6 +378,113 @@ export class PackPoolService {
       return pl.warehouseId;
     });
     return this.buildWorkspace(tenantId, { warehouseId: wh });
+  }
+
+  // ── WMS 包貨單據頁 + 5 步精靈（2026-07-24、Phase A）──
+
+  /** 包裹列表（DocWorkbench fetchList）：分頁 + 狀態/出貨方式/關鍵字過濾。 */
+  async listPackages(user: RequestUser, q: PackageListQueryDto) {
+    const tenantId = requireTenantId(user);
+    const page = Math.max(1, Number(q.page) || 1);
+    const pageSize = Math.min(200, Math.max(1, Number(q.pageSize) || 20));
+    const where: Prisma.Nx03PlWhereInput = {
+      tenantId,
+      status: q.status?.trim() ? q.status.trim() : { not: PlStatus.VOIDED },
+    };
+    if (q.deliveryType?.trim()) where.plType = q.deliveryType.trim();
+    if (q.warehouseId?.trim()) where.warehouseId = q.warehouseId.trim();
+    if (q.search?.trim()) {
+      const s = q.search.trim();
+      where.OR = [
+        { docNo: { contains: s, mode: 'insensitive' } },
+        { rev_Nx03PlItem_plId: { some: { partNo: { contains: s, mode: 'insensitive' } } } },
+        { rev_Nx03PlItem_plId: { some: { pkItem: { refSo: { customer: { name: { contains: s, mode: 'insensitive' } } } } } } },
+      ];
+    }
+    const [total, rows] = await Promise.all([
+      this.prisma.nx03Pl.count({ where }),
+      this.prisma.nx03Pl.findMany({
+        where,
+        orderBy: { docNo: 'desc' },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        select: {
+          id: true, docNo: true, status: true, plType: true, plDate: true, createdAt: true,
+          warehouse: { select: { code: true } },
+          rev_Nx03PlItem_plId: { select: { pkItem: { select: { refSo: { select: { customerId: true, customer: { select: { name: true } } } } } } } },
+        },
+      }),
+    ]);
+    const items = rows.map((pl) => {
+      const custs = new Map<string, string>();
+      for (const it of pl.rev_Nx03PlItem_plId) {
+        const so = it.pkItem?.refSo;
+        if (so?.customerId) custs.set(so.customerId, so.customer?.name ?? '—');
+      }
+      const names = [...custs.values()];
+      return {
+        id: pl.id, docNo: pl.docNo, status: pl.status, plType: pl.plType,
+        plDate: pl.plDate ? pl.plDate.toISOString().slice(0, 10) : null,
+        createdAt: pl.createdAt.toISOString(),
+        warehouseCode: pl.warehouse?.code ?? '',
+        lineCount: pl.rev_Nx03PlItem_plId.length,
+        customerCount: names.length,
+        customerLabel: names.length === 0 ? '空箱' : names.length === 1 ? names[0] : `混 ${names.length} 客戶`,
+      };
+    });
+    return { items, total };
+  }
+
+  /** 精靈步驟 1：可撿完待包的銷貨單（依 SO、可選出貨方式）。 */
+  async listPickableSos(user: RequestUser, q: PickableSoQueryDto) {
+    const ws = await this.buildWorkspace(requireTenantId(user), { warehouseId: q.warehouseId, search: q.search });
+    let pool = ws.pool;
+    if (q.deliveryType) pool = pool.filter((so) => so.deliveryType === q.deliveryType);
+    return { sos: pool };
+  }
+
+  /** 精靈完成（Phase A）：把選定的已撿貨一次建成一個包裹。 */
+  async createPackage(user: RequestUser, dto: CreatePackageDto) {
+    const tenantId = requireTenantId(user);
+    const warehouseId = dto.warehouseId.trim();
+    const plId = await this.prisma.$transaction(async (tx) => {
+      const wh = await tx.nx01Warehouse.findFirst({ where: { id: warehouseId, tenantId }, select: { code: true } });
+      if (!wh) throw new BadRequestException('warehouseId invalid');
+      const pkItems = await tx.nx03PkItem.findMany({
+        where: {
+          id: { in: dto.pkItemIds.map((x) => x.trim()) },
+          status: 'C', refSoItem: { fulfillStatus: 'PK' },
+          pk: { tenantId, status: { not: PkStatus.VOIDED }, warehouseId },
+          refSo: { cancelledAt: null },
+          rev_Nx03PlItem_pkItemId: { none: {} },
+        },
+        select: { id: true, refSoItemId: true, partId: true, partNo: true, partName: true, qty: true, refSo: { select: { deliveryType: true } } },
+      });
+      if (!pkItems.length) throw new BadRequestException('沒有可建包裹的已撿貨（可能已進別箱或狀態已變）');
+      for (const it of pkItems) if (it.refSo?.deliveryType !== dto.deliveryType) throw new BadRequestException('出貨方式不符：一個包裹只能裝同一種出貨方式的貨');
+      const docNo = await allocNx03DocNo(tx, tenantId, 'PL', wh.code);
+      const pl = await tx.nx03Pl.create({
+        data: { tenantId, warehouseId, docNo, plDate: new Date(), pkId: null, customerId: null, plType: dto.deliveryType, status: PlStatus.COUNTING, startedAt: new Date(), createdBy: user.sub, updatedBy: user.sub },
+        select: { id: true },
+      });
+      const parcelNo = await this.allocParcelNo(tx, tenantId, wh.code);
+      const parcel = await tx.nx03Parcel.create({
+        data: { tenantId, plId: pl.id, parcelNo, parcelType: dto.deliveryType, fromWarehouseId: warehouseId, createdBy: user.sub, updatedBy: user.sub },
+        select: { id: true },
+      });
+      let line = 0;
+      const soItemIds: string[] = [];
+      for (const it of pkItems) {
+        await tx.nx03PlItem.create({
+          data: { plId: pl.id, parcelId: parcel.id, pkItemId: it.id, lineNo: ++line, partId: it.partId, partNo: it.partNo, partName: it.partName, qty: it.qty, updatedBy: user.sub },
+        });
+        if (it.refSoItemId) soItemIds.push(it.refSoItemId);
+      }
+      await advanceSoItemsFulfill(tx, { tenantId, soItemIds, to: 'PL', userId: user.sub });
+      await this.audit.write({ tenantId, actorUserId: user.sub, moduleCode: 'NX03', action: 'CREATE', entityTable: 'nx03_pl', entityId: pl.id, entityCode: docNo, summary: `建包裹（精靈、${pkItems.length} 項）` });
+      return pl.id;
+    });
+    return { id: plId };
   }
 
   /**

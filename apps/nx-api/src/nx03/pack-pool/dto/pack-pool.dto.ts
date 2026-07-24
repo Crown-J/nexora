@@ -96,3 +96,64 @@ export class DiscardBoxDto {
   @MinLength(1)
   plId!: string;
 }
+
+// ── WMS 包貨單據頁 + 5 步精靈（2026-07-24 執行長拍板、Phase A）──
+
+/** 包裹列表查詢（DocWorkbench fetchList）。 */
+export class PackageListQueryDto {
+  @IsOptional()
+  @IsString()
+  search?: string;
+
+  /** 狀態（C=建箱中/F=已封箱/S=已寄出）。 */
+  @IsOptional()
+  @IsString()
+  status?: string;
+
+  /** 出貨方式（D/P/C）。 */
+  @IsOptional()
+  @IsString()
+  deliveryType?: string;
+
+  @IsOptional()
+  @IsString()
+  warehouseId?: string;
+
+  @IsOptional()
+  @IsString()
+  page?: string;
+
+  @IsOptional()
+  @IsString()
+  pageSize?: string;
+}
+
+/** 精靈步驟 1：可撿SO查詢（已撿完待包、可選出貨方式過濾）。 */
+export class PickableSoQueryDto {
+  @IsOptional()
+  @IsString()
+  search?: string;
+
+  @IsOptional()
+  @IsIn(['D', 'P', 'C'])
+  deliveryType?: 'D' | 'P' | 'C';
+
+  @IsOptional()
+  @IsString()
+  warehouseId?: string;
+}
+
+/** 精靈完成：一次把選定的已撿貨（撿貨明細）建成一個包裹。 */
+export class CreatePackageDto {
+  @IsIn(['D', 'P', 'C'])
+  deliveryType!: 'D' | 'P' | 'C';
+
+  @IsString()
+  @MinLength(1)
+  warehouseId!: string;
+
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsString({ each: true })
+  pkItemIds!: string[];
+}

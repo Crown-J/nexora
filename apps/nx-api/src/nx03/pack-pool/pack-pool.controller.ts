@@ -11,7 +11,7 @@ import { JwtAuthGuard } from '../../shared/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../shared/guards/permissions.guard';
 import { RolesGuard } from '../../shared/guards/roles.guard';
 
-import { AddToBoxDto, CreateBoxDto, CreatePackingDto, DiscardBoxDto, MergeParcelsDto, PackPoolQueryDto, RemoveFromBoxDto, SealPackingDto } from './dto/pack-pool.dto';
+import { AddToBoxDto, CreateBoxDto, CreatePackageDto, CreatePackingDto, DiscardBoxDto, MergeParcelsDto, PackageListQueryDto, PackPoolQueryDto, PickableSoQueryDto, RemoveFromBoxDto, SealPackingDto } from './dto/pack-pool.dto';
 import { PackPoolService } from './pack-pool.service';
 
 @Controller('nx03/pack-pool')
@@ -63,6 +63,26 @@ export class PackPoolController {
   @Post('box/discard')
   discardBox(@CurrentUser() user: RequestUser, @Body() dto: DiscardBoxDto) {
     return this.svc.discardBox(user, dto);
+  }
+
+  // ── 包貨單據頁 + 5 步精靈（Phase A、需在 :id 之前）──
+
+  /** 包裹列表（DocWorkbench fetchList）。 */
+  @Get('packages')
+  listPackages(@CurrentUser() user: RequestUser, @Query() q: PackageListQueryDto) {
+    return this.svc.listPackages(user, q);
+  }
+
+  /** 精靈步驟 1：可撿完待包的銷貨單。 */
+  @Get('pickable-sos')
+  listPickableSos(@CurrentUser() user: RequestUser, @Query() q: PickableSoQueryDto) {
+    return this.svc.listPickableSos(user, q);
+  }
+
+  /** 精靈完成：把選定的已撿貨一次建成一個包裹。 */
+  @Post('package')
+  createPackage(@CurrentUser() user: RequestUser, @Body() dto: CreatePackageDto) {
+    return this.svc.createPackage(user, dto);
   }
 
   /** 包貨單詳情（含包裹 + 每箱行）。 */
