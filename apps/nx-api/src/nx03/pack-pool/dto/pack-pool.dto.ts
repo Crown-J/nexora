@@ -1,7 +1,7 @@
 // apps/nx-api/src/nx03/pack-pool/dto/pack-pool.dto.ts
 // 包貨台 DTO（SALES-FLOW 階段 2）。以客戶為單位、預設一箱一單、同客戶小件可併箱。
 
-import { IsIn, IsOptional, IsString, MinLength } from 'class-validator';
+import { ArrayNotEmpty, IsArray, IsIn, IsOptional, IsString, MinLength } from 'class-validator';
 
 /** 包貨台查詢：可選倉別 + 關鍵字。 */
 export class PackPoolQueryDto {
@@ -50,6 +50,48 @@ export class MergeParcelsDto {
 
 /** 封箱：包貨單 C→F 完成。 */
 export class SealPackingDto {
+  @IsString()
+  @MinLength(1)
+  plId!: string;
+}
+
+// ── WMS 包貨兩區重設計（2026-07-24 執行長拍板）：右邊三區建箱、從左拉貨 ──
+
+/** 建空箱：指定出貨方式（自取/寄貨/配送）、進對應區。 */
+export class CreateBoxDto {
+  @IsIn(['D', 'P', 'C'])
+  deliveryType!: 'D' | 'P' | 'C';
+
+  @IsString()
+  @MinLength(1)
+  warehouseId!: string;
+}
+
+/** 加貨進箱：把左邊已撿貨（撿貨明細 id）加進箱（可整張單多筆或單筆）。 */
+export class AddToBoxDto {
+  @IsString()
+  @MinLength(1)
+  plId!: string;
+
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsString({ each: true })
+  pkItemIds!: string[];
+}
+
+/** 從箱移出一筆貨（退回左邊已撿貨池）。 */
+export class RemoveFromBoxDto {
+  @IsString()
+  @MinLength(1)
+  plId!: string;
+
+  @IsString()
+  @MinLength(1)
+  pkItemId!: string;
+}
+
+/** 丟棄空箱（或把箱內貨全退回池後刪箱）。 */
+export class DiscardBoxDto {
   @IsString()
   @MinLength(1)
   plId!: string;

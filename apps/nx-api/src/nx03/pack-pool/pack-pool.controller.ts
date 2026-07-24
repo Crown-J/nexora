@@ -11,7 +11,7 @@ import { JwtAuthGuard } from '../../shared/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../shared/guards/permissions.guard';
 import { RolesGuard } from '../../shared/guards/roles.guard';
 
-import { CreatePackingDto, MergeParcelsDto, PackPoolQueryDto, SealPackingDto } from './dto/pack-pool.dto';
+import { AddToBoxDto, CreateBoxDto, CreatePackingDto, DiscardBoxDto, MergeParcelsDto, PackPoolQueryDto, RemoveFromBoxDto, SealPackingDto } from './dto/pack-pool.dto';
 import { PackPoolService } from './pack-pool.service';
 
 @Controller('nx03/pack-pool')
@@ -31,6 +31,38 @@ export class PackPoolController {
   @Get('in-progress')
   listInProgress(@CurrentUser() user: RequestUser, @Query() q: PackPoolQueryDto) {
     return this.svc.listInProgress(user, q);
+  }
+
+  // ── WMS 包貨兩區：左已撿貨池 + 右三區建箱（需在 :id 之前）──
+
+  /** 包貨工作區（左已撿池 + 右三區箱）。 */
+  @Get('workspace')
+  getPackWorkspace(@CurrentUser() user: RequestUser, @Query() q: PackPoolQueryDto) {
+    return this.svc.getPackWorkspace(user, q);
+  }
+
+  /** 建空箱（進對應出貨方式區）。 */
+  @Post('box')
+  createBox(@CurrentUser() user: RequestUser, @Body() dto: CreateBoxDto) {
+    return this.svc.createBox(user, dto);
+  }
+
+  /** 加貨進箱（整張單或單筆）。 */
+  @Post('box/add')
+  addToBox(@CurrentUser() user: RequestUser, @Body() dto: AddToBoxDto) {
+    return this.svc.addToBox(user, dto);
+  }
+
+  /** 從箱移出一筆貨（退回左邊池）。 */
+  @Post('box/remove')
+  removeFromBox(@CurrentUser() user: RequestUser, @Body() dto: RemoveFromBoxDto) {
+    return this.svc.removeFromBox(user, dto);
+  }
+
+  /** 丟棄箱（貨全退回池）。 */
+  @Post('box/discard')
+  discardBox(@CurrentUser() user: RequestUser, @Body() dto: DiscardBoxDto) {
+    return this.svc.discardBox(user, dto);
   }
 
   /** 包貨單詳情（含包裹 + 每箱行）。 */

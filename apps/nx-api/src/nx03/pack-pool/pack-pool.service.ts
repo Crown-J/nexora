@@ -21,7 +21,7 @@ import { PkStatus, PlStatus } from '../../shared/nx03/nx03-state-machine';
 import { SoStatus } from '../../shared/nx04/nx04-state-machine';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 
-import type { CreatePackingDto, MergeParcelsDto, PackPoolQueryDto, SealPackingDto } from './dto/pack-pool.dto';
+import type { AddToBoxDto, CreateBoxDto, CreatePackingDto, DiscardBoxDto, MergeParcelsDto, PackPoolQueryDto, RemoveFromBoxDto, SealPackingDto } from './dto/pack-pool.dto';
 
 const DELIVERY_LABEL: Record<string, string> = { D: '配送', P: '自取', C: '寄貨' };
 
@@ -200,6 +200,184 @@ export class PackPoolService {
       })),
       total: rows.length,
     };
+  }
+
+  // ── WMS 包貨兩區重設計（2026-07-24 執行長拍板）：左＝已撿貨池、右＝三區建箱 ──
+
+  /** 包貨工作區：左邊已撿待包（依 SO 分組、可整張拉或單筆）+ 右邊三區建箱中的箱（依出貨方式）。 */
+  async getPackWorkspace(user: RequestUser, q: PackPoolQueryDto) {
+    return this.buildWorkspace(requireTenantId(user), q);
+  }
+
+  private async buildWorkspace(tenantId: string, q: PackPoolQueryDto) {
+    const whId = q.warehouseId?.trim() || undefined;
+    const s = q.search?.trim();
+
+    // 左：已撿(C)、待包(refSoItem PK)、未進箱、SO 未取消 → 依 SO 分組
+    const poolWhere: Prisma.Nx03PkItemWhereInput = {
+      status: 'C',
+      refSoId: { not: null },
+      pk: { tenantId, status: { not: PkStatus.VOIDED }, ...(whId ? { warehouseId: whId } : {}) },
+      refSoItem: { fulfillStatus: 'PK' },
+      refSo: { cancelledAt: null },
+      rev_Nx03PlItem_pkItemId: { none: {} },
+    };
+    if (s) {
+      poolWhere.OR = [
+        { partNo: { contains: s, mode: 'insensitive' } },
+        { partName: { contains: s, mode: 'insensitive' } },
+        { refSo: { is: { docNo: { contains: s, mode: 'insensitive' } } } },
+        { refSo: { is: { customer: { name: { contains: s, mode: 'insensitive' } } } } },
+      ];
+    }
+    const poolRows = await this.prisma.nx03PkItem.findMany({
+      where: poolWhere,
+      orderBy: [{ refSoId: 'asc' }, { lineNo: 'asc' }],
+      select: {
+        id: true, refSoId: true, partNo: true, partName: true, qty: true,
+        pk: { select: { warehouseId: true } },
+        refSo: { select: { docNo: true, deliveryType: true, customer: { select: { name: true } } } },
+      },
+    });
+    const poolMap = new Map<string, { soId: string; soDocNo: string; customerName: string; deliveryType: string; warehouseId: string; lines: { pkItemId: string; partNo: string; partName: string; qty: string }[] }>();
+    for (const r of poolRows) {
+      const so = r.refSo; if (!r.refSoId || !so) continue;
+      let g = poolMap.get(r.refSoId);
+      if (!g) {
+        g = { soId: r.refSoId, soDocNo: so.docNo, customerName: so.customer?.name ?? '—', deliveryType: so.deliveryType, warehouseId: r.pk?.warehouseId ?? '', lines: [] };
+        poolMap.set(r.refSoId, g);
+      }
+      g.lines.push({ pkItemId: r.id, partNo: r.partNo, partName: r.partName, qty: r.qty.toString() });
+    }
+
+    // 右：建箱中（COUNTING）依出貨方式分三區
+    const boxRows = await this.prisma.nx03Pl.findMany({
+      where: { tenantId, status: PlStatus.COUNTING, ...(whId ? { warehouseId: whId } : {}) },
+      orderBy: { createdAt: 'asc' },
+      select: {
+        id: true, docNo: true, plType: true,
+        rev_Nx03PlItem_plId: {
+          orderBy: { lineNo: 'asc' },
+          select: {
+            id: true, partNo: true, qty: true,
+            pkItem: { select: { id: true, refSo: { select: { docNo: true, customerId: true, customer: { select: { name: true } } } } } },
+          },
+        },
+      },
+    });
+    const boxes: Record<'P' | 'C' | 'D', unknown[]> = { P: [], C: [], D: [] };
+    for (const pl of boxRows) {
+      const custIds = new Set<string>();
+      const lines = pl.rev_Nx03PlItem_plId.map((it) => {
+        const so = it.pkItem?.refSo;
+        if (so?.customerId) custIds.add(so.customerId);
+        return { plItemId: it.id, pkItemId: it.pkItem?.id ?? '', partNo: it.partNo, qty: it.qty.toString(), soDocNo: so?.docNo ?? '', customerName: so?.customer?.name ?? '—' };
+      });
+      const box = { plId: pl.id, docNo: pl.docNo, plType: pl.plType, lineCount: lines.length, customerCount: custIds.size, mixedCustomer: custIds.size > 1, lines };
+      const bucket = boxes[pl.plType as 'P' | 'C' | 'D'];
+      if (bucket) bucket.push(box);
+    }
+
+    return { pool: [...poolMap.values()], boxes };
+  }
+
+  /** 建空箱：指定出貨方式、進對應區（自取/寄貨/配送）。 */
+  async createBox(user: RequestUser, dto: CreateBoxDto) {
+    const tenantId = requireTenantId(user);
+    const warehouseId = dto.warehouseId.trim();
+    await this.prisma.$transaction(async (tx) => {
+      const wh = await tx.nx01Warehouse.findFirst({ where: { id: warehouseId, tenantId }, select: { code: true } });
+      if (!wh) throw new BadRequestException('warehouseId invalid');
+      const docNo = await allocNx03DocNo(tx, tenantId, 'PL', wh.code);
+      const pl = await tx.nx03Pl.create({
+        data: {
+          tenantId, warehouseId, docNo, plDate: new Date(), pkId: null, customerId: null,
+          plType: dto.deliveryType, status: PlStatus.COUNTING, startedAt: new Date(),
+          createdBy: user.sub, updatedBy: user.sub,
+        },
+        select: { id: true },
+      });
+      const parcelNo = await this.allocParcelNo(tx, tenantId, wh.code);
+      await tx.nx03Parcel.create({
+        data: { tenantId, plId: pl.id, parcelNo, parcelType: dto.deliveryType, fromWarehouseId: warehouseId, createdBy: user.sub, updatedBy: user.sub },
+      });
+    });
+    return this.buildWorkspace(tenantId, { warehouseId });
+  }
+
+  /** 加貨進箱：把左邊已撿貨（撿貨明細）加進箱（整張單多筆或單筆）。 */
+  async addToBox(user: RequestUser, dto: AddToBoxDto) {
+    const tenantId = requireTenantId(user);
+    const wh = await this.prisma.$transaction(async (tx) => {
+      const pl = await tx.nx03Pl.findFirst({ where: { id: dto.plId.trim(), tenantId }, select: { id: true, plType: true, status: true, warehouseId: true } });
+      if (!pl) throw new NotFoundException('箱不存在');
+      if (pl.status !== PlStatus.COUNTING) throw new BadRequestException('此箱已封箱、不可再加貨');
+      const parcel = await tx.nx03Parcel.findFirst({ where: { plId: pl.id, tenantId }, orderBy: { parcelNo: 'asc' }, select: { id: true } });
+      if (!parcel) throw new BadRequestException('箱無包裹');
+      const pkItems = await tx.nx03PkItem.findMany({
+        where: {
+          id: { in: dto.pkItemIds.map((x) => x.trim()) },
+          status: 'C', refSoItem: { fulfillStatus: 'PK' },
+          pk: { tenantId, status: { not: PkStatus.VOIDED }, warehouseId: pl.warehouseId },
+          refSo: { cancelledAt: null },
+          rev_Nx03PlItem_pkItemId: { none: {} },
+        },
+        select: { id: true, refSoId: true, refSoItemId: true, partId: true, partNo: true, partName: true, qty: true, refSo: { select: { deliveryType: true } } },
+      });
+      if (!pkItems.length) throw new BadRequestException('沒有可加入的已撿貨（可能已進別箱或狀態已變）');
+      for (const it of pkItems) {
+        if (it.refSo?.deliveryType !== pl.plType) throw new BadRequestException('出貨方式不符：此箱只能裝同一種出貨方式的貨');
+      }
+      const maxLine = await tx.nx03PlItem.aggregate({ where: { plId: pl.id }, _max: { lineNo: true } });
+      let line = maxLine._max.lineNo ?? 0;
+      const soItemIds: string[] = [];
+      for (const it of pkItems) {
+        await tx.nx03PlItem.create({
+          data: { plId: pl.id, parcelId: parcel.id, pkItemId: it.id, lineNo: ++line, partId: it.partId, partNo: it.partNo, partName: it.partName, qty: it.qty, updatedBy: user.sub },
+        });
+        if (it.refSoItemId) soItemIds.push(it.refSoItemId);
+      }
+      await advanceSoItemsFulfill(tx, { tenantId, soItemIds, to: 'PL', userId: user.sub });
+      return pl.warehouseId;
+    });
+    return this.buildWorkspace(tenantId, { warehouseId: wh });
+  }
+
+  /** 從箱移出一筆貨（退回左邊已撿貨池、SO 行 PL→PK）。 */
+  async removeFromBox(user: RequestUser, dto: RemoveFromBoxDto) {
+    const tenantId = requireTenantId(user);
+    const wh = await this.prisma.$transaction(async (tx) => {
+      const pl = await tx.nx03Pl.findFirst({ where: { id: dto.plId.trim(), tenantId }, select: { id: true, status: true, warehouseId: true } });
+      if (!pl) throw new NotFoundException('箱不存在');
+      if (pl.status !== PlStatus.COUNTING) throw new BadRequestException('此箱已封箱、不可移出');
+      const plItem = await tx.nx03PlItem.findFirst({ where: { plId: pl.id, pkItemId: dto.pkItemId.trim() }, select: { id: true, pkItem: { select: { refSoItemId: true } } } });
+      if (!plItem) throw new BadRequestException('箱內沒有此貨');
+      await tx.nx03PlItem.delete({ where: { id: plItem.id } });
+      // 倒退 PL→PK（退回已撿池）；advanceSoItemsFulfill 前進專用、倒退要直接寫
+      const soItemId = plItem.pkItem?.refSoItemId;
+      if (soItemId) await tx.nx04SoItem.updateMany({ where: { id: soItemId }, data: { fulfillStatus: 'PK', updatedBy: user.sub } });
+      return pl.warehouseId;
+    });
+    return this.buildWorkspace(tenantId, { warehouseId: wh });
+  }
+
+  /** 丟棄箱：箱內貨全退回池、刪包裹與箱。 */
+  async discardBox(user: RequestUser, dto: DiscardBoxDto) {
+    const tenantId = requireTenantId(user);
+    const wh = await this.prisma.$transaction(async (tx) => {
+      const pl = await tx.nx03Pl.findFirst({ where: { id: dto.plId.trim(), tenantId }, select: { id: true, status: true, warehouseId: true } });
+      if (!pl) throw new NotFoundException('箱不存在');
+      if (pl.status !== PlStatus.COUNTING) throw new BadRequestException('此箱已封箱、不可丟棄');
+      const items = await tx.nx03PlItem.findMany({ where: { plId: pl.id }, select: { id: true, pkItem: { select: { refSoItemId: true } } } });
+      const soItemIds = [...new Set(items.map((i) => i.pkItem?.refSoItemId).filter((x): x is string => !!x))];
+      await tx.nx03PlItem.deleteMany({ where: { plId: pl.id } });
+      // 倒退 PL→PK（退回已撿池）
+      if (soItemIds.length) await tx.nx04SoItem.updateMany({ where: { id: { in: soItemIds } }, data: { fulfillStatus: 'PK', updatedBy: user.sub } });
+      await tx.nx03Parcel.deleteMany({ where: { plId: pl.id } });
+      await tx.nx03Pl.delete({ where: { id: pl.id } });
+      return pl.warehouseId;
+    });
+    return this.buildWorkspace(tenantId, { warehouseId: wh });
   }
 
   /**
