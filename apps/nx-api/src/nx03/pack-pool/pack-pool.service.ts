@@ -213,12 +213,11 @@ export class PackPoolService {
     const whId = q.warehouseId?.trim() || undefined;
     const s = q.search?.trim();
 
-    // 左：已撿(C)、待包(refSoItem PK)、未進箱、SO 未取消 → 依 SO 分組
+    // 左：已撿(C)、未進箱（不看行 fulfillStatus，讓多筆撿貨的未包筆都露出）、SO 未取消 → 依 SO 分組
     const poolWhere: Prisma.Nx03PkItemWhereInput = {
       status: 'C',
       refSoId: { not: null },
       pk: { tenantId, status: { not: PkStatus.VOIDED }, ...(whId ? { warehouseId: whId } : {}) },
-      refSoItem: { fulfillStatus: 'PK' },
       refSo: { cancelledAt: null },
       rev_Nx03PlItem_pkItemId: { none: {} },
     };
@@ -281,6 +280,21 @@ export class PackPoolService {
     return { pool: [...poolMap.values()], boxes };
   }
 
+  /**
+   * 同步 SO 行的包貨狀態：一行的撿貨明細「全部進箱」才推 PK→PL；還有未包筆則留/退回 PK。
+   * （支援部分撿的多筆分批包：包一筆不算整行包完、其他筆仍在池。）
+   */
+  private async syncLinePackStatus(tx: Prisma.TransactionClient, tenantId: string, soItemIds: string[], userId: string) {
+    for (const id of [...new Set(soItemIds)]) {
+      const unpacked = await tx.nx03PkItem.count({ where: { refSoItemId: id, status: 'C', rev_Nx03PlItem_pkItemId: { none: {} } } });
+      if (unpacked === 0) {
+        await advanceSoItemsFulfill(tx, { tenantId, soItemIds: [id], to: 'PL', userId }); // 全包完 → 包貨中
+      } else {
+        await tx.nx04SoItem.updateMany({ where: { id, fulfillStatus: 'PL' }, data: { fulfillStatus: 'PK', updatedBy: userId } }); // 還有未包筆 → 退回已撿
+      }
+    }
+  }
+
   /** 建空箱：指定出貨方式、進對應區（自取/寄貨/配送）。 */
   async createBox(user: RequestUser, dto: CreateBoxDto) {
     const tenantId = requireTenantId(user);
@@ -317,7 +331,7 @@ export class PackPoolService {
       const pkItems = await tx.nx03PkItem.findMany({
         where: {
           id: { in: dto.pkItemIds.map((x) => x.trim()) },
-          status: 'C', refSoItem: { fulfillStatus: 'PK' },
+          status: 'C',
           pk: { tenantId, status: { not: PkStatus.VOIDED }, warehouseId: pl.warehouseId },
           refSo: { cancelledAt: null },
           rev_Nx03PlItem_pkItemId: { none: {} },
@@ -337,7 +351,7 @@ export class PackPoolService {
         });
         if (it.refSoItemId) soItemIds.push(it.refSoItemId);
       }
-      await advanceSoItemsFulfill(tx, { tenantId, soItemIds, to: 'PL', userId: user.sub });
+      await this.syncLinePackStatus(tx, tenantId, soItemIds, user.sub); // 全包完才 PL
       return pl.warehouseId;
     });
     return this.buildWorkspace(tenantId, { warehouseId: wh });
@@ -353,9 +367,9 @@ export class PackPoolService {
       const plItem = await tx.nx03PlItem.findFirst({ where: { plId: pl.id, pkItemId: dto.pkItemId.trim() }, select: { id: true, pkItem: { select: { refSoItemId: true } } } });
       if (!plItem) throw new BadRequestException('箱內沒有此貨');
       await tx.nx03PlItem.delete({ where: { id: plItem.id } });
-      // 倒退 PL→PK（退回已撿池）；advanceSoItemsFulfill 前進專用、倒退要直接寫
+      // 移出後此行必有未包筆 → 退回 PK（syncLinePackStatus 會判斷）
       const soItemId = plItem.pkItem?.refSoItemId;
-      if (soItemId) await tx.nx04SoItem.updateMany({ where: { id: soItemId }, data: { fulfillStatus: 'PK', updatedBy: user.sub } });
+      if (soItemId) await this.syncLinePackStatus(tx, tenantId, [soItemId], user.sub);
       return pl.warehouseId;
     });
     return this.buildWorkspace(tenantId, { warehouseId: wh });
@@ -371,8 +385,8 @@ export class PackPoolService {
       const items = await tx.nx03PlItem.findMany({ where: { plId: pl.id }, select: { id: true, pkItem: { select: { refSoItemId: true } } } });
       const soItemIds = [...new Set(items.map((i) => i.pkItem?.refSoItemId).filter((x): x is string => !!x))];
       await tx.nx03PlItem.deleteMany({ where: { plId: pl.id } });
-      // 倒退 PL→PK（退回已撿池）
-      if (soItemIds.length) await tx.nx04SoItem.updateMany({ where: { id: { in: soItemIds } }, data: { fulfillStatus: 'PK', updatedBy: user.sub } });
+      // 退回已撿池（syncLinePackStatus：若該行的貨還在別箱全包完則仍 PL）
+      if (soItemIds.length) await this.syncLinePackStatus(tx, tenantId, soItemIds, user.sub);
       await tx.nx03Parcel.deleteMany({ where: { plId: pl.id } });
       await tx.nx03Pl.delete({ where: { id: pl.id } });
       return pl.warehouseId;
@@ -453,7 +467,7 @@ export class PackPoolService {
       const pkItems = await tx.nx03PkItem.findMany({
         where: {
           id: { in: dto.pkItemIds.map((x) => x.trim()) },
-          status: 'C', refSoItem: { fulfillStatus: 'PK' },
+          status: 'C',
           pk: { tenantId, status: { not: PkStatus.VOIDED }, warehouseId },
           refSo: { cancelledAt: null },
           rev_Nx03PlItem_pkItemId: { none: {} },
@@ -480,7 +494,7 @@ export class PackPoolService {
         });
         if (it.refSoItemId) soItemIds.push(it.refSoItemId);
       }
-      await advanceSoItemsFulfill(tx, { tenantId, soItemIds, to: 'PL', userId: user.sub });
+      await this.syncLinePackStatus(tx, tenantId, soItemIds, user.sub); // 全包完才 PL
       // 🔌 連接處（Phase B、待財務模組）：發票歸屬控管——一單一發票、拆多包裹時控管發票+明細單放哪箱。
       //   財務模組做出來後在此掛：為此包裹涵蓋的每張 SO 預設指定「發票放這箱」(so→pl 連結)、
       //   step3「明細單據」頁提供切換。目前只建包裹、發票歸屬先不落地。
