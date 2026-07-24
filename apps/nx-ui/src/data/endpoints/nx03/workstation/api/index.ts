@@ -406,6 +406,7 @@ export interface PackPoolSo {
   soDocNo: string;
   customerName: string;
   deliveryType: string; // D/P/C
+  deliveryAddress: string | null;
   warehouseId: string;
   lines: { pkItemId: string; partNo: string; partName: string; qty: string }[];
 }
@@ -488,7 +489,7 @@ export function listPickableSos(q: { search?: string; deliveryType?: 'D' | 'P' |
 }
 
 /** 精靈完成：把選定已撿貨一次建成一個包裹。 */
-export function createPackage(deliveryType: 'D' | 'P' | 'C', warehouseId: string, pkItemIds: string[]): Promise<{ id: string }> {
+export function createPackage(deliveryType: 'D' | 'P' | 'C', warehouseId: string, pkItemIds: string[]): Promise<{ id: string; docNo: string; parcelNo: string }> {
   return apiJson(`/nx03/pack-pool/package`, { method: 'POST', body: JSON.stringify({ deliveryType, warehouseId, pkItemIds }) });
 }
 

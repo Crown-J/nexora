@@ -235,15 +235,15 @@ export class PackPoolService {
       select: {
         id: true, refSoId: true, partNo: true, partName: true, qty: true,
         pk: { select: { warehouseId: true } },
-        refSo: { select: { docNo: true, deliveryType: true, customer: { select: { name: true } } } },
+        refSo: { select: { docNo: true, deliveryType: true, deliveryAddress: true, customer: { select: { name: true } } } },
       },
     });
-    const poolMap = new Map<string, { soId: string; soDocNo: string; customerName: string; deliveryType: string; warehouseId: string; lines: { pkItemId: string; partNo: string; partName: string; qty: string }[] }>();
+    const poolMap = new Map<string, { soId: string; soDocNo: string; customerName: string; deliveryType: string; deliveryAddress: string | null; warehouseId: string; lines: { pkItemId: string; partNo: string; partName: string; qty: string }[] }>();
     for (const r of poolRows) {
       const so = r.refSo; if (!r.refSoId || !so) continue;
       let g = poolMap.get(r.refSoId);
       if (!g) {
-        g = { soId: r.refSoId, soDocNo: so.docNo, customerName: so.customer?.name ?? '—', deliveryType: so.deliveryType, warehouseId: r.pk?.warehouseId ?? '', lines: [] };
+        g = { soId: r.refSoId, soDocNo: so.docNo, customerName: so.customer?.name ?? '—', deliveryType: so.deliveryType, deliveryAddress: so.deliveryAddress ?? null, warehouseId: r.pk?.warehouseId ?? '', lines: [] };
         poolMap.set(r.refSoId, g);
       }
       g.lines.push({ pkItemId: r.id, partNo: r.partNo, partName: r.partName, qty: r.qty.toString() });
@@ -461,7 +461,7 @@ export class PackPoolService {
   async createPackage(user: RequestUser, dto: CreatePackageDto) {
     const tenantId = requireTenantId(user);
     const warehouseId = dto.warehouseId.trim();
-    const plId = await this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       const wh = await tx.nx01Warehouse.findFirst({ where: { id: warehouseId, tenantId }, select: { code: true } });
       if (!wh) throw new BadRequestException('warehouseId invalid');
       const pkItems = await tx.nx03PkItem.findMany({
@@ -499,9 +499,9 @@ export class PackPoolService {
       //   財務模組做出來後在此掛：為此包裹涵蓋的每張 SO 預設指定「發票放這箱」(so→pl 連結)、
       //   step3「明細單據」頁提供切換。目前只建包裹、發票歸屬先不落地。
       await this.audit.write({ tenantId, actorUserId: user.sub, moduleCode: 'NX03', action: 'CREATE', entityTable: 'nx03_pl', entityId: pl.id, entityCode: docNo, summary: `建包裹（精靈、${pkItems.length} 項）` });
-      return pl.id;
+      return { id: pl.id, docNo, parcelNo };
     });
-    return { id: plId };
+    return result;
   }
 
   /**

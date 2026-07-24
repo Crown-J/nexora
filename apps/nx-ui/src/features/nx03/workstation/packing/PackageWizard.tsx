@@ -64,11 +64,26 @@ export function PackageWizard({ onCreated, onCancel }: { onCreated: (id: string)
     setErr(null); setStep(2);
   };
 
-  const finish = async () => {
+  const selItemsForLabel = useMemo(() => step2Items.filter((it) => selItem.has(it.pkItemId)), [step2Items, selItem]);
+
+  const goNext = () => {
+    setErr(null);
+    if (step === 1) { goStep2(); return; }
+    if (step === 2) { if (!selItem.size) { setErr('請至少選一個品項'); return; } setStep(3); return; }
+    if (step < 5) setStep(step + 1);
+  };
+
+  const createAndPrint = async () => {
     if (!selItem.size) { setErr('請至少選一個品項'); return; }
     setBusy(true); setErr(null);
     try {
       const r = await createPackage(type, warehouseId, [...selItem]);
+      printLabel({
+        docNo: r.docNo, typeLabel: TYPES.find((t) => t.v === type)?.label ?? type,
+        addresses: chosenSos.map((s) => ({ customerName: s.customerName, address: type === 'P' ? null : s.deliveryAddress })),
+        isPickup: type === 'P',
+        items: selItemsForLabel.map((it) => ({ partNo: it.partNo, qty: it.qty })),
+      });
       onCreated(r.id);
     } catch (e) {
       setErr(e instanceof Error ? e.message : '建立包裹失敗');
@@ -88,7 +103,7 @@ export function PackageWizard({ onCreated, onCancel }: { onCreated: (id: string)
         <div className="flex items-center gap-1 overflow-x-auto border-b border-border px-4 py-2">
           {STEPS.map((s, i) => {
             const n = i + 1;
-            const active = n === step; const done = n < step; const soon = n >= 3;
+            const active = n === step; const done = n < step; const soon = n === 3;
             return (
               <div key={s} className="flex shrink-0 items-center">
                 <span className={cx('inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium',
@@ -146,12 +161,42 @@ export function PackageWizard({ onCreated, onCancel }: { onCreated: (id: string)
                 ))}
               </div>
             </div>
-          ) : (
+          ) : step === 3 ? (
             <div className="flex h-full items-center justify-center px-6 text-center">
-              <p className="text-sm text-muted-foreground">
-                {step === 3 ? '「明細單據」——發票＋明細單放進包裹、拆多箱時控管發票放哪箱。此段待「財務模組」做出發票後再接（已留連接處）。' : `「${STEPS[step - 1]}」為下階段功能（包裹送貨地址、包裹貼紙列印）。`}
-                <br />本階段建包裹後可直接到「詳細資料」封箱。
-              </p>
+              <p className="text-sm text-muted-foreground">「明細單據」——發票＋明細單放進包裹、拆多箱時控管發票放哪箱。<br />此段待「財務模組」做出發票後再接（已留連接處）。先按下一步。</p>
+            </div>
+          ) : step === 4 ? (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">確認送貨地點（預設帶銷貨單地址）。{type === 'P' ? '自取單免送貨地址。' : ''}</p>
+              {chosenSos.map((s) => (
+                <div key={s.soId} className="rounded-lg border border-border p-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-foreground">{s.customerName}</span>
+                    <span className="font-mono text-xs text-muted-foreground">{s.soDocNo}</span>
+                  </div>
+                  <p className="mt-1 text-sm text-muted-foreground">{type === 'P' ? '（自取、免地址）' : (s.deliveryAddress || '⚠ 未填送貨地址')}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">確認貼紙內容 → 按「建立包裹並列印」，貼紙印出貼箱、到「詳細資料」封箱。</p>
+              <div className="mx-auto max-w-sm rounded-lg border-2 border-foreground p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-base font-bold text-foreground">包裹貼紙</span>
+                  <span className="rounded bg-muted px-2 py-0.5 text-xs">{TYPES.find((t) => t.v === type)?.label}</span>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">單號於建立後產生</p>
+                <div className="mt-2 text-sm text-foreground">
+                  {chosenSos.map((s) => (
+                    <div key={s.soId}>{s.customerName}{type !== 'P' ? ` · ${s.deliveryAddress || '未填地址'}` : ''}</div>
+                  ))}
+                </div>
+                <div className="mt-2 border-t border-border pt-2 text-xs text-muted-foreground">
+                  {selItemsForLabel.slice(0, 8).map((it) => <div key={it.pkItemId} className="flex justify-between"><span className="font-mono">{it.partNo}</span><span>×{it.qty}</span></div>)}
+                  {selItemsForLabel.length > 8 ? <div>…共 {selItemsForLabel.length} 項</div> : null}
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -161,10 +206,10 @@ export function PackageWizard({ onCreated, onCancel }: { onCreated: (id: string)
           <button type="button" onClick={step === 1 ? onCancel : () => setStep(step - 1)} className="inline-flex h-9 items-center gap-1 rounded-lg border border-border px-3 text-sm text-muted-foreground hover:bg-muted/30">
             <ChevronLeft className="h-4 w-4" aria-hidden />{step === 1 ? '取消' : '上一步'}
           </button>
-          {step === 1 ? (
-            <button type="button" disabled={!selSo.size} onClick={goStep2} className="inline-flex h-9 items-center gap-1 rounded-lg bg-primary px-4 text-sm font-medium text-white disabled:opacity-40">下一步<ChevronRight className="h-4 w-4" aria-hidden /></button>
+          {step < 5 ? (
+            <button type="button" disabled={(step === 1 && !selSo.size) || (step === 2 && !selItem.size)} onClick={goNext} className="inline-flex h-9 items-center gap-1 rounded-lg bg-primary px-4 text-sm font-medium text-white disabled:opacity-40">下一步<ChevronRight className="h-4 w-4" aria-hidden /></button>
           ) : (
-            <button type="button" disabled={busy || !selItem.size} onClick={finish} className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-emerald-600 px-4 text-sm font-medium text-white disabled:opacity-40"><Check className="h-4 w-4" aria-hidden />建立包裹（{selItem.size} 項）</button>
+            <button type="button" disabled={busy || !selItem.size} onClick={createAndPrint} className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-emerald-600 px-4 text-sm font-medium text-white disabled:opacity-40"><Check className="h-4 w-4" aria-hidden />建立包裹並列印（{selItem.size} 項）</button>
           )}
         </div>
       </div>
@@ -174,4 +219,30 @@ export function PackageWizard({ onCreated, onCancel }: { onCreated: (id: string)
 
 function Empty({ text }: { text: string }) {
   return <div className="rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">{text}</div>;
+}
+
+/** 印包裹貼紙（另開視窗、乾淨隔離、載入即列印）。 */
+function printLabel(d: {
+  docNo: string; typeLabel: string; isPickup: boolean;
+  addresses: { customerName: string; address: string | null }[];
+  items: { partNo: string; qty: string }[];
+}) {
+  const esc = (s: string) => s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c] ?? c));
+  const addrHtml = d.isPickup
+    ? '（自取、免地址）'
+    : d.addresses.map((a) => `${esc(a.customerName)}：${esc(a.address || '未填地址')}`).join('<br>');
+  const rows = d.items.map((it) => `<tr><td>${esc(it.partNo)}</td><td style="text-align:right">×${esc(it.qty)}</td></tr>`).join('');
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(d.docNo)}</title>
+<style>@page{size:auto;margin:6mm}body{font-family:system-ui,-apple-system,"Microsoft JhengHei",sans-serif;margin:0;padding:8px;width:360px}
+.box{border:2px solid #000;border-radius:8px;padding:12px}.hd{display:flex;justify-content:space-between;align-items:center}
+.hd h1{font-size:20px;margin:0}.tp{border:1px solid #000;border-radius:4px;padding:1px 8px;font-size:13px}
+.no{font-family:ui-monospace,monospace;font-size:18px;font-weight:700;margin:6px 0}
+.addr{font-size:14px;line-height:1.5}table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+td{border-bottom:1px solid #ccc;padding:3px 2px}</style></head>
+<body><div class="box"><div class="hd"><h1>包裹貼紙</h1><span class="tp">${esc(d.typeLabel)}</span></div>
+<div class="no">${esc(d.docNo)}</div><div class="addr">${addrHtml}</div>
+<table>${rows}</table></div>
+<script>window.onload=function(){window.print();setTimeout(function(){window.close()},300)}</script></body></html>`;
+  const w = window.open('', '_blank', 'width=420,height=680');
+  if (w) { w.document.write(html); w.document.close(); }
 }
