@@ -1,0 +1,191 @@
+<!-- docs/專案/規格書/公版SOP/核心主檔架構圖.html -->
+<!-- 位置：公版 SOP 洋蔥文件 · 第 1 層 · 核心主檔架構圖（流程圖版） -->
+<!-- 版本：v1.0 2026-07-25（依執行長初版 SVG 重繪＋grep 掛表名；兩層＝GRID跨產業核心 vs 汽配產業套件） -->
+<!-- 說明：四域圓＝跨產業核心；黃色節點＝汽車零件零售產業套件。營運單據另見《營運循環圖》。 -->
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NEXORA 核心主檔架構圖</title>
+<style>
+  :root{
+    --bg:#f7f8fa; --fg:#1c2430; --muted:#6b7683; --line:#9aa5b1; --card:#ffffff;
+    --core:#3a4552; --corebg:#ffffff;
+    --ind:#b45309; --indbg:#fff7e8;
+    --gap:#e11d48; --gapbg:#fff0f3;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{--bg:#12161c; --fg:#e6ebf1; --muted:#9aa5b1; --line:#5b6672; --card:#1b212a;
+      --core:#c3ccd6; --corebg:#1b212a; --ind:#e8a33d; --indbg:#2c2109; --gap:#f4738f; --gapbg:#2a0f16;}
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font-family:"Segoe UI","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;padding:24px 16px 50px}
+  h1{font-size:22px;margin:0 0 2px}
+  .sub{color:var(--muted);font-size:12.5px;margin:0 0 10px}
+  .legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin:0 0 10px;font-size:12px;color:var(--muted)}
+  .legend .sw{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:4px}
+  .scroll{overflow-x:auto}
+  .canvas{position:relative;width:1570px;height:1000px;margin:0 auto}
+  svg.wires{position:absolute;inset:0;z-index:0}
+  svg.wires path{fill:none;stroke:var(--line);stroke-width:1.5}
+
+  .n{position:absolute;z-index:1;border:1.5px solid var(--core);border-radius:9px;background:var(--corebg);
+     padding:5px 8px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+  .n .t{font-weight:700;font-size:12.5px;line-height:1.2}
+  .n .i{font-size:9.5px;color:var(--muted);margin-top:2px;line-height:1.25}
+  .ind{border-color:var(--ind);background:var(--indbg);border-style:solid}
+  .ind .t{color:var(--ind)}
+  .gapn{border-style:dashed;border-color:var(--gap);background:var(--gapbg)}
+  .gapn .t{color:var(--gap)}
+
+  .circle{position:absolute;z-index:1;border-radius:50%;display:flex;align-items:center;justify-content:center}
+  .circle .inner{background:var(--card);border-radius:7px;padding:7px 10px;text-align:center;
+    box-shadow:0 1px 4px rgba(0,0,0,.18)}
+  .circle .inner .t{font-weight:700;font-size:12.5px}
+  .circle .inner .i{font-size:9.5px;color:var(--muted);margin-top:2px}
+  .clabel{position:absolute;z-index:1;font-weight:800;font-size:15px}
+
+  .c-company{background:linear-gradient(135deg,#f43f5e,#f97316)}
+  .c-stock{background:linear-gradient(135deg,#22d3ee,#2563eb)}
+  .c-supply{background:linear-gradient(135deg,#a855f7,#f97316)}
+  .c-customer{background:linear-gradient(135deg,#14b8a6,#4ade80)}
+
+  .foot{max-width:1240px;margin:14px auto 0;font-size:12.5px;color:var(--muted)}
+  .foot b{color:var(--fg)}
+  .chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+  .chip{font-size:11px;border:1px solid var(--line);border-radius:6px;padding:2px 8px;color:var(--fg);opacity:.9}
+  .qs{border:1px solid var(--gap);border-radius:9px;padding:9px 13px;margin-top:12px;font-size:12.5px;background:var(--gapbg)}
+  .qs b{color:var(--gap)}
+  .qs ol{margin:4px 0 0;padding-left:18px}.qs li{margin:2px 0}
+</style>
+</head>
+<body>
+  <h1>NEXORA 核心主檔架構圖</h1>
+  <p class="sub">公版 SOP 洋蔥文件 · 第 1 層　｜　四域圓＝GRID 跨產業核心、黃節點＝汽車零件零售產業套件　｜　表名為 grep 驗證真相（營運單據另見《營運循環圖》）</p>
+  <div class="legend">
+    <span><i class="sw" style="background:linear-gradient(135deg,#f43f5e,#2563eb)"></i>四域圓＝跨產業核心域</span>
+    <span><i class="sw" style="background:var(--corebg);border:1.5px solid var(--core)"></i>核心主檔（白）</span>
+    <span><i class="sw" style="background:var(--indbg);border:1.5px solid var(--ind)"></i>汽配產業套件（黃）</span>
+    <span><i class="sw" style="background:var(--gapbg);border:1.5px dashed var(--gap)"></i>該有但缺／待裁（紅虛線）</span>
+    <span>標記：✅ 有獨立表　📕 同表（開關/分類/欄位共表）　⚠️ 實為欄位非表　🛠 缺</span>
+  </div>
+
+  <div class="scroll"><div class="canvas">
+    <svg class="wires" width="1570" height="1000">
+      <defs>
+        <marker id="m" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+          <path d="M0,0 L7,3.5 L0,7 Z" fill="var(--line)" stroke="none"/>
+        </marker>
+      </defs>
+      <!-- 公司管理：職務→組別→部門→員工 -->
+      <path d="M180,64 H216" marker-end="url(#m)"/>
+      <path d="M370,64 H406" marker-end="url(#m)"/>
+      <path d="M560,64 H590 V100 H616" marker-end="url(#m)"/>
+      <!-- 庫位→架位→區域→倉庫→據點 -->
+      <path d="M180,174 H216" marker-end="url(#m)"/>
+      <path d="M370,174 H406" marker-end="url(#m)"/>
+      <path d="M560,174 H596" marker-end="url(#m)"/>
+      <path d="M750,174 H786" marker-end="url(#m)"/>
+      <!-- 據點 → 員工（隸屬） -->
+      <path d="M865,150 V100 H794" marker-end="url(#m)"/>
+      <!-- 員工 → 公司圓 -->
+      <path d="M790,100 H876" marker-end="url(#m)"/>
+      <!-- 供應鏈：零件商/貿易商 → 供應商圓 -->
+      <path d="M1400,64 H1372 V100 H1349" marker-end="url(#m)"/>
+      <path d="M1400,174 H1372 V100 H1349" marker-end="url(#m)"/>
+      <!-- 庫存：五路 feeder → 零件 -->
+      <path d="M390,354 H430 V504 H466" marker-end="url(#m)"/>
+      <path d="M390,434 H430 V504 H466" marker-end="url(#m)"/>
+      <path d="M390,514 H466" marker-end="url(#m)"/>
+      <path d="M390,594 H430 V504 H466" marker-end="url(#m)"/>
+      <path d="M390,699 H430 V504 H466" marker-end="url(#m)"/>
+      <!-- 引擎代碼/車身號碼 → 汽車廠牌 -->
+      <path d="M180,664 H210 V699 H236" marker-end="url(#m)"/>
+      <path d="M180,744 H210 V699 H236" marker-end="url(#m)"/>
+      <!-- 零件 → 產品圓 -->
+      <path d="M650,504 H706" marker-end="url(#m)"/>
+      <!-- 客戶：保養廠/零件商 → 客戶圓 -->
+      <path d="M1400,474 H1372 V510 H1349" marker-end="url(#m)"/>
+      <path d="M1400,584 H1372 V510 H1349" marker-end="url(#m)"/>
+    </svg>
+
+    <!-- ===== 公司管理（跨產業核心） ===== -->
+    <div class="n gapn" style="left:30px;top:40px;width:150px;height:48px"><div class="t">職務基本資料</div><div class="i">🛠 無主檔（員工表文字欄位）</div></div>
+    <div class="n" style="left:220px;top:40px;width:150px;height:48px"><div class="t">組別基本資料</div><div class="i">✅ Nx01Team</div></div>
+    <div class="n" style="left:410px;top:40px;width:150px;height:48px"><div class="t">部門基本資料</div><div class="i">✅ Nx01Department</div></div>
+    <div class="n" style="left:620px;top:76px;width:170px;height:48px"><div class="t">員工基本資料</div><div class="i">✅ Nx01User（歸屬據點）</div></div>
+
+    <div class="n" style="left:30px;top:150px;width:150px;height:48px"><div class="t">庫位基本資料</div><div class="i">✅ Nx01Location</div></div>
+    <div class="n" style="left:220px;top:150px;width:150px;height:48px"><div class="t">架位基本資料</div><div class="i">✅ Nx01WarehouseRack</div></div>
+    <div class="n" style="left:410px;top:150px;width:150px;height:48px"><div class="t">區域基本資料</div><div class="i">✅ Nx01WarehouseZone</div></div>
+    <div class="n" style="left:600px;top:150px;width:150px;height:48px"><div class="t">倉庫基本資料</div><div class="i">✅ Nx01Warehouse</div></div>
+    <div class="n" style="left:790px;top:150px;width:150px;height:48px"><div class="t">據點基本資料</div><div class="i">✅ Nx01Site（場所頂層）</div></div>
+
+    <div class="circle c-company" style="left:880px;top:20px;width:160px;height:160px">
+      <div class="inner"><div class="t">公司基本資料</div><div class="i">🛠 租戶內無主檔<br>（現放平台層 Nx99Tenant）</div></div>
+    </div>
+    <div class="clabel" style="left:1052px;top:158px">公司管理</div>
+
+    <!-- ===== 供應鏈管理 ===== -->
+    <div class="circle c-supply" style="left:1195px;top:20px;width:160px;height:160px">
+      <div class="inner"><div class="t">供應商基本資料</div><div class="i">📕 Nx01Partner（S 供應商）</div></div>
+    </div>
+    <div class="clabel" style="left:1240px;top:190px">供應鏈管理</div>
+    <div class="n ind" style="left:1400px;top:40px;width:150px;height:48px"><div class="t">零件商基本資料</div><div class="i">📕 Partner O 同行（可買可賣）</div></div>
+    <div class="n ind gapn" style="left:1400px;top:150px;width:150px;height:48px"><div class="t">貿易商基本資料</div><div class="i">⚠️ 六分類無此類（S 細分？）</div></div>
+
+    <!-- ===== 庫存管理 ===== -->
+    <div class="n ind" style="left:240px;top:330px;width:150px;height:48px"><div class="t">零件廠牌基本資料</div><div class="i">📕 Nx01Brand（isPart 開關）</div></div>
+    <div class="n ind" style="left:240px;top:410px;width:150px;height:48px"><div class="t">零件族群基本資料</div><div class="i">✅ Nx01PartGroup（自訂群組）</div></div>
+    <div class="n ind" style="left:240px;top:490px;width:150px;height:48px"><div class="t">系統族群基本資料</div><div class="i">⚠️ Part.techCategory 欄位（9 值）</div></div>
+    <div class="n ind" style="left:240px;top:562px;width:150px;height:64px"><div class="t">類別基本資料</div><div class="i">⚠️ Part.purchaseCategory（5 值）<br>「通銷件」用詞待對齊</div></div>
+    <div class="n ind" style="left:240px;top:675px;width:150px;height:48px"><div class="t">汽車廠牌基本資料</div><div class="i">📕 Nx01Brand（isCar 開關）</div></div>
+    <div class="n ind" style="left:30px;top:632px;width:150px;height:64px"><div class="t">引擎代碼基本資料</div><div class="i">⚠️ Nx01Model.engineCode 欄位<br>（掛在車型 Nx01Model 上）</div></div>
+    <div class="n ind" style="left:30px;top:716px;width:150px;height:56px"><div class="t">車身號碼基本資料</div><div class="i">⚠️ Nx09VinLookup（知識模組·加購）</div></div>
+
+    <div class="n ind" style="left:470px;top:480px;width:180px;height:52px"><div class="t">零件基本資料</div><div class="i">📕 Nx01Part.secCode＝廠牌料號</div></div>
+
+    <div class="circle c-stock" style="left:710px;top:428px;width:164px;height:164px">
+      <div class="inner"><div class="t">產品基本資料</div><div class="i">📕 Nx01Part.code＝基準料號<br>（基準＋產地唯一）</div></div>
+    </div>
+    <div class="clabel" style="left:888px;top:568px">庫存管理</div>
+
+    <!-- ===== 客戶管理 ===== -->
+    <div class="circle c-customer" style="left:1195px;top:430px;width:160px;height:160px">
+      <div class="inner"><div class="t">客戶基本資料</div><div class="i">📕 Nx01Partner（C／散客現金客）</div></div>
+    </div>
+    <div class="clabel" style="left:1240px;top:600px">客戶管理</div>
+    <div class="n ind" style="left:1400px;top:450px;width:150px;height:48px"><div class="t">保養廠基本資料</div><div class="i">📕 Partner C 保養廠</div></div>
+    <div class="n ind" style="left:1400px;top:560px;width:150px;height:48px"><div class="t">零件商基本資料</div><div class="i">📕 Partner O 同行（同左上、雙面）</div></div>
+
+    <!-- ===== 底部補充候選 ===== -->
+    <div style="position:absolute;left:30px;top:850px;width:1520px;z-index:1">
+      <div style="font-weight:700;font-size:12.5px;color:var(--muted)">初版未畫、系統已有的主檔（第二圈補充候選）：</div>
+      <div class="chips">
+        <span class="chip">車型 Nx01Model（引擎代碼掛此）</span><span class="chip">OEM 碼</span><span class="chip">零件條碼</span>
+        <span class="chip">替代料三機制（替代群組／關聯／套組）</span><span class="chip">零件照片</span>
+        <span class="chip">客戶等級</span><span class="chip">供應商等級</span><span class="chip">往來帳戶（交易閘門）</span>
+        <span class="chip">聯絡人</span><span class="chip">地址</span><span class="chip">幣別／地區字典</span>
+        <span class="chip">角色／權限</span><span class="chip">倉別類型</span>
+      </div>
+    </div>
+  </div></div>
+
+  <div class="foot">
+    <p><b>兩層讀法：</b>四域圓＝NEXORA GRID 跨產業核心（任何行業都要：公司／產品／供應商／客戶）；黃色節點＝汽車零件零售產業套件，箭頭＝「行業具體化 → 掛進核心」。</p>
+    <p><b>產品↔零件真相：</b>兩層今天已存在、但壓在同一張零件表裡——code＝基準料號（產品識別、基準＋產地唯一）、secCode＝廠牌料號（零件識別）。圖上的兩層＝把這兩欄攤開的目標視角；現況＝合併實作，將來跨產業才需決定是否正規化拆表（schema 設計決定、需執行長 review）。</p>
+    <p><b>同表範式：</b>供應商＋客戶＝一張往來對象表六分類；兩個廠牌＝一張廠牌表雙開關——「一個對象一張表、身分用開關」是既有拍板，圖上分開畫＝權責視角、底層同表。</p>
+    <div class="qs"><b>⚠ 5 個待裁：</b>
+      <ol>
+        <li>「通銷件」＝系統的「通用件」（屬性欄位）？還是另一種分類？用詞待對齊。</li>
+        <li>車身號碼（VIN）現在放知識模組（加購）→ 要不要搬進核心主檔層？</li>
+        <li>貿易商：六分類沒有此類 → S 供應商細分？or 新增分類？</li>
+        <li>職務：現為員工表自由文字欄位 → 要不要升獨立主檔（封閉值域）？</li>
+        <li>公司基本資料：現放平台層租戶表 → 要不要在租戶內立主檔（報表抬頭／發票用）？</li>
+      </ol>
+    </div>
+  </div>
+</body>
+</html>

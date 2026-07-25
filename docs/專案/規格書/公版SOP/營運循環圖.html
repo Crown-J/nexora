@@ -1,0 +1,191 @@
+<!-- docs/專案/規格書/公版SOP/營運循環圖.html -->
+<!-- 位置：公版 SOP 洋蔥文件 · 第 1 層 · 營運循環圖（流程圖版） -->
+<!-- 版本：v2.0 2026-07-25（照執行長 SVG 排法重畫：節點+箭頭動線、每節點掛對應資料表） -->
+<!-- 說明：以現金為圓心的閉環流程圖。主檔底盤另見《核心主檔架構圖》。 -->
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NEXORA 營運循環圖</title>
+<style>
+  :root{
+    --bg:#f7f8fa; --fg:#1c2430; --muted:#6b7683; --line:#9aa5b1; --card:#ffffff;
+    --buy:#3b82f6; --buybg:#eaf2ff; --stock:#0ea5a4; --stockbg:#e6fbfa;
+    --sell:#f97316; --sellbg:#fff1e6; --ship:#8b5cf6; --shipbg:#f2ecff;
+    --money:#d97706; --moneybg:#fff6e6; --capital:#94a3b8; --capitalbg:#f0f2f5;
+    --cash:#e11d48; --cashbg:#fff0f3; --inv:#16a34a; --invbg:#eafaef;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{--bg:#12161c; --fg:#e6ebf1; --muted:#9aa5b1; --line:#5b6672; --card:#1b212a;
+      --buybg:#12233d; --stockbg:#0d2a2a; --sellbg:#2e1c0e; --shipbg:#1f1636;
+      --moneybg:#2c2109; --capitalbg:#20262e; --cashbg:#2a0f16; --invbg:#0f2417;}
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font-family:"Segoe UI","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;padding:24px 16px 50px}
+  h1{font-size:22px;margin:0 0 2px}
+  .sub{color:var(--muted);font-size:12.5px;margin:0 0 10px}
+  .legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin:0 0 10px;font-size:12px}
+  .legend span{display:inline-flex;align-items:center;gap:5px;color:var(--muted)}
+  .dot{width:10px;height:10px;border-radius:3px;display:inline-block}
+  .scroll{overflow-x:auto}
+  .canvas{position:relative;width:1500px;height:1130px;margin:0 auto}
+  svg.wires{position:absolute;inset:0;z-index:0}
+  svg.wires path{fill:none;stroke:var(--line);stroke-width:1.6}
+  svg.wires path.dot{stroke-dasharray:4 4}
+
+  .n{position:absolute;z-index:1;border:1.6px solid var(--line);border-radius:10px;background:var(--card);
+     padding:6px 8px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
+  .n .t{font-weight:700;font-size:13px;text-align:center;line-height:1.25}
+  .n .k{font-size:9.5px;color:var(--muted);margin-top:1px}
+  .chips{display:flex;flex-wrap:wrap;gap:3px;justify-content:center;margin-top:5px}
+  .chip{font-size:10px;border-radius:5px;padding:1px 6px;white-space:nowrap;background:var(--capitalbg);color:var(--fg);opacity:.92}
+
+  .buy{border-color:var(--buy);background:var(--buybg)} .buy .t{color:var(--buy)}
+  .stock{border-color:var(--stock);background:var(--stockbg)} .stock .t{color:var(--stock)}
+  .sell{border-color:var(--sell);background:var(--sellbg)} .sell .t{color:var(--sell)}
+  .ship{border-color:var(--ship);background:var(--shipbg)} .ship .t{color:var(--ship)}
+  .money{border-color:var(--money);background:var(--moneybg)} .money .t{color:var(--money)}
+  .capital{border-style:dashed;border-color:var(--capital);background:var(--capitalbg)} .capital .t{color:var(--muted)}
+  .ledgercash{border-width:2.5px;border-color:var(--cash);background:var(--cashbg)} .ledgercash .t{color:var(--cash)}
+  .ledgerinv{border-width:2.5px;border-color:var(--inv);background:var(--invbg)} .ledgerinv .t{color:var(--inv)}
+  .warn{font-size:10px;color:var(--cash);font-weight:700;margin-top:3px}
+  .ok{font-size:10px;color:var(--inv);font-weight:700;margin-top:3px}
+
+  .foot{max-width:1180px;margin:14px auto 0;font-size:12.5px;color:var(--muted)}
+  .foot b{color:var(--fg)}
+  .qs{border:1px solid var(--cash);border-radius:9px;padding:9px 13px;margin-top:10px;font-size:12.5px;background:var(--cashbg)}
+  .qs b{color:var(--cash)}
+  .qs ol{margin:4px 0 0;padding-left:18px}.qs li{margin:2px 0}
+</style>
+</head>
+<body>
+  <h1>NEXORA 營運循環圖</h1>
+  <p class="sub">公版 SOP 洋蔥文件 · 第 1 層　｜　以「現金」為圓心的閉環　｜　每個節點掛上它產生的資料表（192 張 grep 歸位；主檔底盤另見《核心主檔架構圖》）</p>
+  <div class="legend">
+    <span><i class="dot" style="background:var(--buy)"></i>採購進貨</span>
+    <span><i class="dot" style="background:var(--stock)"></i>庫存·調撥</span>
+    <span><i class="dot" style="background:var(--sell)"></i>銷售</span>
+    <span><i class="dot" style="background:var(--ship)"></i>出貨物流</span>
+    <span><i class="dot" style="background:var(--money)"></i>應收應付(錢段)</span>
+    <span><i class="dot" style="background:var(--inv)"></i>庫存帳(本帳)</span>
+    <span><i class="dot" style="background:var(--cash)"></i>現金帳(本帳·圓心)</span>
+    <span><i class="dot" style="background:var(--capital)"></i>資金進出(虛線=未落地)</span>
+  </div>
+
+  <div class="scroll"><div class="canvas">
+    <svg class="wires" width="1500" height="1130">
+      <defs>
+        <marker id="a" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+          <path d="M0,0 L7,3.5 L0,7 Z" fill="var(--line)" stroke="none"/>
+        </marker>
+      </defs>
+      <!-- 資金進場 → 現金 -->
+      <path d="M700,76 V108 H890 V134" marker-end="url(#a)"/>
+      <path d="M900,76 V134" marker-end="url(#a)"/>
+      <path d="M1100,76 V108 H910 V134" marker-end="url(#a)"/>
+      <!-- 現金 → 五項流出 -->
+      <path d="M900,224 V256 H355 V294" marker-end="url(#a)"/>
+      <path d="M900,224 V256 H545 V294" marker-end="url(#a)"/>
+      <path d="M900,224 V256 H735 V294" marker-end="url(#a)"/>
+      <path d="M900,224 V256 H925 V294" marker-end="url(#a)"/>
+      <path d="M900,224 V256 H1115 V294" marker-end="url(#a)"/>
+      <!-- 現金 →(左側大迴路)→ 購買預算 -->
+      <path d="M810,182 H40 V468 H514" marker-end="url(#a)"/>
+      <!-- 購買預算 → 應付帳款 -->
+      <path d="M610,496 V545 H615 V594" marker-end="url(#a)"/>
+      <!-- 採購鏈 -->
+      <path d="M250,658 H284" marker-end="url(#a)"/>
+      <path d="M480,658 H514" marker-end="url(#a)"/>
+      <path d="M710,658 H744" marker-end="url(#a)"/>
+      <path d="M940,658 H974" marker-end="url(#a)"/>
+      <!-- 進貨 → 庫存 -->
+      <path d="M1075,716 V755 H620 V784" marker-end="url(#a)"/>
+      <!-- 庫存 ⇄ 調撥 -->
+      <path d="M720,834 H784" marker-end="url(#a)"/>
+      <path d="M790,862 H726" marker-end="url(#a)"/>
+      <!-- 調撥 ~ 盤點報廢（同族虛線） -->
+      <path class="dot" d="M980,848 H1024"/>
+      <!-- 庫存 → 商品報價 -->
+      <path d="M620,906 V945 H155 V974" marker-end="url(#a)"/>
+      <!-- 銷售出貨鏈 -->
+      <path d="M250,1038 H284" marker-end="url(#a)"/>
+      <path d="M490,1038 H524" marker-end="url(#a)"/>
+      <path d="M740,1038 H774" marker-end="url(#a)"/>
+      <path d="M970,1038 H1004" marker-end="url(#a)"/>
+      <!-- 收款 →(右側大迴路)→ 現金 -->
+      <path d="M1180,1030 H1450 V182 H996" marker-end="url(#a)"/>
+    </svg>
+
+    <!-- 資金進場 -->
+    <div class="n capital" style="left:610px;top:20px;width:180px;height:56px"><div class="t">股東投資</div><div class="k">資金進場（未落地）</div></div>
+    <div class="n capital" style="left:810px;top:20px;width:180px;height:56px"><div class="t">本金投入</div><div class="k">資金進場（未落地）</div></div>
+    <div class="n capital" style="left:1010px;top:20px;width:180px;height:56px"><div class="t">銀行融資</div><div class="k">資金進場（未落地）</div></div>
+
+    <!-- 現金（圓心） -->
+    <div class="n ledgercash" style="left:810px;top:140px;width:180px;height:84px">
+      <div class="t">現　金</div><div class="k">本帳 · 圓心</div>
+      <div class="warn">⚠ 缺總帳／現金餘額表</div>
+    </div>
+
+    <!-- 現金流出 -->
+    <div class="n capital" style="left:270px;top:300px;width:170px;height:64px"><div class="t">購買設備</div><div class="k">投資流出（未落地）</div></div>
+    <div class="n capital" style="left:460px;top:300px;width:170px;height:64px"><div class="t">請員工</div><div class="chips"><span class="chip">薪資單(NX07)</span></div></div>
+    <div class="n capital" style="left:650px;top:300px;width:170px;height:64px"><div class="t">租店面</div><div class="k">費用流出（未落地）</div></div>
+    <div class="n capital" style="left:840px;top:300px;width:170px;height:64px"><div class="t">還貸款</div><div class="k">融資流出（未落地）</div></div>
+    <div class="n capital" style="left:1030px;top:300px;width:170px;height:64px"><div class="t">股東分紅</div><div class="k">融資流出（未落地）</div></div>
+    <!-- 月結關帳（週期性、浮動） -->
+    <div class="n money" style="left:1250px;top:300px;width:180px;height:64px;border-style:dashed"><div class="t">月結關帳</div><div class="chips"><span class="chip">關帳</span><span class="chip">會計科目表</span></div></div>
+
+    <!-- 購買預算 -->
+    <div class="n buy" style="left:520px;top:440px;width:180px;height:56px"><div class="t">購買預算</div><div class="k">現金 → 採購動線</div></div>
+
+    <!-- 採購鏈 -->
+    <div class="n buy" style="left:60px;top:600px;width:190px;height:116px"><div class="t">商品詢價</div>
+      <div class="chips"><span class="chip">詢價單</span><span class="chip">供應商報價</span></div></div>
+    <div class="n buy" style="left:290px;top:600px;width:190px;height:116px"><div class="t">採購商品</div>
+      <div class="chips"><span class="chip">採購需求</span><span class="chip">請購單</span><span class="chip">採購單</span></div></div>
+    <div class="n money" style="left:520px;top:600px;width:190px;height:116px"><div class="t">應付帳款</div>
+      <div class="chips"><span class="chip">應付分類帳</span></div></div>
+    <div class="n money" style="left:750px;top:600px;width:190px;height:116px"><div class="t">付　款</div><div class="k">現金－</div>
+      <div class="chips"><span class="chip">收付款</span><span class="chip">票據</span></div></div>
+    <div class="n buy" style="left:980px;top:600px;width:190px;height:116px"><div class="t">進　貨</div><div class="k">庫存＋</div>
+      <div class="chips"><span class="chip">驗收單</span><span class="chip">入庫單</span><span class="chip">同行調貨</span><span class="chip">期初建帳</span></div></div>
+
+    <!-- 庫存帶 -->
+    <div class="n ledgerinv" style="left:520px;top:790px;width:200px;height:116px"><div class="t">庫　存</div><div class="k">本帳 · 貨的餘額</div>
+      <div class="chips"><span class="chip">倉庫級餘額</span><span class="chip">庫位級餘額</span><span class="chip">庫存分類帳</span></div>
+      <div class="ok">✓ 已閉環可驗</div></div>
+    <div class="n stock" style="left:790px;top:790px;width:190px;height:116px"><div class="t">調　撥</div><div class="k">倉間搬 · 不動錢</div>
+      <div class="chips"><span class="chip">調撥單</span><span class="chip">自動補貨</span><span class="chip">庫存轉換</span></div></div>
+    <div class="n stock" style="left:1030px;top:790px;width:210px;height:116px;border-style:dashed"><div class="t">盤點 · 報廢/異常</div><div class="k">校正與調整</div>
+      <div class="chips"><span class="chip">盤點單</span><span class="chip">報廢單</span><span class="chip">異常品登記</span></div></div>
+
+    <!-- 銷售出貨鏈 -->
+    <div class="n sell" style="left:60px;top:980px;width:190px;height:116px"><div class="t">商品報價</div>
+      <div class="chips"><span class="chip">報價單</span><span class="chip">報價紀錄</span><span class="chip">詢價紀錄</span></div></div>
+    <div class="n sell" style="left:290px;top:980px;width:200px;height:116px"><div class="t">銷售商品</div><div class="k">庫存－</div>
+      <div class="chips"><span class="chip">銷貨單</span><span class="chip">缺貨補單</span><span class="chip">銷退單</span><span class="chip">促銷</span><span class="chip">套餐</span></div></div>
+    <div class="n ship" style="left:530px;top:980px;width:210px;height:116px"><div class="t">出貨物流</div><div class="k">撿→包→送 · 簽收過帳</div>
+      <div class="chips"><span class="chip">撿貨單</span><span class="chip">出貨單</span><span class="chip">包裹(箱)</span><span class="chip">出庫過帳</span><span class="chip">配送單</span></div></div>
+    <div class="n money" style="left:780px;top:980px;width:190px;height:116px"><div class="t">應收帳款</div>
+      <div class="chips"><span class="chip">應收分類帳</span><span class="chip">折讓</span><span class="chip">催收</span></div></div>
+    <div class="n money" style="left:1010px;top:980px;width:170px;height:100px"><div class="t">收　款</div><div class="k">現金＋ · ↺回圓心</div>
+      <div class="chips"><span class="chip">收付款</span></div></div>
+  </div></div>
+
+  <div class="foot">
+    <p><b>閉環守恆讀法：</b>買的貨進庫存(庫存＋)、付款動現金(現金－)；賣的貨扣庫存(庫存－)、收款動現金(現金＋)。左側迴路＝錢出去買貨、右側迴路＝貨賣掉變回錢，全部回到「現金」圓心。</p>
+    <p><b>兩本帳：</b>庫存帳 <span style="color:var(--inv);font-weight:700">✓ 已有</span>（倉庫級＋庫位級餘額＋分類帳）；現金帳 <span style="color:var(--cash);font-weight:700">⚠ 半套</span>（有科目表、缺總帳，目前靠應收應付推算）。虛線節點＝系統尚無對應表（往上加）。</p>
+    <div class="qs"><b>⚠ 4 個待裁語意疑點：</b>
+      <ol>
+        <li>訂單 vs 銷貨單並存（訂單帶 legacyDocNo、疑偉盟匯入舊資料）→ 合併／保留／標歷史匯入？</li>
+        <li>保固理賠現掛採購循環（向供應商索賠）→ 歸採購 or 另立售後段？</li>
+        <li>報廢／異常單獨列「庫存調整」or 併入某環？</li>
+        <li>會計科目表現放主檔字典，補總帳後是否升入現金水位帳？</li>
+      </ol>
+    </div>
+  </div>
+</body>
+</html>
