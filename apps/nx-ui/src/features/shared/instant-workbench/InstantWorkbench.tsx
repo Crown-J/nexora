@@ -86,6 +86,17 @@ export function InstantWorkbench() {
     return () => window.removeEventListener('nx-part-quick-search-open', h);
   }, [enterStation]);
 
+  // 指名開站（新殼 /work 左選單入口用；additive、舊版面行為不變）
+  // detail: { no: InstantStationNo }；非 live 站忽略
+  useEffect(() => {
+    const h = (e: Event) => {
+      const no = (e as CustomEvent<{ no?: InstantStationNo }>).detail?.no;
+      if (no != null && LIVE_STATIONS.some((s) => s.no === no)) enterStation(no);
+    };
+    window.addEventListener('nx-instant-station-open', h);
+    return () => window.removeEventListener('nx-instant-station-open', h);
+  }, [enterStation]);
+
   // 站自己關（使用者 X/Esc）→ 全收（F2 再開選單、游標停上次的站）
   const stationClosed = useCallback(() => setCurrent(null), []);
   // 站 2 完成/放棄（QuoteWorkspace onClose：存檔後「下一通」退場 / guarded 確認放棄）→ 整站重生

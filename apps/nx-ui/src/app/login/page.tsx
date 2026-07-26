@@ -17,7 +17,8 @@
  * - 記住我（rememberMe）：UI 有勾選框、本層丟棄 fields.rememberMe
  * - 忘記密碼（onForgotPassword）：UI 有連結、本層 noop
  * - 連錯 5 次鎖 5 分鐘：後端可能有、本層無對應狀態
- * - 首登強制改密：login response 無 mustChangePassword flag、本層直接 router.replace('/dashboard')
+ * - 首登強制改密：login response 無 mustChangePassword flag、本層直接 router.replace('/work')
+ *   （2026-07-26 新版面封存軌：登入落地改新殼 /work、舊 /dashboard 由 middleware 軟封存）
  * - 2FA TOTP：login response 無 twoFactorRequired flag
  * - 停用攔截：後端可能有、本層僅顯示後端錯誤訊息
  */
@@ -95,7 +96,7 @@ export default function LoginPage() {
       setToken(result.token);
       // 2026-06-27 大改版：移除星球飛行轉場（太空風封存）、改單純淡出 + 轉址
       setIsLeaving(true);
-      router.replace('/dashboard');
+      router.replace('/work');
       return;
     } catch (e: unknown) {
       setView((prev) => ({ ...prev, errorMsg: getError(e) }));
