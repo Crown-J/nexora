@@ -47,7 +47,8 @@ export function WorkShell({ children }: { children: ReactNode }) {
   };
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-background text-foreground">
+    // relative z-10：壓在全域 NxAppBackdrop（z-0 蜂巢背景）之上、bg-background 不透明蓋滿（同 WorkbenchShell 範式）
+    <div className="relative z-10 flex h-dvh overflow-hidden bg-background text-foreground">
       {/* 左：可收縮選單 */}
       <aside
         className={`flex shrink-0 flex-col border-r border-border/60 bg-card/40 transition-[width] duration-200 ${
