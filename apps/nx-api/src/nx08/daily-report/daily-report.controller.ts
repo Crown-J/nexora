@@ -3,14 +3,16 @@ import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@ne
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { CurrentUser } from '../../shared/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../shared/guards/jwt-auth.guard';
-import { Nx08ProPlanGuard } from '../../shared/nx08/nx08-pro-plan.guard';
+import { ModuleAccessGuard } from '../../shared/module-access/module-access.guard';
+import { RequiresModule } from '../../shared/module-access/requires-module.decorator';
 
 import { CreateDailyReportDto, PatchDailyReportDto } from './daily-report.dto';
 import { Nx08DailyReportService } from './daily-report.service';
 import { Nx08DailyReportListQueryDto } from './nx08-daily-report-list-query.dto';
 
 @Controller('nx08/daily-report')
-@UseGuards(JwtAuthGuard, Nx08ProPlanGuard)
+@UseGuards(JwtAuthGuard, ModuleAccessGuard)
+@RequiresModule('NX08')
 export class Nx08DailyReportController {
   constructor(private readonly svc: Nx08DailyReportService) {}
 

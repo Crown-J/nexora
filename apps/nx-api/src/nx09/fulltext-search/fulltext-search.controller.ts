@@ -7,12 +7,14 @@ import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { CurrentUser } from '../../shared/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../shared/guards/jwt-auth.guard';
 import { RolesGuard } from '../../shared/guards/roles.guard';
-import { Nx09ProPlanGuard } from '../../shared/nx09/nx09-pro-plan.guard';
+import { ModuleAccessGuard } from '../../shared/module-access/module-access.guard';
+import { RequiresModule } from '../../shared/module-access/requires-module.decorator';
 
 import { Nx09FulltextSearchService, type SearchScope } from './fulltext-search.service';
 
 @Controller('nx09/search')
-@UseGuards(JwtAuthGuard, RolesGuard, Nx09ProPlanGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, ModuleAccessGuard)
+@RequiresModule('NX09')
 export class Nx09FulltextSearchController {
   constructor(private readonly svc: Nx09FulltextSearchService) {}
 

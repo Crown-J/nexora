@@ -8,7 +8,8 @@ import { CurrentUser } from '../../shared/decorators/current-user.decorator';
 import { Roles } from '../../shared/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../shared/guards/jwt-auth.guard';
 import { RolesGuard } from '../../shared/guards/roles.guard';
-import { Nx07ProPlanGuard } from '../../shared/nx07/nx07-pro-plan.guard';
+import { ModuleAccessGuard } from '../../shared/module-access/module-access.guard';
+import { RequiresModule } from '../../shared/module-access/requires-module.decorator';
 
 import {
   CreateInjuryDto,
@@ -19,7 +20,8 @@ import {
 import { Nx07MedicalService } from './medical.service';
 
 @Controller('nx07/medical')
-@UseGuards(JwtAuthGuard, RolesGuard, Nx07ProPlanGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, ModuleAccessGuard)
+@RequiresModule('NX07')
 @Roles('SYSADMIN', 'OWNER', 'HR_ADMIN')
 export class Nx07MedicalController {
   constructor(private readonly svc: Nx07MedicalService) {}

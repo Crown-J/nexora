@@ -11,7 +11,8 @@ import { CurrentUser } from '../../shared/decorators/current-user.decorator';
 import { Roles } from '../../shared/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../shared/guards/jwt-auth.guard';
 import { RolesGuard } from '../../shared/guards/roles.guard';
-import { Nx09ProPlanGuard } from '../../shared/nx09/nx09-pro-plan.guard';
+import { ModuleAccessGuard } from '../../shared/module-access/module-access.guard';
+import { RequiresModule } from '../../shared/module-access/requires-module.decorator';
 
 import { Nx09SubTablesService } from './sub-tables.service';
 
@@ -76,7 +77,8 @@ class PatchMeetingMinutesDto {
 }
 
 @Controller('nx09')
-@UseGuards(JwtAuthGuard, RolesGuard, Nx09ProPlanGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, ModuleAccessGuard)
+@RequiresModule('NX09')
 export class Nx09SubTablesController {
   constructor(private readonly svc: Nx09SubTablesService) {}
 

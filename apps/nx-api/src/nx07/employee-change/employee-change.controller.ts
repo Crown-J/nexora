@@ -7,13 +7,15 @@ import { JwtAuthGuard } from '../../shared/guards/jwt-auth.guard';
 import { RolesGuard } from '../../shared/guards/roles.guard';
 import { Nx07ListQueryDto } from '../../shared/nx07/nx07-list-query.dto';
 import { Nx07NoFinanceGuard } from '../../shared/nx07/nx07-no-finance.guard';
-import { Nx07ProPlanGuard } from '../../shared/nx07/nx07-pro-plan.guard';
+import { ModuleAccessGuard } from '../../shared/module-access/module-access.guard';
+import { RequiresModule } from '../../shared/module-access/requires-module.decorator';
 
 import { CreateEmployeeChangeDto, PatchEmployeeChangeDto } from './employee-change.dto';
 import { Nx07EmployeeChangeService } from './employee-change.service';
 
 @Controller('nx07/employee-change')
-@UseGuards(JwtAuthGuard, Nx07ProPlanGuard, Nx07NoFinanceGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, ModuleAccessGuard, Nx07NoFinanceGuard, RolesGuard)
+@RequiresModule('NX07')
 @Roles('SYSADMIN', 'OWNER', 'HR')
 export class Nx07EmployeeChangeController {
   constructor(private readonly svc: Nx07EmployeeChangeService) {}

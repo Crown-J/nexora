@@ -17,6 +17,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PrismaService } from '../../prisma/prisma.service';
+import { resolveEnabledModules } from '../../shared/module-access/resolve-enabled-modules';
 
 export type JwtPayload = {
   sub: string;
@@ -39,6 +40,12 @@ export type RequestUser = {
   planCode: string | null;
   /** 職務↔權限拆分軌：使用者的權限等級代碼（'S'=全權限；null=未指派）。每 request 即時查 DB。*/
   permissionLevelCode: string | null;
+  /**
+   * 本租戶已啟用的 app 模組代碼（如 ['NX01','NX07']）。
+   * 來源＝方案標配 ∪ 訂閱加購 → nx99_product_module_map.app_module_code。
+   * 給 ModuleAccessGuard 用；跨租戶平台使用者為空陣列（不受模組限制，見該 guard）。
+   */
+  enabledModules: string[];
 };
 
 @Injectable()
@@ -102,6 +109,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     let tenantId: string | null;
     let tenantCode: string | null;
     let planCode: string | null;
+    let enabledModules: string[] = [];
 
     if (isCrossTenantPlatform) {
       tenantId = null;
@@ -120,13 +128,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
           });
           tenantCode = t?.code ?? null;
         }
-        // 方案以 DB 有效訂閱為準；JWT 可能為舊簽發（plan 已變更）或與 nx99_plan.code 格式不一致
-        const sub = await this.prisma.nx99Subscription.findFirst({
-          where: { tenantId, status: 'A' },
-          include: { plan: true },
-        });
-        const dbPlan = sub?.plan?.code ?? null;
-        planCode = dbPlan ?? payloadPlan;
+        // 方案以 DB 有效訂閱為準；JWT 可能為舊簽發（plan 已變更）或與 nx99_plan.code 格式不一致。
+        // 同一次解析順便取出已啟用模組 → ModuleAccessGuard 不必再打 DB。
+        const resolved = await resolveEnabledModules(this.prisma, tenantId);
+        planCode = resolved.planCode ?? payloadPlan;
+        enabledModules = resolved.codes;
       } else {
         planCode = payloadPlan;
       }
@@ -140,6 +146,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       tenantCode,
       planCode,
       permissionLevelCode,
+      enabledModules,
     };
   }
 }

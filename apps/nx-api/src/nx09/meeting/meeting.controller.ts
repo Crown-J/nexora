@@ -3,14 +3,16 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } f
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { CurrentUser } from '../../shared/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../shared/guards/jwt-auth.guard';
-import { Nx09ProPlanGuard } from '../../shared/nx09/nx09-pro-plan.guard';
+import { ModuleAccessGuard } from '../../shared/module-access/module-access.guard';
+import { RequiresModule } from '../../shared/module-access/requires-module.decorator';
 
 import { CreateMeetingDto, PatchMeetingDto } from './meeting.dto';
 import { Nx09MeetingService } from './meeting.service';
 import { Nx09MeetingListQueryDto } from './nx09-meeting-list-query.dto';
 
 @Controller('nx09/meetings')
-@UseGuards(JwtAuthGuard, Nx09ProPlanGuard)
+@UseGuards(JwtAuthGuard, ModuleAccessGuard)
+@RequiresModule('NX09')
 export class Nx09MeetingController {
   constructor(private readonly svc: Nx09MeetingService) {}
 
