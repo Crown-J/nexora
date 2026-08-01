@@ -25,6 +25,7 @@ import {
   assertDisposalStatusTransition,
   DisposalStatus,
 } from '../../shared/nx03/nx03-state-machine';
+import { postDisposalToGl } from '../../shared/nx05/nx05-post-stock-doc-to-gl';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 
 import type {
@@ -347,6 +348,10 @@ export class DisposalService {
             updatedBy: user.sub,
           },
         });
+        // ⭐ 總帳脊椎 C3 2026-08-01：報廢接上總帳（只加這一行、⛔ 不動任何營運邏輯）
+        // 成本 0 不開傳票：不良品倉成本本來就是 0，報廢只減數量、沒有會計事件。
+        // W5 免扣帳的處置單（帳已由盤點／銷退調過）沒有庫存流水 → 自然 skip，不會重複記。
+        await postDisposalToGl(tx, { tenantId, disposalId: id, userId: user.sub });
       } else {
         await tx.nx03Disposal.update({
           where: { id },

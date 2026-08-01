@@ -16,6 +16,7 @@ import {
   assertStockTakeStatusTransition,
   StockTakeStatus,
 } from '../../shared/nx03/nx03-state-machine';
+import { postStockTakeToGl } from '../../shared/nx05/nx05-post-stock-doc-to-gl';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 
 import type { CreateStockTakeDto, CreateStockTakeItemDto, PatchStockTakeItemDto, UpdateStockTakeDto } from './dto/stocktake.dto';
@@ -547,6 +548,9 @@ export class StockTakeService {
             updatedBy: user.sub,
           },
         });
+        // ⭐ 總帳脊椎 C3 2026-08-01：盤點盈虧接上總帳（只加這一行、⛔ 不動任何營運邏輯）
+        // ⛔ 盤盈與盤虧不軋淨額——5103 的餘額是「庫位制度有沒有落實」的直接量測。
+        await postStockTakeToGl(tx, { tenantId, stockTakeId: id, userId: user.sub });
         // NX03-STOCK-LITE M2-B：POSTED 後對所有出現的 part × warehouse 檢查安全量、低於則寫 nx98 task-pool
         const postedHead = await tx.nx03StockTake.findFirst({ where: { id, tenantId }, select: ST_SEL });
         if (postedHead) {

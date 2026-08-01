@@ -13,6 +13,7 @@ import { allocNx03DocNo } from '../../shared/nx03/nx03-doc-no';
 import { applyQtyInWithLedger, applyQtyOutWithLedger } from '../../shared/nx03/nx03-inventory';
 import { Nx03ListQueryDto } from '../../shared/nx03/nx03-list-query.dto';
 import { applyStReceivedToSo } from '../../shared/nx03/nx03-on-st-received';
+import { postTransferToGl } from '../../shared/nx05/nx05-post-stock-doc-to-gl';
 import {
   assertTransferStatusTransition,
   TransferStatus,
@@ -390,6 +391,9 @@ export class TransferService {
             updatedBy: user.sub,
           },
         });
+        // ⭐ 總帳脊椎 C3 2026-08-01：倉庫調撥接上總帳（只加這一行、⛔ 不動任何營運邏輯）
+        // 同科目、不同成本中心、金額相等 → 不產生任何損益；兩端同一個成本中心則不開傳票。
+        await postTransferToGl(tx, { tenantId, stId: id, userId: user.sub });
         // PICK-CHAIN 2026-07-18：SO 缺貨觸發的調撥（StItem.sourceSoItemId）→ 回寫 SO 行補貨完成 C
         // 對齊 TI 鏈 applyTiPostedToSo 範式；純倉間調撥（無 sourceSoItemId）無事發生
         await applyStReceivedToSo(tx, { tenantId, stId: id, stDocNo: existing.docNo, userId: user.sub });

@@ -442,11 +442,6 @@ export class RrService {
     // - 有 PO 時跳過（PO confirmed 早已建 AP、helper 內部 guard）
     // - 失敗不阻擋 RR 過帳（log + skip、NX05 LITE 未完整、保守處理）
     await createApFromPostedRr(tx, { tenantId: rr.tenantId, rrId: rr.id, userId });
-
-    // ⭐ 總帳脊椎 C2 2026-08-01：進貨驗收接上總帳（只加這一行、⛔ 不動任何營運邏輯）
-    // 必須排在最後——存貨金額要跟上面寫下的庫存流水核對。
-    // 安全閘：沒設會計期間／國外進貨／金額對不上 → 回傳 skip 理由、⛔ 不擋進貨流程。
-    await postRrToGl(tx, { tenantId: rr.tenantId, rrId: rr.id, userId });
   }
 
   async list(user: RequestUser, q: Nx02ListQueryDto) {
@@ -669,6 +664,10 @@ export class RrService {
             updatedBy: user.sub,
           },
         });
+        // ⭐ 總帳脊椎 C2 2026-08-01：進貨驗收接上總帳（只加這一行、⛔ 不動任何營運邏輯）
+        // 排在單頭更新之後——過帳日以更新後的進貨日期為準；存貨金額與上面寫下的庫存流水核對。
+        // 安全閘：沒設會計期間／國外進貨／金額對不上 → 回傳 skip 理由、⛔ 不擋進貨流程。
+        await postRrToGl(tx, { tenantId, rrId: id, userId: user.sub });
         // NX02-TI-SHELL 2026-07-11：來源=同行調貨單的進貨過帳 → 回寫鏈（同交易、要嘛全成要嘛全不動）
         //   ① TI 狀態 → C 已完成（應付由本 RR 過帳的 createApFromPostedRr 立、TI 不重複立帳——執行長拍板「帳跟貨走」）
         //   ② 該 TI 連結的 SO 缺貨行 transferStatus → C 補貨完成（業務端看到「貨到了可以出」）
