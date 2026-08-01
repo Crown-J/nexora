@@ -1,5 +1,7 @@
 <!-- docs/專案/規格書/核心/NEXORA-財會主檔-schema規格-A階段.md -->
-<!-- 檔案版本：v0.1（草案・待執行長 review 後才實作，依 CLAUDE.md §12「Schema 設計決定」） -->
+<!-- 檔案版本：v0.2（✅ §7 七題已於 2026-08-01 全數照建議拍板；v0.1 為待決草案） -->
+<!-- v0.1→v0.2 變更：①§7 七題全數拍板、②補「動手前三個 grep」的實測結果、③§3.6 稅率型別依 Q6 定為 Decimal(5,2)。
+     ⚠ 歷史保留：v0.1 的「待拍板」措辭改為「已拍板」，但建議內容一字未改（拍板＝照建議）。 -->
 <!-- 檔案說明：A 階段交付物——把亞羅《核心主檔 v1》的 14 張財會主檔轉譯成 NEXORA 的 schema 規格。
      上位依據：NEXORA-策略骨架.md §4（核心 vs 行業皮）、NEXORA-模組重定義分析.md §4 缺口1（總帳脊椎）、
      NEXORA-循環覆蓋對照-亞羅v10.md §5（轉譯要做的三件事）＋§3 三題拍板（2026-08-01）。
@@ -10,7 +12,7 @@
 > **一句話**：亞羅那 14 張表不是照抄就好——**其中 11 張可以直接進核心，1 張是台灣法規皮，1 張是汽配皮（該移出財務），1 張是架構決策題**。
 > 本檔把它們逐張定案成 NEXORA 的表與欄位，並補了亞羅用 Excel 公式頂著、進了系統就必須成表的 3 張。
 
-**版本** v0.1 ｜ **撰寫** Hank ｜ **日期** 2026-08-01 ｜ ⚠ **草案・未動 schema.prisma、未產 migration**
+**版本** v0.2 ｜ **撰寫** Hank ｜ **日期** 2026-08-01 ｜ ✅ **§7 七題已全數照建議拍板（執行長 2026-08-01）**
 
 ---
 
@@ -469,17 +471,25 @@
 
 ---
 
-## 7. ⚠ 待執行長拍板清單（7 題）
+## 7. ✅ 七題已拍板（2026-08-01・執行長「照你建議」）
 
-| # | 題目 | 我的建議 | 為什麼不敢自己拍 |
+| # | 題目 | ✅ 定案（＝原建議） |
+|---|---|---|
+| **Q1** | 模組歸屬 | **全歸 NX05、不新開模組**；固定資產若要獨立收費走 controller `@RequiresModule`，表不搬 |
+| **Q2** | 代碼參數表範圍 | **限定用途**：只收 9 類租戶可自訂值域；狀態機／方向旗標留程式碼 |
+| **Q3** | 會計期間第 13 期 | **保留**（`periodNo` 允許 1–13）——年度調整分錄不擠進 12 月，12 月月報才對得上 |
+| **Q4** | 會計政策的例外 | **開 `Nx05AccountingPolicyException` 子表**（政策 × 適用情境 × 例外值），不塞 JSON |
+| **Q5** | Partner 付款條件 | **新欄 additive 加、舊欄留過渡標 deprecated**，A 階段不刪 |
+| **Q6** | 稅率型別 | **`Decimal(5,2)` 存百分數**，對齊既有 7 處；亞羅 xlsx 的 0.05 匯入時 ×100 |
+| **Q7** | 資金循環對外掛哪條 | **老實標 `TREASURY`** ＋ COSO 說明書寫明理由，不硬塞進九大 |
+
+### ✅ 動手前三個 grep 的實測結果（2026-08-01・精確 count）
+
+| # | 查什麼 | 實測 | 對規格的影響 |
 |---|---|---|---|
-| **Q1** | 這 16 張新表全歸 NX05、不新開模組？ | ✅ 歸 NX05；固定資產若要獨立收費走 controller `@RequiresModule` | 模組邊界是產品決策，牽涉將來怎麼賣 |
-| **Q2** | 代碼參數表只收 9 類「租戶可自訂值域」、狀態機留程式碼？ | ✅ 限定用途 | 全庫值域架構，改法錯了要重來 |
-| **Q3** | 會計期間要不要保留第 13 期（年度調整期）？ | ⭐ 建議**保留**（`periodNo` 允許 13）——年度結帳的調整分錄若擠進 12 月，12 月的月報就永遠對不上 | 業務語意，會計實務慣例兩派都有 |
-| **Q4** | 會計政策的「例外」怎麼裝？（存貨計價：移動平均為主、同行調貨個別認定）| ⭐ 建議開 `Nx05AccountingPolicyException` 子表（政策 × 適用情境 × 例外值），**不要塞 JSON** | 影響 `Nx03StockLedger` 成本算法，是跨模組業務邏輯 |
-| **Q5** | `Nx01Partner` 的 `paymentTermDomestic`（字串常數）要不要改成 FK？ | ⭐ 建議**新欄 additive 加、舊欄留過渡並標 deprecated**，A 階段不刪 | Schema breaking + 跨模組（採購、銷貨都在讀）|
-| **Q6** | 稅率的型別：新表用 `Decimal(6,4)`（存 0.05）還是跟既有一致用百分數（存 5.00）？ | ⭐ 建議**跟既有一致用百分數 `Decimal(5,2)`**，避免同一個庫兩種寫法（實測既有 `taxRate` **8 處**：7 處 `Decimal(5,2)`、1 處 `Decimal(14,2)` ⚠ 那 1 處本身就是既有不一致，順手一起收）| 一致性 vs 精度，兩邊都有道理 |
-| **Q7** | 循環映射對外那幾條（帳戶調撥、零用金、稅務）掛哪個法定循環？ | ⭐ 建議老實標 `TREASURY` ＋ COSO 說明書寫明理由，不硬塞進九大 | 對外檢視時的口徑，是執行長要面對的 |
+| 1 | `Nx05AccountCode.category` 使用點 | 引用 `accountCode` 的檔 **12 個**；`category` 實際讀寫點在 `account-code.service.ts`（6 處）、`account-code.dto.ts`（4 處、型別寫死 `'I'\|'E'\|'A'\|'L'`）、`nx08 finance-dashboard.service.ts`（依 `category='E'` 抓營業費用）、seed `apply-account-code.ts`（**12 列科目資料**）| ✅ **保留 `category` 標 deprecated 是對的**——四個地方都還在用，硬砍會斷 nx08 損益表。<br>⚠ **新發現**：seed 那 12 列用的是 `4100/5100/6132/6200` 舊編號體例，與亞羅範本的 `4101/5101/6201/6101` **對不上** → 換範本要一起換，列 §7 待辦 |
+| 2 | `Nx05Note.status` 的 switch／字面值 | 引用 `nx05Note` 的檔僅 **5 個**；狀態機集中在 `shared/nx05/nx05-state-machine.ts`（`NoteApiStatus` ＋ `NOTE_EDGES`），另 `note.service.ts` 轉換、`nx-ui/features/nx05/ui/common.tsx` 配色 | ✅ **乾淨、可以擴**。加 `IN_COLLECTION`／`STOP_PAYMENT` 只需動 3 個檔（狀態機、service、UI 配色），無散落的 switch |
+| 3 | `Nx01Partner.paymentTermDomestic` / `paymentTermImport` | **85 處**（已排除 `generated/prisma`），跨 nx01／nx02（po/qt）／nx04（so/quote/credit-guard/translator）／nx05（ar-statement／4 支 create-ap/ar）／sys-admin／nx-ui 共 20 餘檔 | 🔴 **Q5 的決定被實測完全證實**：直接改成 FK 會一次動到 85 處、橫跨 5 個模組。**新欄 additive、舊欄不刪** 是唯一安全解 |
 
 ### ⚠ 亞羅那邊仍未結案、會影響本批的 12 條（引用前必看）
 
@@ -498,11 +508,13 @@
 | 77 固資與資訊 8 類值域 | `Nx01Param` seed | ✅ 已納入（資產類別升格主檔、其餘進參數表）|
 | 88 缺 `2116 應付獎金（獎金池）` | 科目範本 | ⭐ 建議補（⛔ 不可塞 2111，那格已給員工代墊用）|
 
-### 🛠 A 階段實作前必做的三個 grep（動手時才跑、本檔不預判）
+### 🛠 由 grep 新長出來的待辦（不在原規格內）
 
-1. `Nx05AccountCode.category` 的所有讀取點 —— 決定 deprecated 後能不能安全停用。
-2. `Nx05Note.status` 的所有 `switch` / 字面值比對 —— 擴 `IN_COLLECTION`/`STOP_PAYMENT` 前必查（CLAUDE.md §7 第 3 步：改 ENUM 前 grep 所有 switch）。
-3. `Nx01Partner.paymentTermDomestic` / `paymentTermImport` 的所有使用點 —— 決定過渡期怎麼切。
+| 待辦 | 內容 | 排程 |
+|---|---|---|
+| **科目 seed 換代** | `packages/db-core/prisma/seed/template/apply-account-code.ts` 現有 **12 列**科目用 `4100/5100/6132/6200/7100/7200/1100/1200/2100` 舊體例；亞羅範本是 `4101/5101/6201/6101/7101/8101/1101/1111/2101`。**兩套不能並存** | ⚠ A 階段末、換範本時一起做；換之前要先看有沒有既有租戶資料指著舊科目 |
+| **Note 狀態擴充** | `nx05-state-machine.ts` 的 `NoteApiStatus` ＋ `NOTE_EDGES` 加 `IN_COLLECTION`／`STOP_PAYMENT`，`note.service.ts` 轉換、UI 配色跟上 | A 階段（schema 欄位先加、狀態值後補）|
+| **Partner 付款條件過渡** | 新欄 `paymentTermId`／`paymentTermImportId` 加上後，85 處讀舊欄的程式**一處都不動**；等範本有資料再逐模組切 | A 階段只加欄，切換另排一軌 |
 
 ---
 
