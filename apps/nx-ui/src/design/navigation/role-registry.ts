@@ -90,9 +90,8 @@ export const ROLES: RoleDef[] = [
     //    它們的功能要被吸收進各自的「作業」頁，⚠️ 在改寫完成前，選單進不去這四個站。
     //    元件本身沒刪，InstantWorkbench 還掛著（其他頁面的嵌入點仍在用）。
     cells: [
-      // 1 報價作業：客戶打電話進來的落點。查料＋兩個價＋開報價，⛔ 全部在同一頁。
-      // ⚠️ 目前先指既有的報價單頁；一頁式報價工作區改寫中。
-      { no: 1, id: 'quote-ops', label: '報價作業', href: '/dashboard/sale/qt', status: 'live' },
+      // 1 報價作業：客戶打電話進來的落點。選客戶＋查料＋兩個價＋出報價，⛔ 全部在同一頁。
+      { no: 1, id: 'quote-ops', label: '報價作業', href: '/dashboard/sale/quote', status: 'live' },
       // 2 銷貨作業：報價談成 → 開單、查單、改單同一頁
       { no: 2, id: 'so-ops', label: '銷貨作業', href: '/dashboard/sale/so', status: 'live' },
       // 3 退貨作業：客戶要退 → 依零件的退貨政策自動分流成一般退貨或轉保固（規格 §4.2）
