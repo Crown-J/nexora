@@ -461,6 +461,8 @@ model Nx01Department {
   /// B 階段：成本中心維度（貢獻式損益靠它）
   rev_Nx05VoucherLine_departmentId       Nx05VoucherLine[]    @relation("R_Nx05VoucherLine_departmentId")
   rev_Nx05GlBalance_departmentId         Nx05GlBalance[]      @relation("R_Nx05GlBalance_departmentId")
+  /// ⭐ 據點的對應成本中心反向（倉庫 → 據點 → 成本中心，庫存類單據的成本中心來源）
+  rev_Nx01Site_costCenterDeptId          Nx01Site[]           @relation("R_Nx01Site_costCenterDeptId")
 
   @@map("nx01_department")
 }
@@ -729,10 +731,15 @@ model Nx01Site {
   sortNo                     Int             @default(0) @map("sort_no")
   /// 是否啟用（停用不刪資料）；啟用最低需求版本：LITE
   isActive                   Boolean         @default(true) @map("is_active")
+  /// ⭐ 對應成本中心（FK nx01_department）。會計政策第 11 項「不分攤、看店的貢獻」＝損益要按店切，
+  /// 所以存貨／進貨／調撥／盤點這些單據（單上沒有業務員、只有倉庫）的成本中心走
+  /// 倉庫 → 據點 → 這一欄。⚠ 可空：沒設定的據點退回既有做法（銷貨取業務員部門），不擋既有流程。；啟用最低需求版本：LITE
+  costCenterDeptId           String?         @map("cost_center_dept_id") @db.VarChar(15)
   createdAt                  DateTime        @default(now()) @map("created_at")
   createdBy                  String          @map("created_by") @db.VarChar(15)
   updatedAt                  DateTime        @updatedAt @map("updated_at")
   updatedBy                  String          @map("updated_by") @db.VarChar(15)
+  costCenterDept             Nx01Department? @relation("R_Nx01Site_costCenterDeptId", fields: [costCenterDeptId], references: [id])
   rev_Nx01Warehouse_siteId   Nx01Warehouse[] @relation("R_Nx01Warehouse_siteId")
   // 02 第四批 軌 1 2026-06-07：使用者「主要據點」單值 ref（一人一個、forward 視角）
   rev_Nx01User_primarySiteId Nx01User[]      @relation("R_Nx01User_primarySiteId")

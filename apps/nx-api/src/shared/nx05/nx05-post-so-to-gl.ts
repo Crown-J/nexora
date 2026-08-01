@@ -18,6 +18,7 @@
 import type { Prisma } from 'db-core';
 import { Prisma as PrismaNs } from 'db-core';
 
+import { resolveCostCenter, type CostCenterSource } from './nx05-cost-center';
 import { postByRule } from './nx05-post-by-rule';
 
 /** 沒過帳的原因。⚠ 全部屬「租戶還沒把總帳設起來」，不是資料錯。 */
@@ -34,6 +35,8 @@ export interface PostSoToGlResult {
   skipped: GlSkipReason | null;
   /** 本次結轉的銷貨成本（從庫存流水彙總而來）。 */
   cogs: PrismaNs.Decimal | null;
+  /** ⚠ `USER` 代表出貨據點還沒設成本中心、走了退路（貢獻按人切而非按店切）。 */
+  costCenterSource: CostCenterSource;
 }
 
 const SKIP = (r: GlSkipReason): PostSoToGlResult => ({
@@ -41,6 +44,7 @@ const SKIP = (r: GlSkipReason): PostSoToGlResult => ({
   docNo: null,
   skipped: r,
   cogs: null,
+  costCenterSource: 'NONE',
 });
 
 /**
@@ -58,7 +62,14 @@ export async function postSoToGl(
     where: { tenantId, sourceDocType: 'SO', sourceDocId: soId },
     select: { id: true, docNo: true },
   });
-  if (dup) return { voucherId: dup.id, docNo: dup.docNo, skipped: 'ALREADY_POSTED', cogs: null };
+  if (dup)
+    return {
+      voucherId: dup.id,
+      docNo: dup.docNo,
+      skipped: 'ALREADY_POSTED',
+      cogs: null,
+      costCenterSource: 'NONE',
+    };
 
   const so = await tx.nx04So.findFirst({
     where: { id: soId, tenantId },
@@ -71,6 +82,7 @@ export async function postSoToGl(
       taxAmount: true,
       totalAmount: true,
       salesPersonId: true,
+      warehouseId: true,
     },
   });
   if (!so) return SKIP('SO_NOT_FOUND');
@@ -95,18 +107,15 @@ export async function postSoToGl(
   if (!period) return SKIP('NO_OPEN_PERIOD');
 
   // ── 成本中心 ──
-  // ⚠ 目前取「業務員所屬部門」。
-  // 🔴 這是暫時解、需要執行長拍板：會計政策第 11 項是「不分攤、看店的貢獻」，
-  //    所以成本中心的正解應該是**據點（店）**，而不是業務員的人資部門。
-  //    但目前 nx01_site 沒有對應到 nx01_department，缺一條關聯。→ 已列報回報。
-  let departmentId: string | null = null;
-  if (so.salesPersonId) {
-    const u = await tx.nx01User.findFirst({
-      where: { id: so.salesPersonId, tenantId },
-      select: { departmentId: true },
-    });
-    departmentId = u?.departmentId ?? null;
-  }
+  // ⭐ 2026-08-01 執行長拍板：成本中心用「店」。
+  //    改走 出貨倉 → 據點 → 對應成本中心；據點沒設定才退回業務員的人資部門（相容既有行為）。
+  //    會計政策第 11 項是「不分攤、看店的貢獻」——按人切跟按店切講的不是同一件事。
+  const cc = await resolveCostCenter(tx, {
+    tenantId,
+    warehouseId: so.warehouseId,
+    fallbackUserId: so.salesPersonId,
+  });
+  const departmentId = cc.departmentId;
   if (!departmentId) return SKIP('NO_DEPARTMENT');
 
   // ── 銷貨成本：從庫存流水彙總（postSoStockOut 已寫入）──
@@ -140,7 +149,13 @@ export async function postSoToGl(
     },
   });
 
-  return { voucherId: r.voucherId, docNo: r.docNo, skipped: null, cogs };
+  return {
+    voucherId: r.voucherId,
+    docNo: r.docNo,
+    skipped: null,
+    cogs,
+    costCenterSource: cc.source,
+  };
 }
 
 /** 從單號取機構碼（第三段）；取不到用 HQ0。 */
