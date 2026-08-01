@@ -95,7 +95,13 @@ export function FocusLockedDialog({
   // 會重跑本 effect → 重新 pushLayer + 搶焦點 → 「打一個字焦點就跳走」。
   // callback 走 ref、effect 只依賴 open/initialFocusRef 等穩定值。
   const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
+  // ⚠️ 2026-08-01：原本直接在渲染期間寫 `onCloseRef.current = onClose`，
+  //    違反「渲染必須是純的」（eslint react-hooks/refs）。改在 effect 裡同步。
+  //    ⛔ 這裡不能改回渲染期間寫——但也不影響行為：唯一的讀取點是下面的
+  //    onEscape callback（使用者按 Esc 時才跑），那時 effect 早已執行完。
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   // mount: push stack + 記前焦點 + 移焦點進 dialog（suspended 時視同關閉：pop 層、還原焦點）
   const hasClose = !!onClose;
