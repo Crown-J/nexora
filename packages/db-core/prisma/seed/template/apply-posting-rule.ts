@@ -4,7 +4,7 @@
 //
 // ⭐ 這是缺口 1「總帳脊椎」的核心規格輸入：單據要怎麼過帳，全部看這裡。
 // 資料來源：亞羅核心主檔-v1『交易科目對映』（彙總 43 個代號）
-//           ＋ 營運循環-v10 五張分循環分頁（另 20 個代號）＝ 共 66 個交易代號、180 條分錄行。
+//           ＋ 營運循環-v10 五張分循環分頁（另 20 個代號）＝ 共 67 個交易代號、182 條分錄行。
 //
 // 轉譯時做的三件修正（皆為實測發現、非臆測）：
 //   1. 🔴 亞羅對映表筆誤 2134 → 2121：FA-DISP 第 4 行寫 2134「銷項稅額」，
@@ -53,6 +53,7 @@ const RULES: readonly RuleRow[] = [
   { code: 'LCA',        name: 'Landed Cost 分攤',      cycle: 'PURCHASE',   legal: 'PURCHASE_PAYMENT', status: 'ACTIVE',   remark: null },
   { code: 'LN-DRAW',    name: '借款動用',                cycle: 'FINANCE',    legal: 'FINANCING',        status: 'ACTIVE',   remark: null },
   { code: 'LN-GUAR',    name: '信保保證手續費',             cycle: 'FINANCE',    legal: 'FINANCING',        status: 'ACTIVE',   remark: null },
+  { code: 'LN-RECL',    name: '長期借款重分類（轉列一年內到期）',    cycle: 'FINANCE',    legal: 'FINANCING',        status: 'ACTIVE',   remark: '🔴 A 階段補建：長期借款的期末重分類（把未來一年內到期的本金轉列流動負債）。⚠ 為什麼非有不可——只在動用當下分流是不夠的，**時間會走**：原本掛 2501 的長期部分會逐漸變成「一年內到期」，不重分類的話流動負債被低估、流動比率一路虛高，而流動比率正是銀行授信看的第一個數字。⭐ 這一條在亞羅 v11 沒有——它的 LN-DRAW 備註寫了「一年內走 2151、超過一年走 2501」，但只寫了動用那一刻，沒有處理時間經過。⚠ 每期末（或至少每年結帳）跑一次，金額＝未來 12 個月內到期的本金。' },
   { code: 'LN-REPAY',   name: '借款還本付息',              cycle: 'FINANCE',    legal: 'FINANCING',        status: 'ACTIVE',   remark: null },
   { code: 'NT-DISC',    name: '應收票據貼現',              cycle: 'FINANCE',    legal: 'FINANCING',        status: 'ACTIVE',   remark: null },
   { code: 'NT-DISC-NG', name: '貼現票據退票（追索）',          cycle: 'FINANCE',    legal: 'FINANCING',        status: 'ACTIVE',   remark: null },
@@ -154,10 +155,12 @@ const LINES: readonly LineRow[] = [
   { rule: 'LCA',        no:  1, dc: 'D', acc: '1121',   pattern: null,         basis: 'ALLOC',  dept: true,  partner: false, scope: 'PARTNER', bank: false, optional: false, cond: null,                                    remark: '按金額比例分攤到批次內各料號' },
   { rule: 'LCA',        no:  2, dc: 'C', acc: '1122',   pattern: null,         basis: 'ALLOC',  dept: true,  partner: false, scope: 'PARTNER', bank: false, optional: false, cond: null,                                    remark: '🔴 防火牆的核心：1122 的期末餘額必須趨近於 0。有餘額＝有費用沒分攤進存貨，一眼看得出來。' },
   { rule: 'LN-DRAW',    no:  1, dc: 'D', acc: '1102',   pattern: null,         basis: 'AMOUNT', dept: false, partner: false, scope: 'PARTNER', bank: true,  optional: false, cond: '金額基礎（原文）：動用金額',                         remark: '金額基礎（原文）：動用金額。銀行撥款進帳' },
-  { rule: 'LN-DRAW',    no:  2, dc: 'C', acc: '2151',   pattern: null,         basis: 'AMOUNT', dept: false, partner: false, scope: 'PARTNER', bank: true,  optional: false, cond: '金額基礎（原文）：動用金額',                         remark: '金額基礎（原文）：動用金額。🆕 v2 ·『回頭要補的』#53。⚠ 一年內到期走 `2151 短期借款`、超過一年走 `2501 長期借款`；**綜合額度可分次動用 → 一份契約多筆動用，額度餘額看「借款契約主檔」不看科目餘額。**' },
+  { rule: 'LN-DRAW',    no:  2, dc: 'C', acc: null,     pattern: '2151/2501',  basis: 'AMOUNT', dept: false, partner: false, scope: 'PARTNER', bank: true,  optional: true,  cond: '金額基礎（原文）：動用金額　條件性出現：依借款契約到期日分流：一年內到期走 2151 短期借款、超過一年走 2501 長期借款。🆕 v2 ·『回頭要補的』#53。⚠ 一年內到期走 `2151 短期借款`、超過一年走 `2501 長期借款`；**綜合額度可分次動用 → 一份契約多筆動用，額度餘額看「借款契約主檔」不看科目餘額。**', remark: '金額基礎（原文）：動用金額。依借款契約到期日分流：一年內到期走 2151 短期借款、超過一年走 2501 長期借款。🆕 v2 ·『回頭要補的』#53。⚠ 一年內到期走 `2151 短期借款`、超過一年走 `2501 長期借款`；**綜合額度可分次動用 → 一份契約多筆動用，額度餘額看「借款契約主檔」不看科目餘額。**' },
   { rule: 'LN-GUAR',    no:  1, dc: 'D', acc: '8101',   pattern: null,         basis: 'AMOUNT', dept: false, partner: false, scope: 'PARTNER', bank: false, optional: false, cond: '金額基礎（原文）：保證手續費',                        remark: '金額基礎（原文）：保證手續費。🆕 v2 ·『回頭要補的』#53。🔴🔴 **不記 `6406 銀行手續費`**——否則「實質資金成本」永遠算不出來。⚠ 新設公司無財報無擔保幾乎只能走信保基金，保證手續費 0.5–1.5% × 保證成數 80–90% → **實質年利率 2.90–3.85%，不是目標值 2.5%。**' },
   { rule: 'LN-GUAR',    no:  2, dc: 'C', acc: '1102',   pattern: null,         basis: 'AMOUNT', dept: false, partner: false, scope: 'PARTNER', bank: false, optional: false, cond: '金額基礎（原文）：保證手續費',                        remark: '金額基礎（原文）：保證手續費。' },
-  { rule: 'LN-REPAY',   no:  1, dc: 'D', acc: '2151',   pattern: null,         basis: 'AMOUNT', dept: false, partner: false, scope: 'PARTNER', bank: true,  optional: false, cond: '金額基礎（原文）：本金部分',                         remark: '金額基礎（原文）：本金部分。本息均攤裡的本金' },
+  { rule: 'LN-RECL',    no:  1, dc: 'D', acc: '2501',   pattern: null,         basis: 'AMOUNT', dept: false, partner: true,  scope: 'PARTNER', bank: false, optional: false, cond: '金額基礎（原文）：重分類金額',                        remark: '金額基礎（原文）：重分類金額。沖減長期借款（非流動）' },
+  { rule: 'LN-RECL',    no:  2, dc: 'C', acc: '2151',   pattern: null,         basis: 'AMOUNT', dept: false, partner: true,  scope: 'PARTNER', bank: false, optional: false, cond: '金額基礎（原文）：重分類金額',                        remark: '金額基礎（原文）：重分類金額。轉列短期借款（流動）。⚠ 金額＝未來 12 個月內到期的本金' },
+  { rule: 'LN-REPAY',   no:  1, dc: 'D', acc: null,     pattern: '2151/2501',  basis: 'AMOUNT', dept: false, partner: false, scope: 'PARTNER', bank: true,  optional: true,  cond: '金額基礎（原文）：本金部分　條件性出現：本金部分依該筆借款當初的分流結果沖銷對應科目。本息均攤裡的本金', remark: '金額基礎（原文）：本金部分。本金部分依該筆借款當初的分流結果沖銷對應科目。本息均攤裡的本金' },
   { rule: 'LN-REPAY',   no:  2, dc: 'D', acc: '8101',   pattern: null,         basis: 'AMOUNT', dept: false, partner: false, scope: 'PARTNER', bank: true,  optional: false, cond: '金額基礎（原文）：利息部分',                         remark: '金額基礎（原文）：利息部分。⭐ 貫穿原則：**凡資金成本一律進 `8101 利息支出`**' },
   { rule: 'LN-REPAY',   no:  3, dc: 'C', acc: '1102',   pattern: null,         basis: 'AMOUNT', dept: false, partner: false, scope: 'PARTNER', bank: true,  optional: false, cond: '金額基礎（原文）：月付金額',                         remark: '金額基礎（原文）：月付金額。🆕 v2。🔴 還本付息這個**行為**在資金循環（付款端），但**科目對映**放這裡與融資工具綁在一起——一筆月付要拆本金與利息，那個拆法是契約決定的。' },
   { rule: 'NT-DISC',    no:  1, dc: 'D', acc: '1102',   pattern: null,         basis: 'AMOUNT', dept: false, partner: false, scope: 'PARTNER', bank: true,  optional: false, cond: '金額基礎（原文）：票面 － 貼現息',                     remark: '金額基礎（原文）：票面 － 貼現息。實得金額' },
