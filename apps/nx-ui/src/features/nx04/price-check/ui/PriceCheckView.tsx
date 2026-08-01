@@ -9,16 +9,30 @@
 //   ⚠️ 那是**倉管視角**。價格不是它自己的東西，是報價流程用 slot 從外面掛進去的。
 //   所以「查價查貨」這個名字，舊版實際只做到「查貨」。
 //
-// 這一頁是**業務視角**：業務接到電話問一支料，當下要講的三件事——
-//   ① 有沒有貨（可出量）② 賣多少（建議售價）③ 上次賣他多少（議價依據）
-//   一列就答完，⛔ 不用點進去、不用切視窗。
+// 這一頁是**業務視角**：業務接到電話問一支料，當下要講的事一列答完，
+//   ⛔ 不用點進去、不用切視窗。
+//
+// ⭐ 兩個價（執行長 2026-08-01 拍板，取代原本的「建議售價」）：
+//   · 市場行情價 ＝ 主檔 A 價。恆迎定期向太古（正廠經銷商）索取的原廠報價。
+//     ⭐ 副廠件掛的是「它所替代的那顆原廠件」的太古價——保養廠拿這個跟車主講、
+//        實際裝副廠件，中間差價就是保養廠的利潤。這是生意本身，不是資料錯誤。
+//   · 公司定價 ＝ 主檔 B 價。我們賣給保養廠的價。
+//     ⚠️ 暫定用 B 價，待產品部重訂公司定價後改資料來源即可（後端 PART_SEL 一行）。
+//
+// ⛔ 兩個價都跟客戶等級無關（2026-08-01 改制）。舊制是「進價 × 客戶等級毛利率」現場算，
+//    改成價格統一由產品部訂、對所有客戶一樣——客戶之間不會再有「為什麼他比較便宜」的爭議。
+//    客戶等級改去影響業務的 KPI 加權（高等級客戶成交分數高 → 業務自己算出值得為誰讓價）。
+//    ⚠️ KPI 加權另開一軌，本頁不碰。
+//
+// ⛔ 兩個價都是主檔原值直出，不過濾、不校正、不判斷合不合理（執行長 2026-08-01：
+//    先讓系統跑起來，資料真不真實交給另一個專案）。
 //
 // ⛔ 一頁式，不是彈窗（規格 §2.1）。舊的 FocusLockedDialog 浮層範式在 v3.0.0 不再延用。
 //
 // ⭐ 料號優先、客戶選填（執行長拍板 A 案，⛔ 不是先選客戶再查料）：
 //    理由＝規格 §3.3「客戶隨時來詢價是常態，進系統就能直接打料號」。
-//    沒選客戶時建議售價與「上次賣他」會是「—」（⛔ 不猜、不拿別人的價充數），
-//    但可出量與市場近價照給；選了客戶，整張表立刻換成他的價。
+//    兩個價對所有客戶都一樣，所以不選客戶也看得到；
+//    選客戶只是為了看「上次賣他多少」（議價依據）與他的欠款狀況。
 //
 // ⚠️ 下游還是舊的：「加入調貨詢價」開的仍是浮層工作站。
 //    那條鏈的一頁式改造屬規格階段 4，本頁先不動它。
@@ -297,9 +311,16 @@ export function PriceCheckView() {
               <tr className="border-b-2 border-border text-left">
                 <th className="px-3 py-2.5 text-[14px] font-bold text-foreground">料號 / 品名 / 廠牌</th>
                 <th className="px-3 py-2.5 text-right text-[14px] font-bold text-foreground">可出量（全公司）</th>
-                <th className="px-3 py-2.5 text-right text-[14px] font-bold text-foreground">建議售價</th>
+                {/* 兩個價（執行長 2026-08-01 拍板）：行情給保養廠對車主講、定價是我們賣他的 */}
+                <th className="px-3 py-2.5 text-right text-[14px] font-bold text-foreground">
+                  市場行情價
+                  <div className="text-[12px] font-normal text-foreground/70">保養廠對車主</div>
+                </th>
+                <th className="px-3 py-2.5 text-right text-[14px] font-bold text-foreground">
+                  公司定價
+                  <div className="text-[12px] font-normal text-foreground/70">我們賣他</div>
+                </th>
                 <th className="px-3 py-2.5 text-right text-[14px] font-bold text-foreground">上次賣他</th>
-                <th className="px-3 py-2.5 text-right text-[14px] font-bold text-foreground">最近成交</th>
                 <th className="px-3 py-2.5 text-[14px] font-bold text-foreground">沒貨怎麼辦</th>
               </tr>
             </thead>
@@ -352,23 +373,16 @@ export function PriceCheckView() {
                         ) : null}
                       </td>
                       <td className="px-3 py-2.5 text-right text-[18px] font-bold tabular-nums text-foreground">
-                        {fmtMoney(c.suggestedPrice)}
+                        {fmtMoney(c.marketPrice)}
+                      </td>
+                      <td className="px-3 py-2.5 text-right text-[18px] font-bold tabular-nums text-foreground">
+                        {fmtMoney(c.listPrice)}
                       </td>
                       <td className="px-3 py-2.5 text-right text-[15px] tabular-nums text-foreground">
                         {c.customerLastAmount ? (
                           <>
                             {fmtMoney(c.customerLastAmount)}
                             <div className="text-[13px] text-foreground/70">{fmtDate(c.customerLastDate)}</div>
-                          </>
-                        ) : (
-                          '—'
-                        )}
-                      </td>
-                      <td className="px-3 py-2.5 text-right text-[15px] tabular-nums text-foreground">
-                        {c.partLastAmount ? (
-                          <>
-                            {fmtMoney(c.partLastAmount)}
-                            <div className="text-[13px] text-foreground/70">{fmtDate(c.partLastDate)}</div>
                           </>
                         ) : (
                           '—'
@@ -396,22 +410,16 @@ export function PriceCheckView() {
         </div>
       </div>
 
+      {/*
+        ⭐ 兩個價都跟客戶等級無關（執行長 2026-08-01 改制）：
+           價格統一由產品部訂、對所有客戶一樣，客戶之間不會再有「為什麼他比較便宜」的比價爭議。
+           客戶等級改成只影響業務的 KPI 加權——高等級客戶成交的分數高，
+           業務自己就會算出「值得為這個客戶讓價」。⛔ 不硬性規定業務怎麼賣，用規則誘導。
+           ⚠️ KPI 加權另開一軌，本頁只負責把兩個價顯示出來。
+      */}
       {!customer && rows.length > 0 ? (
         <p className="mt-3 text-[14px] text-foreground/70">
-          還沒選客戶——「建議售價」與「上次賣他」要選了客戶才算得出來。上面選一個客戶，整張表會立刻換成他的價。
-        </p>
-      ) : null}
-
-      {/*
-        ⚠️ 建議售價＝進價 ×（1＋客戶等級毛利率）。客戶沒設等級就算不出來。
-        ⛔ 這裡不塞一個預設毛利率充數——那等於系統自己編一個售價出來，業務照著報就出事。
-        寧可留白並講清楚為什麼，讓人知道要去補等級。
-      */}
-      {customer && rows.length > 0 && rows.every((r) => !r.suggestedPrice) ? (
-        <p className="mt-3 rounded-lg border-2 border-amber-500 bg-amber-500/10 px-4 py-2.5 text-[14px] text-foreground">
-          ⚠️ 算不出建議售價：<b>{customer.name}</b> 還沒設定客戶等級。
-          建議售價＝進價 ×（1＋等級毛利率），沒有等級就沒有毛利率可以算。
-          先到客戶管理把等級補上，這一欄就會有數字。
+          兩個價對所有客戶都一樣，不用選客戶也看得到。選客戶只是要看「上次賣他多少」跟他的欠款狀況。
         </p>
       ) : null}
     </div>

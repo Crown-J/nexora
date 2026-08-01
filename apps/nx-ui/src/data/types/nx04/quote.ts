@@ -163,6 +163,15 @@ export interface QuoteCandidate {
   partLastDate: string | null;
   partLastAmount: string | null;
   suggestedPrice: string | null;
+  /**
+   * 市場行情價＝零件主檔 A 價。
+   * 恆迎定期向太古（正廠經銷商）索取的原廠報價；⭐ 副廠件掛的是「它所替代的那顆原廠件」的價——
+   * 保養廠拿這個數字跟車主講，實際裝副廠件，中間差價就是保養廠的利潤。
+   * ⛔ 主檔原值直出，不過濾也不校正（執行長 2026-08-01）。
+   */
+  marketPrice: string | null;
+  /** 公司定價＝零件主檔 B 價。⚠️ 暫定，待產品部重訂 */
+  listPrice: string | null;
 }
 
 /** 報價比價面板 5 格（②~⑤ 逾一個月回 null）*/

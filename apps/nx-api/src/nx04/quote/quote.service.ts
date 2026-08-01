@@ -1131,6 +1131,13 @@ export class QuoteService {
       isOem: true,
       isActive: true,
       cost: true,
+      // 2026-08-01 執行長拍板：查價查貨只顯示兩個價，都從零件主檔直接讀、⛔ 不現場算
+      //   priceA ＝ 市場行情價（恆迎定期向太古〔正廠經銷商〕索取的原廠報價）
+      //             ⭐ 副廠件掛的是「它所替代的那顆原廠件」的太古價——保養廠拿這個跟車主講
+      //   priceB ＝ 公司定價（實際賣給保養廠的價）
+      //   ⚠️ 公司定價暫定用 priceB，待產品部重訂後改這一行即可
+      priceA: true,
+      priceB: true,
       brand: { select: { code: true, name: true } },
     } as const;
     const memberships = await this.prisma.nx01PartCompatGroupMember.findMany({
@@ -1282,6 +1289,10 @@ export class QuoteService {
         isOem: c.part.isOem,
         isActive: c.part.isActive,
         role: c.role,
+        // ⭐ 兩個價都是主檔原值直出，⛔ 不過濾、不校正、不判斷合不合理
+        //    （執行長 2026-08-01：先讓系統跑起來，資料真不真實由另一個專案處理）
+        marketPrice: c.part.priceA == null ? null : c.part.priceA.toString(),
+        listPrice: c.part.priceB == null ? null : c.part.priceB.toString(),
         warehouseAvailable: stockByWh[whId] ?? '0',
         stockByWh,
         customerLastDate: cl ? cl.date.toISOString() : null,
