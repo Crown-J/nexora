@@ -23,7 +23,12 @@ const ENTRIES: Entry[] = [
     desc: '主檔列表・單據列表・報表共用；↑↓ Enter 純鍵盤、欄位可收合',
     status: '完成',
   },
-  { name: '單據模板', desc: '八張單共用：表頭＋單身表格＋合計', status: '待做' },
+  {
+    href: '/preview/doc',
+    name: '單據模板',
+    desc: '八張單共用：單頭＋單身＋合計；Tab 跳格、最後一格 Tab 自動新增列',
+    status: '完成',
+  },
   { name: '精靈／流程模板', desc: '多步驟一頁式；⛔ 不用彈跳視窗', status: '待做' },
   { name: '主檔編輯模板', desc: '25 個主檔共用；現有三套要收斂成一套', status: '待做' },
   { name: '工作檯卡片', desc: '九個角色的首頁區塊', status: '待做' },

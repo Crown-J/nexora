@@ -66,10 +66,10 @@ export function ListTemplate<T>({
 
   const shown = useMemo(() => columns.filter((c) => !hidden.has(c.key)), [columns, hidden]);
 
-  // 資料換了就把游標拉回第一列，避免停在不存在的位置
-  useEffect(() => {
-    setSel(0);
-  }, [rows]);
+  // 資料變少時游標可能落在不存在的列——渲染時夾住就好。
+  // ⛔ 不要在 effect 裡 setState 拉回第一列：那會多一次渲染，
+  //    而且篩選後跳回第一列反而不合使用者預期（他多半想停在原處附近）。
+  const safeSel = rows.length ? Math.min(sel, rows.length - 1) : 0;
 
   // ⚠️ 一律用函式式更新算新位置。
   //    用 sel + 1 這種寫法，使用者「按住 ↓ 不放」時連續事件會落在同一批次、
@@ -85,9 +85,9 @@ export function ListTemplate<T>({
   // 捲動要等 sel 真的更新完才做，所以放 effect 不放在事件裡
   useEffect(() => {
     bodyRef.current
-      ?.querySelector<HTMLElement>(`[data-row="${sel}"]`)
+      ?.querySelector<HTMLElement>(`[data-row="${safeSel}"]`)
       ?.scrollIntoView({ block: 'nearest' });
-  }, [sel]);
+  }, [safeSel]);
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {
@@ -104,7 +104,7 @@ export function ListTemplate<T>({
       move((_p, last) => last);
     } else if (e.key === 'Enter') {
       e.preventDefault();
-      if (rows[sel]) onOpen?.(rows[sel]);
+      if (rows[safeSel]) onOpen?.(rows[safeSel]);
     }
   };
 
@@ -195,12 +195,12 @@ export function ListTemplate<T>({
               <tr
                 key={rowKey(r)}
                 data-row={i}
-                aria-selected={i === sel}
+                aria-selected={i === safeSel}
                 onClick={() => setSel(i)}
                 onDoubleClick={() => onOpen?.(r)}
                 className={[
                   'cursor-default border-b border-border/60',
-                  i === sel ? 'bg-accent' : 'hover:bg-accent/40',
+                  i === safeSel ? 'bg-accent' : 'hover:bg-accent/40',
                 ].join(' ')}
               >
                 {shown.map((c) => (
