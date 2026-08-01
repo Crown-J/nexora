@@ -250,6 +250,7 @@ COMMENT ON COLUMN "nx01_location"."zone" IS '區域字串（DEPRECATED：2026-06
 COMMENT ON COLUMN "nx01_location"."rack" IS '架號（選填），例：R01';
 COMMENT ON COLUMN "nx01_location"."level_no" IS '層（選填），例：1、2、3';
 COMMENT ON COLUMN "nx01_location"."bin_no" IS '格（選填），例：01、02';
+COMMENT ON COLUMN "nx01_location"."location_type" IS '庫位類型（WMS 庫位級庫存 2026-07-23）：S=一般儲位／R=收貨暫存／K=待包暫存／B=待上架／U=未指定過渡格。 系統格（R/K/B/U）流程靠此類型找到、外觀可自訂但類型鎖定、每倉每系統類型至少留一格啟用、非空不給停用刪。';
 COMMENT ON COLUMN "nx01_location"."remark" IS '備註（選填）';
 COMMENT ON COLUMN "nx01_location"."sort_no" IS '排序用';
 COMMENT ON COLUMN "nx01_location"."is_active" IS '是否啟用（停用不刪資料）';
@@ -425,6 +426,8 @@ COMMENT ON COLUMN "nx01_partner"."sales_user_id" IS '業務歸屬使用者 ID（
 COMMENT ON COLUMN "nx01_partner"."default_currency_id" IS '預設交易幣別 ID（FK nx01_currency、ON DELETE RESTRICT 幣別不可刪）';
 COMMENT ON COLUMN "nx01_partner"."default_warehouse_id" IS '客戶預設取貨據點（FK nx01_warehouse、ON DELETE SET NULL、業界 muscle memory：客戶習慣取貨倉、SO 建單自動帶入、無庫存自動 NX03 ST 調撥）。NX04-IMPL-01 Phase 1 M1 新增。';
 COMMENT ON COLUMN "nx01_partner"."default_delivery_type" IS '預設取貨方式（值域同 nx04_so.delivery_type：D=配送/P=自取/C=寄貨；null=未設定）。F2 報價工作台客戶基本資料顯示用。2026-07-12 執行長定案（F2-TUNING 定案 1）新增。';
+COMMENT ON COLUMN "nx01_partner"."payment_term_id" IS 'A 階段 2026-08-01（Q5 拍板 additive）：國內付款條件範本（FK nx05_payment_term）。 舊欄 payment_term_domestic（字串常數）保留過渡標 deprecated——實測 85 處在讀，硬改會斷 5 個模組。';
+COMMENT ON COLUMN "nx01_partner"."payment_term_import_id" IS 'A 階段加：進口付款條件範本（FK nx05_payment_term）。舊欄 payment_term_import 同上保留過渡。';
 
 -- Nx01Role  →  nx01_role
 COMMENT ON TABLE "nx01_role" IS '角色主檔（RBAC）。';
@@ -1225,7 +1228,8 @@ COMMENT ON COLUMN "nx03_pl"."tenant_id" IS '租戶 ID（外鍵）。';
 COMMENT ON COLUMN "nx03_pl"."warehouse_id" IS '出貨倉庫ID（FK nx01_warehouse）。';
 COMMENT ON COLUMN "nx03_pl"."doc_no" IS '包貨單號（唯一），[PL]+[年月]+[倉別]+[5碼流水號]，EX：PL-202604-Z01-00001';
 COMMENT ON COLUMN "nx03_pl"."pl_date" IS '包貨日期。';
-COMMENT ON COLUMN "nx03_pl"."pk_id" IS '來源撿貨單ID（FK nx03_pk）。';
+COMMENT ON COLUMN "nx03_pl"."pk_id" IS '來源撿貨單ID（FK nx03_pk）。單一來源時填；同客戶併箱跨多撿貨單時留 null（逐行靠 plItem.pkItemId 溯源）。SALES-FLOW 階段2 2026-07-22 改 nullable';
+COMMENT ON COLUMN "nx03_pl"."customer_id" IS '客戶ID快照（FK nx01_partner）。包貨以客戶為單位、一張包貨單對一個客戶；三區清單/裝箱單免溯源直接顯示。SALES-FLOW 階段2 2026-07-22 新增';
 COMMENT ON COLUMN "nx03_pl"."pl_type" IS '包貨類型（D=配送/P=自取/C=寄貨/T=調撥）。所有出貨類型均需經過包貨環節。';
 COMMENT ON COLUMN "nx03_pl"."status" IS '狀態（P=待包貨/C=包貨中/F=已完成/S=已寄出/V=作廢）。';
 COMMENT ON COLUMN "nx03_pl"."logistics_provider" IS '第三方物流業者名稱（pl_type=C時填入）。';
@@ -1304,6 +1308,7 @@ COMMENT ON COLUMN "nx03_st"."approved_at" IS '他倉倉管組長審核核准時�
 COMMENT ON COLUMN "nx03_st"."approved_by" IS '核准人（他倉倉管組長，使用者ID）。';
 COMMENT ON COLUMN "nx03_st"."received_at" IS '目標倉確認收貨時間（計時器結束時間）。';
 COMMENT ON COLUMN "nx03_st"."received_by" IS '收貨確認人（目標倉倉管專員，使用者ID）。';
+COMMENT ON COLUMN "nx03_st"."dispatched_at" IS '發貨出庫時間（DRAFT→TRANSIT 那刻寫入）。調撥計時 KPI 起點（發貨→收貨全鏈）；2026-07-23 Crown 拍板。';
 
 -- Nx03StItem  →  nx03_st_item
 COMMENT ON TABLE "nx03_st_item" IS '調撥單明細行。';
@@ -1347,6 +1352,21 @@ COMMENT ON COLUMN "nx03_stock_balance"."created_at" IS '建立時間。';
 COMMENT ON COLUMN "nx03_stock_balance"."created_by" IS '建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）';
 COMMENT ON COLUMN "nx03_stock_balance"."updated_at" IS '更新時間。';
 COMMENT ON COLUMN "nx03_stock_balance"."updated_by" IS '更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）';
+
+-- Nx03StockLocationBalance  →  nx03_stock_location_balance
+COMMENT ON TABLE "nx03_stock_location_balance" IS '庫位級庫存餘額（WMS 2026-07-23 執行長拍板）：把 onHand 從「只到倉庫」延伸到「到庫位」。 只放實體 onHand；可用量/保留量/成本(avgCost) 維持倉庫級（nx03_stock_balance）不動。 恆等式：某料某倉 Σ(各庫位 onHand) ＝ 該倉 nx03_stock_balance.on_hand_qty（交易內維護）。';
+COMMENT ON COLUMN "nx03_stock_location_balance"."id" IS '[NX03]+[SLLB]+[7碼流水號]';
+COMMENT ON COLUMN "nx03_stock_location_balance"."tenant_id" IS '租戶 ID (@@unique([tenantId, partId, warehouseId, locationId]))';
+COMMENT ON COLUMN "nx03_stock_location_balance"."part_id" IS '零件 ID (@@unique)';
+COMMENT ON COLUMN "nx03_stock_location_balance"."warehouse_id" IS '倉庫 ID (@@unique)';
+COMMENT ON COLUMN "nx03_stock_location_balance"."location_id" IS '庫位 ID (@@unique)：這一格';
+COMMENT ON COLUMN "nx03_stock_location_balance"."on_hand_qty" IS '這一格的現存量（實體幾個在這格；可負值容錯，正常 >=0）';
+COMMENT ON COLUMN "nx03_stock_location_balance"."last_move_at" IS '最近一次異動時間';
+COMMENT ON COLUMN "nx03_stock_location_balance"."is_active" IS '是否啟用';
+COMMENT ON COLUMN "nx03_stock_location_balance"."created_at" IS '建立時間。';
+COMMENT ON COLUMN "nx03_stock_location_balance"."created_by" IS '建立人';
+COMMENT ON COLUMN "nx03_stock_location_balance"."updated_at" IS '更新時間。';
+COMMENT ON COLUMN "nx03_stock_location_balance"."updated_by" IS '更新人';
 
 -- Nx03StockLedger  →  nx03_stock_ledger
 COMMENT ON TABLE "nx03_stock_ledger" IS '庫存異動帳——每筆進出流水（存貨子帳明細）。';
@@ -1835,6 +1855,8 @@ COMMENT ON COLUMN "nx04_so"."cancel_reason" IS '取消原因（status=X時必填
 COMMENT ON COLUMN "nx04_so"."cancelled_at" IS '取消時間。';
 COMMENT ON COLUMN "nx04_so"."cancelled_by" IS '取消人（使用者ID）。';
 COMMENT ON COLUMN "nx04_so"."completed_at" IS '完成時間（status=C時填入）。';
+COMMENT ON COLUMN "nx04_so"."pick_started_at" IS '撿貨開始時間（第一次撿貨動作、CONFIRMED→PICKING 那刻寫入、只寫一次）。單據計時 KPI 起點；2026-07-23 Crown 拍板。';
+COMMENT ON COLUMN "nx04_so"."sealed_at" IS '封箱完成時間（最後一箱封箱那刻、每次封箱覆寫＝取最後一箱）。單據計時 KPI 中段點；2026-07-23 Crown 拍板。';
 COMMENT ON COLUMN "nx04_so"."special_price_flag" IS 'F1 特價售出 2026-06-08：標記此 SO 為「異常處置 X 特價售出」產生的特價銷貨單。 業務語意：來自 Nx03IssueReport.dispositionType=''X'' 處置流程、單價由業務手動填特價。 成本走原 avgCost、財務走一般應收（不走折讓）。';
 COMMENT ON COLUMN "nx04_so"."remark" IS '備註。';
 COMMENT ON COLUMN "nx04_so"."created_at" IS '建立時間。';
@@ -1998,6 +2020,17 @@ COMMENT ON COLUMN "nx05_account_code"."created_at" IS '建立時間。';
 COMMENT ON COLUMN "nx05_account_code"."created_by" IS '建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）';
 COMMENT ON COLUMN "nx05_account_code"."updated_at" IS '更新時間。';
 COMMENT ON COLUMN "nx05_account_code"."updated_by" IS '更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）';
+COMMENT ON COLUMN "nx05_account_code"."account_class_id" IS 'A 階段 2026-08-01 擴：科目類別（FK nx05_account_class；由 code 第一碼自動帶出、人不用填）。';
+COMMENT ON COLUMN "nx05_account_code"."level" IS 'A 階段擴：階層（1 大類/2 中類/3 明細）。';
+COMMENT ON COLUMN "nx05_account_code"."parent_id" IS 'A 階段擴：上層科目（FK self）。';
+COMMENT ON COLUMN "nx05_account_code"."is_postable" IS 'A 階段擴：可記帳（大類與中類皆 false、不可記帳）。';
+COMMENT ON COLUMN "nx05_account_code"."cash_flow_type" IS 'A 階段擴：現金流量分類（O 營業/I 投資/F 籌資/C 現金及約當現金/N 不適用）。標好這欄現金流量表就能自動出。';
+COMMENT ON COLUMN "nx05_account_code"."require_dept" IS 'A 階段擴：需部門維度（成本中心）。';
+COMMENT ON COLUMN "nx05_account_code"."require_partner" IS 'A 階段擴：需往來對象維度。';
+COMMENT ON COLUMN "nx05_account_code"."partner_scope" IS 'A 階段擴：對象值域（PARTNER/EMPLOYEE/EITHER）。2111 應付費用要能指向員工（代墊報支）。';
+COMMENT ON COLUMN "nx05_account_code"."default_tax_code_id" IS 'A 階段擴：預設稅別（FK nx05_tax_code）。';
+COMMENT ON COLUMN "nx05_account_code"."statement_section" IS 'A 階段擴：財報段落覆寫（多數由類別帶出；少數例外如 1122 進貨附加成本歸「存貨」段）。';
+COMMENT ON COLUMN "nx05_account_code"."sort_no" IS 'A 階段擴：排序用。';
 
 -- Nx05Allowance  →  nx05_allowance
 COMMENT ON TABLE "nx05_allowance" IS '折讓單單頭。';
@@ -2139,6 +2172,12 @@ COMMENT ON COLUMN "nx05_note"."created_at" IS '建立時間。';
 COMMENT ON COLUMN "nx05_note"."created_by" IS '建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）';
 COMMENT ON COLUMN "nx05_note"."updated_at" IS '更新時間。';
 COMMENT ON COLUMN "nx05_note"."updated_by" IS '更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）';
+COMMENT ON COLUMN "nx05_note"."drawer_name" IS 'A 階段 2026-08-01 擴：發票人（客票的開票人，可能非往來對象本人）。票號/發票人/到期日/金額四項缺一不能存檔。';
+COMMENT ON COLUMN "nx05_note"."paying_bank_name" IS 'A 階段擴：付款行。';
+COMMENT ON COLUMN "nx05_note"."received_date" IS 'A 階段擴：收票日（direction=R 客票）。';
+COMMENT ON COLUMN "nx05_note"."collection_date" IS 'A 階段擴：託收日。';
+COMMENT ON COLUMN "nx05_note"."collection_bank_account_id" IS 'A 階段擴：託收帳戶（FK nx05_bank_account）。';
+COMMENT ON COLUMN "nx05_note"."note_book_id" IS 'A 階段擴：所屬票據簿（FK nx05_note_book；direction=P 我方開出的票才有）。';
 
 -- Nx05Paylog  →  nx05_paylog
 COMMENT ON TABLE "nx05_paylog" IS '收付款紀錄——收款／付款流水。';
@@ -2188,6 +2227,369 @@ COMMENT ON COLUMN "nx05_ar_reminder_log"."reminded_at" IS '催收時間';
 COMMENT ON COLUMN "nx05_ar_reminder_log"."reminded_by" IS '催收人員（FK nx01_user）';
 COMMENT ON COLUMN "nx05_ar_reminder_log"."remark" IS '備註';
 COMMENT ON COLUMN "nx05_ar_reminder_log"."created_at" IS '建立時間';
+
+-- Nx05AccountClass  →  nx05_account_class
+COMMENT ON TABLE "nx05_account_class" IS '科目類別（8 類值域、決定借貸方向與財報歸屬）';
+COMMENT ON COLUMN "nx05_account_class"."id" IS '[NX05]+[ACLS]+[7碼流水號]，EX : NX05ACLS0000001';
+COMMENT ON COLUMN "nx05_account_class"."tenant_id" IS '租戶 ID（外鍵）。';
+COMMENT ON COLUMN "nx05_account_class"."code" IS '首碼（1~8）＝科目編號第一碼；科目表靠這一碼自動查到本表、人不用填。';
+COMMENT ON COLUMN "nx05_account_class"."name" IS '類別名稱（1資產/2負債/3權益/4營業收入/5營業成本/6營業費用/7營業外收入/8營業外支出）。';
+COMMENT ON COLUMN "nx05_account_class"."increase_side" IS '增加時記哪一方（D=借方/C=貸方）；減少方為其反面。';
+COMMENT ON COLUMN "nx05_account_class"."statement" IS '所屬財報（BS=資產負債表/PL=損益表）。';
+COMMENT ON COLUMN "nx05_account_class"."statement_section" IS '財報段落（資產/負債/權益/營業收入/營業成本/營業費用/營業外損益）。';
+COMMENT ON COLUMN "nx05_account_class"."sort_no" IS '排序用。';
+COMMENT ON COLUMN "nx05_account_class"."is_system" IS '系統值域（恆為 true、租戶不可新增或刪除；恆迎反面教材：分類表 43 筆、六碼對三名、全形空格版重複）。';
+COMMENT ON COLUMN "nx05_account_class"."is_active" IS '是否啟用。';
+COMMENT ON COLUMN "nx05_account_class"."remark" IS '備註。';
+COMMENT ON COLUMN "nx05_account_class"."created_at" IS '建立時間。';
+COMMENT ON COLUMN "nx05_account_class"."created_by" IS '建立人。';
+COMMENT ON COLUMN "nx05_account_class"."updated_at" IS '更新時間。';
+COMMENT ON COLUMN "nx05_account_class"."updated_by" IS '更新人。';
+
+-- Nx05TaxCode  →  nx05_tax_code
+COMMENT ON TABLE "nx05_tax_code" IS '稅別（結構中性＝VAT 通則；台灣值域走 seed）';
+COMMENT ON COLUMN "nx05_tax_code"."id" IS '[NX05]+[TXCD]+[7碼流水號]，EX : NX05TXCD0000001';
+COMMENT ON COLUMN "nx05_tax_code"."tenant_id" IS '租戶 ID（外鍵）。';
+COMMENT ON COLUMN "nx05_tax_code"."code" IS '稅別代號（台灣 seed：S53 三聯式/S52 二聯式/P5 應稅進項/PND 不得扣抵/Z0 零稅率/EX 免稅/NA 不適用）。';
+COMMENT ON COLUMN "nx05_tax_code"."name" IS '稅別名稱。';
+COMMENT ON COLUMN "nx05_tax_code"."tax_rate" IS '稅率、存百分數（5.00 = 5%）。⚠ 對齊全庫既有 tax_rate 寫法；亞羅 xlsx 存 0.05 是小數、匯入要 ×100。';
+COMMENT ON COLUMN "nx05_tax_code"."direction" IS '方向（IN=進項/OUT=銷項/NA=不適用）。';
+COMMENT ON COLUMN "nx05_tax_code"."deductible" IS '可否扣抵（進項才有意義；null=不適用）。';
+COMMENT ON COLUMN "nx05_tax_code"."document_type" IS '適用憑證（三聯式/二聯式/電子發票/外銷證明…）。⚠ 國別皮：此欄值域隨國家不同。';
+COMMENT ON COLUMN "nx05_tax_code"."tax_account_code_id" IS '對映稅額科目（FK nx05_account_code；台灣：銷項 2121 / 進項 1133；不得扣抵為 null＝併入費用）。';
+COMMENT ON COLUMN "nx05_tax_code"."include_in_cost" IS '稅額是否併入費用或成本（不得扣抵＝true：交際費 10,500 就是 10,500 的費用，不是 10,000+500）。';
+COMMENT ON COLUMN "nx05_tax_code"."status" IS '狀態（ACTIVE 啟用/RESERVED 預留、先建不啟用）。';
+COMMENT ON COLUMN "nx05_tax_code"."sort_no" IS '排序用。';
+COMMENT ON COLUMN "nx05_tax_code"."is_active" IS '是否啟用。';
+COMMENT ON COLUMN "nx05_tax_code"."remark" IS '備註。';
+COMMENT ON COLUMN "nx05_tax_code"."created_at" IS '建立時間。';
+COMMENT ON COLUMN "nx05_tax_code"."created_by" IS '建立人。';
+COMMENT ON COLUMN "nx05_tax_code"."updated_at" IS '更新時間。';
+COMMENT ON COLUMN "nx05_tax_code"."updated_by" IS '更新人。';
+
+-- Nx05AccountingPolicy  →  nx05_accounting_policy
+COMMENT ON TABLE "nx05_accounting_policy" IS '會計政策（14 項；⚠ 不是文件、是會被程式讀的）';
+COMMENT ON COLUMN "nx05_accounting_policy"."id" IS '[NX05]+[ACPO]+[7碼流水號]，EX : NX05ACPO0000001';
+COMMENT ON COLUMN "nx05_accounting_policy"."tenant_id" IS '租戶 ID（外鍵）。';
+COMMENT ON COLUMN "nx05_accounting_policy"."code" IS '政策代號（INVENTORY_SYSTEM/INVENTORY_COSTING/REVENUE_RECOGNITION/DEPRECIATION_METHOD/SALVAGE_VALUE/DEPRECIATION_START/CAPITALIZE_THRESHOLD/BAD_DEBT/FISCAL_YEAR/VAT_FILING/DEPT_ALLOCATION/QUOTE_TAX_CONVENTION/FX_TRANSLATION/INVENTORY_VALUATION）。';
+COMMENT ON COLUMN "nx05_accounting_policy"."name" IS '政策項目名稱。';
+COMMENT ON COLUMN "nx05_accounting_policy"."selected_value" IS '本租戶採用值。';
+COMMENT ON COLUMN "nx05_accounting_policy"."allowed_values" IS '可選值（| 分隔）。';
+COMMENT ON COLUMN "nx05_accounting_policy"."change_policy" IS '變更難度（FREE 可改/CAUTION 不建議、改了前後期不可比/APPROVAL 需向稅捐機關申請核准）。';
+COMMENT ON COLUMN "nx05_accounting_policy"."effective_from" IS '生效期間起日。';
+COMMENT ON COLUMN "nx05_accounting_policy"."locked_at" IS '開帳後鎖定時間（非 null 即不可改；要改必須留變更紀錄）。';
+COMMENT ON COLUMN "nx05_accounting_policy"."sort_no" IS '排序用（＝亞羅 14 項的項次）。';
+COMMENT ON COLUMN "nx05_accounting_policy"."is_active" IS '是否啟用。';
+COMMENT ON COLUMN "nx05_accounting_policy"."remark" IS '影響與理由（長文；亞羅那一欄的判斷理由全部帶進來）。';
+COMMENT ON COLUMN "nx05_accounting_policy"."created_at" IS '建立時間。';
+COMMENT ON COLUMN "nx05_accounting_policy"."created_by" IS '建立人。';
+COMMENT ON COLUMN "nx05_accounting_policy"."updated_at" IS '更新時間。';
+COMMENT ON COLUMN "nx05_accounting_policy"."updated_by" IS '更新人。';
+
+-- Nx05AccountingPolicyException  →  nx05_accounting_policy_exception
+COMMENT ON TABLE "nx05_accounting_policy_exception" IS '會計政策例外（Q4 拍板：開子表、不塞 JSON） 例：存貨計價＝移動平均，但「同行調貨」採個別認定、不進移動平均池';
+COMMENT ON COLUMN "nx05_accounting_policy_exception"."id" IS '[NX05]+[ACPX]+[7碼流水號]，EX : NX05ACPX0000001';
+COMMENT ON COLUMN "nx05_accounting_policy_exception"."policy_id" IS '對應政策 ID（FK nx05_accounting_policy）。';
+COMMENT ON COLUMN "nx05_accounting_policy_exception"."line_no" IS '例外行號（1,2,3…）。';
+COMMENT ON COLUMN "nx05_accounting_policy_exception"."scope_code" IS '適用情境代號（例：SCOPE_TI 同行調貨/SCOPE_IMPORT 進口/SCOPE_CONSIGN 寄售）。';
+COMMENT ON COLUMN "nx05_accounting_policy_exception"."scope_name" IS '適用情境說明（人可讀）。';
+COMMENT ON COLUMN "nx05_accounting_policy_exception"."exception_value" IS '該情境下採用的例外值（覆寫政策的 selected_value）。';
+COMMENT ON COLUMN "nx05_accounting_policy_exception"."reason" IS '例外理由（⚠ 必填：調貨進價一筆一議、混進移動平均會汙染自有庫存成本、且報表切不出調貨佔比）。';
+COMMENT ON COLUMN "nx05_accounting_policy_exception"."is_active" IS '是否啟用。';
+COMMENT ON COLUMN "nx05_accounting_policy_exception"."created_at" IS '建立時間。';
+COMMENT ON COLUMN "nx05_accounting_policy_exception"."created_by" IS '建立人。';
+COMMENT ON COLUMN "nx05_accounting_policy_exception"."updated_at" IS '更新時間。';
+COMMENT ON COLUMN "nx05_accounting_policy_exception"."updated_by" IS '更新人。';
+
+-- Nx05PayMethod  →  nx05_pay_method
+COMMENT ON TABLE "nx05_pay_method" IS '收付方式（⭐「多久才真的入帳」是 13 週現金預測的關鍵）';
+COMMENT ON COLUMN "nx05_pay_method"."id" IS '[NX05]+[PYMT]+[7碼流水號]，EX : NX05PYMT0000001';
+COMMENT ON COLUMN "nx05_pay_method"."tenant_id" IS '租戶 ID（外鍵）。';
+COMMENT ON COLUMN "nx05_pay_method"."code" IS '方式代號（CASH 現金/BANK 匯款轉帳/CHQR 支票收到/CHQP 支票開出/CARD 信用卡/OFFS 抵帳）。';
+COMMENT ON COLUMN "nx05_pay_method"."name" IS '方式名稱。';
+COMMENT ON COLUMN "nx05_pay_method"."apply_to" IS '適用（R=收/P=付/B=收與付）。';
+COMMENT ON COLUMN "nx05_pay_method"."account_code_id" IS '對映科目（FK nx05_account_code；抵帳 OFFS 為 null）。';
+COMMENT ON COLUMN "nx05_pay_method"."is_immediate" IS '是否即時入帳。';
+COMMENT ON COLUMN "nx05_pay_method"."settle_lag_days" IS '入帳延遲天數（信用卡 10；支票留 null＝依票到期日）。';
+COMMENT ON COLUMN "nx05_pay_method"."use_note_due_date" IS '依票據到期日排入現金預測（取代延遲天數；支票＝true）。';
+COMMENT ON COLUMN "nx05_pay_method"."require_note_info" IS '是否需要票據資訊（票號/發票人/到期日）。';
+COMMENT ON COLUMN "nx05_pay_method"."fee_account_code_id" IS '手續費科目（FK nx05_account_code；不指定則匯費刷卡費會散進什項支出、看不出一年花多少）。';
+COMMENT ON COLUMN "nx05_pay_method"."affects_cash" IS '是否動到現金（抵帳 OFFS＝false，只沖淨額不動現金）。';
+COMMENT ON COLUMN "nx05_pay_method"."status" IS '狀態（ACTIVE 啟用/RESERVED 預留）。';
+COMMENT ON COLUMN "nx05_pay_method"."sort_no" IS '排序用。';
+COMMENT ON COLUMN "nx05_pay_method"."is_active" IS '是否啟用。';
+COMMENT ON COLUMN "nx05_pay_method"."remark" IS '備註。';
+COMMENT ON COLUMN "nx05_pay_method"."created_at" IS '建立時間。';
+COMMENT ON COLUMN "nx05_pay_method"."created_by" IS '建立人。';
+COMMENT ON COLUMN "nx05_pay_method"."updated_at" IS '更新時間。';
+COMMENT ON COLUMN "nx05_pay_method"."updated_by" IS '更新人。';
+
+-- Nx05BankAccount  →  nx05_bank_account
+COMMENT ON TABLE "nx05_bank_account" IS '銀行帳戶（⚠ 帳戶是主檔不是會計科目；恆迎 1112 底下 24 個子科目 18 個三年沒動）';
+COMMENT ON COLUMN "nx05_bank_account"."id" IS '[NX05]+[BKAC]+[7碼流水號]，EX : NX05BKAC0000001';
+COMMENT ON COLUMN "nx05_bank_account"."tenant_id" IS '租戶 ID（外鍵）。';
+COMMENT ON COLUMN "nx05_bank_account"."code" IS '帳戶代號（B01、B02…）。';
+COMMENT ON COLUMN "nx05_bank_account"."bank_name" IS '銀行名稱。';
+COMMENT ON COLUMN "nx05_bank_account"."branch_name" IS '分行名稱。';
+COMMENT ON COLUMN "nx05_bank_account"."account_no" IS '帳號。';
+COMMENT ON COLUMN "nx05_bank_account"."account_type" IS '帳戶類型（SA 活期存款/CH 支票存款甲存/FX 外幣存款/LN 貸款專戶）。';
+COMMENT ON COLUMN "nx05_bank_account"."currency_id" IS '幣別 ID（FK nx01_currency）。';
+COMMENT ON COLUMN "nx05_bank_account"."purpose" IS '用途說明（營運主帳戶/開票付款/薪資轉帳/銀行融資）。';
+COMMENT ON COLUMN "nx05_bank_account"."account_code_id" IS '對映科目（FK nx05_account_code；通常 1102 銀行存款、貸款專戶例外對 2151 短期借款）。';
+COMMENT ON COLUMN "nx05_bank_account"."opened_date" IS '開戶日。';
+COMMENT ON COLUMN "nx05_bank_account"."closed_date" IS '結清日。';
+COMMENT ON COLUMN "nx05_bank_account"."is_primary_receipt" IS '主要收款戶（13 週現金預測的「期初現金」抄這一戶）。';
+COMMENT ON COLUMN "nx05_bank_account"."can_issue_check" IS '可開票（＝true 的帳戶才能在票據簿領支票簿）。';
+COMMENT ON COLUMN "nx05_bank_account"."sweep_source_account_id" IS '軋票來源帳戶（FK self；甲存不足時從哪個活存撥。沒有它，軋票日曆算得出金額但不知道從哪撥）。';
+COMMENT ON COLUMN "nx05_bank_account"."net_bank_owner" IS '網銀權限人（⚠ 單點風險：唯一持有人出事時公司付不出錢、而跳票不可逆）。';
+COMMENT ON COLUMN "nx05_bank_account"."status" IS '狀態（ACTIVE 啟用/RESERVED 預留/CLOSED 已結清）。⚠ 帳戶不刪只改狀態、歷史分錄還指著它。';
+COMMENT ON COLUMN "nx05_bank_account"."sort_no" IS '排序用。';
+COMMENT ON COLUMN "nx05_bank_account"."is_active" IS '是否啟用。';
+COMMENT ON COLUMN "nx05_bank_account"."remark" IS '備註。';
+COMMENT ON COLUMN "nx05_bank_account"."created_at" IS '建立時間。';
+COMMENT ON COLUMN "nx05_bank_account"."created_by" IS '建立人。';
+COMMENT ON COLUMN "nx05_bank_account"."updated_at" IS '更新時間。';
+COMMENT ON COLUMN "nx05_bank_account"."updated_by" IS '更新人。';
+
+-- Nx05PaymentTerm  →  nx05_payment_term
+COMMENT ON TABLE "nx05_payment_term" IS '付款條件範本（四維度：觸發點 × 付款% × 觸發後天數 × 工具） ⭐ 不問「帳期幾天」、問「哪四個維度」';
+COMMENT ON COLUMN "nx05_payment_term"."id" IS '[NX05]+[PYTM]+[7碼流水號]，EX : NX05PYTM0000001';
+COMMENT ON COLUMN "nx05_payment_term"."tenant_id" IS '租戶 ID（外鍵）。';
+COMMENT ON COLUMN "nx05_payment_term"."code" IS '範本代號（PT-A、PT-B…）。';
+COMMENT ON COLUMN "nx05_payment_term"."name" IS '範本名稱（例：訂金 15% ＋ 到貨付清 / 月結開 60 天票）。';
+COMMENT ON COLUMN "nx05_payment_term"."apply_to" IS '適用（AP=付款條件/AR=收款條件/BOTH）。';
+COMMENT ON COLUMN "nx05_payment_term"."is_default" IS '是否為預設範本（新建往來對象時帶入）。';
+COMMENT ON COLUMN "nx05_payment_term"."sort_no" IS '排序用。';
+COMMENT ON COLUMN "nx05_payment_term"."is_active" IS '是否啟用。';
+COMMENT ON COLUMN "nx05_payment_term"."remark" IS '備註。';
+COMMENT ON COLUMN "nx05_payment_term"."created_at" IS '建立時間。';
+COMMENT ON COLUMN "nx05_payment_term"."created_by" IS '建立人。';
+COMMENT ON COLUMN "nx05_payment_term"."updated_at" IS '更新時間。';
+COMMENT ON COLUMN "nx05_payment_term"."updated_by" IS '更新人。';
+
+-- Nx05PaymentTermLine  →  nx05_payment_term_line
+COMMENT ON TABLE "nx05_payment_term_line" IS '付款條件範本明細（一組「觸發點, %, 天數, 工具」＝一列）';
+COMMENT ON COLUMN "nx05_payment_term_line"."id" IS '[NX05]+[PYTL]+[7碼流水號]，EX : NX05PYTL0000001';
+COMMENT ON COLUMN "nx05_payment_term_line"."term_id" IS '對應範本表頭 ID（FK nx05_payment_term）。';
+COMMENT ON COLUMN "nx05_payment_term_line"."line_no" IS '明細行號（1,2,3…）。';
+COMMENT ON COLUMN "nx05_payment_term_line"."trigger_point" IS '觸發點（ORD 下單核准/RDY 備貨完成通知/SHP 出貨提單日/RCV 到貨驗收/MTH 月結日）。';
+COMMENT ON COLUMN "nx05_payment_term_line"."percentage" IS '該段付款百分比（同一範本各行合計必須 = 100、由 service 驗）。';
+COMMENT ON COLUMN "nx05_payment_term_line"."days_after_trigger" IS '觸發後幾天付款。';
+COMMENT ON COLUMN "nx05_payment_term_line"."pay_method_id" IS '付款工具（FK nx05_pay_method）。';
+COMMENT ON COLUMN "nx05_payment_term_line"."note_days" IS '票期天數（工具＝開票時填；⚠ 應付沖掉不等於現金出去、票到期才是）。';
+COMMENT ON COLUMN "nx05_payment_term_line"."remark" IS '說明（訂金/尾款…）。';
+COMMENT ON COLUMN "nx05_payment_term_line"."created_at" IS '建立時間。';
+COMMENT ON COLUMN "nx05_payment_term_line"."created_by" IS '建立人。';
+COMMENT ON COLUMN "nx05_payment_term_line"."updated_at" IS '更新時間。';
+COMMENT ON COLUMN "nx05_payment_term_line"."updated_by" IS '更新人。';
+
+-- Nx05FiscalPeriod  →  nx05_fiscal_period
+COMMENT ON TABLE "nx05_fiscal_period" IS '會計期間（⚠ 與既有 nx05_closing 是兩件事：closing＝日結＋401 申報期、本表＝帳務月期） ⭐ 關帳四閘＝資金循環五道人造紀律裡四道的掛點';
+COMMENT ON COLUMN "nx05_fiscal_period"."id" IS '[NX05]+[FSPD]+[7碼流水號]，EX : NX05FSPD0000001';
+COMMENT ON COLUMN "nx05_fiscal_period"."tenant_id" IS '租戶 ID（外鍵）。';
+COMMENT ON COLUMN "nx05_fiscal_period"."code" IS '期間代碼（YYYY-MM；第 13 期用 YYYY-13）。';
+COMMENT ON COLUMN "nx05_fiscal_period"."fiscal_year" IS '年度。';
+COMMENT ON COLUMN "nx05_fiscal_period"."period_no" IS '期別（1~12 常規月期；13＝年度調整期，Q3 拍板保留——調整分錄不擠進 12 月，12 月月報才對得上）。';
+COMMENT ON COLUMN "nx05_fiscal_period"."start_date" IS '期間起日。';
+COMMENT ON COLUMN "nx05_fiscal_period"."end_date" IS '期間迄日。';
+COMMENT ON COLUMN "nx05_fiscal_period"."status" IS '狀態（PENDING 未開放/OPEN 開帳中/CLOSED 已關帳）。⚠ 已關帳不得新增或修改任何傳票、要調整只能在下一期做調整分錄。';
+COMMENT ON COLUMN "nx05_fiscal_period"."closed_at" IS '關帳日。';
+COMMENT ON COLUMN "nx05_fiscal_period"."closed_by" IS '關帳人（使用者 ID）。';
+COMMENT ON COLUMN "nx05_fiscal_period"."is_year_end" IS '是否年度結帳期（觸發 CLS：本期損益 3202 結轉累積盈餘 3201；⚠ 恆迎 28 年從未結轉、資產負債表要重算才平）。';
+COMMENT ON COLUMN "nx05_fiscal_period"."gate_bank_rec_diff" IS '關帳閘 1：銀行對帳差額（必須 0 或已勾為合理未達帳項）。';
+COMMENT ON COLUMN "nx05_fiscal_period"."gate_petty_cash_diff" IS '關帳閘 2：零用金盤點差額（必須 0；現金＋未核銷單據＝定額）。';
+COMMENT ON COLUMN "nx05_fiscal_period"."gate_landed_cost_balance" IS '關帳閘 3：1122 進貨附加成本期末餘額（必須趨近 0；有餘額＝有進口費用沒分攤進存貨）。';
+COMMENT ON COLUMN "nx05_fiscal_period"."gate_asset_diff" IS '關帳閘 4：固定資產帳帳相符差額（必須 0；全自動、加它的成本是零）。';
+COMMENT ON COLUMN "nx05_fiscal_period"."can_close" IS '可否關帳（四閘全 0 才 true；⚠ 由 service 算、不給人工改）。';
+COMMENT ON COLUMN "nx05_fiscal_period"."remark" IS '說明。';
+COMMENT ON COLUMN "nx05_fiscal_period"."created_at" IS '建立時間。';
+COMMENT ON COLUMN "nx05_fiscal_period"."created_by" IS '建立人。';
+COMMENT ON COLUMN "nx05_fiscal_period"."updated_at" IS '更新時間。';
+COMMENT ON COLUMN "nx05_fiscal_period"."updated_by" IS '更新人。';
+
+-- Nx05RecurringExpense  →  nx05_recurring_expense
+COMMENT ON TABLE "nx05_recurring_expense" IS '定期費用排程（🔴 資金循環唯一的事前核准點＝新增或變更本表一列，不論金額）';
+COMMENT ON COLUMN "nx05_recurring_expense"."id" IS '[NX05]+[RCEX]+[7碼流水號]，EX : NX05RCEX0000001';
+COMMENT ON COLUMN "nx05_recurring_expense"."tenant_id" IS '租戶 ID（外鍵）。';
+COMMENT ON COLUMN "nx05_recurring_expense"."code" IS '排程代號（FS01…）。';
+COMMENT ON COLUMN "nx05_recurring_expense"."name" IS '費用項目名稱。';
+COMMENT ON COLUMN "nx05_recurring_expense"."account_code_id" IS '費用科目（FK nx05_account_code）。';
+COMMENT ON COLUMN "nx05_recurring_expense"."frequency" IS '頻率（M 每月/Q 每季/H 每半年/Y 每年）。';
+COMMENT ON COLUMN "nx05_recurring_expense"."day_of_period" IS '每期第幾日付。';
+COMMENT ON COLUMN "nx05_recurring_expense"."pay_method_id" IS '付款方式（FK nx05_pay_method）。';
+COMMENT ON COLUMN "nx05_recurring_expense"."partner_id" IS '收款對象（FK nx01_partner；房東、電信、記帳士…）。';
+COMMENT ON COLUMN "nx05_recurring_expense"."estimated_amount" IS '每期暫估金額。';
+COMMENT ON COLUMN "nx05_recurring_expense"."annualized_amount" IS '年化金額（衍生；🔴 核准畫面必須顯示這個數字——一筆 5,000 的月訂閱年化 6 萬，比一次性花 3 萬更該審）。';
+COMMENT ON COLUMN "nx05_recurring_expense"."approval_path" IS '核准路徑（A 合約與法定固定/B 計量後結算不審只異常偵測/C 小額零星事後核銷/D 一次性與資本支出/E 出貨量連動耗材）。';
+COMMENT ON COLUMN "nx05_recurring_expense"."approval_status" IS '核准狀態（APPROVED 已核准/NOT_REQUIRED 法定不審/PENDING 待核准/WAITING_EVENT 待事件發生）。';
+COMMENT ON COLUMN "nx05_recurring_expense"."approved_by" IS '核准人（使用者 ID）。';
+COMMENT ON COLUMN "nx05_recurring_expense"."approved_at" IS '核准時間。';
+COMMENT ON COLUMN "nx05_recurring_expense"."anomaly_multiplier" IS '異常偵測倍數（B 類：超過近 6 期平均 × 本值 → 提示、⛔ 不擋。用途不是省錢是抓漏水與忘記關的東西）。';
+COMMENT ON COLUMN "nx05_recurring_expense"."next_due_date" IS '下次應付日（供 13 週現金預測抓「高確定性」線；年繳要能攤到各月、不是只在繳費那月出現）。';
+COMMENT ON COLUMN "nx05_recurring_expense"."is_active" IS '是否啟用。';
+COMMENT ON COLUMN "nx05_recurring_expense"."remark" IS '說明。';
+COMMENT ON COLUMN "nx05_recurring_expense"."created_at" IS '建立時間。';
+COMMENT ON COLUMN "nx05_recurring_expense"."created_by" IS '建立人。';
+COMMENT ON COLUMN "nx05_recurring_expense"."updated_at" IS '更新時間。';
+COMMENT ON COLUMN "nx05_recurring_expense"."updated_by" IS '更新人。';
+
+-- Nx05InvoiceTrack  →  nx05_invoice_track
+COMMENT ON TABLE "nx05_invoice_track" IS '發票字軌（🔴 台灣皮：統一發票配號管理。結構寫成中性的「憑證編號區段」，台灣規則走 seed 與 service） ⚠ 與「單號規則」是兩件事：單號自己編、字軌由主管機關配發';
+COMMENT ON COLUMN "nx05_invoice_track"."id" IS '[NX05]+[INVT]+[7碼流水號]，EX : NX05INVT0000001';
+COMMENT ON COLUMN "nx05_invoice_track"."tenant_id" IS '租戶 ID（外鍵）。';
+COMMENT ON COLUMN "nx05_invoice_track"."period_code" IS '期別（台灣＝每兩個月一期，例 2026-0708）。⛔ 不把「兩個月一期」寫進 CHECK、本欄為自由字串。';
+COMMENT ON COLUMN "nx05_invoice_track"."fiscal_year" IS '年度。';
+COMMENT ON COLUMN "nx05_invoice_track"."track_code" IS '字軌（台灣＝兩碼英文，例 AB；中性義＝憑證序號前綴）。';
+COMMENT ON COLUMN "nx05_invoice_track"."start_no" IS '起號（字串、非整數——他國憑證號可能含字母）。';
+COMMENT ON COLUMN "nx05_invoice_track"."end_no" IS '迄號。';
+COMMENT ON COLUMN "nx05_invoice_track"."allocated_count" IS '配號張數。';
+COMMENT ON COLUMN "nx05_invoice_track"."issued_to_no" IS '已開立至（號碼）。';
+COMMENT ON COLUMN "nx05_invoice_track"."issued_count" IS '已開立張數。';
+COMMENT ON COLUMN "nx05_invoice_track"."voided_count" IS '作廢張數（⚠ 作廢憑證要留存全部聯次並在申報時列明）。';
+COMMENT ON COLUMN "nx05_invoice_track"."unused_count" IS '空白未用張數（⚠ 空白也要申報；跨期不得續用）。';
+COMMENT ON COLUMN "nx05_invoice_track"."filed_at" IS '申報日。';
+COMMENT ON COLUMN "nx05_invoice_track"."filed_by" IS '申報人（使用者 ID）。';
+COMMENT ON COLUMN "nx05_invoice_track"."status" IS '狀態（UNALLOCATED 未配號/IN_USE 使用中/CLOSED 已結束）。';
+COMMENT ON COLUMN "nx05_invoice_track"."remark" IS '備註。🔴 對帳鐵律：已開立＋作廢＋空白 = 配號張數（主管機關按配號張數對帳）。';
+COMMENT ON COLUMN "nx05_invoice_track"."is_active" IS '是否啟用。';
+COMMENT ON COLUMN "nx05_invoice_track"."created_at" IS '建立時間。';
+COMMENT ON COLUMN "nx05_invoice_track"."created_by" IS '建立人。';
+COMMENT ON COLUMN "nx05_invoice_track"."updated_at" IS '更新時間。';
+COMMENT ON COLUMN "nx05_invoice_track"."updated_by" IS '更新人。';
+
+-- Nx05NoteBook  →  nx05_note_book
+COMMENT ON TABLE "nx05_note_book" IS '票據簿（我方開出支票的連號管理） ⚠ 每一張空白支票都是一張空白授權；跳號沒管理是最常見的財務漏洞之一';
+COMMENT ON COLUMN "nx05_note_book"."id" IS '[NX05]+[NTBK]+[7碼流水號]，EX : NX05NTBK0000001';
+COMMENT ON COLUMN "nx05_note_book"."tenant_id" IS '租戶 ID（外鍵）。';
+COMMENT ON COLUMN "nx05_note_book"."code" IS '簿號（CB01…）。';
+COMMENT ON COLUMN "nx05_note_book"."bank_account_id" IS '所屬銀行帳戶（FK nx05_bank_account；只有 can_issue_check=true 的帳戶才能領簿）。';
+COMMENT ON COLUMN "nx05_note_book"."note_type" IS '票據種類（CK=支票/PN=本票）。';
+COMMENT ON COLUMN "nx05_note_book"."start_no" IS '起始號碼。';
+COMMENT ON COLUMN "nx05_note_book"."end_no" IS '結束號碼。';
+COMMENT ON COLUMN "nx05_note_book"."total_count" IS '總張數。';
+COMMENT ON COLUMN "nx05_note_book"."issued_to_no" IS '已開立至（號碼；填起號-1 表示還沒開任何一張）。';
+COMMENT ON COLUMN "nx05_note_book"."issued_count" IS '已開立張數。';
+COMMENT ON COLUMN "nx05_note_book"."voided_count" IS '作廢張數（⚠ 作廢支票不可丟棄、要留存並登記）。';
+COMMENT ON COLUMN "nx05_note_book"."remaining_count" IS '剩餘空白張數（⚠ 低於門檻要提示申請新簿；門檻走參數不寫死）。';
+COMMENT ON COLUMN "nx05_note_book"."received_date" IS '領用日。';
+COMMENT ON COLUMN "nx05_note_book"."custodian_user_id" IS '保管人（FK nx01_user；⚠ 保管人只能有一個、且不應該是開票的人）。';
+COMMENT ON COLUMN "nx05_note_book"."status" IS '狀態（ACTIVE 使用中/EXHAUSTED 已用完/VOIDED 整簿作廢）。';
+COMMENT ON COLUMN "nx05_note_book"."is_active" IS '是否啟用。';
+COMMENT ON COLUMN "nx05_note_book"."remark" IS '備註。';
+COMMENT ON COLUMN "nx05_note_book"."created_at" IS '建立時間。';
+COMMENT ON COLUMN "nx05_note_book"."created_by" IS '建立人。';
+COMMENT ON COLUMN "nx05_note_book"."updated_at" IS '更新時間。';
+COMMENT ON COLUMN "nx05_note_book"."updated_by" IS '更新人。';
+
+-- Nx05AssetClass  →  nx05_asset_class
+COMMENT ON TABLE "nx05_asset_class" IS '資產類別（⭐ 用亞羅自己的判準二升格：帶兩個科目屬性就不是參數是主檔）';
+COMMENT ON COLUMN "nx05_asset_class"."id" IS '[NX05]+[ASCL]+[7碼流水號]，EX : NX05ASCL0000001';
+COMMENT ON COLUMN "nx05_asset_class"."tenant_id" IS '租戶 ID（外鍵）。';
+COMMENT ON COLUMN "nx05_asset_class"."code" IS '類別代號（EQP 生財器具/ITE 資訊設備/VEH 運輸設備/LHI 租賃改良物/SEC 安全設備）。';
+COMMENT ON COLUMN "nx05_asset_class"."name" IS '類別名稱。';
+COMMENT ON COLUMN "nx05_asset_class"."asset_account_code_id" IS '資產科目（FK nx05_account_code；例 1501/1511/1521/1531）。';
+COMMENT ON COLUMN "nx05_asset_class"."accum_dep_account_code_id" IS '累計折舊科目（FK nx05_account_code；例 1502/1512/1522/1532）。⚠ 每類各自一個、不再另設「累計折舊-全部」。';
+COMMENT ON COLUMN "nx05_asset_class"."default_useful_life" IS '預設耐用年數。';
+COMMENT ON COLUMN "nx05_asset_class"."sort_no" IS '排序用。';
+COMMENT ON COLUMN "nx05_asset_class"."is_active" IS '是否啟用。';
+COMMENT ON COLUMN "nx05_asset_class"."remark" IS '備註。';
+COMMENT ON COLUMN "nx05_asset_class"."created_at" IS '建立時間。';
+COMMENT ON COLUMN "nx05_asset_class"."created_by" IS '建立人。';
+COMMENT ON COLUMN "nx05_asset_class"."updated_at" IS '更新時間。';
+COMMENT ON COLUMN "nx05_asset_class"."updated_by" IS '更新人。';
+
+-- Nx05Asset  →  nx05_asset
+COMMENT ON TABLE "nx05_asset" IS '資產主檔（財產目錄；商業會計法要求編製、8 人公司也躲不掉）';
+COMMENT ON COLUMN "nx05_asset"."id" IS '[NX05]+[ASST]+[7碼流水號]，EX : NX05ASST0000001';
+COMMENT ON COLUMN "nx05_asset"."tenant_id" IS '租戶 ID（外鍵）。';
+COMMENT ON COLUMN "nx05_asset"."code" IS '資產編號（A001…）。';
+COMMENT ON COLUMN "nx05_asset"."name" IS '資產名稱。';
+COMMENT ON COLUMN "nx05_asset"."asset_class_id" IS '資產類別（FK nx05_asset_class；🔴 取代亞羅原本的自由文字欄）。';
+COMMENT ON COLUMN "nx05_asset"."acquire_date" IS '取得日。';
+COMMENT ON COLUMN "nx05_asset"."partner_id" IS '取得來源廠商（FK nx01_partner）。';
+COMMENT ON COLUMN "nx05_asset"."invoice_no" IS '發票號碼。';
+COMMENT ON COLUMN "nx05_asset"."acquire_cost" IS '取得成本（總額）。';
+COMMENT ON COLUMN "nx05_asset"."unit_price" IS '單價。';
+COMMENT ON COLUMN "nx05_asset"."qty" IS '數量。';
+COMMENT ON COLUMN "nx05_asset"."useful_life_years" IS '耐用年數（⚠ 租賃改良物：耐用年限與剩餘租期取短）。';
+COMMENT ON COLUMN "nx05_asset"."is_capitalized" IS '是否資本化（依會計政策 CAPITALIZE_THRESHOLD 判定；否＝直接列當年度費用）。';
+COMMENT ON COLUMN "nx05_asset"."capitalize_batch_key" IS '整批資本化判定鍵（同廠商×同日×同資產類別；🔴 逐列判定會把 8 台×2.5 萬電腦全判成費用化、合起來 20 萬）。';
+COMMENT ON COLUMN "nx05_asset"."depreciation_method" IS '折舊方法（SL 平均法／直線）。';
+COMMENT ON COLUMN "nx05_asset"."salvage_value" IS '殘值（平均法標準做法＝成本 ÷（耐用年數＋1））。';
+COMMENT ON COLUMN "nx05_asset"."dep_start_month" IS '折舊起算月（YYYY-MM；預設取得次月）。';
+COMMENT ON COLUMN "nx05_asset"."department_id" IS '所屬部門（FK nx01_department；折舊費用的成本中心）。';
+COMMENT ON COLUMN "nx05_asset"."location_text" IS '存放位置（自由文字：⚠ 不強綁庫位——資產表管它值多少錢、庫位表管它裝什麼貨，各記各的）。';
+COMMENT ON COLUMN "nx05_asset"."custodian_user_id" IS '保管人（FK nx01_user）。';
+COMMENT ON COLUMN "nx05_asset"."status" IS '狀態（A 在用/P 預定尚未取得不折舊/I 🔴停用但未處分「仍要折舊、仍要盤到」/D 已處分不折舊不盤）。';
+COMMENT ON COLUMN "nx05_asset"."disposal_date" IS '處分日。⚠ 資產不刪：處分或報廢填本欄並改狀態、歷史折舊要留著。';
+COMMENT ON COLUMN "nx05_asset"."disposal_method" IS '處分方式（SELL 出售🔴要開發票/SCRP 報廢要留證明/LOSS 盤點短少🔴要寫原因）。';
+COMMENT ON COLUMN "nx05_asset"."disposal_reason" IS '處分原因（disposal_method=LOSS 時必填——系統不知道東西為什麼不見）。';
+COMMENT ON COLUMN "nx05_asset"."policy_no" IS '保單編號（供保單到期日曆）。';
+COMMENT ON COLUMN "nx05_asset"."lease_no" IS '租約編號（供租約到期與剩餘攤提年限）。';
+COMMENT ON COLUMN "nx05_asset"."is_active" IS '是否啟用。';
+COMMENT ON COLUMN "nx05_asset"."remark" IS '說明。';
+COMMENT ON COLUMN "nx05_asset"."created_at" IS '建立時間。';
+COMMENT ON COLUMN "nx05_asset"."created_by" IS '建立人。';
+COMMENT ON COLUMN "nx05_asset"."updated_at" IS '更新時間。';
+COMMENT ON COLUMN "nx05_asset"."updated_by" IS '更新人。';
+
+-- Nx05AssetDepreciation  →  nx05_asset_depreciation
+COMMENT ON TABLE "nx05_asset_depreciation" IS '折舊提列明細（🔴 Excel 可以每次重算、資料庫不行——折舊要產生分錄，過帳後不可重算）';
+COMMENT ON COLUMN "nx05_asset_depreciation"."id" IS '[NX05]+[ASDP]+[7碼流水號]，EX : NX05ASDP0000001';
+COMMENT ON COLUMN "nx05_asset_depreciation"."tenant_id" IS '租戶 ID（外鍵）。';
+COMMENT ON COLUMN "nx05_asset_depreciation"."asset_id" IS '資產 ID（FK nx05_asset）。';
+COMMENT ON COLUMN "nx05_asset_depreciation"."period_code" IS '提列期間（YYYY-MM；對應 nx05_fiscal_period.code）。';
+COMMENT ON COLUMN "nx05_asset_depreciation"."dep_amount" IS '本期折舊金額（年折舊＝(成本−殘值)÷耐用年數；月折舊＝年÷12）。';
+COMMENT ON COLUMN "nx05_asset_depreciation"."accum_dep_amount" IS '累計折舊（含本期）。';
+COMMENT ON COLUMN "nx05_asset_depreciation"."net_book_value" IS '帳面淨值（成本 − 累計折舊）。';
+COMMENT ON COLUMN "nx05_asset_depreciation"."posted_at" IS '過帳時間（非 null＝已產生 DEP/FA-DEP 分錄、🔴 之後不可重算）。';
+COMMENT ON COLUMN "nx05_asset_depreciation"."voucher_id" IS '對應傳票 ID（B 階段接 nx05_voucher；A 階段先留欄不設 FK）。';
+COMMENT ON COLUMN "nx05_asset_depreciation"."remark" IS '備註。';
+COMMENT ON COLUMN "nx05_asset_depreciation"."created_at" IS '建立時間。';
+COMMENT ON COLUMN "nx05_asset_depreciation"."created_by" IS '建立人。';
+COMMENT ON COLUMN "nx05_asset_depreciation"."updated_at" IS '更新時間。';
+COMMENT ON COLUMN "nx05_asset_depreciation"."updated_by" IS '更新人。';
+
+-- Nx05PostingRule  →  nx05_posting_rule
+COMMENT ON TABLE "nx05_posting_rule" IS '過帳規則（交易科目對映）＝缺口 1「總帳脊椎」的核心規格輸入 全域 63 個交易代號（亞羅彙總表 43 ＋ 分循環分頁 20）';
+COMMENT ON COLUMN "nx05_posting_rule"."id" IS '[NX05]+[PSTR]+[7碼流水號]，EX : NX05PSTR0000001';
+COMMENT ON COLUMN "nx05_posting_rule"."tenant_id" IS '租戶 ID（外鍵）。';
+COMMENT ON COLUMN "nx05_posting_rule"."code" IS '交易代號（SO-CR 銷貨賒銷/PO-IMP 進口費用歸集/BK-TRF 帳戶間調撥/FA-DEP 折舊提列…）。';
+COMMENT ON COLUMN "nx05_posting_rule"."name" IS '交易類型名稱。';
+COMMENT ON COLUMN "nx05_posting_rule"."cycle_code" IS '內部循環（SALES/PURCHASE/INVENTORY/FUND/FINANCE/HR/FIXEDASSET/IT/PRODUCT）。⭐ 內部用能長出洞察的切法。';
+COMMENT ON COLUMN "nx05_posting_rule"."legal_cycle_code" IS '對外法定循環（SALES_RECEIPT 銷售及收款/PURCHASE_PAYMENT 採購及付款/INVENTORY/PAYROLL 薪工/FINANCING 融資/FIXEDASSET 固定資產/IT 電腦化資訊系統/RND 研發/TREASURY 資金）。⭐ 對外用法定框架的名字。';
+COMMENT ON COLUMN "nx05_posting_rule"."source_doc_type" IS '觸發此規則的來源單據類型（SO/RR/TI/PY/ST…；期末批次類無單據時為 null）。';
+COMMENT ON COLUMN "nx05_posting_rule"."is_auto" IS '是否由單據自動產生分錄（false＝人工傳票時選用）。';
+COMMENT ON COLUMN "nx05_posting_rule"."status" IS '狀態（ACTIVE 啟用/PENDING 待決、如 IWD 存貨跌價待會計政策定案/INACTIVE 停用）。';
+COMMENT ON COLUMN "nx05_posting_rule"."is_system" IS '系統內建（範本帶入、租戶不可刪）。';
+COMMENT ON COLUMN "nx05_posting_rule"."sort_no" IS '排序用。';
+COMMENT ON COLUMN "nx05_posting_rule"."is_active" IS '是否啟用。';
+COMMENT ON COLUMN "nx05_posting_rule"."remark" IS '說明。';
+COMMENT ON COLUMN "nx05_posting_rule"."created_at" IS '建立時間。';
+COMMENT ON COLUMN "nx05_posting_rule"."created_by" IS '建立人。';
+COMMENT ON COLUMN "nx05_posting_rule"."updated_at" IS '更新時間。';
+COMMENT ON COLUMN "nx05_posting_rule"."updated_by" IS '更新人。';
+
+-- Nx05PostingRuleLine  →  nx05_posting_rule_line
+COMMENT ON TABLE "nx05_posting_rule_line" IS '過帳規則分錄行（借貸 × 科目 × 金額基礎 × 三個維度旗標） ⚠ 借貸平衡不在 DB 驗：金額基礎是符號不是數字，平衡要在過帳當下用實際金額驗（B 階段 service）';
+COMMENT ON COLUMN "nx05_posting_rule_line"."id" IS '[NX05]+[PSTL]+[7碼流水號]，EX : NX05PSTL0000001';
+COMMENT ON COLUMN "nx05_posting_rule_line"."rule_id" IS '對應過帳規則表頭 ID（FK nx05_posting_rule）。';
+COMMENT ON COLUMN "nx05_posting_rule_line"."line_no" IS '分錄行號（1,2,3…）。';
+COMMENT ON COLUMN "nx05_posting_rule_line"."dr_cr" IS '借貸（D=借方/C=貸方）。';
+COMMENT ON COLUMN "nx05_posting_rule_line"."account_code_id" IS '固定科目（FK nx05_account_code；與 account_pattern 二擇一必填）。';
+COMMENT ON COLUMN "nx05_posting_rule_line"."account_pattern" IS '可變科目樣板（6xxx＝依費用性質選、15x2＝依資產類別選累計折舊；與 account_code_id 二擇一必填）。';
+COMMENT ON COLUMN "nx05_posting_rule_line"."amount_basis" IS '金額基礎（GROSS 含稅總額/NET 未稅金額/TAX 稅額/COST 銷貨成本/FACE 票面金額/DIFF 差異金額/ALLOC 分攤金額/PAID 已付部分/UNPAID 未付部分）。⚠ 整張表最容易做錯的地方——把含稅金額記進收入，營業額就虛胖 5%。';
+COMMENT ON COLUMN "nx05_posting_rule_line"."require_dept" IS '需部門維度（成本中心）。';
+COMMENT ON COLUMN "nx05_posting_rule_line"."require_partner" IS '需往來對象維度。';
+COMMENT ON COLUMN "nx05_posting_rule_line"."partner_scope" IS '對象值域（PARTNER 往來對象/EMPLOYEE 員工/EITHER 二選一）。🔴 2111 應付費用的對象可能是員工（代墊報支），而員工不在往來對象主檔。';
+COMMENT ON COLUMN "nx05_posting_rule_line"."require_bank_account" IS '🔴 需銀行帳戶維度。BK-TRF 是借 1102／貸 1102 同科目同金額——帳戶不是維度的話這組分錄會看起來像什麼都沒發生（恆迎用 1113/1114 兩個科目繞路、科目表因此膨脹）。';
+COMMENT ON COLUMN "nx05_posting_rule_line"."is_optional" IS '該行是否條件性出現（例 PO-RCV 第 4 行「若尚有尾款未付」、WCLM 借方三選一）。';
+COMMENT ON COLUMN "nx05_posting_rule_line"."condition" IS '條件說明（人可讀；程式判斷走 service）。';
+COMMENT ON COLUMN "nx05_posting_rule_line"."remark" IS '說明。';
+COMMENT ON COLUMN "nx05_posting_rule_line"."created_at" IS '建立時間。';
+COMMENT ON COLUMN "nx05_posting_rule_line"."created_by" IS '建立人。';
+COMMENT ON COLUMN "nx05_posting_rule_line"."updated_at" IS '更新時間。';
+COMMENT ON COLUMN "nx05_posting_rule_line"."updated_by" IS '更新人。';
 
 -- Nx06Dn  →  nx06_dn
 COMMENT ON TABLE "nx06_dn" IS '配送單單頭——出貨配送。';
@@ -3647,3 +4049,21 @@ COMMENT ON COLUMN "nx01_warehouse_rack"."created_at" IS '建立時間';
 COMMENT ON COLUMN "nx01_warehouse_rack"."created_by" IS '建立人';
 COMMENT ON COLUMN "nx01_warehouse_rack"."updated_at" IS '更新時間';
 COMMENT ON COLUMN "nx01_warehouse_rack"."updated_by" IS '更新人';
+
+-- Nx01Param  →  nx01_param
+COMMENT ON TABLE "nx01_param" IS '代碼參數表（Q2 拍板・限定用途：只收租戶可自訂、不影響狀態機的分類型值域） 紀律：一個值域超過 50 個值 → 是資料不是參數，獨立成主檔； 一個值域每個值都帶其他屬性 → 也是主檔（稅別/收付方式/資產類別因此各自升格）。 不收：單據狀態機、借貸方向、任何被 switch 判斷的值——那些留在程式碼。';
+COMMENT ON COLUMN "nx01_param"."id" IS '[NX01]+[PARM]+[7碼流水號]，EX : NX01PARM0000001';
+COMMENT ON COLUMN "nx01_param"."tenant_id" IS '租戶 ID（外鍵）。';
+COMMENT ON COLUMN "nx01_param"."category_code" IS '參數類別（A 階段 9 類：CASH_FLOW_TYPE 現金流量分類/EXPENSE_APPROVAL_PATH 費用核准路徑/RECURRING_FREQUENCY 定期費用頻率/CASH_FORECAST_CERTAINTY 現金預測確定性/BANK_REC_ITEM_TYPE 未達帳項類型/ASSET_DISPOSAL_METHOD 處分方式/CAPEX_CATEGORY 資本支出類別/ASSET_STATUS 資產狀態/DEPRECIATION_METHOD 折舊方法）。';
+COMMENT ON COLUMN "nx01_param"."code" IS '代碼。';
+COMMENT ON COLUMN "nx01_param"."name" IS '顯示名稱。';
+COMMENT ON COLUMN "nx01_param"."sort_no" IS '排序用。';
+COMMENT ON COLUMN "nx01_param"."attr1" IS '附屬值 1（例：資產狀態的「仍要折舊、仍要盤到」）。';
+COMMENT ON COLUMN "nx01_param"."attr2" IS '附屬值 2。';
+COMMENT ON COLUMN "nx01_param"."is_system" IS '系統內建（租戶不可刪）。';
+COMMENT ON COLUMN "nx01_param"."is_active" IS '是否啟用。';
+COMMENT ON COLUMN "nx01_param"."remark" IS '說明。';
+COMMENT ON COLUMN "nx01_param"."created_at" IS '建立時間。';
+COMMENT ON COLUMN "nx01_param"."created_by" IS '建立人。';
+COMMENT ON COLUMN "nx01_param"."updated_at" IS '更新時間。';
+COMMENT ON COLUMN "nx01_param"."updated_by" IS '更新人。';
