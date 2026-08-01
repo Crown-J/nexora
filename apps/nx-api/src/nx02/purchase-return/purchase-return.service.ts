@@ -20,6 +20,7 @@ import {
 } from '../../shared/nx02/nx02-state-machine';
 import { createAllowanceFromPurchaseReturn } from '../../shared/nx05/nx05-create-allowance-from-pr';
 import { createArFromPostedPr } from '../../shared/nx05/nx05-create-ar-from-pr';
+import { postPrToGl } from '../../shared/nx05/nx05-post-return-to-gl';
 import { createWarrantyClaimsFromPr } from '../../shared/nx02/nx02-create-warranty-from-pr';
 import { applyQtyOutWithLedger } from '../../shared/nx03/nx03-inventory';
 import { closeIssueReportFromDisposition } from '../../shared/nx03/nx03-issue-report-close';
@@ -459,6 +460,10 @@ export class PurchaseReturnService {
         const head = await tx.nx02Pr.findFirst({ where: { id, tenantId }, select: PR_SEL });
         if (!head) throw new NotFoundException('Purchase return not found');
         await this.applyPrPosting(tx, head, user.sub);
+        // ⭐ 總帳脊椎 C4 2026-08-01：進貨退出／折讓接上總帳（只加這一行、⛔ 不動任何營運邏輯）
+        // 退出走「借其他應收款」（系統建的是應收、不是沖應付）、折讓走「借應付」。
+        // 走保固模式的退出不建應收 → 這一支會自己 skip，不會憑空多一筆應收。
+        await postPrToGl(tx, { tenantId, prId: id, userId: user.sub });
         // W5 異常鏈 Step 3 2026-07-11：過帳完成 → 來源異常單回寫自動結案（同交易）
         if (head.sourceIssueReportId) {
           await closeIssueReportFromDisposition(tx, {

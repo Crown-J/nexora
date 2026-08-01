@@ -12,6 +12,7 @@ import { requireTenantId } from '../../shared/nx01/require-tenant';
 import { allocNx03DocNo } from '../../shared/nx03/nx03-doc-no';
 import { applyQtyInWithLedger } from '../../shared/nx03/nx03-inventory';
 import { createAllowanceFromSalesReturn } from '../../shared/nx05/nx05-create-allowance-from-sr';
+import { postSrToGl } from '../../shared/nx05/nx05-post-return-to-gl';
 import { createReturnPickupFromPostedSr } from '../../shared/nx06/nx06-create-return-pickup-from-sr';
 import { allocNx04DocNo } from '../../shared/nx04/nx04-doc-no';
 import { requireDefaultLocationId } from '../../shared/nx04/nx04-location';
@@ -555,6 +556,10 @@ export class SalesReturnService {
             srId: id,
             userId: user.sub,
           });
+          // ⭐ 總帳脊椎 C4 2026-08-01：銷貨退回接上總帳（只加這一行、⛔ 不動任何營運邏輯）
+          // 🔴 退現金＝欠客戶的錢（負債），折抵＝沖減應收——走哪一條看實際建出來的折讓單。
+          // 換新（X）路徑不會走到這裡，貨沒回倉、也沒有折讓單。
+          await postSrToGl(tx, { tenantId, srId: id, userId: user.sub });
         }
       }
       await tx.nx04Sr.update({
