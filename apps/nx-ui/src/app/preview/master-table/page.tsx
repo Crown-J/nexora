@@ -12,6 +12,7 @@
 
 import { useState } from 'react';
 
+import { ErpToolbar } from '@/features/nx01/shell/ui/ErpToolbar';
 import { MasterTable, type MasterTableColumn } from '@/features/nx01/shell/ui/MasterTable';
 
 type So = {
@@ -69,6 +70,26 @@ export default function MasterTablePreviewPage() {
         全站共用表格（單據 16 頁＋主檔 24 頁）。點一列後可用 ↑↓ 切換、Enter 開啟、Home/End 首末列。
         {opened ? <span className="ml-3 text-foreground">已開啟：{opened}</span> : null}
       </div>
+
+      {/* 工具列也是 25 個頁面共用的，跟表格擺在一起才看得出實際比例 */}
+      <ErpToolbar
+        mode="browse"
+        hasActiveRow={!!selected}
+        selectedRowActive
+        selectionMode={false}
+        onToggleSelection={() => {}}
+        selectedCount={0}
+        itemIndex={selected ? ROWS.findIndex((r) => r.id === selected) + 1 : 0}
+        itemTotal={ROWS.length}
+        onCreate={() => setOpened('新增')}
+        onEdit={() => setOpened('編輯')}
+        onSearch={() => setOpened('查詢')}
+        onDelete={() => setOpened('刪除')}
+        onRefresh={() => setOpened('重新整理')}
+        onExport={() => setOpened('匯出')}
+        onSave={() => setOpened('存檔')}
+        onCancel={() => setOpened('取消')}
+      />
 
       <div className="min-h-0 flex-1 overflow-auto p-4">
         <MasterTable<So>

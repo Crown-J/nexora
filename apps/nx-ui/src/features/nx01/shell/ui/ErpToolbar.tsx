@@ -206,7 +206,7 @@ export function ErpToolbar({
       <div className="flex items-center gap-1 border-b border-[var(--primary)]/30 bg-gradient-to-r from-[var(--primary)]/6 to-[var(--primary)]/3 px-3 py-1.5">
         <ToolbarButton icon={Check} label="完成選取" enabled onClick={onToggleSelection} accent />
         <ToolbarSeparator />
-        <span className="px-1 text-[11px] text-muted-foreground">
+        <span className="px-1 text-[14px] text-muted-foreground">
           已選 <span className="font-mono text-[var(--primary)]">{selectedCount}</span> 筆
         </span>
         <div className="flex-1" />
@@ -232,15 +232,15 @@ export function ErpToolbar({
     return (
       <ToolbarPortal>
       <div className="flex items-center gap-1 border-b border-[var(--primary)]/30 bg-gradient-to-r from-[var(--primary)]/6 to-[var(--primary)]/3 px-3 py-1.5">
-        <span className="inline-flex items-center gap-1 rounded-md border border-[var(--primary)]/40 bg-[var(--primary)]/12 px-2 py-0.5 text-[11px] font-medium text-[var(--primary)]">
-          <Pencil className="size-3" />
+        <span className="inline-flex items-center gap-1 rounded-md border border-[var(--primary)]/40 bg-[var(--primary)]/12 px-2 py-0.5 text-[13px] font-medium text-[var(--primary)]">
+          <Pencil className="size-4" />
           編輯中
         </span>
         <ToolbarSeparator />
         <ToolbarButton icon={Save} letter="S" label="存檔" enabled onClick={onSave} accent />
         <ToolbarButton icon={X} letter="C" label="取消" enabled onClick={onCancel} />
         <div className="flex-1" />
-        <span className="px-1 text-[11px] text-muted-foreground">
+        <span className="px-1 text-[14px] text-muted-foreground">
           編輯模式 · Alt+S 存檔 / Alt+C 取消
         </span>
       </div>
@@ -290,7 +290,7 @@ export function ErpToolbar({
     >
       <NavButton icon={ChevronsLeft} disabled={navFirstDisabled} onClick={handleFirst} title={`第一${navLabel}`} />
       <NavButton icon={ChevronLeft} disabled={navFirstDisabled} onClick={handlePrev} title={`上一${navLabel}`} />
-      <span className="min-w-[3rem] px-1 text-center font-mono text-[11px] tabular-nums text-muted-foreground">
+      <span className="min-w-[3.5rem] px-1 text-center font-mono text-[14px] tabular-nums text-muted-foreground">
         {navIndex} / {navTotal}
       </span>
       <NavButton icon={ChevronRight} disabled={navLastDisabled} onClick={handleNext} title={`下一${navLabel}`} />
@@ -415,7 +415,7 @@ export function ErpToolbar({
           ) : null}
           {sortOptions && onSortChange ? (
             <>
-              <div className="border-t border-border/40 px-3 pt-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">排序</div>
+              <div className="border-t border-border/40 px-3 pt-2 text-[13px] font-semibold uppercase tracking-wider text-muted-foreground">排序</div>
               {sortOptions.map((o) => {
                 const active = sortKey === o.key;
                 return (
@@ -426,7 +426,7 @@ export function ErpToolbar({
                     className="flex w-full items-center justify-between px-3 py-2.5 text-left text-[14px] text-foreground hover:bg-accent/10"
                   >
                     <span>依 {o.label}</span>
-                    {active ? <span className="text-[12px] text-primary">{sortOrder === 'asc' ? '↑ 升冪' : '↓ 降冪'}</span> : null}
+                    {active ? <span className="text-[14px] text-primary">{sortOrder === 'asc' ? '↑ 升冪' : '↓ 降冪'}</span> : null}
                   </button>
                 );
               })}
@@ -499,13 +499,14 @@ export function NavButton({
       title={title}
       aria-label={title}
       className={cn(
-        'inline-flex h-7 w-7 items-center justify-center rounded-md border transition-all',
+        // v3.0.0 階段 4：28px 方鈕 → 36px，跟主按鈕同高才不會參差
+        'inline-flex h-9 w-9 items-center justify-center rounded-md border transition-all',
         disabled
           ? 'cursor-not-allowed border-border/30 bg-muted/30 text-muted-foreground/50'
           : 'border-border/50 bg-card text-foreground/80 hover:border-border hover:bg-accent/15 hover:text-foreground',
       )}
     >
-      <Icon className="size-3.5" />
+      <Icon className="size-4.5" />
     </button>
   );
 }
@@ -541,7 +542,10 @@ export function ToolbarButton({
       title={letter ? `${label}（${letter}）` : label}
       aria-pressed={pressed}
       className={cn(
-        'inline-flex h-7 items-center gap-1 rounded-md border px-2 text-[11px] font-medium transition-all',
+        // v3.0.0 階段 4：11px → 15px、h-7(28px) → h-9(36px)。
+        // 這是工具列的主按鈕（新增／編輯／刪除…），25 個頁面共用。
+        // 11px 對年長使用者近乎讀不到，按鈕也太小不好點（規格 §6）。
+        'inline-flex h-9 items-center gap-1.5 rounded-md border px-3 text-[15px] font-medium transition-all',
         enabled
           ? variant === 'danger'
             ? 'border-destructive/40 bg-destructive/10 text-destructive hover:border-destructive/60 hover:bg-destructive/20'
@@ -551,7 +555,7 @@ export function ToolbarButton({
           : 'cursor-not-allowed border-border/30 bg-muted/30 text-muted-foreground/50',
       )}
     >
-      <Icon className="size-3" />
+      <Icon className="size-4" />
       <span className="hidden sm:inline">
         {letter ? (
           <span
@@ -589,11 +593,11 @@ export function ExportMenuButton({
           type="button"
           title="匯出（O）"
           className={cn(
-            'inline-flex h-7 items-center gap-1 rounded-md border border-border/50 bg-card px-2 text-[11px] font-medium text-foreground/80 transition-all hover:border-border hover:bg-accent/15 hover:text-foreground',
+            'inline-flex h-9 items-center gap-1.5 rounded-md border border-border/50 bg-card px-3 text-[15px] font-medium text-foreground/80 transition-all hover:border-border hover:bg-accent/15 hover:text-foreground',
             'data-[state=open]:border-primary/50 data-[state=open]:bg-primary/15 data-[state=open]:text-primary',
           )}
         >
-          <Download className="size-3" />
+          <Download className="size-4" />
           <span className="hidden sm:inline">
             <span className="mr-0.5 font-mono text-primary">O</span>
             匯出
@@ -611,14 +615,14 @@ export function ExportMenuButton({
           onClick={() => onSelect('csv')}
           className="cursor-pointer rounded-md px-2 py-1.5 text-sm text-foreground focus:bg-primary/15 focus:text-primary data-[highlighted]:bg-primary/15 data-[highlighted]:text-primary"
         >
-          <FileSpreadsheet className="mr-2 size-3.5" />
+          <FileSpreadsheet className="mr-2 size-4.5" />
           匯出 CSV
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => onSelect('pdf')}
           className="cursor-pointer rounded-md px-2 py-1.5 text-sm text-foreground focus:bg-primary/15 focus:text-primary data-[highlighted]:bg-primary/15 data-[highlighted]:text-primary"
         >
-          <FileText className="mr-2 size-3.5" />
+          <FileText className="mr-2 size-4.5" />
           匯出 PDF
         </DropdownMenuItem>
       </DropdownMenuContent>
