@@ -60,12 +60,13 @@ export class QuoteController {
   }
 
   /// 批次報價 picker：整組替代料候選 + 各列可出量/歷史價/建議價
+  /// ⚠️ 2026-08-01 v3.0.0：customerId 改選填，供「查價查貨」料號優先查詢用（見 service 註解）
   @Get('candidates')
   @Permission('sale.quote.create', 'sale.quote.edit')
   candidates(
     @CurrentUser() user: RequestUser,
-    @Query('customerId') customerId: string,
     @Query('partId') partId: string,
+    @Query('customerId') customerId?: string,
     @Query('warehouseId') warehouseId?: string,
   ) {
     return this.svc.getQuoteCandidates(user, customerId, partId, warehouseId);

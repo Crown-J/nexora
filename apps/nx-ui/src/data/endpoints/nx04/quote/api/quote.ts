@@ -139,11 +139,17 @@ export function getQuotePriceIntel(customerId: string, partId: string): Promise<
 }
 
 /// 批次報價 picker：整組替代料候選 + 各列可出量/歷史價/建議價
+/// ⚠️ 2026-08-01 v3.0.0：customerId 改選填（查價查貨是料號優先、客戶選填）。
+///    不帶客戶時 customerLast* 與 suggestedPrice 會是 null，可出量與 partLast* 照給。
 export function getQuoteCandidates(
-  customerId: string,
   partId: string,
+  customerId?: string,
   warehouseId?: string,
 ): Promise<QuoteCandidatesResult> {
-  const qs = buildQueryString({ customerId, partId, warehouseId: warehouseId || undefined });
+  const qs = buildQueryString({
+    partId,
+    customerId: customerId || undefined,
+    warehouseId: warehouseId || undefined,
+  });
   return apiJson(`/nx04/quote/candidates${qs}`);
 }

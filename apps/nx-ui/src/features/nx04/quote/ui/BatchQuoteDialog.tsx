@@ -52,7 +52,8 @@ export function BatchQuoteDialog({
       setLoading(true);
       setErr(null);
       try {
-        const res = await getQuoteCandidates(customerId, partId, warehouseId);
+        // ⚠️ 2026-08-01 參數順序改成 (partId, customerId?)——customerId 變選填
+        const res = await getQuoteCandidates(partId, customerId, warehouseId);
         setRows(res.candidates);
         setWhName(res.warehouseName);
         setWarehouses(res.warehouses);

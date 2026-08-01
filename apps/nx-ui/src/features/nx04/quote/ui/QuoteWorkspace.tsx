@@ -523,7 +523,8 @@ export function QuoteWorkspace({ onClose, hidden = false }: { onClose: () => voi
         const [d, rows, ph] = await Promise.all([
           getPartDetail(currentPartId),
           customer
-            ? getQuoteCandidates(customer.id, currentPartId, customer.defaultWarehouseId ?? undefined).then((r) =>
+            ? // ⚠️ 2026-08-01 參數順序改成 (partId, customerId?)——customerId 變選填
+              getQuoteCandidates(currentPartId, customer.id, customer.defaultWarehouseId ?? undefined).then((r) =>
                 r.candidates.map((c) => ({
                   partId: c.id,
                   code: c.code,

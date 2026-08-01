@@ -1075,18 +1075,29 @@ export class QuoteService {
    *   · 上一次「該零件」市場報價/銷貨（任一客戶，取最近一筆）
    *   · 建議售價：① 該客戶上次價 → ② 該零件市場近價 → ③ 客戶等級價(avgCost×(1+毛利率)) → ④ 空
    */
+  /**
+   * ⚠️ 2026-08-01 v3.0.0：customerId 改為選填（純 widening、既有呼叫端行為不變）。
+   *    新的「查價查貨」是料號優先、客戶選填（執行長拍板 A 案）——業務接到電話先打料號，
+   *    還沒問是哪家就要先看得到有沒有貨。沒帶客戶時：
+   *      · 可出量、該零件市場近價 —— 照給
+   *      · 該客戶上次價、客戶等級建議價 —— 回 null（⛔ 不猜、不拿別人的價充數）
+   */
   async getQuoteCandidates(
     user: RequestUser,
-    customerId: string,
+    customerId: string | undefined,
     partId: string,
     warehouseId?: string,
   ) {
     const tenantId = requireTenantId(user);
-    const customer = await this.prisma.nx01Partner.findFirst({
-      where: { id: customerId.trim(), tenantId },
-      select: { id: true, customerGradeId: true, defaultWarehouseId: true },
-    });
-    if (!customer) throw new NotFoundException('Customer not found');
+    const cid = customerId?.trim() || '';
+    const customer = cid
+      ? await this.prisma.nx01Partner.findFirst({
+          where: { id: cid, tenantId },
+          select: { id: true, customerGradeId: true, defaultWarehouseId: true },
+        })
+      : null;
+    // 有指定客戶卻查不到 → 仍然是錯誤；沒指定客戶 → 合法
+    if (cid && !customer) throw new NotFoundException('Customer not found');
 
     // 出貨倉：指定 → 客戶預設 → 主倉 → 任一
     let wh = warehouseId?.trim()
@@ -1095,7 +1106,7 @@ export class QuoteService {
           select: { id: true, code: true, name: true },
         })
       : null;
-    if (!wh && customer.defaultWarehouseId) {
+    if (!wh && customer?.defaultWarehouseId) {
       wh = await this.prisma.nx01Warehouse.findFirst({
         where: { id: customer.defaultWarehouseId, tenantId, isActive: true },
         select: { id: true, code: true, name: true },
@@ -1189,19 +1200,24 @@ export class QuoteService {
       return m;
     };
 
+    // ⚠️ 沒指定客戶時，三支「該客戶」查詢直接給空陣列——⛔ 不打 DB 也不用別人的價替代
     const [custQ, custS, mktQ, mktS, custRec, mktRec] = await Promise.all([
-      this.prisma.nx04QuoteItem.findMany({
-        where: { partId: { in: partIds }, quote: { tenantId, customerId: customer.id, voidedAt: null } },
-        orderBy: { quote: { quoteDate: 'desc' } },
-        take: 500,
-        select: { partId: true, unitPrice: true, quote: { select: { quoteDate: true } } },
-      }),
-      this.prisma.nx04SoItem.findMany({
-        where: { partId: { in: partIds }, so: { tenantId, customerId: customer.id } },
-        orderBy: { so: { soDate: 'desc' } },
-        take: 500,
-        select: { partId: true, unitPrice: true, so: { select: { soDate: true } } },
-      }),
+      customer
+        ? this.prisma.nx04QuoteItem.findMany({
+            where: { partId: { in: partIds }, quote: { tenantId, customerId: customer.id, voidedAt: null } },
+            orderBy: { quote: { quoteDate: 'desc' } },
+            take: 500,
+            select: { partId: true, unitPrice: true, quote: { select: { quoteDate: true } } },
+          })
+        : Promise.resolve([]),
+      customer
+        ? this.prisma.nx04SoItem.findMany({
+            where: { partId: { in: partIds }, so: { tenantId, customerId: customer.id } },
+            orderBy: { so: { soDate: 'desc' } },
+            take: 500,
+            select: { partId: true, unitPrice: true, so: { select: { soDate: true } } },
+          })
+        : Promise.resolve([]),
       this.prisma.nx04QuoteItem.findMany({
         where: { partId: { in: partIds }, quote: { tenantId, voidedAt: null } },
         orderBy: { quote: { quoteDate: 'desc' } },
@@ -1215,12 +1231,14 @@ export class QuoteService {
         select: { partId: true, unitPrice: true, so: { select: { soDate: true } } },
       }),
       // 報價紀錄表（即時報價 + 正式報價行）：該客戶 / 市場
-      this.prisma.nx04QuoteRecord.findMany({
-        where: { partId: { in: partIds }, tenantId, customerId: customer.id },
-        orderBy: { recordDate: 'desc' },
-        take: 500,
-        select: { partId: true, unitPrice: true, recordDate: true },
-      }),
+      customer
+        ? this.prisma.nx04QuoteRecord.findMany({
+            where: { partId: { in: partIds }, tenantId, customerId: customer.id },
+            orderBy: { recordDate: 'desc' },
+            take: 500,
+            select: { partId: true, unitPrice: true, recordDate: true },
+          })
+        : Promise.resolve([]),
       this.prisma.nx04QuoteRecord.findMany({
         where: { partId: { in: partIds }, tenantId },
         orderBy: { recordDate: 'desc' },
@@ -1233,7 +1251,8 @@ export class QuoteService {
 
     // 客戶等級毛利率（建議價 ③ fallback）
     let marginPct: PrismaNs.Decimal | null = null;
-    if (customer.customerGradeId) {
+    // ⚠️ 沒客戶就沒有等級毛利率 → 建議售價留 null（畫面顯示「—」、業務自己看市場近價判斷）
+    if (customer?.customerGradeId) {
       const grade = await this.prisma.nx01CustomerGrade.findFirst({
         where: { id: customer.customerGradeId, tenantId },
         select: { marginPct: true },
