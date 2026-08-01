@@ -157,16 +157,16 @@ export function DemandListView() {
           </p>
         </div>
         <div className="flex gap-2">
-          {/* F2 改版 Step 5（交接 §1）：採購入口＝嵌採購需求單旁；2026-07-11 夜 F1/F2 分流改標 F1 */}
+          {/* 採購入口＝嵌採購需求單旁、直接開庫存查詢站。
+              ⚠️ v3.0.0：原本標「F1」，但 F1 已永久還給瀏覽器（規格 §7.3）、鍵位標示拿掉。 */}
           <button
             type="button"
             onClick={() => openPartQuickSearch({ entry: 'purchase' })}
             className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-background px-3 text-sm text-muted-foreground hover:border-primary/50"
-            title="即時庫存查詢（F1）"
+            title="即時庫存查詢"
           >
             <PackageSearch className="size-4" />
             庫存查詢
-            <kbd className="rounded border border-border/50 bg-muted/40 px-1 py-px font-mono text-[10px]">F1</kbd>
           </button>
           <button
             type="button"

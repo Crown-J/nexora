@@ -45,6 +45,12 @@ export type F2EntryContext = {
   warehouseName?: string;
   /** 情境倉徽章文字（如「客戶倉」）*/
   label?: string;
+  /**
+   * 開站時預先填入的搜尋字並自動搜一次。
+   * v3.0.0 §3.3：工作檯的搜尋框打完 Enter 帶進來——「進系統就能直接打料號」，
+   * ⛔ 不讓使用者在工作檯打一次、進站再打一次。
+   */
+  initialKeyword?: string;
 };
 
 type ContextWarehouseDetail = {
@@ -170,7 +176,13 @@ export function GlobalPartQuickSearch({
   if (!mounted) return null;
   return (
     <>
-      <PartQuickSearchModal closing={closing} onClose={userClose} />
+      {/* key：帶著不同搜尋字重開站要重新 mount，否則 initialPartNo 只在第一次生效 */}
+      <PartQuickSearchModal
+        key={entryContext.initialKeyword ?? ''}
+        closing={closing}
+        onClose={userClose}
+        initialPartNo={entryContext.initialKeyword}
+      />
       {mainPartId && (
         <PartMainWindow
           partId={mainPartId}

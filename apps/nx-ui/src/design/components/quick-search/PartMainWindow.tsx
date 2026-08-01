@@ -127,7 +127,8 @@ export function PartMainWindow({
   onClose,
   renderPriceSection,
   headerExtra,
-  cornerBadge = 'F1 · 庫存主視窗',
+  // ⚠️ v3.0.0：舊值帶 'F1 ·'，但 F1 已永久還給瀏覽器（規格 §7.3）、角標不再標鍵位
+  cornerBadge = '庫存主視窗',
   autoFocusCompat = true,
   onQuoteAction,
   compatVariant = 'stock',

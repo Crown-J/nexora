@@ -49,12 +49,21 @@ import { PhoneticPicker } from './PhoneticPicker';
 type Props = {
   closing?: boolean;
   onClose: () => void;
-  /** 視窗標題（F1 預設「即時庫存查詢」；F2 報價流借用時傳「即時報價查詢」）*/
+  /** 視窗標題（預設「即時庫存查詢」；報價流借用時傳「即時報價查詢」）*/
   title?: string;
-  /** 右上角標（F1 預設；F2 報價流傳 'F2 · QUOTE SEARCH'）*/
+  /**
+   * 右上角標。
+   * ⚠️ v3.0.0：舊值是 'F1 · STOCK SEARCH'，但 F1 已永久還給瀏覽器（規格 §7.3）、
+   *    這個站現在的入口是「F2 → 1 → 1」。角標不再標鍵位，避免教錯。
+   */
   cornerBadge?: string;
-  /** 標題旁附加內容（F2 報價流：客戶徽章）*/
+  /** 標題旁附加內容（報價流：客戶徽章）*/
   headerExtra?: React.ReactNode;
+  /**
+   * 開窗時預先填入的料號、並自動跑一次搜尋。
+   * v3.0.0 §3.3：工作檯搜尋框打完 Enter 直接帶進來，⛔ 不讓使用者重打一次。
+   */
+  initialPartNo?: string;
 };
 
 type BrandOpt = { id: string; code: string; name: string };
@@ -104,13 +113,17 @@ export function PartQuickSearchModal({
   closing = false,
   onClose,
   title = '即時庫存查詢',
-  cornerBadge = 'F1 · STOCK SEARCH',
+  cornerBadge = 'STOCK SEARCH',
   headerExtra,
+  initialPartNo,
 }: Props) {
   const [method, setMethod] = useState<Method>('partNo');
   const [focusedSide, setFocusedSide] = useState<FocusedSide>('input');
 
-  const [partNo, setPartNo] = useState('');
+  // 帶入的料號只取開窗當下那一次（之後由使用者自己打）——所以放 useState 初值、不做同步 effect
+  const [partNo, setPartNo] = useState(initialPartNo ?? '');
+  /** 給下面的 mount reset 用（那支 effect deps 是空陣列、不能直接讀 prop） */
+  const initialPartNoRef = useRef(initialPartNo);
   const [keyword, setKeyword] = useState('');
   const [brandQuery, setBrandQuery] = useState('');
   const [partGroupQuery, setPartGroupQuery] = useState('');
@@ -207,9 +220,11 @@ export function PartQuickSearchModal({
   }, []);
 
   // mount: reset + 首焦點 + lazy load 主檔
+  // ⚠️ 這支 reset 會把 useState 初值洗掉——帶入的料號要在這裡再放一次，
+  //    否則工作檯打好的字進站就不見了（v3.0.0 §3.3）。走 ref 讓 deps 維持空陣列。
   useEffect(() => {
     setMethod('partNo');
-    setPartNo('');
+    setPartNo(initialPartNoRef.current ?? '');
     setKeyword('');
     setBrandQuery('');
     setPartGroupQuery('');

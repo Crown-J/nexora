@@ -314,6 +314,15 @@ export type HomeSummary = {
   finance: { apDueSoon: number; overdueAr: number };
   /** OWNER/SYSADMIN 才有、其他 null */
   manager: { todaySoAmount: string; todaySoCount: number } | null;
+  /** v3.0.0 §3.3「要追蹤的」——不追會爛掉、但今天不做也不會死的 */
+  track: {
+    expiredQuotes: number;
+    dormantCustomers: number;
+    overdueAr: number;
+    apDueSoon: number;
+  };
+  /** v3.0.0 §3.3「我的待辦」。⚠️ 待簽核缺席——系統還沒有簽核單據表 */
+  mine: { openIssues: number };
 };
 
 export async function getHomeSummary(): Promise<HomeSummary> {
