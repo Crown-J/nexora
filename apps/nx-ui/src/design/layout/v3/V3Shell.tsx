@@ -34,11 +34,14 @@ import { NineGrid } from '@design/navigation/NineGrid';
 import { V3TopBar } from './V3TopBar';
 
 /**
- * 九宮格開關鍵。
- * ⚠️ Step 4 改成 'F2'：F2 目前是即時工作檯的鍵、五個站靠它進入，
- *    現在搶過來那五站會進不去，等站台一起遷移時再換（規格 §3.1 最終鍵位是 F2）。
+ * 九宮格開關鍵＝全系統唯一的全域鍵（規格 §7.3）。
+ * Step 4 起接管 F2：原本的即時工作檯選單已退場，五個站改由九宮格的格子進入
+ * （銷售作業 2-5 的第三層）。鍵位登記見 design/keyboard/keymap-registry.ts。
  */
-const MENU_KEY = 'F4';
+const MENU_KEY = 'F2';
+
+/** 開既有浮層工作站的事件（InstantWorkbench 監聽）。⚠️ 過渡做法，階段 4 改一頁式分頁 */
+const OPEN_STATION_EVENT = 'nx-instant-station-open';
 
 type Props = { children: React.ReactNode };
 
@@ -82,7 +85,15 @@ function V3Chrome({ children }: Props) {
       <NineGrid
         open={menuOpen}
         onClose={() => setMenuOpen(false)}
-        onNavigate={(href, label) => openTab(href, `九宮格：${label}`)}
+        onPick={(t) => {
+          if (t.station) {
+            window.dispatchEvent(
+              new CustomEvent(OPEN_STATION_EVENT, { detail: { no: t.station } }),
+            );
+            return;
+          }
+          if (t.href) openTab(t.href, `九宮格：${t.label}`);
+        }}
       />
     </div>
   );

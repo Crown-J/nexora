@@ -21,7 +21,7 @@ export default function NineGridPreviewPage() {
   // 與 V3Shell 相同的開關鍵，讓預覽頁的操作手感跟正式環境一致
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
-      if (e.key !== 'F4' || e.ctrlKey || e.metaKey || e.altKey) return;
+      if (e.key !== 'F2' || e.ctrlKey || e.metaKey || e.altKey) return;
       e.preventDefault();
       e.stopPropagation();
       setOpen((v) => !v);
@@ -34,7 +34,7 @@ export default function NineGridPreviewPage() {
     <main className="min-h-dvh bg-background p-10 text-foreground">
       <h1 className="text-2xl">九宮格預覽</h1>
       <p className="mt-2 text-base text-muted-foreground">
-        按 F4 或下面的按鈕開啟。開啟後：1–9 選格、0 回上一層、Esc 關閉。
+        按 F2 或下面的按鈕開啟。開啟後：1–9 選格、0 回上一層、Esc 關閉。
       </p>
 
       <button
@@ -55,7 +55,7 @@ export default function NineGridPreviewPage() {
       <NineGrid
         open={open}
         onClose={() => setOpen(false)}
-        onNavigate={(href, label) => setPicked({ href, label })}
+        onPick={(t) => setPicked({ href: t.href ?? `（即時工作站 ${t.station}）`, label: t.label })}
       />
     </main>
   );

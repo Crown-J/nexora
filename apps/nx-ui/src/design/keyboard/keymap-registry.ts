@@ -25,13 +25,16 @@ export type GlobalKeyDef = {
 };
 
 export const GLOBAL_KEYMAP: GlobalKeyDef[] = [
+  // 2026-08-01 v3.0.0 階段 1 Step 4：F2 由即時工作檯選單改為九宮格導覽。
+  // 舊條目 id='instant-workbench'（owner 為 InstantWorkbench.tsx）已退場——
+  // 那套啟動器選單整個移除，五個站改由九宮格的格子進入。
   {
-    id: 'instant-workbench',
+    id: 'nine-grid',
     keys: ['F2'],
-    label: '即時工作檯選單（開/關）',
+    label: '功能選單（九宮格：角色→功能→子功能）',
     focusGuard: 'immune',
     status: 'live',
-    owner: 'features/shared/instant-workbench/InstantWorkbench.tsx',
+    owner: 'design/layout/v3/V3Shell.tsx（面板在 design/navigation/NineGrid.tsx）',
   },
   {
     id: 'go-home',
@@ -49,14 +52,8 @@ export const GLOBAL_KEYMAP: GlobalKeyDef[] = [
     status: 'live',
     owner: 'design/primitives/modal-stack.ts（FocusLockedDialog）',
   },
-  // ── B 期佔位（執行長 2026-07-14 方向同意、細節開工前再對）──
-  {
-    id: 'dock-launcher',
-    keys: ['`'],
-    label: 'Dock 啟動器（開後按模組助憶鍵直達頁面）',
-    focusGuard: 'yield-in-input',
-    status: 'planned',
-  },
+  // ⛔ 舊佔位 id='dock-launcher'（` 鍵）已取消：v3.0.0 拍板 Dock 與 F2 合併為單一入口，
+  //    導覽只留 F2 一個全域鍵——要記的東西越少越好（規格 §7.3）。
   {
     id: 'workspace-tab-switch',
     keys: ['Alt+ArrowLeft', 'Alt+ArrowRight'],

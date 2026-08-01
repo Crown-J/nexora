@@ -40,14 +40,17 @@ type PanelItem = {
 
 type Level = 'role' | 'cell' | 'child';
 
+/** 選到的最終目的地。href＝開頁面；station＝開既有的即時工作站（過渡，見 role-registry） */
+export type NineGridTarget = { href?: string; station?: number; label: string };
+
 export type NineGridProps = {
   open: boolean;
   onClose: () => void;
-  /** 選到最終目的地時呼叫；由外層決定開分頁或導頁 */
-  onNavigate: (href: string, label: string) => void;
+  /** 選到最終目的地時呼叫；由外層決定怎麼開 */
+  onPick: (target: NineGridTarget) => void;
 };
 
-export function NineGrid({ open, onClose, onNavigate }: NineGridProps) {
+export function NineGrid({ open, onClose, onPick: onPickTarget }: NineGridProps) {
   const [level, setLevel] = useState<Level>('role');
   const [role, setRole] = useState<RoleDef | null>(null);
   const [cell, setCell] = useState<GridCell | null>(null);
@@ -92,18 +95,19 @@ export function NineGrid({ open, onClose, onNavigate }: NineGridProps) {
           setLevel('child');
           return;
         }
-        if (c.href) {
-          onNavigate(c.href, c.label);
+        if (c.href || c.station) {
+          onPickTarget({ href: c.href, station: c.station, label: c.label });
           onClose();
         }
         return;
       }
       const child = cell?.children?.find((x) => x.no === no);
-      if (!child || child.status === 'pending' || !child.href) return;
-      onNavigate(child.href, child.label);
+      if (!child || child.status === 'pending') return;
+      if (!child.href && !child.station) return;
+      onPickTarget({ href: child.href, station: child.station, label: child.label });
       onClose();
     },
-    [level, role, cell, onNavigate, onClose],
+    [level, role, cell, onPickTarget, onClose],
   );
 
   // 鍵盤：capture 搶在底下頁面與 modal-stack 之前

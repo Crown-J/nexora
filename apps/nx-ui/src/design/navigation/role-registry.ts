@@ -36,6 +36,12 @@ export type GridCell = {
   label: string;
   /** 直接開的路由；有 children 時可省略（按下去進第三層） */
   href?: string;
+  /**
+   * 開既有的即時工作站（浮層，不是路由）。1-6 對應 instant-workbench/station-registry。
+   * ⚠️ 過渡做法：規格 §2.1 要求一頁式、⛔ 不用彈跳視窗，五個站改寫成分頁排在階段 4；
+   *    Step 4 只做「鍵位歸位、功能不損失」，先讓九宮格能開現有的站。
+   */
+  station?: 1 | 2 | 3 | 4 | 5 | 6;
   /** 第三層 */
   children?: GridCell[];
   status: 'live' | 'pending';
@@ -62,22 +68,54 @@ export const ROLES: RoleDef[] = [
     department: '業務部',
     cells: [
       // 查價查貨排第 1：業務一天最常做的事，F2→1 兩下到位（規格 v1.1 拍板、⛔ 不開 F1 特例）
-      { no: 1, id: 'stock-query', label: '查價查貨', href: '/dashboard/inventory/stock-query', status: 'live' },
-      { no: 2, id: 'so', label: '銷貨單', href: '/dashboard/sale/so', status: 'live' },
-      { no: 3, id: 'qt', label: '報價單', href: '/dashboard/sale/qt', status: 'live' },
+      // 查完就走、沒有對應的「列表」，所以不開第三層——維持兩下
+      { no: 1, id: 'stock-query', label: '查價查貨', station: 1, status: 'live' },
+      // ⭐ 2-5 一律「作業類別 ▸ 開單／查單」（執行長 2026-08-01 拍板）：
+      //    一格只能對一個動作，但業務既要開單也要查單，所以兩者都放第三層、各三下。
+      //    這也對齊規格 §5「第二層放作業類別、不放單據」——與倉庫作業同一套結構。
+      {
+        no: 2,
+        id: 'so-ops',
+        label: '銷貨作業',
+        status: 'live',
+        children: [
+          { no: 1, id: 'instant-sales', label: '快速開單', station: 4, status: 'live' },
+          { no: 2, id: 'so-list', label: '銷貨單列表', href: '/dashboard/sale/so', status: 'live' },
+        ],
+      },
+      {
+        no: 3,
+        id: 'qt-ops',
+        label: '報價作業',
+        status: 'live',
+        children: [
+          { no: 1, id: 'instant-quote', label: '即時報價', station: 2, status: 'live' },
+          { no: 2, id: 'qt-list', label: '報價單', href: '/dashboard/sale/qt', status: 'live' },
+          { no: 3, id: 'quote-log', label: '報價紀錄', href: '/dashboard/sale/quote-log', status: 'live' },
+        ],
+      },
       {
         no: 4,
         id: 'transfer-ops',
         label: '調貨作業',
         status: 'live',
         children: [
-          { no: 1, id: 'inquiry-log', label: '調貨詢價', href: '/dashboard/sale/inquiry-log', status: 'live' },
+          { no: 1, id: 'instant-inquiry', label: '即時詢價', station: 3, status: 'live' },
           { no: 2, id: 'ti', label: '同行調貨單', href: '/dashboard/purchase/ti', status: 'live' },
-          { no: 3, id: 'ti-return', label: '調貨退回', status: 'pending' },
+          { no: 3, id: 'inquiry-log', label: '詢價紀錄', href: '/dashboard/sale/inquiry-log', status: 'live' },
         ],
       },
       // 客戶要退 → 依零件的退貨政策自動分流成一般退貨或轉保固（規格 §4.2）
-      { no: 5, id: 'sr', label: '退貨處理', href: '/dashboard/sale/return', status: 'live' },
+      {
+        no: 5,
+        id: 'sr-ops',
+        label: '退貨作業',
+        status: 'live',
+        children: [
+          { no: 1, id: 'instant-sr', label: '即時銷退', station: 5, status: 'live' },
+          { no: 2, id: 'sr-list', label: '銷貨退回', href: '/dashboard/sale/return', status: 'live' },
+        ],
+      },
       { no: 6, id: 'customer', label: '客戶管理', href: '/dashboard/master/partners/customer', status: 'live' },
       // 出貨前看客戶有沒有逾期
       { no: 7, id: 'ar-check', label: '對帳查詢', href: '/dashboard/report/finance/ar-overview', status: 'live' },
