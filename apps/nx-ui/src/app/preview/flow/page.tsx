@@ -1,14 +1,14 @@
-// apps/nx-ui/src/app/preview/wizard/page.tsx
+// apps/nx-ui/src/app/preview/flow/page.tsx
 //
-// 精靈模板預覽：照真實的即時銷售流程（客戶 → 明細 → 交易 → 確認）。
-// 現有的即時銷售是 5 步（多一步「訊息」），這裡取前 4 步展示框架。
+// 流程模板預覽：照真實的即時銷售流程（客戶 → 明細 → 交易 → 確認）。
+// 一頁到底、按 Alt+數字捲到對應區、滾輪也可自由移動。
 // 資料全部是假的、不呼叫任何 API。
 
 'use client';
 
 import { useState } from 'react';
 
-import { WizardTemplate, type WizardStep } from '@design/templates/WizardTemplate';
+import { FlowTemplate, type FlowSection } from '@design/templates/FlowTemplate';
 
 const PARTS: Record<string, [string, number]> = {
   '03L131512DS': ['EGR 冷卻器', 3850],
@@ -20,8 +20,7 @@ type Line = { partNo: string; partName: string; qty: number; price: number };
 
 const money = (n: number) => n.toLocaleString('zh-TW');
 
-export default function WizardPreviewPage() {
-  const [step, setStep] = useState(0);
+export default function FlowPreviewPage() {
   const [customer, setCustomer] = useState('');
   const [lines, setLines] = useState<Line[]>([]);
   const [partInput, setPartInput] = useState('');
@@ -39,36 +38,30 @@ export default function WizardPreviewPage() {
     setPartInput('');
   }
 
-  const steps: WizardStep[] = [
+  const sections: FlowSection[] = [
     {
       key: 'customer',
       label: '客戶',
-      blocked: customer.trim() ? undefined : '請先選擇客戶',
+      blocked: customer.trim() ? undefined : '尚未選擇客戶',
       content: (
-        <div className="max-w-xl space-y-4">
-          <label className="block">
-            <span className="text-[15px] text-muted-foreground">客戶</span>
-            <input
-              value={customer}
-              onChange={(e) => setCustomer(e.target.value)}
-              placeholder="大同汽材行"
-              autoFocus
-              className="mt-1 h-10 w-full rounded-md border border-border bg-background px-3 text-[16px] outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            />
-          </label>
-          <p className="text-[15px] text-muted-foreground">
-            打任何字都可以，這裡只是示範「沒填就不給下一步、而且會說明原因」。
-          </p>
-        </div>
+        <label className="block max-w-xl">
+          <span className="text-[15px] text-muted-foreground">客戶</span>
+          <input
+            value={customer}
+            onChange={(e) => setCustomer(e.target.value)}
+            placeholder="大同汽材行"
+            className="mt-1 h-10 w-full rounded-md border border-border bg-background px-3 text-[16px] outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          />
+        </label>
       ),
     },
     {
       key: 'items',
       label: '明細',
-      blocked: lines.length ? undefined : '至少要有一筆明細',
+      blocked: lines.length ? undefined : '尚未輸入明細',
       content: (
         <div className="space-y-4">
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <input
               value={partInput}
               onChange={(e) => setPartInput(e.target.value)}
@@ -138,7 +131,12 @@ export default function WizardPreviewPage() {
       content: (
         <div className="max-w-xl space-y-4">
           {[
-            { label: '付款條件', value: payment, set: setPayment, opts: ['現金', '月結 30 天', '月結 60 天'] },
+            {
+              label: '付款條件',
+              value: payment,
+              set: setPayment,
+              opts: ['現金', '月結 30 天', '月結 60 天'],
+            },
             { label: '交貨方式', value: delivery, set: setDelivery, opts: ['自取', '配送', '寄貨'] },
           ].map((f) => (
             <label key={f.label} className="block">
@@ -169,16 +167,14 @@ export default function WizardPreviewPage() {
             ['明細', `${lines.length} 筆`],
             ['付款條件', payment],
             ['交貨方式', delivery],
-            ['總金額', money(Math.round(total * 1.05))],
+            ['總金額（含稅）', money(Math.round(total * 1.05))],
           ].map(([k, v]) => (
             <div key={k} className="flex justify-between border-b border-border/60 py-2">
               <span className="text-[15px] text-muted-foreground">{k}</span>
               <span className="text-[16px]">{v}</span>
             </div>
           ))}
-          {done ? (
-            <p className="pt-2 text-[16px]">已送出（示範用，沒有真的建單）。</p>
-          ) : null}
+          {done ? <p className="pt-2 text-[16px]">已送出（示範用，沒有真的建單）。</p> : null}
         </div>
       ),
     },
@@ -187,21 +183,18 @@ export default function WizardPreviewPage() {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="border-b border-border bg-muted/30 px-4 py-2 text-[14px] text-muted-foreground">
-        Alt+← → 上下步、Alt+1~4 直接跳。沒填客戶時「下一步」會擋住並說明原因。
+        整個流程在同一頁：Alt+1~4 捲到對應區塊、滾輪也可以自由移動。頂部圓圈是驚嘆號＝那一區還沒完成。
       </div>
-      <WizardTemplate
+      <FlowTemplate
         title="即時銷售"
-        steps={steps}
-        current={step}
-        onStepChange={setStep}
-        onFinish={() => setDone(true)}
+        sections={sections}
+        onSubmit={() => setDone(true)}
         onCancel={() => {
-          setStep(0);
           setCustomer('');
           setLines([]);
           setDone(false);
         }}
-        finishLabel="送出建單"
+        submitLabel="送出建單"
       />
     </div>
   );

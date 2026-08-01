@@ -30,9 +30,9 @@ const ENTRIES: Entry[] = [
     status: '完成',
   },
   {
-    href: '/preview/wizard',
-    name: '精靈／流程模板',
-    desc: '多步驟一頁式；⛔ 不用彈跳視窗。Alt+←→ 上下步、Alt+數字跳步',
+    href: '/preview/flow',
+    name: '流程模板',
+    desc: '一頁到底、Alt+數字捲到對應區、滾輪自由移動；⛔ 不用彈跳視窗、⛔ 不做分步鎖定',
     status: '完成',
   },
   { name: '主檔編輯模板', desc: '25 個主檔共用；現有三套要收斂成一套', status: '待做' },
