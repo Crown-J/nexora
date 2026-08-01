@@ -1,27 +1,32 @@
 // apps/nx-ui/src/design/layout/v3/V3TopBar.tsx
 //
-// v3.0.0 唯一常駐橫列（階段 1 Step 3）
+// v3.0.0 唯一常駐橫列（階段 1 Step 3；2026-08-01 執行長拍板拿掉分頁層）
 // 規格：docs/專案/介面規格/NEXORA-介面架構-v3.0.0.md v1.1 §2 §6
 //
-//   ☰ │ 工作檯 │ 分頁 × │ 分頁 × │              🔔 👤 ⚙
+//   ☰ │ 工作檯 │                                  🔔 👤 ⚙
 //
 // ⛔ 沒有選單列。熟手只記快捷鍵（恆迎用偉盟 30 年、至今不知功能在哪一組），
 //    選單是備援不是導覽，不該常駐佔畫面。功能全部走 ☰ 或九宮格快捷鍵。
 // ⛔ 沒有狀態列。租戶／使用者／工號收進右上角 👤，不另佔一條。
+// ⛔ 沒有分頁列（執行長 2026-08-01 拍板拿掉）：開久了會越堆越長、實際不好用。
+//    ⚠️ 這一條與規格 v1.1 §2／§2.1 相衝——規格說「常駐兩條、其中一條是分頁列」，
+//       且 §2.1「不用彈跳視窗」的理由正是「不離開當前情境由分頁接手」。
+//       分頁拿掉後那個理由不成立了，規格待執行長裁示後改版。
 //
-// 字級：分頁 15px（規格 §6 內文 15-16px 起跳；舊外殼是 12.5px，對年長使用者太小）
-// ⛔ 禁動畫（規格 §6）：不加 transition。
+// 字級 15px（規格 §6 內文 15-16px 起跳）。⛔ 禁動畫（規格 §6）：不加 transition。
 
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Bell, Home, LayoutGrid, Settings, User, X } from 'lucide-react';
-
-import { HOME_HREF, useWorkbenchTabs } from '@design/layout/workbench/WorkbenchTabsContext';
+import { Bell, Home, LayoutGrid, Settings, User } from 'lucide-react';
 
 export type V3TopBarProps = {
   /** 點 ☰ 開九宮格 */
   onOpenMenu: () => void;
+  /** 回工作檯 */
+  onGoHome: () => void;
+  /** 開設定 */
+  onOpenSettings: () => void;
   tenantName: string;
   displayName: string;
   employeeNo: string;
@@ -30,45 +35,37 @@ export type V3TopBarProps = {
 
 export function V3TopBar({
   onOpenMenu,
+  onGoHome,
+  onOpenSettings,
   tenantName,
   displayName,
   employeeNo,
   onLogout,
 }: V3TopBarProps) {
-  const { tabs, activeHref, open, close } = useWorkbenchTabs();
-  const homeActive = activeHref === HOME_HREF;
-
   return (
-    <div className="flex items-stretch gap-1 border-b border-border bg-background px-2">
-      {/* ☰ 九宮格入口。滑鼠使用者的入口，熟手直接按快捷鍵不必碰它 */}
+    <div className="flex items-stretch gap-1 border-b border-border bg-background px-2 py-1">
+      {/* ☰ 九宮格入口。滑鼠使用者的入口，熟手直接按 F2 不必碰它 */}
       <button
         type="button"
         onClick={onOpenMenu}
         title="功能選單"
         aria-label="功能選單"
-        className="my-1 grid w-10 place-items-center rounded-md border border-border bg-card hover:bg-accent"
+        className="grid w-10 place-items-center rounded-md border border-border bg-card hover:bg-accent"
       >
         <LayoutGrid className="h-5 w-5" />
       </button>
 
-      {/* 分頁列。工作檯永遠釘在最前、關不掉（規格 §2） */}
-      <div className="flex min-w-0 flex-1 items-stretch gap-0.5 overflow-x-auto pt-1">
-        <TabButton active={homeActive} onClick={() => open(HOME_HREF, 'tab: 工作檯')}>
-          <Home className="h-4 w-4" />
-          工作檯
-        </TabButton>
+      {/* 回工作檯。分頁拿掉後這是唯一的「回家」入口，位置固定不動 */}
+      <button
+        type="button"
+        onClick={onGoHome}
+        className="flex items-center gap-1.5 rounded-md border border-border bg-card px-3 text-[15px] hover:bg-accent"
+      >
+        <Home className="h-4 w-4" />
+        工作檯
+      </button>
 
-        {tabs.map((t) => (
-          <TabButton
-            key={t.href}
-            active={t.href === activeHref}
-            onClick={() => open(t.href, `tab: ${t.label}`)}
-            onClose={() => close(t.href)}
-          >
-            {t.label}
-          </TabButton>
-        ))}
-      </div>
+      <div className="min-w-0 flex-1" />
 
       {/* 右上角三顆 */}
       <div className="flex shrink-0 items-center gap-1">
@@ -92,7 +89,7 @@ export function V3TopBar({
 
         <button
           type="button"
-          onClick={() => open('/dashboard/settings', 'topbar: 設定')}
+          onClick={onOpenSettings}
           title="設定"
           aria-label="設定"
           className="grid h-9 w-9 place-items-center rounded-md hover:bg-accent"
@@ -100,47 +97,6 @@ export function V3TopBar({
           <Settings className="h-5 w-5" />
         </button>
       </div>
-    </div>
-  );
-}
-
-function TabButton({
-  active,
-  onClick,
-  onClose,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  onClose?: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      className={[
-        'group flex items-center gap-1.5 whitespace-nowrap rounded-t-md border border-b-0 px-3 py-1.5 text-[15px]',
-        active
-          ? 'border-border bg-card text-foreground'
-          : 'border-transparent text-muted-foreground hover:bg-foreground/[0.05]',
-      ].join(' ')}
-    >
-      <button type="button" onClick={onClick} className="flex items-center gap-1.5">
-        {children}
-      </button>
-      {onClose ? (
-        <button
-          type="button"
-          title="關閉分頁"
-          aria-label="關閉分頁"
-          onClick={(e) => {
-            e.stopPropagation();
-            onClose();
-          }}
-          className="grid h-5 w-5 place-items-center rounded-sm text-muted-foreground/70 hover:bg-foreground/10 hover:text-foreground"
-        >
-          <X className="h-3.5 w-3.5" />
-        </button>
-      ) : null}
     </div>
   );
 }

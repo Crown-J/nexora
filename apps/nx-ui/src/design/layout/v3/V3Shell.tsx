@@ -6,7 +6,11 @@
 // 與舊 WorkbenchShell 的差異：
 //   ⛔ 移除頂部選單列（TopMenuBar）——功能改走九宮格
 //   ⛔ 移除底部狀態列（WorkbenchStatusBar）——租戶/使用者/工號收進右上角 👤
+//   ⛔ 移除分頁列（執行長 2026-08-01 拍板）——開久了越堆越長、實際不好用；
+//      改成直接換頁。⚠️ 這與規格 v1.1 §2／§2.1 相衝，規格待改版（見 V3TopBar 檔頭）
 //   ＝ 常駐只剩一條橫列，工作區多拿回兩條的高度（1366×768 的筆電差很多）
+//
+// WorkbenchTabsContext 封存不刪——舊 WorkbenchShell 還在用，回退才有得換。
 //
 // 保留不動：登入守衛、modal-stack guard、PageGuide、各 Provider、工具列插槽。
 // 舊 WorkbenchShell 封存不刪——出問題只要把 dashboard/layout.tsx 換回去一行。
@@ -22,10 +26,6 @@ import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import { isDevOpenAuth } from '@data/auth/dev-open';
 import { AutoPageGuide, PageGuideProvider } from '@/features/page-guide';
 import { useModalStackGuard } from '@design/primitives/modal-stack';
-import {
-  WorkbenchTabsProvider,
-  useWorkbenchTabs,
-} from '@design/layout/workbench/WorkbenchTabsContext';
 import {
   WorkbenchToolbarSlotProvider,
   useWorkbenchToolbarSlot,
@@ -48,9 +48,9 @@ type Props = { children: React.ReactNode };
 
 function V3Chrome({ children }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const router = useRouter();
   const { displayName, employeeNo, tenantName, onLogout } = useShellSession();
   const toolbarSlot = useWorkbenchToolbarSlot();
-  const { open: openTab } = useWorkbenchTabs();
 
   // window capture：搶在頁面與 modal-stack 的 guard 之前
   useEffect(() => {
@@ -69,6 +69,8 @@ function V3Chrome({ children }: Props) {
     <div className="relative z-10 flex h-dvh flex-col bg-background text-foreground">
       <V3TopBar
         onOpenMenu={() => setMenuOpen(true)}
+        onGoHome={() => router.push('/dashboard')}
+        onOpenSettings={() => router.push('/dashboard/settings')}
         tenantName={tenantName}
         displayName={displayName}
         employeeNo={employeeNo}
@@ -93,7 +95,8 @@ function V3Chrome({ children }: Props) {
             );
             return;
           }
-          if (t.href) openTab(t.href, `九宮格：${t.label}`);
+          // 分頁層拿掉後（執行長 2026-08-01）改直接換頁
+          if (t.href) router.push(t.href);
         }}
       />
     </div>
@@ -154,11 +157,9 @@ export function V3Shell({ children }: Props) {
     <DashboardPaletteProvider>
       <DashboardBulletinProvider>
         <PageGuideProvider>
-          <WorkbenchTabsProvider>
-            <WorkbenchToolbarSlotProvider>
-              <V3Chrome>{children}</V3Chrome>
-            </WorkbenchToolbarSlotProvider>
-          </WorkbenchTabsProvider>
+          <WorkbenchToolbarSlotProvider>
+            <V3Chrome>{children}</V3Chrome>
+          </WorkbenchToolbarSlotProvider>
         </PageGuideProvider>
       </DashboardBulletinProvider>
     </DashboardPaletteProvider>
