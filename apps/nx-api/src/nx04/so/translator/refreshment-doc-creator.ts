@@ -38,7 +38,7 @@ export class RefreshmentDocCreator {
     tx: Prisma.TransactionClient;
     user: RequestUser;
     tenantId: string;
-    so: { id: string; docNo: string; warehouseId: string; warehouseCode: string; customerId: string };
+    so: { id: string; docNo: string; warehouseId: string; warehouseCode: string; customerId: string; currencyId: string };
     items: InsertedSoItem[];
     dtoLineItems: TranslateLineItemDto[]; // 對應 items 的原 DTO（同 index）
   }): Promise<RefreshmentResult> {
@@ -140,7 +140,7 @@ export class RefreshmentDocCreator {
     tx: Prisma.TransactionClient,
     user: RequestUser,
     tenantId: string,
-    so: { warehouseId: string; warehouseCode: string },
+    so: { warehouseId: string; warehouseCode: string; currencyId: string },
     item: InsertedSoItem,
     inquiryPartnerId: string,
   ): Promise<string> {
@@ -170,6 +170,9 @@ export class RefreshmentDocCreator {
         partNo: item.partNo,
         partName: item.partName,
         qty: item.qty,
+        // 幣別跟著來源銷貨單走。⚠ 原本靠 nx02_rfq_item.currency_id 的 @default("TWD") 帶入，
+        //   但那個預設值是壞的（幣別主鍵是 NX01CURR0000001 這種內碼、不是 'TWD' 字面值）。
+        currencyId: so.currencyId,
         createdBy: user.sub,
         updatedBy: user.sub,
       },

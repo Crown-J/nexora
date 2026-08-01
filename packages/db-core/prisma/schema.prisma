@@ -2133,7 +2133,7 @@ model Nx02Po {
   /// 來源單據 id (外鍵)；啟用最低需求版本：PLUS
   rfqId                 String?             @map("rfq_id") @db.VarChar(15)
   /// 幣別 ID (外鍵)；啟用最低需求版本：PLUS
-  currencyId            String              @default("TWD") @map("currency_id") @db.VarChar(15)
+  currencyId            String              @map("currency_id") @db.VarChar(15)
   /// 單據狀態（DRAFT / CONFIRMED / PARTIAL_RECEIVED / RECEIVED / CLOSED / CANCELLED）；啟用最低需求版本：PLUS
   status                String              @default("DRAFT") @db.VarChar(30)
   /// 小計（明細加總，未稅）；啟用最低需求版本：PLUS
@@ -2309,7 +2309,7 @@ model Nx02Pr {
   /// 來源單據 id (外鍵)；啟用最低需求版本：LITE
   rrId                  String?        @map("rr_id") @db.VarChar(15)
   /// 幣別 ID (外鍵)；啟用最低需求版本：LITE
-  currencyId            String         @default("TWD") @map("currency_id") @db.VarChar(15)
+  currencyId            String         @map("currency_id") @db.VarChar(15)
   /// 單據狀態（D=草稿 / P=已過帳 / V=作廢）；啟用最低需求版本：LITE
   status                String         @default("D") @db.VarChar(1)
   /// 小計（明細加總，未稅）；啟用最低需求版本：LITE
@@ -2541,7 +2541,7 @@ model Nx02RfqItem {
   /// 供應商回覆單價（未回覆可空）；啟用最低需求版本：LITE
   unitPrice                Decimal?     @map("unit_price") @db.Decimal(14, 4)
   /// 幣別；啟用最低需求版本：LITE
-  currencyId               String       @default("TWD") @map("currency_id") @db.VarChar(15)
+  currencyId               String       @map("currency_id") @db.VarChar(15)
   /// 交期（天數，可空）；啟用最低需求版本：LITE
   leadTimeDays             Int?         @map("lead_time_days")
   /// 狀態。( P=PENDING, R=REPLIED, S=SELECTED, C=REJECTED )；啟用最低需求版本：LITE
@@ -2603,7 +2603,7 @@ model Nx02Rr {
   /// 來源採購單據 id (外鍵)；啟用最低需求版本：LITE
   poId                  String?        @map("po_id") @db.VarChar(15)
   /// 幣別 ID (外鍵)；啟用最低需求版本：LITE
-  currencyId            String         @default("TWD") @map("currency_id") @db.VarChar(15)
+  currencyId            String         @map("currency_id") @db.VarChar(15)
   /// 單據狀態（DRAFT / INSPECTING / POSTED / REJECTED / CANCELLED）；啟用最低需求版本：LITE
   status                String         @default("DRAFT") @db.VarChar(30)
   /// 小計（明細加總，未稅）；啟用最低需求版本：LITE
@@ -4386,7 +4386,7 @@ model Nx04Quote {
   /// 報價有效期限，過期後不得轉銷貨單。；啟用最低需求版本：LITE-CORE
   validUntil                DateTime?          @map("valid_until") @db.Date
   /// 幣別ID（FK nx01_currency，預設TWD）。；啟用最低需求版本：LITE-CORE
-  currencyId                String             @default("TWD") @map("currency_id") @db.VarChar(15)
+  currencyId                String             @map("currency_id") @db.VarChar(15)
   /// 小計（is_selected=TRUE的明細加總，未稅）。；啟用最低需求版本：LITE-CORE
   subtotal                  Decimal            @default(0) @db.Decimal(14, 2)
   /// 稅率（預設5.00）。；啟用最低需求版本：LITE-CORE
@@ -4514,7 +4514,7 @@ model Nx04QuoteRecord {
   /// 報價單價。
   unitPrice       Decimal        @map("unit_price") @db.Decimal(14, 4)
   /// 幣別 ID（FK nx01_currency，預設 TWD）。
-  currencyId      String         @default("TWD") @map("currency_id") @db.VarChar(15)
+  currencyId      String         @map("currency_id") @db.VarChar(15)
   /// 來源（INSTANT 即時報價 / QUOTE 由報價單行寫入）。
   source          String         @default("INSTANT") @db.VarChar(10)
   /// 來源單據 ID（source=QUOTE 時回指報價單；id 快照、不設 FK）。
@@ -4568,7 +4568,7 @@ model Nx04InquiryRecord {
   /// 同行報我的價（調貨成本）。
   unitPrice       Decimal        @map("unit_price") @db.Decimal(14, 4)
   /// 幣別 ID（FK nx01_currency，預設 TWD）。
-  currencyId      String         @default("TWD") @map("currency_id") @db.VarChar(15)
+  currencyId      String         @map("currency_id") @db.VarChar(15)
   /// 業務員（id 快照、不設 FK，同 createdBy 範式）。
   salesPersonId   String?        @map("sales_person_id") @db.VarChar(15)
   /// 備註。
@@ -4635,7 +4635,7 @@ model Nx04So {
   /// 配送地址（delivery_type=D時必填）。；啟用最低需求版本：LITE-CORE
   deliveryAddress        String?        @map("delivery_address") @db.VarChar(200)
   /// 幣別ID（FK nx01_currency）。；啟用最低需求版本：LITE-CORE
-  currencyId             String         @default("TWD") @map("currency_id") @db.VarChar(15)
+  currencyId             String         @map("currency_id") @db.VarChar(15)
   /// 小計（明細加總，未稅）。；啟用最低需求版本：LITE-CORE
   subtotal               Decimal        @default(0) @db.Decimal(14, 2)
   /// 稅率（預設5.00）。；啟用最低需求版本：LITE-CORE
@@ -5265,7 +5265,7 @@ model Nx05ApLedger {
   /// 到期日（依付款條件計算）。；啟用最低需求版本：LITE-CORE
   dueDate                            DateTime               @map("due_date") @db.Date
   /// 幣別ID（FK nx01_currency）。；啟用最低需求版本：LITE-CORE
-  currencyId                         String                 @default("TWD") @map("currency_id") @db.VarChar(15)
+  currencyId                         String                 @map("currency_id") @db.VarChar(15)
   /// 應付金額（含稅）。；啟用最低需求版本：LITE-CORE
   originalAmount                     Decimal                @default(0) @map("original_amount") @db.Decimal(14, 2)
   /// 已付金額（累計）。；啟用最低需求版本：LITE-CORE
@@ -5330,7 +5330,7 @@ model Nx05ArLedger {
   /// 到期日（依付款條件計算）。；啟用最低需求版本：LITE-CORE
   dueDate                            DateTime               @map("due_date") @db.Date
   /// 幣別ID（FK nx01_currency）。；啟用最低需求版本：LITE-CORE
-  currencyId                         String                 @default("TWD") @map("currency_id") @db.VarChar(15)
+  currencyId                         String                 @map("currency_id") @db.VarChar(15)
   /// 應收金額（含稅）。；啟用最低需求版本：LITE-CORE
   originalAmount                     Decimal                @default(0) @map("original_amount") @db.Decimal(14, 2)
   /// 已收金額（累計）。；啟用最低需求版本：LITE-CORE
@@ -5452,7 +5452,7 @@ model Nx05Note {
   /// 票面金額。；啟用最低需求版本：LITE-CORE
   amount                  Decimal          @default(0) @db.Decimal(14, 2)
   /// 幣別ID（FK nx01_currency）。；啟用最低需求版本：LITE-CORE
-  currencyId              String           @default("TWD") @map("currency_id") @db.VarChar(15)
+  currencyId              String           @map("currency_id") @db.VarChar(15)
   /// 開票日期。；啟用最低需求版本：LITE-CORE
   issueDate               DateTime         @map("issue_date") @db.Date
   /// 到期日。；啟用最低需求版本：LITE-CORE
@@ -5524,7 +5524,7 @@ model Nx05Paylog {
   /// 收付款金額（正數）。；啟用最低需求版本：LITE-CORE
   amount                            Decimal                @default(0) @db.Decimal(14, 2)
   /// 幣別ID（FK nx01_currency）。；啟用最低需求版本：LITE-CORE
-  currencyId                        String                 @default("TWD") @map("currency_id") @db.VarChar(15)
+  currencyId                        String                 @map("currency_id") @db.VarChar(15)
   /// 付款方式（CA=現金/TT=匯款/CK=支票/PN=本票）。；啟用最低需求版本：LITE-CORE
   payMethod                         String                 @default("CA") @map("pay_method") @db.VarChar(2)
   /// 關聯票據ID（pay_method=CK/PN時填入，FK nx05_note）。；啟用最低需求版本：LITE-CORE

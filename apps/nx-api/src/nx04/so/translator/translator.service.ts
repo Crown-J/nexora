@@ -140,7 +140,7 @@ export class Nx04SoTranslatorService {
         createdBy: user.sub,
         updatedBy: user.sub,
       },
-      select: { id: true, docNo: true, warehouseId: true, status: true },
+      select: { id: true, docNo: true, warehouseId: true, status: true, currencyId: true },
     });
 
     // 4. INSERT line items + 收集回傳結構
