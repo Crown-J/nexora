@@ -5866,8 +5866,9 @@ model Nx05BankAccount {
   accountNo                                String?           @map("account_no") @db.VarChar(30)
   /// 帳戶類型（SA 活期存款/CH 支票存款甲存/FX 外幣存款/LN 貸款專戶）。；啟用最低需求版本：LITE-CORE
   accountType                              String            @map("account_type") @db.VarChar(2)
-  /// 幣別 ID（FK nx01_currency）。；啟用最低需求版本：LITE-CORE
-  currencyId                               String            @default("TWD") @map("currency_id") @db.VarChar(15)
+  /// 幣別 ID（FK nx01_currency）。⚠ 刻意不給 @default("TWD")——幣別主鍵是 NX01CURR0000001 這種內碼、
+  /// 不是 'TWD' 字面值，那個預設值一用就違反外鍵。呼叫端請用 resolveCurrencyId() 換成真 ID 後傳入。；啟用最低需求版本：LITE-CORE
+  currencyId                               String            @map("currency_id") @db.VarChar(15)
   /// 用途說明（營運主帳戶/開票付款/薪資轉帳/銀行融資）。；啟用最低需求版本：LITE-CORE
   purpose                                  String?           @db.VarChar(50)
   /// 對映科目（FK nx05_account_code；通常 1102 銀行存款、貸款專戶例外對 2151 短期借款）。；啟用最低需求版本：LITE-CORE

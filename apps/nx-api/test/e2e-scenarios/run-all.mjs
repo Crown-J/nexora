@@ -6,11 +6,14 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 
 const dir = path.dirname(fileURLToPath(import.meta.url));
-const scripts = readdirSync(dir).filter((f) => /^\d\d-.*\.mjs$/.test(f)).sort();
+// 2026-08-01：也收 .ts（shared service 層的測試用 TypeScript 寫、以 tsx 跑）
+const scripts = readdirSync(dir).filter((f) => /^\d\d-.*\.(mjs|ts)$/.test(f)).sort();
 const results = [];
 for (const f of scripts) {
   console.log(`\n===== ${f} =====`);
-  const r = spawnSync(process.execPath, [path.join(dir, f)], { stdio: 'inherit' });
+  const r = f.endsWith('.ts')
+    ? spawnSync('npx', ['tsx', path.join(dir, f)], { stdio: 'inherit', shell: true })
+    : spawnSync(process.execPath, [path.join(dir, f)], { stdio: 'inherit' });
   results.push([f, r.status === 0]);
 }
 console.log('\n===== 總結 =====');

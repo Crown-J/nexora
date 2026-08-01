@@ -1,6 +1,7 @@
 import type { Prisma } from 'db-core';
 
-export type Nx05DocKind = 'AR' | 'AP' | 'RC' | 'CP' | 'EX' | 'NT' | 'AL' | 'CL';
+/** JV＝傳票（總帳脊椎 B 階段 2026-08-01）。 */
+export type Nx05DocKind = 'AR' | 'AP' | 'RC' | 'CP' | 'EX' | 'NT' | 'AL' | 'CL' | 'JV';
 
 /**
  * 單號：[類型]-[YYYYMM]-[機構碼]-[5 碼流水]
@@ -18,12 +19,18 @@ export async function allocNx05DocNo(
   const prefix = `${docPrefix}-${yyyymm}-${orgCode}-`;
 
   const last =
-    kind === 'AR'
-      ? await tx.nx05ArLedger.findFirst({
+    kind === 'JV'
+      ? await tx.nx05Voucher.findFirst({
           where: { tenantId, docNo: { startsWith: prefix } },
           orderBy: { docNo: 'desc' },
           select: { docNo: true },
         })
+      : kind === 'AR'
+        ? await tx.nx05ArLedger.findFirst({
+            where: { tenantId, docNo: { startsWith: prefix } },
+            orderBy: { docNo: 'desc' },
+            select: { docNo: true },
+          })
       : kind === 'AP'
         ? await tx.nx05ApLedger.findFirst({
             where: { tenantId, docNo: { startsWith: prefix } },

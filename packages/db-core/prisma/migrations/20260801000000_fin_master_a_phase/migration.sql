@@ -249,7 +249,7 @@ CREATE TABLE "nx05_bank_account" (
     "branch_name" VARCHAR(100),
     "account_no" VARCHAR(30),
     "account_type" VARCHAR(2) NOT NULL,
-    "currency_id" VARCHAR(15) NOT NULL DEFAULT 'TWD',
+    "currency_id" VARCHAR(15) NOT NULL,
     "purpose" VARCHAR(50),
     "account_code_id" VARCHAR(15),
     "opened_date" DATE,
@@ -819,3 +819,8 @@ ALTER TABLE "nx05_tax_code" ALTER COLUMN "direction" TYPE VARCHAR(3);
 --    nx05_account_code.remark 原為 VARCHAR(200)，但亞羅科目表的設計理由文字最長 229 字
 --    （1122 進貨附加成本的運費防火牆說明）→ 純加寬為 VARCHAR(500)。既有 0 筆、無資料風險。
 ALTER TABLE "nx05_account_code" ALTER COLUMN "remark" TYPE VARCHAR(500);
+
+--    nx05_bank_account.currency_id 原給了 DEFAULT 'TWD'（沿用全庫既有寫法），但幣別主鍵是
+--    NX01CURR0000001 這種內碼、不是 'TWD' 字面值 → 那個預設值一用就違反外鍵。
+--    B2 煙霧測試實際踩到才發現。上面的 CREATE TABLE 已同步移除；本段給已套過舊版的資料庫補。
+ALTER TABLE "nx05_bank_account" ALTER COLUMN "currency_id" DROP DEFAULT;
