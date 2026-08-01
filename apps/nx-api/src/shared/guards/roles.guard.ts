@@ -18,6 +18,7 @@ import { Reflector } from '@nestjs/core';
 import { PrismaService } from '../../prisma/prisma.service';
 import { PERMISSIONS_KEY } from '../decorators/permission.decorator';
 import { ROLES_KEY } from '../decorators/roles.decorator';
+import { isDevAuthOpen } from '../dev/dev-auth';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -30,6 +31,9 @@ export class RolesGuard implements CanActivate {
    * @CODE nxapi_auth_roles_guard_001
    */
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    // v3.0.0 開發期免登入：整個職務檢查跳過（見 shared/dev/dev-auth.ts）
+    if (isDevAuthOpen()) return true;
+
     const requiredRoles =
       this.reflector.getAllAndOverride<string[]>(ROLES_KEY, [
         context.getHandler(),

@@ -25,6 +25,7 @@ import { assertOk } from '@data/api/http';
 
 import { NEXORA_DEMO_ACCESS_TOKEN } from '@data/auth/constants';
 import { buildDemoMeFromStorage, clearDemoSessionUsername } from '@data/auth/demo-session';
+import { isDevOpenAuth } from '@data/auth/dev-open';
 import { isNexoraDemoMode } from '@data/auth/run-mode';
 import {
   demoUserToMeDto,
@@ -115,7 +116,7 @@ export function useSessionMe(): UseSessionMeResult {
    * - 初始值 null：表示尚未完成 client mount 後的 token 檢查
    */
   const [hasToken, setHasToken] = useState<boolean | null>(() =>
-    isNextPublicDemoMode() ? true : null,
+    isNextPublicDemoMode() || isDevOpenAuth() ? true : null,
   );
 
   /**
@@ -153,7 +154,8 @@ export function useSessionMe(): UseSessionMeResult {
       }
 
       const token = getToken();
-      if (!token) {
+      // v3.0.0 開發期免登入：沒 token 也照打 /auth/me，後端會注入固定身分（見 data/auth/dev-open.ts）
+      if (!token && !isDevOpenAuth()) {
         // 沒 token：直接去登入
         setMe(null);
         setView({ loading: false, errorMsg: null, checkedAt: new Date().toISOString() });
@@ -174,7 +176,8 @@ export function useSessionMe(): UseSessionMeResult {
         const res = await apiFetch('/auth/me', { method: 'GET' });
 
         // ✅ 401 先特判：清 token → 轉登入
-        if (res.status === 401) {
+        // ⚠️ 免登入模式下不轉登入——那只會無限彈回來；讓錯誤浮出來比較好查
+        if (res.status === 401 && !isDevOpenAuth()) {
           clearToken();
           if (!alive) return;
           setMe(null);

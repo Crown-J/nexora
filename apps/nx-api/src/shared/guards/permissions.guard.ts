@@ -18,6 +18,7 @@ import { Reflector } from '@nestjs/core';
 
 import { PrismaService } from '../../prisma/prisma.service';
 import { PERMISSIONS_KEY } from '../decorators/permission.decorator';
+import { isDevAuthOpen } from '../dev/dev-auth';
 
 // T1-fix-b 進貨對齊批次 2026-06-07：permission code → nx01_view.code 對照
 // 命名範式不一致（permission 走 module.entity.action、view 走 NXxx_ENTITY 大寫底線）、用 map 顯式對應。
@@ -36,6 +37,9 @@ export class PermissionsGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    // v3.0.0 開發期免登入：整個權限碼檢查跳過（見 shared/dev/dev-auth.ts）
+    if (isDevAuthOpen()) return true;
+
     const requiredPermissions =
       this.reflector.getAllAndOverride<string[]>(PERMISSIONS_KEY, [
         context.getHandler(),

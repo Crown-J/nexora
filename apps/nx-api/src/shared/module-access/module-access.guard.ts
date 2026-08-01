@@ -18,6 +18,7 @@ import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@
 import { Reflector } from '@nestjs/core';
 
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
+import { isDevAuthOpen } from '../dev/dev-auth';
 
 import { REQUIRES_MODULE_KEY } from './requires-module.decorator';
 
@@ -26,6 +27,9 @@ export class ModuleAccessGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
+    // v3.0.0 開發期免登入：模組訂閱檢查跳過（見 shared/dev/dev-auth.ts）
+    if (isDevAuthOpen()) return true;
+
     const required = this.reflector.getAllAndOverride<string | undefined>(REQUIRES_MODULE_KEY, [
       context.getHandler(),
       context.getClass(),

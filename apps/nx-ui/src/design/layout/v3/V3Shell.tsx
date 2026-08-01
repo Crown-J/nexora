@@ -19,6 +19,7 @@ import { useRouter } from 'next/navigation';
 import { DashboardBulletinProvider } from '@/features/nx00/context/DashboardBulletinContext';
 import { DashboardPaletteProvider } from '@/features/nx00/context/DashboardPaletteContext';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
+import { isDevOpenAuth } from '@data/auth/dev-open';
 import { AutoPageGuide, PageGuideProvider } from '@/features/page-guide';
 import { useModalStackGuard } from '@design/primitives/modal-stack';
 import {
@@ -116,7 +117,9 @@ export function V3Shell({ children }: Props) {
   const router = useRouter();
   const { me, view } = useSessionMe();
 
+  // v3.0.0 開發期免登入：不踢回登入頁（後端會注入身分；真的失敗就讓下面的錯誤畫面顯示）
   useEffect(() => {
+    if (isDevOpenAuth()) return;
     if (!view.loading && !me) router.replace('/login');
   }, [me, router, view.loading]);
 
