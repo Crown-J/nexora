@@ -91,7 +91,7 @@ function toDec(v: DecLike): Dec {
  *    那個管營業稅申報（雙月一期、nx05_closing），這個管帳務月期（nx05_fiscal_period）。
  *    亞羅自己也寫了「營業稅每兩個月申報，與會計期間的月結是兩回事，不要混」。
  */
-async function resolveOpenPeriod(
+export async function resolveOpenPeriod(
   tx: Prisma.TransactionClient,
   tenantId: string,
   voucherDate: Date,
@@ -474,7 +474,9 @@ export async function applyToGlBalance(
     { accountCodeId: string; departmentId: string | null; d: Dec; c: Dec }
   >();
   for (const l of p.lines) {
-    const key = `${l.accountCodeId} ${l.departmentId ?? ''}`;
+    // 組合鍵分隔符用 '|'：ID 都是 NX01DEPT0000001 這種英數內碼，不會含 '|'。
+    // ⚠ 原本用了 NUL 位元組當分隔符——功能上可行，但 git 會把整個檔判成二進位、diff 與 review 全失效。
+    const key = `${l.accountCodeId}|${l.departmentId ?? ''}`;
     const cur = agg.get(key) ?? {
       accountCodeId: l.accountCodeId,
       departmentId: l.departmentId,

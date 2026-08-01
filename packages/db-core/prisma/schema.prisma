@@ -6534,7 +6534,11 @@ model Nx05Voucher {
   totalDebit                    Decimal           @default(0) @map("total_debit") @db.Decimal(16, 2)
   /// 貸方合計。；啟用最低需求版本：LITE-CORE
   totalCredit                   Decimal           @default(0) @map("total_credit") @db.Decimal(16, 2)
-  /// 狀態（DRAFT / POSTED / VOIDED）。⚠ 傳票沒有「編輯」：過帳後要修正只能走紅字沖銷。；啟用最低需求版本：LITE-CORE
+  /// 狀態（DRAFT 未過帳／POSTED 已過帳／VOIDED 未過帳就作廢）。⚠ 傳票沒有「編輯」：過帳後要修正只能走紅字沖銷。
+  /// 🔴🔴 被沖銷的原傳票**維持 POSTED、不改 VOIDED**——原分錄與沖銷分錄兩張都在帳上、相抵為零，這才是紅字沖銷的定義。
+  /// 若改成 VOIDED，任何「只取 status='POSTED'」的查詢會只看到沖銷那一張、帳面憑空少掉原始金額。
+  /// 「這張已被沖銷」看的是有沒有一張傳票的 reversal_of_voucher_id 指著它，不是看狀態。
+  /// VOIDED 專門留給「DRAFT 在過帳前被作廢」。；啟用最低需求版本：LITE-CORE
   status                        String            @default("DRAFT") @db.VarChar(10)
   /// 過帳時間。；啟用最低需求版本：LITE-CORE
   postedAt                      DateTime?         @map("posted_at")
