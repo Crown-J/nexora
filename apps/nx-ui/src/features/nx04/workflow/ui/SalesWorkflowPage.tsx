@@ -47,17 +47,12 @@ export function SalesWorkflowPage() {
     };
   }, [searchParams]);
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'F2') return;
-      e.preventDefault();
-      setMainTab('operation');
-      setOperationPhase('quote');
-      setFocusSearchNonce((n) => n + 1);
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  // ⚠️ v3.0.0：本頁原本自己在 window 上綁 F2（跳到報價區並聚焦搜尋）。
+  //    F2 現在是九宮格、由外殼在 capture 階段攔截並 stopPropagation，
+  //    所以這支 handler 實際上永遠不會被觸發——是死碼，而且是顆地雷：
+  //    哪天外殼的攔截順序一改，按 F2 就會同時做兩件事。
+  //    規格 §7.3：全系統的全域鍵只有 F2 一個（九宮格），⛔ 頁面不得再綁全域鍵。
+  //    focusSearchNonce 本身保留——底下的聚焦效果與子元件仍在用，只是不再由 F2 觸發。
 
   useEffect(() => {
     if (focusSearchNonce === 0 || mainTab !== 'operation' || operationPhase !== 'quote') return;

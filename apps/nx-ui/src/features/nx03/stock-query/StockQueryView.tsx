@@ -86,16 +86,17 @@ export function StockQueryView() {
             三維度：料號（哪幾倉幾庫位）/ 庫位（此位有哪些料）/ 倉庫（整倉 + 4 KPI）
           </p>
         </div>
-        {/* F2 改版 Step 5（交接 §1 §4）：倉管入口＝嵌庫存管理；開窗自動展開各倉、本倉 pin 頂 */}
+        {/* 倉管入口＝嵌庫存管理；開窗自動展開各倉、本倉 pin 頂
+            ⚠️ v3.0.0：原本標「F2」，但 F2 已經是九宮格（規格 §7.3）、按下去開的不是這個。
+               這個鍵從來沒真的綁在本元件上，標示是舊的，拿掉免得教錯。 */}
         <button
           type="button"
           onClick={() => openPartQuickSearch({ entry: 'warehouse' })}
           className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-background px-3 text-sm text-muted-foreground hover:border-primary/50"
-          title="料號即時搜尋（F2）：自動展開各倉分布、本倉置頂"
+          title="料號即時搜尋：自動展開各倉分布、本倉置頂"
         >
           <PackageSearch className="size-4" />
           料號查詢
-          <kbd className="rounded border border-border/50 bg-muted/40 px-1 py-px font-mono text-[10px]">F2</kbd>
         </button>
       </header>
 

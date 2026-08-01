@@ -687,8 +687,9 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
       if (inqSel === 0) fireInquiry(cur); // 新增詢價 → 紀錄落下方表格
       else if (inqSel === 1) setStage(2); // 更換零件 → 換料站
       else if (inqSel === 2) {
-        // 刪除零件：移出待辦（要在 F2 重新報價才能加回來）
-        if (window.confirm(`刪除 ${cur.code}（${cur.customerName ?? '未指定客戶'}）？\n刪除後要在 F2 重新報價才能加回待辦。`)) {
+        // 刪除零件：移出待辦（要重新跑一次即時報價才能加回來）
+        // ⚠️ v3.0.0：訊息原本寫「在 F2 重新報價」，F2 已是九宮格——改講功能名稱
+        if (window.confirm(`刪除 ${cur.code}（${cur.customerName ?? '未指定客戶'}）？\n刪除後要重新跑一次即時報價才能加回待辦。`)) {
           removeTransferItem(cur.customerId, cur.partId);
         }
       } else {
@@ -853,7 +854,8 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
           <h2 className="text-[15px] font-semibold tracking-wide">即時調貨詢價</h2>
           <span className="text-[12px] text-muted-foreground">缺貨待辦 {items.length} 筆・詢價紀錄全公司共享</span>
           <span className="ml-auto text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground/65">
-            F5 · TRANSFER INQUIRY
+            {/* ⚠️ v3.0.0：原本標 'F5 ·'，但 F5 已永久還給瀏覽器（規格 §7.3）*/}
+            TRANSFER INQUIRY
           </span>
           <button
             type="button"
@@ -1105,9 +1107,11 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
                 <div className={secHead}>缺貨待辦（{items.length}）</div>
                 {items.length === 0 ? (
               <div className="rounded-lg border border-dashed border-border px-4 py-10 text-center text-sm text-muted-foreground">
-                待辦是空的——F2 報價④出貨倉庫選
+                {/* ⚠️ v3.0.0：原本寫「F2 報價」「F1 主視窗」，兩個鍵位都改了（規格 §7.3）——
+                       改講功能名稱，不講鍵位。 */}
+                待辦是空的——即時報價的④出貨倉庫選
                 <kbd className="mx-1 rounded border border-border/50 bg-muted/40 px-1 font-mono text-[11px]">調貨</kbd>、
-                或 F1 主視窗聚焦缺貨料按
+                或在查價查貨主視窗聚焦缺貨料按
                 <kbd className="mx-1 rounded border border-border/50 bg-muted/40 px-1 font-mono text-[11px]">Alt+D</kbd>
                 加進來
               </div>
@@ -1336,7 +1340,8 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
                 </div>
                 {!cur?.customerId ? (
                   <div className="rounded-lg border border-amber-500/50 bg-amber-500/10 px-3 py-3 text-[12.5px] text-amber-600">
-                    此筆未指定客戶（F1 通用缺貨）——只能詢價、無法報價結案。Esc 回、Alt+A 續詢價。
+                    {/* ⚠️ v3.0.0：原本寫「F1 通用缺貨」，F1 已還給瀏覽器——改講功能名稱 */}
+                    此筆未指定客戶（查價查貨帶進來的通用缺貨）——只能詢價、無法報價結案。Esc 回、Alt+A 續詢價。
                   </div>
                 ) : (
                   <>
@@ -1594,7 +1599,8 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
                         () => {
                           if (
                             window.confirm(
-                              `刪除 ${cur.code}（${cur.customerName ?? '未指定客戶'}）？\n刪除後要在 F2 重新報價才能加回待辦。`,
+                              // ⚠️ v3.0.0：原本寫「在 F2 重新報價」，F2 已是九宮格——改講功能名稱
+                              `刪除 ${cur.code}（${cur.customerName ?? '未指定客戶'}）？\n刪除後要重新跑一次即時報價才能加回待辦。`,
                             )
                           )
                             removeTransferItem(cur.customerId, cur.partId);
@@ -1746,9 +1752,10 @@ function TransferHelpOverlay({ onClose }: { onClose: () => void }) {
         </div>
         <div className="min-h-0 flex-1 overflow-auto px-5 py-3">
           <div className="grid grid-cols-[88px_1fr] items-baseline gap-x-3 gap-y-1.5">
-            <HelpRow k="F5" desc="任何頁面開／關本視窗（瀏覽器重新整理改 Ctrl+R）" />
+            {/* ⚠️ v3.0.0：原本第一列是「F5 任何頁面開／關本視窗」，但 F5 已永久還給瀏覽器、
+                   本站改由九宮格（F2 → 銷售 → 調貨作業 → 即時詢價）進入。假鍵位不列在說明上。 */}
             <HelpRow k="Alt+1~5" desc="切五站：詢價／換料／建檔／報價／訊息" />
-            <HelpRow k="Alt+S" desc="進訊息站（同 F2 結案鍵）" />
+            <HelpRow k="Alt+S" desc="進訊息站（結案）" />
             <HelpRow k="↑↓" desc="待辦：選料；詢價站：選詢價；報價站：選卡片；訊息站：選設定卡" />
             <HelpRow k="Enter" desc="待辦→進詢價；詢價→帶詢價進換料；報價站→展開/編輯；訊息站→存檔結案" />
             <HelpRow k="Space" desc="訊息站：設定卡開/關" />
@@ -1759,7 +1766,7 @@ function TransferHelpOverlay({ onClose }: { onClose: () => void }) {
             <HelpRow k="Alt+H" desc="本說明（引導精靈通用鍵）" />
           </div>
           <div className="mt-3 rounded border border-border/40 bg-muted/25 px-3 py-2 text-[12px] leading-relaxed text-muted-foreground">
-            怎麼加料進來：F2 報價④出貨倉庫選「調貨」、或 F1 主視窗聚焦缺貨料按 Alt+D。
+            怎麼加料進來：即時報價的④出貨倉庫選「調貨」、或在查價查貨主視窗聚焦缺貨料按 Alt+D。
             跟誰調、看價還是看到貨速度——在 Line 上決定；系統記住每筆詢價、開同行調貨單時自動帶成本。
           </div>
         </div>

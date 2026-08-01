@@ -500,9 +500,10 @@ export function SalesOperationWorkspace({
             <h2 id="nx03-wb-h1" className="text-lg font-semibold tracking-tight">
               ① 搜尋料號
             </h2>
+            {/* ⚠️ v3.0.0：原本標「F2 捲到此區並聚焦」，但 F2 已是九宮格（規格 §7.3）、
+                   而且這個鍵從來沒真的綁在本元件上——標示是舊的，拿掉免得教錯。 */}
             <p className="mt-1 text-xs text-muted-foreground">
-              <kbd className="rounded border border-border px-1 font-mono text-[10px]">F2</kbd> 捲到此區並聚焦｜Enter
-              查詢；與客戶欄相同，輸入即出現下拉選單
+              Enter 查詢；與客戶欄相同，輸入即出現下拉選單
             </p>
           </div>
           <div className="text-right text-xs text-muted-foreground">
@@ -1120,9 +1121,8 @@ export function SalesOperationWorkspace({
             <DialogDescription className="sr-only">銷貨工作台</DialogDescription>
           </DialogHeader>
           <ul className="space-y-2 text-sm">
-            <li>
-              <kbd className="rounded border px-1 font-mono text-xs">F2</kbd> 第一區搜尋（捲動 + 聚焦）
-            </li>
+            {/* ⚠️ v3.0.0：這裡原本列「F2 第一區搜尋」，但 F2 已是九宮格（規格 §7.3）、
+                   本站也沒真的綁過這個鍵。假的快捷鍵不列在快捷鍵表上。 */}
             <li>
               <kbd className="rounded border px-1 font-mono text-xs">Alt+1</kbd> 第二區庫存（左 Enter → 右；再 Enter
               → 第三區）

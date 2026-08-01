@@ -1468,9 +1468,10 @@ function CompatCard({
         </span>
         <div className="flex shrink-0 items-center gap-1.5">
           {isMarked && (
+            // ⚠️ v3.0.0：title 原本標「F4 批次報價」，F4 從來沒綁過、是舊標示
             <span
               className="inline-flex items-center rounded-md border border-[#22D88F]/70 bg-[#22D88F]/15 px-1.5 py-0.5 font-mono text-[11px] font-bold text-[#22D88F]"
-              title="已標記（F4 批次報價）"
+              title="已標記"
             >
               <Check className="size-3" />
             </span>
@@ -1676,12 +1677,15 @@ const DOC_TYPE_LABELS: Record<string, string> = {
 // F3 可替代小面板已退役（與右欄通用零件同資料、執行長 2026-07-11 S01 走查合併；F3 改聚焦右欄）
 type QuickPanelKind = 'turnover' | 'history' | 'sales' | 'purchase' | 'related';
 
+// ⚠️ v3.0.0 更正：這裡原本標 F6 / F8 / F9 / F10，但程式實際綁的是 Alt+6 / Alt+8 / Alt+9 / Alt+0
+//    （見下方鍵盤 effect 的 k === '6' / '8' / '9' / '0'）。標示是錯的、按 F6 不會有反應。
+//    改成真正綁的鍵；順便對齊規格 §7.3——功能鍵不再拿來當系統快捷鍵。
 const QUICK_PANEL_META: Record<QuickPanelKind, { title: string; kbd: string; wide?: boolean }> = {
   turnover: { title: '周轉率分析', kbd: 'Alt+5' },
-  history: { title: '出入庫紀錄', kbd: 'F6' },
-  sales: { title: '銷貨比價', kbd: 'F8', wide: true },
-  purchase: { title: '進貨比價', kbd: 'F9', wide: true },
-  related: { title: '相關零件', kbd: 'F10' },
+  history: { title: '出入庫紀錄', kbd: 'Alt+6' },
+  sales: { title: '銷貨比價', kbd: 'Alt+8', wide: true },
+  purchase: { title: '進貨比價', kbd: 'Alt+9', wide: true },
+  related: { title: '相關零件', kbd: 'Alt+0' },
 };
 
 function QuickPanelOverlay({

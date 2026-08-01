@@ -459,9 +459,9 @@ function InstantSrDialog({ onClose }: { onClose: () => void }) {
             {customer.code}　{customer.name}
           </span>
         ) : null}
-        <kbd className="ml-auto rounded border border-border/60 bg-background/60 px-1.5 font-mono text-[10px] text-muted-foreground">
-          F2
-        </kbd>
+        {/* ⚠️ v3.0.0：這裡原本掛一顆「F2」角標（舊的「F2＝即時工作檯」時代留下的）。
+               F2 現在是九宮格（規格 §7.3），標著會讓人以為按 F2 回到本站，拿掉。 */}
+        <span className="ml-auto" />
         <button
           type="button"
           onClick={guardedClose}

@@ -866,7 +866,8 @@ export function QuoteWorkspace({ onClose, hidden = false }: { onClose: () => voi
             )}
             {lines.length > 0 ? <span className="rounded bg-primary/20 px-1 font-mono">{lines.length}</span> : null}
             {transferCount > 0 ? (
-              <span className="rounded bg-amber-500/20 px-1 font-mono text-amber-500" title="調貨清單（F5）">
+              // ⚠️ v3.0.0：title 原本標「（F5）」，但 F5 已永久還給瀏覽器（規格 §7.3）
+              <span className="rounded bg-amber-500/20 px-1 font-mono text-amber-500" title="調貨清單">
                 調{transferCount}
               </span>
             ) : null}
@@ -1296,7 +1297,7 @@ export function QuoteWorkspace({ onClose, hidden = false }: { onClose: () => voi
                             </span>
                             {l.transfer ? (
                               <span className="rounded border border-amber-500/50 bg-amber-500/10 px-1.5 py-px text-[10px] text-amber-500">
-                                {l.transferPartnerName ? `調貨·${l.transferPartnerName}` : '調貨詢價（F5）'}
+                                {l.transferPartnerName ? `調貨·${l.transferPartnerName}` : '調貨詢價'}
                               </span>
                             ) : l.warehouseLabel ? (
                               <span className="rounded border border-border/50 bg-muted/30 px-1.5 py-px text-[10px]">{l.warehouseLabel}</span>
@@ -1816,7 +1817,7 @@ export function QuoteWorkspace({ onClose, hidden = false }: { onClose: () => voi
                                 ? curLine.transfer
                                   ? curLine.transferPartnerName
                                     ? `調貨·${curLine.transferPartnerName}`
-                                    : '調貨詢價（F5）'
+                                    : '調貨詢價'
                                   : (curLine.warehouseLabel ??
                                     `客戶預設${customer?.defaultWarehouseName ? `（${customer.defaultWarehouseName}）` : '倉'}`)
                                 : i === P_QTY
@@ -1912,7 +1913,8 @@ export function QuoteWorkspace({ onClose, hidden = false }: { onClose: () => voi
                                   whSel === whOptions.length ? 'border-amber-500 bg-amber-500/10 text-amber-500' : 'border-border/30 text-muted-foreground'
                                 }`}
                               >
-                                調貨（同行詢價、入 F5 清單）
+                                {/* ⚠️ v3.0.0：原本寫「入 F5 清單」，F5 已還給瀏覽器——改講功能名稱 */}
+                                調貨（同行詢價、入調貨詢價待辦）
                               </div>
                               {/* 問題2：已詢過價的同行——就地挑一家，直接帶成本當底價、不用再進 F5 */}
                               {(inqHistory ?? []).length > 0 ? (
@@ -2235,7 +2237,8 @@ export function QuoteWorkspace({ onClose, hidden = false }: { onClose: () => voi
                 {inqHistory === null ? (
                   <div className="py-6 text-center text-[12px] text-muted-foreground">載入中…</div>
                 ) : inqHistory.length === 0 ? (
-                  <div className="py-6 text-center text-[12px] text-muted-foreground">近30天沒有同行詢價——按 F5 開清單問一輪</div>
+                  // ⚠️ v3.0.0：原本寫「按 F5 開清單」，F5 已還給瀏覽器——改講功能名稱
+                  <div className="py-6 text-center text-[12px] text-muted-foreground">近30天沒有同行詢價——開即時詢價問一輪</div>
                 ) : (
                   inqHistory.map((r, ri) => {
                     const isLowest = inqLowest?.id === r.id;
