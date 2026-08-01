@@ -25,6 +25,11 @@
 //   · /dashboard/task-pool（待辦池）＝ 規格改走頂欄鈴鐺，暫不進格。
 //   · /dashboard/inventory/stocktake 與 /dashboard/inventory/stock-take 兩套盤點路由並存，
 //     本表先接 stock-take，重複問題留待階段 4 清理。
+//
+// ⚠️ 2026-08-01 銷售重排後「有路由但不在格子裡」的頁（⛔ 沒刪、等著被吸收）：
+//   · /dashboard/sale/price-check（查價查貨）→ 併進 1 報價作業
+//   · /dashboard/sale/quote-log（報價紀錄）  → 併進 1 報價作業
+//   · /dashboard/sale/inquiry-log（詢價紀錄）→ 併進 4 調貨作業
 
 export type RoleNo = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 export type CellNo = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
@@ -66,66 +71,41 @@ export const ROLES: RoleDef[] = [
     id: 'sales',
     label: '銷售作業',
     department: '業務部',
+    // ⭐ 2026-08-01 執行長重排（取代先前的 5 格＋第三層版本）。三個變動與理由：
+    //
+    // 一、⛔ 沒有「查價查貨／問價」這一格。
+    //     執行長：「客戶打進來就是來詢價，所以要做的就是直接報價。」
+    //     查料、看兩個價、看有沒有貨——那些是**報價當下的動作**，不是另一件事，
+    //     收進報價作業裡面。規格 v1.0 原本也是這樣寫的（查價查貨不佔格子）。
+    //
+    // 二、⛔ 全部沒有第三層，九格都是 F2 兩下到位。
+    //     舊的第三層長成「即時 X ／ X 單列表」的配對，那個配對只在舊架構下才需要——
+    //     當年正式單據頁又重又慢，才另外做浮層工作站當快速通道。
+    //     一頁式架構（規格 §2.1）把這個理由消滅了：報價就是報價，一頁走完，
+    //     沒有「即時版」跟「正式版」之分。第三層收掉，那四個舊名字自然消失。
+    //
+    // 三、報價排第 1、銷貨排第 2 —— 照生意的順序（先報價才有單）。
+    //
+    // ⚠️ 舊的四個浮層工作站（即時報價／即時詢價／快速開單／即時銷退）在新架構下沒有格子。
+    //    它們的功能要被吸收進各自的「作業」頁，⚠️ 在改寫完成前，選單進不去這四個站。
+    //    元件本身沒刪，InstantWorkbench 還掛著（其他頁面的嵌入點仍在用）。
     cells: [
-      // 查價查貨排第 1：業務一天最常做的事，F2→1 兩下到位（規格 v1.1 拍板、⛔ 不開 F1 特例）
-      // 查完就走、沒有對應的「列表」，所以不開第三層——維持兩下
-      //
-      // ⭐ 2026-08-01 執行長拍板改一頁式：舊的 station 1 是「料號即時搜尋」浮層，
-      //    2026-06-25 的任務單目標是「公司到底有沒有貨」＝倉管視角，價格是外掛上去的。
-      //    新頁改成業務視角（可出量／建議售價／上次賣他一列答完），且⛔ 不是彈窗（規格 §2.1）。
-      //    舊浮層站 1 仍留在 InstantWorkbench（其他頁面的嵌入點還在用），只是九宮格不再指它。
-      { no: 1, id: 'price-check', label: '查價查貨', href: '/dashboard/sale/price-check', status: 'live' },
-      // ⭐ 2-5 一律「作業類別 ▸ 開單／查單」（執行長 2026-08-01 拍板）：
-      //    一格只能對一個動作，但業務既要開單也要查單，所以兩者都放第三層、各三下。
-      //    這也對齊規格 §5「第二層放作業類別、不放單據」——與倉庫作業同一套結構。
-      {
-        no: 2,
-        id: 'so-ops',
-        label: '銷貨作業',
-        status: 'live',
-        children: [
-          { no: 1, id: 'instant-sales', label: '快速開單', station: 4, status: 'live' },
-          { no: 2, id: 'so-list', label: '銷貨單列表', href: '/dashboard/sale/so', status: 'live' },
-        ],
-      },
-      {
-        no: 3,
-        id: 'qt-ops',
-        label: '報價作業',
-        status: 'live',
-        children: [
-          { no: 1, id: 'instant-quote', label: '即時報價', station: 2, status: 'live' },
-          { no: 2, id: 'qt-list', label: '報價單', href: '/dashboard/sale/qt', status: 'live' },
-          { no: 3, id: 'quote-log', label: '報價紀錄', href: '/dashboard/sale/quote-log', status: 'live' },
-        ],
-      },
-      {
-        no: 4,
-        id: 'transfer-ops',
-        label: '調貨作業',
-        status: 'live',
-        children: [
-          { no: 1, id: 'instant-inquiry', label: '即時詢價', station: 3, status: 'live' },
-          { no: 2, id: 'ti', label: '同行調貨單', href: '/dashboard/purchase/ti', status: 'live' },
-          { no: 3, id: 'inquiry-log', label: '詢價紀錄', href: '/dashboard/sale/inquiry-log', status: 'live' },
-        ],
-      },
-      // 客戶要退 → 依零件的退貨政策自動分流成一般退貨或轉保固（規格 §4.2）
-      {
-        no: 5,
-        id: 'sr-ops',
-        label: '退貨作業',
-        status: 'live',
-        children: [
-          { no: 1, id: 'instant-sr', label: '即時銷退', station: 5, status: 'live' },
-          { no: 2, id: 'sr-list', label: '銷貨退回', href: '/dashboard/sale/return', status: 'live' },
-        ],
-      },
-      { no: 6, id: 'customer', label: '客戶管理', href: '/dashboard/master/partners/customer', status: 'live' },
-      // 出貨前看客戶有沒有逾期
-      { no: 7, id: 'ar-check', label: '對帳查詢', href: '/dashboard/report/finance/ar-overview', status: 'live' },
-      { no: 8, id: 'warranty-query', label: '保固查詢', href: '/dashboard/sale/warranty', status: 'live' },
-      { no: 9, id: 'sales-report', label: '銷售分析', href: '/dashboard/report/sales', status: 'live' },
+      // 1 報價作業：客戶打電話進來的落點。查料＋兩個價＋開報價，⛔ 全部在同一頁。
+      // ⚠️ 目前先指既有的報價單頁；一頁式報價工作區改寫中。
+      { no: 1, id: 'quote-ops', label: '報價作業', href: '/dashboard/sale/qt', status: 'live' },
+      // 2 銷貨作業：報價談成 → 開單、查單、改單同一頁
+      { no: 2, id: 'so-ops', label: '銷貨作業', href: '/dashboard/sale/so', status: 'live' },
+      // 3 退貨作業：客戶要退 → 依零件的退貨政策自動分流成一般退貨或轉保固（規格 §4.2）
+      { no: 3, id: 'sr-ops', label: '退貨作業', href: '/dashboard/sale/return', status: 'live' },
+      // 4 調貨作業：沒貨時跟同行問價、建調貨單、看問過誰
+      { no: 4, id: 'transfer-ops', label: '調貨作業', href: '/dashboard/purchase/ti', status: 'live' },
+      { no: 5, id: 'customer', label: '客戶管理', href: '/dashboard/master/partners/customer', status: 'live' },
+      // 6 對帳查詢：出貨前看客戶有沒有逾期
+      { no: 6, id: 'ar-check', label: '對帳查詢', href: '/dashboard/report/finance/ar-overview', status: 'live' },
+      { no: 7, id: 'warranty-query', label: '保固查詢', href: '/dashboard/sale/warranty', status: 'live' },
+      { no: 8, id: 'sales-report', label: '銷售分析', href: '/dashboard/report/sales', status: 'live' },
+      // 9 保留（執行長 2026-08-01 明確留白）
+      // ⛔ 不硬湊（規格 §4.2），且號碼凍結鐵則下這個空號將來只給新功能、不回收（§5）
     ],
   },
 
