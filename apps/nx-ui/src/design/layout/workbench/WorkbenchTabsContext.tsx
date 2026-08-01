@@ -19,6 +19,7 @@ import {
 import { usePathname, useRouter } from 'next/navigation';
 import { tryNavigate } from '@design/hooks/useDirtyGuard';
 import { DOCK_NAV, type DockItem } from '@data/home/home-data';
+import { ROLES, type GridCell } from '@design/navigation/role-registry';
 import { MENU_BAR, type MenuNode } from './menu-data';
 
 export type WorkbenchTab = { href: string; label: string };
@@ -44,6 +45,15 @@ function buildLabelMap(): Record<string, string> {
     }
   };
   walkMenu(MENU_BAR);
+  // v3.0.0 九宮格登錄表最後跑＝最權威：九宮格開的頁面要用九宮格上的名字當分頁標籤，
+  // 否則使用者按「查價查貨」開出來的分頁會叫成舊選單的「零件即時查詢」。
+  const walkCells = (cells: GridCell[]) => {
+    for (const c of cells) {
+      if (c.href) map[c.href] = c.label;
+      if (c.children) walkCells(c.children);
+    }
+  };
+  for (const r of ROLES) walkCells(r.cells);
   return map;
 }
 const LABEL_MAP = buildLabelMap();

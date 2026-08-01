@@ -17,30 +17,27 @@
 import type { ReactNode } from 'react';
 import { Suspense } from 'react';
 // 2026-06-27 大改版：太空風 DashboardShell 封存、改傳統 ERP 外殼 WorkbenchShell
-import { WorkbenchShell } from '@design/layout/workbench/WorkbenchShell';
+// 2026-08-01 v3.0.0 階段 1 Step 3：WorkbenchShell 再封存、改 V3Shell
+//   （拿掉頂部選單列與底部狀態列、功能改走九宮格；舊殼不刪，出問題換回這行即可）
+import { V3Shell } from '@design/layout/v3/V3Shell';
 import { GlobalKeymap } from '@design/keyboard/GlobalKeymap';
-// v3.0.0 階段 1 Step 2：九宮格導覽（暫用 F4、Step 4 切 F2）
-import { GlobalNineGrid } from '@design/navigation/GlobalNineGrid';
 import { GlobalInstantQuote } from '@/features/nx04/quote/ui/GlobalInstantQuote';
 import { GlobalInstantInquiry } from '@/features/nx04/quote/ui/GlobalInstantInquiry';
 import { InstantWorkbench } from '@/features/shared/instant-workbench/InstantWorkbench';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
-    <WorkbenchShell>
-      <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">載入中...</div>}>{children}</Suspense>
+    <V3Shell>
+      <Suspense fallback={<div className="p-6 text-base text-muted-foreground">載入中...</div>}>{children}</Suspense>
       {/* 全域保留鍵（keymap-registry SSOT）：Home 回首頁（欄位內讓原生）*/}
       <GlobalKeymap />
       {/* F2 即時工作檯（執行長 2026-07-14 收殼拍板）：F2 選單 → 數字直達
           站1 庫存查詢（原 F1）＋站2 即時報價（原 F2）＋站3 調貨詢價（原 F5）、站4 補貨 C 期 */}
       <InstantWorkbench />
-      {/* v3.0.0 九宮格導覽：角色→功能→子功能三層、數字鍵盤排列；
-          Step 2 暫用 F4 與即時工作檯並存，Step 4 接管 F2 並遷入五站 */}
-      <GlobalNineGrid />
       {/* 即時報價（單顆/批次）：聽站 1 主視窗發的 nx-instant-quote 事件（Step5B）*/}
       <GlobalInstantQuote />
       {/* 即時詢價：聽站 1 主視窗發的 nx-instant-inquiry 事件（調貨側 B1）*/}
       <GlobalInstantInquiry />
-    </WorkbenchShell>
+    </V3Shell>
   );
 }

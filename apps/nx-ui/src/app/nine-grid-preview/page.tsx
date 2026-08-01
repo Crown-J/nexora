@@ -18,7 +18,7 @@ export default function NineGridPreviewPage() {
   const [open, setOpen] = useState(false);
   const [picked, setPicked] = useState<{ href: string; label: string } | null>(null);
 
-  // 與 GlobalNineGrid 相同的開關鍵，讓預覽頁的操作手感跟正式環境一致
+  // 與 V3Shell 相同的開關鍵，讓預覽頁的操作手感跟正式環境一致
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if (e.key !== 'F4' || e.ctrlKey || e.metaKey || e.altKey) return;
