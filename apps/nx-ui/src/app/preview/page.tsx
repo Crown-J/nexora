@@ -42,6 +42,12 @@ const ENTRIES: Entry[] = [
     status: '完成',
   },
   {
+    href: '/preview/components',
+    name: '基礎元件',
+    desc: '按鈕／輸入框／標籤；每頁都會用到，字級改一次全站生效',
+    status: '完成',
+  },
+  {
     href: '/preview/master-table',
     name: '全站共用表格（MasterTable）',
     desc: '⭐ 單據列表 16 頁＋主檔列表 24 頁都用它；階段 4 已套字級規範',

@@ -158,7 +158,7 @@ export function KeyboardSelect({
           className="absolute left-0 top-[calc(100%+4px)] z-50 max-h-60 w-full overflow-auto rounded-md border border-[var(--border)] bg-[var(--card)] py-1 shadow-2xl nx-master-scroll"
         >
           {options.length === 0 ? (
-            <div className="px-3 py-2 text-xs text-[var(--muted-foreground)]">無選項</div>
+            <div className="px-3 py-2 text-[15px] text-[var(--muted-foreground)]">無選項</div>
           ) : (
             options.map((o, i) => {
               const on = o.value === value;
@@ -178,7 +178,7 @@ export function KeyboardSelect({
                   }}
                   onMouseEnter={() => setHighlight(i)}
                   className={cn(
-                    'flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm transition-colors',
+                    'flex w-full items-center gap-2 px-3 py-2 text-left text-[15px] transition-colors',
                     focused ? 'bg-[var(--primary)]/15 text-[var(--primary)]' : 'text-[var(--foreground)] hover:bg-[var(--secondary)]',
                   )}
                 >

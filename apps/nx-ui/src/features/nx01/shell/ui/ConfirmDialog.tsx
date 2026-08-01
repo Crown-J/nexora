@@ -88,15 +88,15 @@ export function ConfirmDialog({
             <AlertTriangle className="size-5" />
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="text-sm font-semibold text-[var(--foreground)]">{state.title}</h3>
-            <p className="mt-1 text-xs leading-relaxed text-[var(--muted-foreground)]">{state.message}</p>
+            <h3 className="text-[16px] font-semibold text-[var(--foreground)]">{state.title}</h3>
+            <p className="mt-1 text-[15px] leading-relaxed text-[var(--muted-foreground)]">{state.message}</p>
           </div>
         </div>
         <div className="mt-5 flex justify-end gap-2">
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex h-8 items-center gap-1 rounded-md border border-[var(--border)] bg-[var(--secondary)] px-3 text-xs font-medium text-[var(--muted-foreground)] outline-none transition-colors hover:border-[var(--border)] hover:bg-[#22222A] hover:text-[var(--foreground)]"
+            className="inline-flex h-9 items-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--secondary)] px-3 text-[15px] font-medium text-[var(--muted-foreground)] outline-none transition-colors hover:border-[var(--border)] hover:bg-[#22222A] hover:text-[var(--foreground)]"
           >
             取消
             <kbd className="ml-0.5 hidden rounded border border-[var(--border)] px-1 text-[9px] text-[var(--muted-foreground)] sm:inline">Esc</kbd>
@@ -109,7 +109,7 @@ export function ConfirmDialog({
                 onClose();
               }}
               className={cn(
-                'inline-flex h-8 items-center gap-1 rounded-md border px-3 text-xs font-medium outline-none transition-colors',
+                'inline-flex h-9 items-center gap-1.5 rounded-md border px-3 text-[15px] font-medium outline-none transition-colors',
                 state.secondaryAction.variant === 'danger'
                   ? 'border-[var(--border)] bg-[var(--secondary)] text-[var(--color-danger)] hover:border-[#7A3A3A] hover:bg-[var(--muted)] hover:text-[var(--color-danger)]'
                   : 'border-[var(--border)] bg-[#22222A] text-[var(--muted-foreground)] hover:bg-[var(--border)] hover:text-[var(--foreground)]',
@@ -127,7 +127,7 @@ export function ConfirmDialog({
               onClose();
             }}
             className={cn(
-              'inline-flex h-8 items-center gap-1 rounded-md border px-3 text-xs font-medium outline-none ring-2 ring-offset-2 ring-offset-[var(--card)] transition-colors',
+              'inline-flex h-9 items-center gap-1.5 rounded-md border px-3 text-[15px] font-medium outline-none ring-2 ring-offset-2 ring-offset-[var(--card)] transition-colors',
               isDanger
                 ? 'border-[var(--border)] bg-[var(--secondary)] text-[var(--color-danger)] ring-[var(--color-danger)]/50 hover:border-[#7A3A3A] hover:bg-[var(--muted)] hover:text-[var(--color-danger)]'
                 : 'border-[var(--primary)]/40 bg-[var(--primary)]/15 text-[var(--primary)] ring-[var(--primary)]/60 hover:bg-[var(--primary)]/25',

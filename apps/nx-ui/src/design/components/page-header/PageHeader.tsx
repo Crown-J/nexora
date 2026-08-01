@@ -52,7 +52,7 @@ export function PageHeader({
   return (
     <div data-nx-frame className={cn('flex flex-col gap-[6px] px-4 py-3', className)}>
       <div className="flex items-center gap-[8px]">
-        <nav className="flex min-w-0 flex-1 items-center gap-[7px] text-xs">
+        <nav className="flex min-w-0 flex-1 items-center gap-[7px] text-[14px]">
           {effective.map((c, i) => {
             const isLast = i === effective.length - 1;
             return (
@@ -75,7 +75,7 @@ export function PageHeader({
           })}
         </nav>
         {count ? (
-          <span className="shrink-0 rounded-md border border-border/40 bg-background/40 px-2 py-1 text-[11px] font-mono tabular-nums text-muted-foreground">
+          <span className="shrink-0 rounded-md border border-border/40 bg-background/40 px-2 py-1 text-[14px] font-mono tabular-nums text-muted-foreground">
             {count}
           </span>
         ) : null}
@@ -83,7 +83,7 @@ export function PageHeader({
       </div>
 
       {desc ? (
-        <p className="max-w-[760px] text-[13px] leading-relaxed text-muted-foreground">{desc}</p>
+        <p className="max-w-[760px] text-[15px] leading-relaxed text-muted-foreground">{desc}</p>
       ) : null}
     </div>
   );

@@ -15,7 +15,9 @@ export function PageHeader({ title, subtitle }: Props) {
     return (
         <div className="mb-4 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
             <div className="text-lg font-semibold text-white">{title}</div>
-            {subtitle && <div className="mt-1 text-xs text-white/60">{subtitle}</div>}
+            {/* ⚠️ text-white/60 是太空風殘留：淺色主題下幾乎看不見。
+                本輪只放大字級，配色留待這支舊 PageHeader 退場時一起處理 */}
+            {subtitle && <div className="mt-1 text-[14px] text-white/60">{subtitle}</div>}
         </div>
     );
 }

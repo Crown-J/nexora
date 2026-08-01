@@ -69,18 +69,18 @@ export function SearchPanel({
           }
         }}
         placeholder={placeholder ?? '搜尋...'}
-        className="flex-1 bg-transparent text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted-foreground)]"
+        className="flex-1 bg-transparent text-[15px] text-[var(--foreground)] outline-none placeholder:text-[var(--muted-foreground)]"
       />
       {value ? (
         <button
           type="button"
           onClick={() => onChange('')}
-          className="rounded px-1.5 text-[11px] text-[var(--muted-foreground)] transition-colors hover:bg-[var(--secondary)] hover:text-[var(--foreground)]"
+          className="rounded px-1.5 text-[14px] text-[var(--muted-foreground)] transition-colors hover:bg-[var(--secondary)] hover:text-[var(--foreground)]"
         >
           清除
         </button>
       ) : null}
-      <span className="hidden text-[10px] tracking-wider text-[var(--muted-foreground)] sm:inline">ESC 關閉</span>
+      <span className="hidden text-[13px] tracking-wider text-[var(--muted-foreground)] sm:inline">ESC 關閉</span>
       <button
         type="button"
         onClick={onClose}
