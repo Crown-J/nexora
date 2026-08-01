@@ -7,7 +7,7 @@ type Entry = {
   href?: string;
   name: string;
   desc: string;
-  status: '完成' | '進行中' | '待做';
+  status: '完成' | '進行中' | '待做' | '不做';
 };
 
 const ENTRIES: Entry[] = [
@@ -35,8 +35,17 @@ const ENTRIES: Entry[] = [
     desc: '一頁到底、Alt+數字捲到對應區、滾輪自由移動；⛔ 不用彈跳視窗、⛔ 不做分步鎖定',
     status: '完成',
   },
-  { name: '主檔編輯模板', desc: '25 個主檔共用；現有三套要收斂成一套', status: '待做' },
-  { name: '工作檯卡片', desc: '九個角色的首頁區塊', status: '待做' },
+  {
+    href: '/preview/workbench',
+    name: '工作檯模板',
+    desc: '九個角色的首頁：搜尋框永遠聚焦＋三塊大數字；⛔ 不放圖表',
+    status: '完成',
+  },
+  {
+    name: '主檔編輯模板',
+    desc: '⛔ 不做新的——EntityMasterPage 已是 config-driven 且符合一頁式，24 個主檔在用；改視覺屬階段 4',
+    status: '不做',
+  },
 ];
 
 export default function PreviewIndexPage() {
