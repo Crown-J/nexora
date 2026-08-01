@@ -134,9 +134,14 @@ async function main(): Promise<void> {
 
         // ── ⑨ 尚未接上總帳的子帳誠實報差額 ──
         const c3 = get(r1, 'C3');
-        ok('⑨ 存貨尚未接總帳 → C3 誠實報差額，且訊息說得出這是進度不是錯',
-          !c3.passed && c3.hint.includes('必然有差額'),
+        // ⚠ C5 改版：提示文字從「必然有差額」改成指路——先看覆蓋清單（哪條路還沒接）、
+        //    再看 C3b（分辨「有單沒過帳」還是「單位成本捨入累積」）。斷言跟著改。
+        ok('⑨ 存貨尚未接總帳 → C3 誠實報差額，且訊息說得出往哪裡查',
+          !c3.passed && c3.hint.includes('覆蓋清單') && c3.hint.includes('C3b'),
           `子帳 ${c3.expected} vs 總帳 ${c3.actual}`);
+        ok('⑨b C5 新增：覆蓋清單列得出哪些庫存來源還沒接進總帳',
+          r1.coverage.length >= 12 && r1.coverage.some((c) => !c.wired),
+          `${r1.coverage.length} 條、未接 ${r1.coverage.filter((c) => !c.wired).length} 條`);
 
         // ── ⑩ ⛔ 驗證不自動調帳 ──
         const balBefore = await tx.nx05GlBalance.count({ where: { tenantId: T, fiscalPeriodId: period.id } });
