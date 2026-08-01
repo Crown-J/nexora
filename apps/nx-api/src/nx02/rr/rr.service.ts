@@ -17,6 +17,7 @@ import { assertRrStatusTransition, RrStatus } from '../../shared/nx02/nx02-state
 import { allocNx03DocNo } from '../../shared/nx03/nx03-doc-no';
 import { applyQtyInWithLedger } from '../../shared/nx03/nx03-inventory';
 import { createApFromPostedRr } from '../../shared/nx05/nx05-create-ap-from-rr';
+import { postRrToGl } from '../../shared/nx05/nx05-post-rr-to-gl';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 
 import type { CreateRrDto, CreateRrItemDto, PatchRrItemDto, UpdateRrDto } from './dto/rr.dto';
@@ -441,6 +442,11 @@ export class RrService {
     // - 有 PO 時跳過（PO confirmed 早已建 AP、helper 內部 guard）
     // - 失敗不阻擋 RR 過帳（log + skip、NX05 LITE 未完整、保守處理）
     await createApFromPostedRr(tx, { tenantId: rr.tenantId, rrId: rr.id, userId });
+
+    // ⭐ 總帳脊椎 C2 2026-08-01：進貨驗收接上總帳（只加這一行、⛔ 不動任何營運邏輯）
+    // 必須排在最後——存貨金額要跟上面寫下的庫存流水核對。
+    // 安全閘：沒設會計期間／國外進貨／金額對不上 → 回傳 skip 理由、⛔ 不擋進貨流程。
+    await postRrToGl(tx, { tenantId: rr.tenantId, rrId: rr.id, userId });
   }
 
   async list(user: RequestUser, q: Nx02ListQueryDto) {
