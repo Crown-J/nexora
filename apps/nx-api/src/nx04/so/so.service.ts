@@ -31,6 +31,7 @@ import { autoCreateTransferFromSo } from '../../shared/nx03/nx03-auto-transfer-f
 import { createPutbackOnSoCancel } from '../../shared/nx03/nx03-putback-on-cancel';
 import { postSoStockOut } from '../../shared/nx04/post-so-stock-out';
 import { createArFromShippedSo } from '../../shared/nx05/nx05-create-ar-from-so';
+import { postSoToGl } from '../../shared/nx05/nx05-post-so-to-gl';
 import { createDeliveryDnFromShippedSo } from '../../shared/nx06/nx06-create-delivery-from-so';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 // NX04-IMPL-01 Phase 3 commit 3a：授信擋單接點（Crown Q7 + Q-C4=A）
@@ -1282,6 +1283,11 @@ export class SoService {
     await this.prisma.$transaction(async (tx) => {
       await postSoStockOut(tx, { tenantId, soId, userId: actorUserId });
       await createArFromShippedSo(tx, { tenantId, soId, userId: actorUserId });
+      // 總帳脊椎 B6（2026-08-01）：同一個過帳點順手產生分錄。
+      // ⚠ 必須在 postSoStockOut 之後——銷貨成本是從它寫下的庫存流水彙總來的。
+      // 🔴 租戶還沒啟用總帳（沒套過帳規則／該日期沒有開帳中的會計期間）時只回傳 skip 理由、
+      //    不擋銷貨流程；缺的分錄由 B7 子帳 vs 總帳驗證抓出來。
+      await postSoToGl(tx, { tenantId, soId, userId: actorUserId });
       await tx.nx04So.update({
         where: { id: soId },
         data: {
