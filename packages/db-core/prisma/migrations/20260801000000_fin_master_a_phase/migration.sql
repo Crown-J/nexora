@@ -157,7 +157,7 @@ CREATE TABLE "nx05_tax_code" (
     "code" VARCHAR(10) NOT NULL,
     "name" VARCHAR(50) NOT NULL,
     "tax_rate" DECIMAL(5,2) NOT NULL DEFAULT 0,
-    "direction" VARCHAR(2) NOT NULL,
+    "direction" VARCHAR(3) NOT NULL,
     "deductible" BOOLEAN,
     "document_type" VARCHAR(50),
     "tax_account_code_id" VARCHAR(15),
@@ -808,3 +808,14 @@ COMMENT ON TABLE "nx05_asset" IS '資產主檔（財產目錄）（總帳脊椎 
 COMMENT ON TABLE "nx05_asset_depreciation" IS '折舊提列明細（逐月落列；過帳後不可重算）（總帳脊椎 A 階段 2026-08-01）';
 COMMENT ON TABLE "nx05_posting_rule" IS '過帳規則／交易科目對映（總帳脊椎核心，63 個交易代號）（總帳脊椎 A 階段 2026-08-01）';
 COMMENT ON TABLE "nx05_posting_rule_line" IS '過帳規則分錄行（借貸×科目×金額基礎×三維度旗標）（總帳脊椎 A 階段 2026-08-01）';
+
+-- =========================================================
+-- 4) 事後修正（2026-08-01 seed 實測發現）
+--    nx05_tax_code.direction 值域為 IN / OUT / NA，VARCHAR(2) 裝不下 'OUT' → 純加寬為 VARCHAR(3)。
+--    上面的 CREATE TABLE 已同步改為 VARCHAR(3)；本段是給「已套過舊版」的資料庫補的，重跑無副作用。
+-- =========================================================
+ALTER TABLE "nx05_tax_code" ALTER COLUMN "direction" TYPE VARCHAR(3);
+
+--    nx05_account_code.remark 原為 VARCHAR(200)，但亞羅科目表的設計理由文字最長 229 字
+--    （1122 進貨附加成本的運費防火牆說明）→ 純加寬為 VARCHAR(500)。既有 0 筆、無資料風險。
+ALTER TABLE "nx05_account_code" ALTER COLUMN "remark" TYPE VARCHAR(500);

@@ -13,7 +13,7 @@ import type { PrismaClient } from '../../../generated/prisma';
 import type { SeedTier } from '../lib/seed-tier';
 import { seedNx01RoleView } from '../system/nx01_role_view';
 
-import { applyAccountCode } from './apply-account-code';
+import { applyFinMaster } from './apply-fin-master';
 import { applyBulletinCategory } from './apply-bulletin-category';
 import { applyCarBrand } from './apply-car-brand';
 import { applyCustomerGrade } from './apply-customer-grade';
@@ -55,7 +55,9 @@ export async function applyTemplateToTenant(
   await applySupplierGrade(prisma, params);
   await applyRegion(prisma, params);
   await applyDiscountCode(prisma, params);
-  await applyAccountCode(prisma, params);
+  // 財會主檔（總帳脊椎 A 階段 2026-08-01）：科目類別/稅別/會計科目/收付方式/資產類別/
+  // 付款條件範本/過帳規則/代碼參數/會計政策——內部有依賴順序，收成單一入口。
+  await applyFinMaster(prisma, params);
 
   // === ALL：據點（預設「主要倉庫(M)」1 筆），須在 applyWarehouse 前（倉庫 siteId 指向它）===
   await applySite(prisma, params);
