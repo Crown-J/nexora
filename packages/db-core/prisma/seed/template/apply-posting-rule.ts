@@ -4,7 +4,7 @@
 //
 // ⭐ 這是缺口 1「總帳脊椎」的核心規格輸入：單據要怎麼過帳，全部看這裡。
 // 資料來源：亞羅核心主檔-v1『交易科目對映』（彙總 43 個代號）
-//           ＋ 營運循環-v10 五張分循環分頁（另 20 個代號）＝ 共 65 個交易代號、177 條分錄行。
+//           ＋ 營運循環-v10 五張分循環分頁（另 20 個代號）＝ 共 66 個交易代號、180 條分錄行。
 //
 // 轉譯時做的三件修正（皆為實測發現、非臆測）：
 //   1. 🔴 亞羅對映表筆誤 2134 → 2121：FA-DISP 第 4 行寫 2134「銷項稅額」，
@@ -66,12 +66,13 @@ const RULES: readonly RuleRow[] = [
   { code: 'PAY-SEV',    name: '資遣費與預告工資',            cycle: 'HR',         legal: 'PAYROLL',          status: 'ACTIVE',   remark: null },
   { code: 'PC-ADV',     name: '零用金設立／定額調整',          cycle: 'FUND',       legal: 'PURCHASE_PAYMENT', status: 'ACTIVE',   remark: null },
   { code: 'PC-EXP',     name: '零用金核銷撥補',             cycle: 'FUND',       legal: 'PURCHASE_PAYMENT', status: 'ACTIVE',   remark: null },
+  { code: 'PD',         name: '進貨折讓',                cycle: 'PURCHASE',   legal: 'PURCHASE_PAYMENT', status: 'ACTIVE',   remark: '🔴 A 階段補建：亞羅原本把「進貨退出」與「進貨折讓」壓在同一個代號 PR，而那條規則只長了「退出」的形狀（貸 1121 存貨）→ 科目表建了 5102 進貨折讓卻沒有任何代號承接它。⭐ 對稱依據就在亞羅自己的銷貨側：SR 銷貨退回（動存貨）與 SD 銷貨折讓（不動存貨）是兩個代號、兩個科目（4102／4103）。進貨側照同一個形狀拆開即可。⚠ 關鍵差別：退出是貨真的退回廠商 → 存貨減少；折讓是貨留著、只降價 → 存貨不動、走成本減項。📌 NEXORA 這邊單據早就分好了——nx05_allowance.allowance_type 的 P＝進貨折讓、S＝銷貨折讓，缺的一直只是過帳規則。' },
   { code: 'PO',         name: '進貨',                  cycle: 'PURCHASE',   legal: 'PURCHASE_PAYMENT', status: 'ACTIVE',   remark: null },
   { code: 'PO-IMP',     name: '進口費用歸集',              cycle: 'PURCHASE',   legal: 'PURCHASE_PAYMENT', status: 'ACTIVE',   remark: null },
   { code: 'PO-PRE',     name: '預付貨款（付款段）',           cycle: 'PURCHASE',   legal: 'PURCHASE_PAYMENT', status: 'ACTIVE',   remark: null },
   { code: 'PO-RCV',     name: '到貨（預付轉存貨）',           cycle: 'PURCHASE',   legal: 'PURCHASE_PAYMENT', status: 'ACTIVE',   remark: null },
   { code: 'PO-TR',      name: '調貨進貨',                cycle: 'PURCHASE',   legal: 'PURCHASE_PAYMENT', status: 'ACTIVE',   remark: null },
-  { code: 'PR',         name: '進貨退出／折讓',             cycle: 'PURCHASE',   legal: 'PURCHASE_PAYMENT', status: 'ACTIVE',   remark: null },
+  { code: 'PR',         name: '進貨退出',                cycle: 'PURCHASE',   legal: 'PURCHASE_PAYMENT', status: 'ACTIVE',   remark: '⚠ A 階段正名：亞羅原名「進貨退出／折讓」把兩件事壓在一個代號。本規則貸的是 1121 存貨，那是「貨真的退回廠商」的形狀 → 正名為進貨退出。只降價不退貨的情形改走新代號 PD 進貨折讓（貸 5102 成本減項、存貨不動）。⭐ 與銷貨側的 SR 銷貨退回／SD 銷貨折讓 拆法對稱。' },
   { code: 'PY-CA',      name: '付款（匯款）',              cycle: 'FUND',       legal: 'PURCHASE_PAYMENT', status: 'ACTIVE',   remark: null },
   { code: 'PY-CD',      name: '票據到期（付）',             cycle: 'FUND',       legal: 'PURCHASE_PAYMENT', status: 'ACTIVE',   remark: null },
   { code: 'PY-CQ',      name: '付款（開出支票）',            cycle: 'FUND',       legal: 'PURCHASE_PAYMENT', status: 'ACTIVE',   remark: null },
@@ -194,6 +195,9 @@ const LINES: readonly LineRow[] = [
   { rule: 'PC-EXP',     no:  1, dc: 'D', acc: null,     pattern: '6xxx',       basis: 'NET',    dept: true,  partner: false, scope: 'PARTNER', bank: true,  optional: true,  cond: null,                                    remark: null },
   { rule: 'PC-EXP',     no:  2, dc: 'D', acc: '1133',   pattern: null,         basis: 'TAX',    dept: false, partner: false, scope: 'PARTNER', bank: true,  optional: false, cond: null,                                    remark: null },
   { rule: 'PC-EXP',     no:  3, dc: 'C', acc: '1102',   pattern: null,         basis: 'GROSS',  dept: false, partner: false, scope: 'PARTNER', bank: true,  optional: false, cond: null,                                    remark: '⭐ 核銷與撥補一次做完，所以 `1103` 不動——這是定額備用金制的關鍵：**帳上的零用金永遠是定額。** ⚠ 小額支出常常沒有發票只有收據 → 那幾筆走 `EX-N` 的邏輯（不得扣抵），第 2 列不出現。 🔴 撥補前會計必須盤點：現金 ＋ 未核銷單據 ＝ 定額。不符不能過這張單。' },
+  { rule: 'PD',         no:  1, dc: 'D', acc: '2101',   pattern: null,         basis: 'GROSS',  dept: false, partner: true,  scope: 'PARTNER', bank: false, optional: false, cond: null,                                    remark: '沖減應付廠商的貨款' },
+  { rule: 'PD',         no:  2, dc: 'C', acc: '5102',   pattern: null,         basis: 'NET',    dept: true,  partner: true,  scope: 'PARTNER', bank: false, optional: false, cond: null,                                    remark: '進貨折讓＝營業成本的減項。⚠ 貨沒有退、只是價格降下來，所以存貨 1121 不動' },
+  { rule: 'PD',         no:  3, dc: 'C', acc: '1133',   pattern: null,         basis: 'TAX',    dept: false, partner: false, scope: 'PARTNER', bank: false, optional: false, cond: null,                                    remark: '沖回原先認列的進項稅額' },
   { rule: 'PO',         no:  1, dc: 'D', acc: '1121',   pattern: null,         basis: 'NET',    dept: true,  partner: false, scope: 'PARTNER', bank: false, optional: false, cond: null,                                    remark: '⚠ 進貨入存貨不入成本；成本在銷貨時才轉' },
   { rule: 'PO',         no:  2, dc: 'D', acc: '1133',   pattern: null,         basis: 'TAX',    dept: false, partner: false, scope: 'PARTNER', bank: false, optional: false, cond: null,                                    remark: '進項稅額' },
   { rule: 'PO',         no:  3, dc: 'C', acc: '2101',   pattern: null,         basis: 'GROSS',  dept: false, partner: true,  scope: 'PARTNER', bank: false, optional: false, cond: null,                                    remark: '應付帳款' },
