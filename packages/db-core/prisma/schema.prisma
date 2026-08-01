@@ -458,6 +458,9 @@ model Nx01Department {
   rev_Nx98TaskPool_departmentId          Nx98TaskPool[]       @relation("R_Nx98TaskPool_departmentId")
   /// A 階段 2026-08-01：資產所屬部門（折舊費用的成本中心）
   rev_Nx05Asset_departmentId             Nx05Asset[]          @relation("R_Nx05Asset_departmentId")
+  /// B 階段：成本中心維度（貢獻式損益靠它）
+  rev_Nx05VoucherLine_departmentId       Nx05VoucherLine[]    @relation("R_Nx05VoucherLine_departmentId")
+  rev_Nx05GlBalance_departmentId         Nx05GlBalance[]      @relation("R_Nx05GlBalance_departmentId")
 
   @@map("nx01_department")
 }
@@ -1194,6 +1197,8 @@ model Nx01Partner {
   paymentTermImportRef                  Nx05PaymentTerm?          @relation("R_Nx01Partner_paymentTermImportId", fields: [paymentTermImportId], references: [id])
   rev_Nx05RecurringExpense_partnerId    Nx05RecurringExpense[]    @relation("R_Nx05RecurringExpense_partnerId")
   rev_Nx05Asset_partnerId               Nx05Asset[]               @relation("R_Nx05Asset_partnerId")
+  /// B 階段：分錄行往來對象維度
+  rev_Nx05VoucherLine_partnerId         Nx05VoucherLine[]         @relation("R_Nx05VoucherLine_partnerId")
 
   @@unique([tenantId, code])
   @@map("nx01_partner")
@@ -1654,6 +1659,8 @@ model Nx01User {
   /// A 階段 2026-08-01：資產保管人 / 票據簿保管人
   rev_Nx05Asset_custodianUserId            Nx05Asset[]                   @relation("R_Nx05Asset_custodianUserId")
   rev_Nx05NoteBook_custodianUserId         Nx05NoteBook[]                @relation("R_Nx05NoteBook_custodianUserId")
+  /// B 階段：分錄行的員工維度（代墊報支——員工不在往來對象主檔）
+  rev_Nx05VoucherLine_employeeUserId       Nx05VoucherLine[]             @relation("R_Nx05VoucherLine_employeeUserId")
 
   @@unique([tenantId, userAccount])
   @@unique([tenantId, email])
@@ -5129,6 +5136,9 @@ model Nx05AccountCode {
   rev_Nx05AssetClass_assetAccountCodeId    Nx05AssetClass[]       @relation("R_Nx05AssetClass_assetAccountCodeId")
   rev_Nx05AssetClass_accumDepAccountCodeId Nx05AssetClass[]       @relation("R_Nx05AssetClass_accumDepAccountCodeId")
   rev_Nx05PostingRuleLine_accountCodeId    Nx05PostingRuleLine[]  @relation("R_Nx05PostingRuleLine_accountCodeId")
+  /// B 階段：實際分錄行與科目餘額
+  rev_Nx05VoucherLine_accountCodeId        Nx05VoucherLine[]      @relation("R_Nx05VoucherLine_accountCodeId")
+  rev_Nx05GlBalance_accountCodeId          Nx05GlBalance[]        @relation("R_Nx05GlBalance_accountCodeId")
 
   @@unique([tenantId, code])
   @@index([tenantId, accountClassId])
@@ -5695,6 +5705,8 @@ model Nx05TaxCode {
   tenant                               Nx99Tenant        @relation("R_Nx05TaxCode_tenantId", fields: [tenantId], references: [id])
   taxAccountCode                       Nx05AccountCode?  @relation("R_Nx05TaxCode_taxAccountCodeId", fields: [taxAccountCodeId], references: [id])
   rev_Nx05AccountCode_defaultTaxCodeId Nx05AccountCode[] @relation("R_Nx05AccountCode_defaultTaxCodeId")
+  /// B 階段：分錄行稅別（供 401 申報彙總）
+  rev_Nx05VoucherLine_taxCodeId        Nx05VoucherLine[] @relation("R_Nx05VoucherLine_taxCodeId")
 
   @@unique([tenantId, code])
   @@map("nx05_tax_code")
@@ -5895,6 +5907,8 @@ model Nx05BankAccount {
   rev_Nx05BankAccount_sweepSourceAccountId Nx05BankAccount[] @relation("R_Nx05BankAccount_sweepSourceAccountId")
   rev_Nx05NoteBook_bankAccountId           Nx05NoteBook[]    @relation("R_Nx05NoteBook_bankAccountId")
   rev_Nx05Note_collectionBankAccountId     Nx05Note[]        @relation("R_Nx05Note_collectionBankAccountId")
+  /// B 階段：銀行帳戶維度（沒有它，BK-TRF 借貸同科目同金額會看起來像沒發生任何事）
+  rev_Nx05VoucherLine_bankAccountId        Nx05VoucherLine[] @relation("R_Nx05VoucherLine_bankAccountId")
 
   @@unique([tenantId, code])
   @@map("nx05_bank_account")
@@ -5986,48 +6000,51 @@ model Nx05PaymentTermLine {
 /// =======================================================
 model Nx05FiscalPeriod {
   /// [NX05]+[FSPD]+[7碼流水號]，EX : NX05FSPD0000001；啟用最低需求版本：LITE-CORE
-  id                    String     @id @default(dbgenerated("gen_nx05_fiscal_period_id()")) @db.VarChar(15)
+  id                               String          @id @default(dbgenerated("gen_nx05_fiscal_period_id()")) @db.VarChar(15)
   /// 租戶 ID（外鍵）。；啟用最低需求版本：LITE-CORE
-  tenantId              String     @map("tenant_id") @db.VarChar(15)
+  tenantId                         String          @map("tenant_id") @db.VarChar(15)
   /// 期間代碼（YYYY-MM；第 13 期用 YYYY-13）。；啟用最低需求版本：LITE-CORE
-  code                  String     @db.VarChar(7)
+  code                             String          @db.VarChar(7)
   /// 年度。；啟用最低需求版本：LITE-CORE
-  fiscalYear            Int        @map("fiscal_year")
+  fiscalYear                       Int             @map("fiscal_year")
   /// 期別（1~12 常規月期；13＝年度調整期，Q3 拍板保留——調整分錄不擠進 12 月，12 月月報才對得上）。；啟用最低需求版本：LITE-CORE
-  periodNo              Int        @map("period_no")
+  periodNo                         Int             @map("period_no")
   /// 期間起日。；啟用最低需求版本：LITE-CORE
-  startDate             DateTime   @map("start_date") @db.Date
+  startDate                        DateTime        @map("start_date") @db.Date
   /// 期間迄日。；啟用最低需求版本：LITE-CORE
-  endDate               DateTime   @map("end_date") @db.Date
+  endDate                          DateTime        @map("end_date") @db.Date
   /// 狀態（PENDING 未開放/OPEN 開帳中/CLOSED 已關帳）。⚠ 已關帳不得新增或修改任何傳票、要調整只能在下一期做調整分錄。；啟用最低需求版本：LITE-CORE
-  status                String     @default("PENDING") @db.VarChar(10)
+  status                           String          @default("PENDING") @db.VarChar(10)
   /// 關帳日。；啟用最低需求版本：LITE-CORE
-  closedAt              DateTime?  @map("closed_at")
+  closedAt                         DateTime?       @map("closed_at")
   /// 關帳人（使用者 ID）。；啟用最低需求版本：LITE-CORE
-  closedBy              String?    @map("closed_by") @db.VarChar(15)
+  closedBy                         String?         @map("closed_by") @db.VarChar(15)
   /// 是否年度結帳期（觸發 CLS：本期損益 3202 結轉累積盈餘 3201；⚠ 恆迎 28 年從未結轉、資產負債表要重算才平）。；啟用最低需求版本：LITE-CORE
-  isYearEnd             Boolean    @default(false) @map("is_year_end")
+  isYearEnd                        Boolean         @default(false) @map("is_year_end")
   /// 關帳閘 1：銀行對帳差額（必須 0 或已勾為合理未達帳項）。；啟用最低需求版本：LITE-CORE
-  gateBankRecDiff       Decimal    @default(0) @map("gate_bank_rec_diff") @db.Decimal(14, 2)
+  gateBankRecDiff                  Decimal         @default(0) @map("gate_bank_rec_diff") @db.Decimal(14, 2)
   /// 關帳閘 2：零用金盤點差額（必須 0；現金＋未核銷單據＝定額）。；啟用最低需求版本：LITE-CORE
-  gatePettyCashDiff     Decimal    @default(0) @map("gate_petty_cash_diff") @db.Decimal(14, 2)
+  gatePettyCashDiff                Decimal         @default(0) @map("gate_petty_cash_diff") @db.Decimal(14, 2)
   /// 關帳閘 3：1122 進貨附加成本期末餘額（必須趨近 0；有餘額＝有進口費用沒分攤進存貨）。；啟用最低需求版本：LITE-CORE
-  gateLandedCostBalance Decimal    @default(0) @map("gate_landed_cost_balance") @db.Decimal(14, 2)
+  gateLandedCostBalance            Decimal         @default(0) @map("gate_landed_cost_balance") @db.Decimal(14, 2)
   /// 關帳閘 4：固定資產帳帳相符差額（必須 0；全自動、加它的成本是零）。；啟用最低需求版本：LITE-CORE
-  gateAssetDiff         Decimal    @default(0) @map("gate_asset_diff") @db.Decimal(14, 2)
+  gateAssetDiff                    Decimal         @default(0) @map("gate_asset_diff") @db.Decimal(14, 2)
   /// 可否關帳（四閘全 0 才 true；⚠ 由 service 算、不給人工改）。；啟用最低需求版本：LITE-CORE
-  canClose              Boolean    @default(false) @map("can_close")
+  canClose                         Boolean         @default(false) @map("can_close")
   /// 說明。；啟用最低需求版本：LITE-CORE
-  remark                String?    @db.VarChar(500)
+  remark                           String?         @db.VarChar(500)
   /// 建立時間。；啟用最低需求版本：LITE-CORE
-  createdAt             DateTime   @default(now()) @map("created_at")
+  createdAt                        DateTime        @default(now()) @map("created_at")
   /// 建立人。；啟用最低需求版本：LITE-CORE
-  createdBy             String     @map("created_by") @db.VarChar(15)
+  createdBy                        String          @map("created_by") @db.VarChar(15)
   /// 更新時間。；啟用最低需求版本：LITE-CORE
-  updatedAt             DateTime   @updatedAt @map("updated_at")
+  updatedAt                        DateTime        @updatedAt @map("updated_at")
   /// 更新人。；啟用最低需求版本：LITE-CORE
-  updatedBy             String     @map("updated_by") @db.VarChar(15)
-  tenant                Nx99Tenant @relation("R_Nx05FiscalPeriod_tenantId", fields: [tenantId], references: [id])
+  updatedBy                        String          @map("updated_by") @db.VarChar(15)
+  tenant                           Nx99Tenant      @relation("R_Nx05FiscalPeriod_tenantId", fields: [tenantId], references: [id])
+  /// B 階段：本期間的傳票與科目餘額
+  rev_Nx05Voucher_fiscalPeriodId   Nx05Voucher[]   @relation("R_Nx05Voucher_fiscalPeriodId")
+  rev_Nx05GlBalance_fiscalPeriodId Nx05GlBalance[] @relation("R_Nx05GlBalance_fiscalPeriodId")
 
   @@unique([tenantId, code])
   @@index([tenantId, fiscalYear, periodNo])
@@ -6415,6 +6432,8 @@ model Nx05PostingRule {
   updatedBy                      String                @map("updated_by") @db.VarChar(15)
   tenant                         Nx99Tenant            @relation("R_Nx05PostingRule_tenantId", fields: [tenantId], references: [id])
   rev_Nx05PostingRuleLine_ruleId Nx05PostingRuleLine[] @relation("R_Nx05PostingRuleLine_ruleId")
+  /// B 階段：依本規則產生的傳票
+  rev_Nx05Voucher_postingRuleId  Nx05Voucher[]         @relation("R_Nx05Voucher_postingRuleId")
 
   @@unique([tenantId, code])
   @@index([tenantId, cycleCode])
@@ -6429,46 +6448,234 @@ model Nx05PostingRule {
 /// =======================================================
 model Nx05PostingRuleLine {
   /// [NX05]+[PSTL]+[7碼流水號]，EX : NX05PSTL0000001；啟用最低需求版本：LITE-CORE
-  id                 String           @id @default(dbgenerated("gen_nx05_posting_rule_line_id()")) @db.VarChar(15)
+  id                                    String            @id @default(dbgenerated("gen_nx05_posting_rule_line_id()")) @db.VarChar(15)
   /// 對應過帳規則表頭 ID（FK nx05_posting_rule）。；啟用最低需求版本：LITE-CORE
-  ruleId             String           @map("rule_id") @db.VarChar(15)
+  ruleId                                String            @map("rule_id") @db.VarChar(15)
   /// 分錄行號（1,2,3…）。；啟用最低需求版本：LITE-CORE
-  lineNo             Int              @default(1) @map("line_no")
+  lineNo                                Int               @default(1) @map("line_no")
   /// 借貸（D=借方/C=貸方）。；啟用最低需求版本：LITE-CORE
-  drCr               String           @map("dr_cr") @db.VarChar(1)
+  drCr                                  String            @map("dr_cr") @db.VarChar(1)
   /// 固定科目（FK nx05_account_code；與 account_pattern 二擇一必填）。；啟用最低需求版本：LITE-CORE
-  accountCodeId      String?          @map("account_code_id") @db.VarChar(15)
+  accountCodeId                         String?           @map("account_code_id") @db.VarChar(15)
   /// 可變科目樣板（6xxx＝依費用性質選、15x2＝依資產類別選累計折舊；與 account_code_id 二擇一必填）。；啟用最低需求版本：LITE-CORE
-  accountPattern     String?          @map("account_pattern") @db.VarChar(10)
+  accountPattern                        String?           @map("account_pattern") @db.VarChar(10)
   /// 金額基礎（GROSS 含稅總額/NET 未稅金額/TAX 稅額/COST 銷貨成本/FACE 票面金額/DIFF 差異金額/ALLOC 分攤金額/PAID 已付部分/UNPAID 未付部分）。⚠ 整張表最容易做錯的地方——把含稅金額記進收入，營業額就虛胖 5%。；啟用最低需求版本：LITE-CORE
-  amountBasis        String           @map("amount_basis") @db.VarChar(20)
+  amountBasis                           String            @map("amount_basis") @db.VarChar(20)
   /// 需部門維度（成本中心）。；啟用最低需求版本：LITE-CORE
-  requireDept        Boolean          @default(false) @map("require_dept")
+  requireDept                           Boolean           @default(false) @map("require_dept")
   /// 需往來對象維度。；啟用最低需求版本：LITE-CORE
-  requirePartner     Boolean          @default(false) @map("require_partner")
+  requirePartner                        Boolean           @default(false) @map("require_partner")
   /// 對象值域（PARTNER 往來對象/EMPLOYEE 員工/EITHER 二選一）。🔴 2111 應付費用的對象可能是員工（代墊報支），而員工不在往來對象主檔。；啟用最低需求版本：LITE-CORE
-  partnerScope       String           @default("PARTNER") @map("partner_scope") @db.VarChar(10)
+  partnerScope                          String            @default("PARTNER") @map("partner_scope") @db.VarChar(10)
   /// 🔴 需銀行帳戶維度。BK-TRF 是借 1102／貸 1102 同科目同金額——帳戶不是維度的話這組分錄會看起來像什麼都沒發生（恆迎用 1113/1114 兩個科目繞路、科目表因此膨脹）。；啟用最低需求版本：LITE-CORE
-  requireBankAccount Boolean          @default(false) @map("require_bank_account")
+  requireBankAccount                    Boolean           @default(false) @map("require_bank_account")
   /// 該行是否條件性出現（例 PO-RCV 第 4 行「若尚有尾款未付」、WCLM 借方三選一）。；啟用最低需求版本：LITE-CORE
-  isOptional         Boolean          @default(false) @map("is_optional")
+  isOptional                            Boolean           @default(false) @map("is_optional")
   /// 條件說明（人可讀；程式判斷走 service）。；啟用最低需求版本：LITE-CORE
-  condition          String?          @db.VarChar(200)
+  condition                             String?           @db.VarChar(200)
   /// 說明。；啟用最低需求版本：LITE-CORE
-  remark             String?
+  remark                                String?
   /// 建立時間。；啟用最低需求版本：LITE-CORE
-  createdAt          DateTime         @default(now()) @map("created_at")
+  createdAt                             DateTime          @default(now()) @map("created_at")
   /// 建立人。；啟用最低需求版本：LITE-CORE
-  createdBy          String           @map("created_by") @db.VarChar(15)
+  createdBy                             String            @map("created_by") @db.VarChar(15)
   /// 更新時間。；啟用最低需求版本：LITE-CORE
-  updatedAt          DateTime         @updatedAt @map("updated_at")
+  updatedAt                             DateTime          @updatedAt @map("updated_at")
   /// 更新人。；啟用最低需求版本：LITE-CORE
-  updatedBy          String           @map("updated_by") @db.VarChar(15)
-  rule               Nx05PostingRule  @relation("R_Nx05PostingRuleLine_ruleId", fields: [ruleId], references: [id], onDelete: Cascade)
-  accountCode        Nx05AccountCode? @relation("R_Nx05PostingRuleLine_accountCodeId", fields: [accountCodeId], references: [id])
+  updatedBy                             String            @map("updated_by") @db.VarChar(15)
+  rule                                  Nx05PostingRule   @relation("R_Nx05PostingRuleLine_ruleId", fields: [ruleId], references: [id], onDelete: Cascade)
+  accountCode                           Nx05AccountCode?  @relation("R_Nx05PostingRuleLine_accountCodeId", fields: [accountCodeId], references: [id])
+  /// B 階段：照本樣板產生的實際分錄行（可稽核性：查得到「為什麼記這個科目」）
+  rev_Nx05VoucherLine_postingRuleLineId Nx05VoucherLine[] @relation("R_Nx05VoucherLine_postingRuleLineId")
 
   @@unique([ruleId, lineNo])
   @@map("nx05_posting_rule_line")
+}
+
+/// =========================================================================
+/// ⭐⭐ 總帳脊椎本體（B 階段 B1）— 2026-08-01 執行長拍板（§5 五題）
+/// 規格：docs/專案/規格書/核心/NEXORA-總帳脊椎-schema規格-B階段.md v0.2
+/// 上位原則（0724 討論已定）：
+///   ① 營運事件是因、會計分錄是果，同一筆交易原子產生——沒有第二份數字
+///   ② 過帳後不可逆，要修正只能走紅字沖銷
+///   ③ 因果單向：營運自動流進會計，會計永不回頭寫營運
+/// 只要三張表：試算表與財報不落表（由科目的 statement/statementSection/cashFlowType 長出來）
+/// =========================================================================
+
+/// =======================================================
+/// Nx05Voucher — DB table `nx05_voucher`
+/// 傳票單頭（⚠ 不是人工打的：單據過帳時原子生成）
+/// =======================================================
+model Nx05Voucher {
+  /// [NX05]+[VOUC]+[7碼流水號]，EX : NX05VOUC0000001；啟用最低需求版本：LITE-CORE
+  id                            String            @id @default(dbgenerated("gen_nx05_voucher_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵）。；啟用最低需求版本：LITE-CORE
+  tenantId                      String            @map("tenant_id") @db.VarChar(15)
+  /// 傳票號（唯一），[JV]-[年月]-[機構碼]-[5碼流水號]，EX：JV-202608-HQ0-00001。；啟用最低需求版本：LITE-CORE
+  docNo                         String            @map("doc_no") @db.VarChar(30)
+  /// 傳票日期＝營運事件發生日（⚠ 不是傳票產生日；補過帳時兩者會不同）。；啟用最低需求版本：LITE-CORE
+  voucherDate                   DateTime          @map("voucher_date") @db.Date
+  /// 所屬會計期間（FK nx05_fiscal_period）。🔴 該期 status='CLOSED' 時不得寫入——這是關帳的硬閘。；啟用最低需求版本：LITE-CORE
+  fiscalPeriodId                String            @map("fiscal_period_id") @db.VarChar(15)
+  /// 依哪一條過帳規則產生（FK nx05_posting_rule；人工傳票為 null）。；啟用最低需求版本：LITE-CORE
+  postingRuleId                 String?           @map("posting_rule_id") @db.VarChar(15)
+  /// 來源單據類型（SO/RR/TI/PY/AL…）。⚠ 弱關聯：來源橫跨 20 幾張表，不設 FK；需強關聯走 nx98_doc_link。；啟用最低需求版本：LITE-CORE
+  sourceDocType                 String?           @map("source_doc_type") @db.VarChar(10)
+  /// 來源單據 ID（同上，弱關聯不設 FK）。；啟用最低需求版本：LITE-CORE
+  sourceDocId                   String?           @map("source_doc_id") @db.VarChar(15)
+  /// 來源單號（冗餘存一份，供查詢與列印時不必 join 20 張表）。；啟用最低需求版本：LITE-CORE
+  sourceDocNo                   String?           @map("source_doc_no") @db.VarChar(30)
+  /// 產生來源（AUTO=單據自動產生／MANUAL=人工傳票／BATCH=期末批次如折舊與結轉）。；啟用最低需求版本：LITE-CORE
+  origin                        String            @default("AUTO") @db.VarChar(10)
+  /// 摘要。；啟用最低需求版本：LITE-CORE
+  summary                       String?           @db.VarChar(200)
+  /// 借方合計。🔴 過帳時必須等於貸方合計。；啟用最低需求版本：LITE-CORE
+  totalDebit                    Decimal           @default(0) @map("total_debit") @db.Decimal(16, 2)
+  /// 貸方合計。；啟用最低需求版本：LITE-CORE
+  totalCredit                   Decimal           @default(0) @map("total_credit") @db.Decimal(16, 2)
+  /// 狀態（DRAFT / POSTED / VOIDED）。⚠ 傳票沒有「編輯」：過帳後要修正只能走紅字沖銷。；啟用最低需求版本：LITE-CORE
+  status                        String            @default("DRAFT") @db.VarChar(10)
+  /// 過帳時間。；啟用最低需求版本：LITE-CORE
+  postedAt                      DateTime?         @map("posted_at")
+  /// 過帳人（使用者 ID）。；啟用最低需求版本：LITE-CORE
+  postedBy                      String?           @map("posted_by") @db.VarChar(15)
+  /// 本張是哪一張傳票的紅字沖銷（FK self）。🔴 單一欄位即可雙向查（反向關聯給「我被誰沖銷了」）；@@unique 保證一張傳票只能被沖銷一次。；啟用最低需求版本：LITE-CORE
+  reversalOfVoucherId           String?           @map("reversal_of_voucher_id") @db.VarChar(15)
+  /// 沖銷原因（產生沖銷傳票時必填、永久保存作稽核依據）。；啟用最低需求版本：LITE-CORE
+  voidReason                    String?           @map("void_reason") @db.VarChar(200)
+  /// 備註。；啟用最低需求版本：LITE-CORE
+  remark                        String?           @db.VarChar(500)
+  /// 建立時間。；啟用最低需求版本：LITE-CORE
+  createdAt                     DateTime          @default(now()) @map("created_at")
+  /// 建立人。；啟用最低需求版本：LITE-CORE
+  createdBy                     String            @map("created_by") @db.VarChar(15)
+  /// 更新時間。；啟用最低需求版本：LITE-CORE
+  updatedAt                     DateTime          @updatedAt @map("updated_at")
+  /// 更新人。；啟用最低需求版本：LITE-CORE
+  updatedBy                     String            @map("updated_by") @db.VarChar(15)
+  tenant                        Nx99Tenant        @relation("R_Nx05Voucher_tenantId", fields: [tenantId], references: [id])
+  fiscalPeriod                  Nx05FiscalPeriod  @relation("R_Nx05Voucher_fiscalPeriodId", fields: [fiscalPeriodId], references: [id])
+  postingRule                   Nx05PostingRule?  @relation("R_Nx05Voucher_postingRuleId", fields: [postingRuleId], references: [id])
+  reversalOfVoucher             Nx05Voucher?      @relation("R_Nx05Voucher_reversalOf", fields: [reversalOfVoucherId], references: [id])
+  rev_Nx05Voucher_reversalOf    Nx05Voucher[]     @relation("R_Nx05Voucher_reversalOf")
+  rev_Nx05VoucherLine_voucherId Nx05VoucherLine[] @relation("R_Nx05VoucherLine_voucherId")
+
+  @@unique([tenantId, docNo])
+  @@unique([reversalOfVoucherId])
+  @@index([tenantId, fiscalPeriodId, status])
+  @@index([tenantId, sourceDocType, sourceDocId])
+  @@index([tenantId, voucherDate])
+  @@map("nx05_voucher")
+}
+
+/// =======================================================
+/// Nx05VoucherLine — DB table `nx05_voucher_line`
+/// 分錄行（欄位由 A 階段 182 條分錄樣板的實測需求決定，非憑感覺）
+/// =======================================================
+model Nx05VoucherLine {
+  /// [NX05]+[VCLN]+[7碼流水號]，EX : NX05VCLN0000001；啟用最低需求版本：LITE-CORE
+  id                String               @id @default(dbgenerated("gen_nx05_voucher_line_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵）。⚠ 帶在分錄行上是刻意的：總帳查詢是「租戶×科目×期間」直接打分錄行，不想每次 join 傳票。；啟用最低需求版本：LITE-CORE
+  tenantId          String               @map("tenant_id") @db.VarChar(15)
+  /// 對應傳票表頭 ID（FK nx05_voucher）。；啟用最低需求版本：LITE-CORE
+  voucherId         String               @map("voucher_id") @db.VarChar(15)
+  /// 分錄行號（1,2,3…）。；啟用最低需求版本：LITE-CORE
+  lineNo            Int                  @default(1) @map("line_no")
+  /// 借貸（D=借方/C=貸方）。；啟用最低需求版本：LITE-CORE
+  drCr              String               @map("dr_cr") @db.VarChar(1)
+  /// 會計科目（FK nx05_account_code）。🔴 必填且必須 is_postable=true；樣板科目（6xxx/15x2）在過帳當下已解析成實際科目。；啟用最低需求版本：LITE-CORE
+  accountCodeId     String               @map("account_code_id") @db.VarChar(15)
+  /// 金額。⚠ 恆為正數、方向由 dr_cr 表達——不用正負號表達借貸（負數在報表加總極易出錯，且「借方 −100」與「貸方 100」語意不同）。；啟用最低需求版本：LITE-CORE
+  amount            Decimal              @default(0) @db.Decimal(16, 2)
+  /// 維度①部門／成本中心（FK nx01_department）。A 階段 182 條樣板裡有 58 條要求。；啟用最低需求版本：LITE-CORE
+  departmentId      String?              @map("department_id") @db.VarChar(15)
+  /// 維度②往來對象（FK nx01_partner）。49 條樣板要求。；啟用最低需求版本：LITE-CORE
+  partnerId         String?              @map("partner_id") @db.VarChar(15)
+  /// 維度③員工（FK nx01_user）。🔴 對象是員工而非往來對象時用（代墊報支：2111 應付費用的對象可能是員工，而員工不在往來對象主檔）。；啟用最低需求版本：LITE-CORE
+  employeeUserId    String?              @map("employee_user_id") @db.VarChar(15)
+  /// 維度④銀行帳戶（FK nx05_bank_account）。39 條樣板要求。🔴 沒有它，BK-TRF 帳戶間調撥是借 1102／貸 1102 同科目同金額，會看起來像什麼都沒發生。；啟用最低需求版本：LITE-CORE
+  bankAccountId     String?              @map("bank_account_id") @db.VarChar(15)
+  /// 稅別（FK nx05_tax_code；供 401 申報彙總）。；啟用最低需求版本：LITE-CORE
+  taxCodeId         String?              @map("tax_code_id") @db.VarChar(15)
+  /// 行摘要。；啟用最低需求版本：LITE-CORE
+  summary           String?              @db.VarChar(200)
+  /// 這一行是照哪一條分錄樣板產生的（FK nx05_posting_rule_line）。🔴 可稽核性的關鍵：查得到「為什麼記這個科目」。；啟用最低需求版本：LITE-CORE
+  postingRuleLineId String?              @map("posting_rule_line_id") @db.VarChar(15)
+  /// 來源單身 ID（弱關聯；毛利分析要追到料號層時用）。；啟用最低需求版本：LITE-CORE
+  sourceDocItemId   String?              @map("source_doc_item_id") @db.VarChar(15)
+  /// 建立時間。；啟用最低需求版本：LITE-CORE
+  createdAt         DateTime             @default(now()) @map("created_at")
+  /// 建立人。；啟用最低需求版本：LITE-CORE
+  createdBy         String               @map("created_by") @db.VarChar(15)
+  /// 更新時間。；啟用最低需求版本：LITE-CORE
+  updatedAt         DateTime             @updatedAt @map("updated_at")
+  /// 更新人。；啟用最低需求版本：LITE-CORE
+  updatedBy         String               @map("updated_by") @db.VarChar(15)
+  tenant            Nx99Tenant           @relation("R_Nx05VoucherLine_tenantId", fields: [tenantId], references: [id])
+  voucher           Nx05Voucher          @relation("R_Nx05VoucherLine_voucherId", fields: [voucherId], references: [id], onDelete: Cascade)
+  accountCode       Nx05AccountCode      @relation("R_Nx05VoucherLine_accountCodeId", fields: [accountCodeId], references: [id])
+  department        Nx01Department?      @relation("R_Nx05VoucherLine_departmentId", fields: [departmentId], references: [id])
+  partner           Nx01Partner?         @relation("R_Nx05VoucherLine_partnerId", fields: [partnerId], references: [id])
+  employee          Nx01User?            @relation("R_Nx05VoucherLine_employeeUserId", fields: [employeeUserId], references: [id])
+  bankAccount       Nx05BankAccount?     @relation("R_Nx05VoucherLine_bankAccountId", fields: [bankAccountId], references: [id])
+  taxCode           Nx05TaxCode?         @relation("R_Nx05VoucherLine_taxCodeId", fields: [taxCodeId], references: [id])
+  postingRuleLine   Nx05PostingRuleLine? @relation("R_Nx05VoucherLine_postingRuleLineId", fields: [postingRuleLineId], references: [id])
+
+  @@unique([voucherId, lineNo])
+  @@index([tenantId, accountCodeId])
+  @@index([tenantId, departmentId])
+  @@index([tenantId, partnerId])
+  @@index([tenantId, bankAccountId])
+  @@index([tenantId, employeeUserId])
+  @@map("nx05_voucher_line")
+}
+
+/// =======================================================
+/// Nx05GlBalance — DB table `nx05_gl_balance`
+/// 科目餘額（總分類帳）。⚠ 唯一進來的維度是「部門」——Q1 拍板
+/// 往來對象已有 AR/AP 子帳、銀行帳戶走對帳；多帶就是第二份數字，且行數乘法成長
+/// =======================================================
+model Nx05GlBalance {
+  /// [NX05]+[GLBL]+[7碼流水號]，EX : NX05GLBL0000001；啟用最低需求版本：LITE-CORE
+  id             String           @id @default(dbgenerated("gen_nx05_gl_balance_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵）。；啟用最低需求版本：LITE-CORE
+  tenantId       String           @map("tenant_id") @db.VarChar(15)
+  /// 會計期間（FK nx05_fiscal_period）。；啟用最低需求版本：LITE-CORE
+  fiscalPeriodId String           @map("fiscal_period_id") @db.VarChar(15)
+  /// 會計科目（FK nx05_account_code）。；啟用最低需求版本：LITE-CORE
+  accountCodeId  String           @map("account_code_id") @db.VarChar(15)
+  /// 部門／成本中心（FK nx01_department；null=不分部門的科目）。🔴 唯一進餘額表的維度——沒有它，「店的貢獻式損益」算不出來（會計政策第 11 項：不分攤、看貢獻）。；啟用最低需求版本：LITE-CORE
+  departmentId   String?          @map("department_id") @db.VarChar(15)
+  /// 期初借方餘額。；啟用最低需求版本：LITE-CORE
+  openingDebit   Decimal          @default(0) @map("opening_debit") @db.Decimal(16, 2)
+  /// 期初貸方餘額。；啟用最低需求版本：LITE-CORE
+  openingCredit  Decimal          @default(0) @map("opening_credit") @db.Decimal(16, 2)
+  /// 本期借方發生額。；啟用最低需求版本：LITE-CORE
+  periodDebit    Decimal          @default(0) @map("period_debit") @db.Decimal(16, 2)
+  /// 本期貸方發生額。；啟用最低需求版本：LITE-CORE
+  periodCredit   Decimal          @default(0) @map("period_credit") @db.Decimal(16, 2)
+  /// 期末借方餘額。；啟用最低需求版本：LITE-CORE
+  closingDebit   Decimal          @default(0) @map("closing_debit") @db.Decimal(16, 2)
+  /// 期末貸方餘額。；啟用最低需求版本：LITE-CORE
+  closingCredit  Decimal          @default(0) @map("closing_credit") @db.Decimal(16, 2)
+  /// 最後重算時間（餘額由過帳與結轉維護、不給人工改）。；啟用最低需求版本：LITE-CORE
+  recalculatedAt DateTime?        @map("recalculated_at")
+  /// 建立時間。；啟用最低需求版本：LITE-CORE
+  createdAt      DateTime         @default(now()) @map("created_at")
+  /// 建立人。；啟用最低需求版本：LITE-CORE
+  createdBy      String           @map("created_by") @db.VarChar(15)
+  /// 更新時間。；啟用最低需求版本：LITE-CORE
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+  /// 更新人。；啟用最低需求版本：LITE-CORE
+  updatedBy      String           @map("updated_by") @db.VarChar(15)
+  tenant         Nx99Tenant       @relation("R_Nx05GlBalance_tenantId", fields: [tenantId], references: [id])
+  fiscalPeriod   Nx05FiscalPeriod @relation("R_Nx05GlBalance_fiscalPeriodId", fields: [fiscalPeriodId], references: [id])
+  accountCode    Nx05AccountCode  @relation("R_Nx05GlBalance_accountCodeId", fields: [accountCodeId], references: [id])
+  department     Nx01Department?  @relation("R_Nx05GlBalance_departmentId", fields: [departmentId], references: [id])
+
+  @@unique([tenantId, fiscalPeriodId, accountCodeId, departmentId])
+  @@index([tenantId, accountCodeId])
+  @@map("nx05_gl_balance")
 }
 
 /// =======================================================
@@ -8475,6 +8682,10 @@ model Nx99Tenant {
   rev_Nx05AssetDepreciation_tenantId       Nx05AssetDepreciation[]         @relation("R_Nx05AssetDepreciation_tenantId")
   rev_Nx05PostingRule_tenantId             Nx05PostingRule[]               @relation("R_Nx05PostingRule_tenantId")
   rev_Nx01Param_tenantId                   Nx01Param[]                     @relation("R_Nx01Param_tenantId")
+  /// B 階段 2026-08-01 總帳脊椎本體（規格 NEXORA-總帳脊椎-schema規格-B階段.md v0.2）
+  rev_Nx05Voucher_tenantId                 Nx05Voucher[]                   @relation("R_Nx05Voucher_tenantId")
+  rev_Nx05VoucherLine_tenantId             Nx05VoucherLine[]               @relation("R_Nx05VoucherLine_tenantId")
+  rev_Nx05GlBalance_tenantId               Nx05GlBalance[]                 @relation("R_Nx05GlBalance_tenantId")
 
   @@unique([code])
   @@map("nx99_tenant")

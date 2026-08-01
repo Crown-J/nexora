@@ -2015,7 +2015,7 @@ COMMENT ON COLUMN "nx05_account_code"."name" IS '科目名稱。';
 COMMENT ON COLUMN "nx05_account_code"."category" IS '科目類別（I=收入/E=支出/A=資產/L=負債）。';
 COMMENT ON COLUMN "nx05_account_code"."is_system" IS '是否為系統預設科目（TRUE=不可刪除）。';
 COMMENT ON COLUMN "nx05_account_code"."is_active" IS '是否啟用。';
-COMMENT ON COLUMN "nx05_account_code"."remark" IS '備註。';
+COMMENT ON COLUMN "nx05_account_code"."remark" IS '備註（A 階段 2026-08-01 由 VarChar(200) 純加寬為 500：亞羅科目表的設計理由文字最長 229 字、1122 進貨附加成本那條運費防火牆說明）。';
 COMMENT ON COLUMN "nx05_account_code"."created_at" IS '建立時間。';
 COMMENT ON COLUMN "nx05_account_code"."created_by" IS '建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）';
 COMMENT ON COLUMN "nx05_account_code"."updated_at" IS '更新時間。';
@@ -2590,6 +2590,73 @@ COMMENT ON COLUMN "nx05_posting_rule_line"."created_at" IS '建立時間。';
 COMMENT ON COLUMN "nx05_posting_rule_line"."created_by" IS '建立人。';
 COMMENT ON COLUMN "nx05_posting_rule_line"."updated_at" IS '更新時間。';
 COMMENT ON COLUMN "nx05_posting_rule_line"."updated_by" IS '更新人。';
+
+-- Nx05Voucher  →  nx05_voucher
+COMMENT ON TABLE "nx05_voucher" IS '傳票單頭（⚠ 不是人工打的：單據過帳時原子生成）';
+COMMENT ON COLUMN "nx05_voucher"."id" IS '[NX05]+[VOUC]+[7碼流水號]，EX : NX05VOUC0000001';
+COMMENT ON COLUMN "nx05_voucher"."tenant_id" IS '租戶 ID（外鍵）。';
+COMMENT ON COLUMN "nx05_voucher"."doc_no" IS '傳票號（唯一），[JV]-[年月]-[機構碼]-[5碼流水號]，EX：JV-202608-HQ0-00001。';
+COMMENT ON COLUMN "nx05_voucher"."voucher_date" IS '傳票日期＝營運事件發生日（⚠ 不是傳票產生日；補過帳時兩者會不同）。';
+COMMENT ON COLUMN "nx05_voucher"."fiscal_period_id" IS '所屬會計期間（FK nx05_fiscal_period）。🔴 該期 status=''CLOSED'' 時不得寫入——這是關帳的硬閘。';
+COMMENT ON COLUMN "nx05_voucher"."posting_rule_id" IS '依哪一條過帳規則產生（FK nx05_posting_rule；人工傳票為 null）。';
+COMMENT ON COLUMN "nx05_voucher"."source_doc_type" IS '來源單據類型（SO/RR/TI/PY/AL…）。⚠ 弱關聯：來源橫跨 20 幾張表，不設 FK；需強關聯走 nx98_doc_link。';
+COMMENT ON COLUMN "nx05_voucher"."source_doc_id" IS '來源單據 ID（同上，弱關聯不設 FK）。';
+COMMENT ON COLUMN "nx05_voucher"."source_doc_no" IS '來源單號（冗餘存一份，供查詢與列印時不必 join 20 張表）。';
+COMMENT ON COLUMN "nx05_voucher"."origin" IS '產生來源（AUTO=單據自動產生／MANUAL=人工傳票／BATCH=期末批次如折舊與結轉）。';
+COMMENT ON COLUMN "nx05_voucher"."summary" IS '摘要。';
+COMMENT ON COLUMN "nx05_voucher"."total_debit" IS '借方合計。🔴 過帳時必須等於貸方合計。';
+COMMENT ON COLUMN "nx05_voucher"."total_credit" IS '貸方合計。';
+COMMENT ON COLUMN "nx05_voucher"."status" IS '狀態（DRAFT / POSTED / VOIDED）。⚠ 傳票沒有「編輯」：過帳後要修正只能走紅字沖銷。';
+COMMENT ON COLUMN "nx05_voucher"."posted_at" IS '過帳時間。';
+COMMENT ON COLUMN "nx05_voucher"."posted_by" IS '過帳人（使用者 ID）。';
+COMMENT ON COLUMN "nx05_voucher"."reversal_of_voucher_id" IS '本張是哪一張傳票的紅字沖銷（FK self）。🔴 單一欄位即可雙向查（反向關聯給「我被誰沖銷了」）；@@unique 保證一張傳票只能被沖銷一次。';
+COMMENT ON COLUMN "nx05_voucher"."void_reason" IS '沖銷原因（產生沖銷傳票時必填、永久保存作稽核依據）。';
+COMMENT ON COLUMN "nx05_voucher"."remark" IS '備註。';
+COMMENT ON COLUMN "nx05_voucher"."created_at" IS '建立時間。';
+COMMENT ON COLUMN "nx05_voucher"."created_by" IS '建立人。';
+COMMENT ON COLUMN "nx05_voucher"."updated_at" IS '更新時間。';
+COMMENT ON COLUMN "nx05_voucher"."updated_by" IS '更新人。';
+
+-- Nx05VoucherLine  →  nx05_voucher_line
+COMMENT ON TABLE "nx05_voucher_line" IS '分錄行（欄位由 A 階段 182 條分錄樣板的實測需求決定，非憑感覺）';
+COMMENT ON COLUMN "nx05_voucher_line"."id" IS '[NX05]+[VCLN]+[7碼流水號]，EX : NX05VCLN0000001';
+COMMENT ON COLUMN "nx05_voucher_line"."tenant_id" IS '租戶 ID（外鍵）。⚠ 帶在分錄行上是刻意的：總帳查詢是「租戶×科目×期間」直接打分錄行，不想每次 join 傳票。';
+COMMENT ON COLUMN "nx05_voucher_line"."voucher_id" IS '對應傳票表頭 ID（FK nx05_voucher）。';
+COMMENT ON COLUMN "nx05_voucher_line"."line_no" IS '分錄行號（1,2,3…）。';
+COMMENT ON COLUMN "nx05_voucher_line"."dr_cr" IS '借貸（D=借方/C=貸方）。';
+COMMENT ON COLUMN "nx05_voucher_line"."account_code_id" IS '會計科目（FK nx05_account_code）。🔴 必填且必須 is_postable=true；樣板科目（6xxx/15x2）在過帳當下已解析成實際科目。';
+COMMENT ON COLUMN "nx05_voucher_line"."amount" IS '金額。⚠ 恆為正數、方向由 dr_cr 表達——不用正負號表達借貸（負數在報表加總極易出錯，且「借方 −100」與「貸方 100」語意不同）。';
+COMMENT ON COLUMN "nx05_voucher_line"."department_id" IS '維度①部門／成本中心（FK nx01_department）。A 階段 182 條樣板裡有 58 條要求。';
+COMMENT ON COLUMN "nx05_voucher_line"."partner_id" IS '維度②往來對象（FK nx01_partner）。49 條樣板要求。';
+COMMENT ON COLUMN "nx05_voucher_line"."employee_user_id" IS '維度③員工（FK nx01_user）。🔴 對象是員工而非往來對象時用（代墊報支：2111 應付費用的對象可能是員工，而員工不在往來對象主檔）。';
+COMMENT ON COLUMN "nx05_voucher_line"."bank_account_id" IS '維度④銀行帳戶（FK nx05_bank_account）。39 條樣板要求。🔴 沒有它，BK-TRF 帳戶間調撥是借 1102／貸 1102 同科目同金額，會看起來像什麼都沒發生。';
+COMMENT ON COLUMN "nx05_voucher_line"."tax_code_id" IS '稅別（FK nx05_tax_code；供 401 申報彙總）。';
+COMMENT ON COLUMN "nx05_voucher_line"."summary" IS '行摘要。';
+COMMENT ON COLUMN "nx05_voucher_line"."posting_rule_line_id" IS '這一行是照哪一條分錄樣板產生的（FK nx05_posting_rule_line）。🔴 可稽核性的關鍵：查得到「為什麼記這個科目」。';
+COMMENT ON COLUMN "nx05_voucher_line"."source_doc_item_id" IS '來源單身 ID（弱關聯；毛利分析要追到料號層時用）。';
+COMMENT ON COLUMN "nx05_voucher_line"."created_at" IS '建立時間。';
+COMMENT ON COLUMN "nx05_voucher_line"."created_by" IS '建立人。';
+COMMENT ON COLUMN "nx05_voucher_line"."updated_at" IS '更新時間。';
+COMMENT ON COLUMN "nx05_voucher_line"."updated_by" IS '更新人。';
+
+-- Nx05GlBalance  →  nx05_gl_balance
+COMMENT ON TABLE "nx05_gl_balance" IS '科目餘額（總分類帳）。⚠ 唯一進來的維度是「部門」——Q1 拍板 往來對象已有 AR/AP 子帳、銀行帳戶走對帳；多帶就是第二份數字，且行數乘法成長';
+COMMENT ON COLUMN "nx05_gl_balance"."id" IS '[NX05]+[GLBL]+[7碼流水號]，EX : NX05GLBL0000001';
+COMMENT ON COLUMN "nx05_gl_balance"."tenant_id" IS '租戶 ID（外鍵）。';
+COMMENT ON COLUMN "nx05_gl_balance"."fiscal_period_id" IS '會計期間（FK nx05_fiscal_period）。';
+COMMENT ON COLUMN "nx05_gl_balance"."account_code_id" IS '會計科目（FK nx05_account_code）。';
+COMMENT ON COLUMN "nx05_gl_balance"."department_id" IS '部門／成本中心（FK nx01_department；null=不分部門的科目）。🔴 唯一進餘額表的維度——沒有它，「店的貢獻式損益」算不出來（會計政策第 11 項：不分攤、看貢獻）。';
+COMMENT ON COLUMN "nx05_gl_balance"."opening_debit" IS '期初借方餘額。';
+COMMENT ON COLUMN "nx05_gl_balance"."opening_credit" IS '期初貸方餘額。';
+COMMENT ON COLUMN "nx05_gl_balance"."period_debit" IS '本期借方發生額。';
+COMMENT ON COLUMN "nx05_gl_balance"."period_credit" IS '本期貸方發生額。';
+COMMENT ON COLUMN "nx05_gl_balance"."closing_debit" IS '期末借方餘額。';
+COMMENT ON COLUMN "nx05_gl_balance"."closing_credit" IS '期末貸方餘額。';
+COMMENT ON COLUMN "nx05_gl_balance"."recalculated_at" IS '最後重算時間（餘額由過帳與結轉維護、不給人工改）。';
+COMMENT ON COLUMN "nx05_gl_balance"."created_at" IS '建立時間。';
+COMMENT ON COLUMN "nx05_gl_balance"."created_by" IS '建立人。';
+COMMENT ON COLUMN "nx05_gl_balance"."updated_at" IS '更新時間。';
+COMMENT ON COLUMN "nx05_gl_balance"."updated_by" IS '更新人。';
 
 -- Nx06Dn  →  nx06_dn
 COMMENT ON TABLE "nx06_dn" IS '配送單單頭——出貨配送。';
