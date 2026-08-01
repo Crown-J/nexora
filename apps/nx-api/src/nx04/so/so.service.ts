@@ -691,6 +691,80 @@ export class SoService {
       }));
   }
 
+  /**
+   * 保固查詢（九宮格 銷售第 8 格、規格 §4.2）。
+   *
+   * ⚠️ 系統目前**沒有銷售端的保固紀錄表**——保固資料全在進貨側（供應商給我們的），
+   *    而且零件主檔的保固月數 110,610 筆全部是 0。所以「還在不在保固內」現在算不出來。
+   *
+   * 但業務接到保固客訴時，第一件事是查「這個客戶買過這顆嗎、什麼時候買的」——
+   * 那個今天就查得到（銷貨單）。這支就回答這件事，保固到期日等零件主檔有保固月數才會有值。
+   *
+   * 兩個條件都選填：只給客戶＝看他買過什麼；只給料號＝看這顆賣給過誰。
+   */
+  async warrantyLookup(user: RequestUser, customerId?: string, partNo?: string) {
+    const tenantId = requireTenantId(user);
+    const cid = customerId?.trim() || '';
+    const pno = partNo?.trim() || '';
+    if (!cid && !pno) return { rows: [] };
+
+    const items = await this.prisma.nx04SoItem.findMany({
+      where: {
+        so: {
+          tenantId,
+          status: { notIn: ['DRAFT', 'CANCELLED'] },
+          ...(cid ? { customerId: cid } : {}),
+        },
+        ...(pno ? { part: { code: { contains: pno, mode: 'insensitive' } } } : {}),
+      },
+      orderBy: { so: { soDate: 'desc' } },
+      take: 200,
+      select: {
+        qty: true,
+        unitPrice: true,
+        part: { select: { code: true, name: true, warrantyMonths: true } },
+        so: {
+          select: {
+            docNo: true,
+            soDate: true,
+            customer: { select: { code: true, name: true } },
+          },
+        },
+      },
+    });
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return {
+      rows: items.map((it) => {
+        const months = it.part?.warrantyMonths ?? 0;
+        let warrantyUntil: string | null = null;
+        let inWarranty: boolean | null = null;
+        // 保固月數沒填（目前全部如此）→ 回 null，⛔ 不猜一個期限出來
+        if (months > 0 && it.so?.soDate) {
+          const end = new Date(it.so.soDate);
+          end.setMonth(end.getMonth() + months);
+          warrantyUntil = end.toISOString().slice(0, 10);
+          inWarranty = end.getTime() >= today.getTime();
+        }
+        return {
+          docNo: it.so?.docNo ?? '',
+          soDate: it.so?.soDate ? it.so.soDate.toISOString().slice(0, 10) : null,
+          customerCode: it.so?.customer?.code ?? null,
+          customerName: it.so?.customer?.name ?? null,
+          partCode: it.part?.code ?? '',
+          partName: it.part?.name ?? '',
+          qty: it.qty.toString(),
+          unitPrice: it.unitPrice.toString(),
+          warrantyMonths: months,
+          warrantyUntil,
+          inWarranty,
+        };
+      }),
+    };
+  }
+
   /// 即時銷退站 5（執行長 2026-07-19 拍板）：該客戶可退貨 SO 清單＋行已退量/可退量。
   /// 範圍：SHIPPED/INVOICED、未作廢、近 20 張（顯示範圍、非業務閘門——退貨政策在 SR 端擋）；
   /// 已退量口徑對齊 sales-return.service validateReturnQty（SR 非 CANCELLED/REJECTED 都算）。

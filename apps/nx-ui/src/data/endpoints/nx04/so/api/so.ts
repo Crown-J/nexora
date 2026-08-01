@@ -117,3 +117,38 @@ export function createTiFromSo(
     body: JSON.stringify(payload),
   });
 }
+
+// ============================================================
+// 保固查詢（九宮格 銷售第 8 格、規格 §4.2）
+// ⚠️ 系統沒有銷售端保固紀錄表、零件保固月數目前全為 0
+//    → warrantyUntil / inWarranty 會是 null，⛔ 不猜期限。
+//    這支先回答「這個客戶買過這顆嗎、什麼時候買的」。
+// ============================================================
+
+export type WarrantyLookupRow = {
+  docNo: string;
+  soDate: string | null;
+  customerCode: string | null;
+  customerName: string | null;
+  partCode: string;
+  partName: string;
+  qty: string;
+  unitPrice: string;
+  warrantyMonths: number;
+  /** 零件沒填保固月數時為 null */
+  warrantyUntil: string | null;
+  /** 算不出來時為 null（畫面顯示「不知道」而不是「已過保」）*/
+  inWarranty: boolean | null;
+};
+
+/** customerId 與 partNo 都選填，但至少要給一個 */
+export function getWarrantyLookup(params: {
+  customerId?: string;
+  partNo?: string;
+}): Promise<{ rows: WarrantyLookupRow[] }> {
+  const qs = buildQueryString({
+    customerId: params.customerId || undefined,
+    partNo: params.partNo || undefined,
+  });
+  return apiJson(`/nx04/so/warranty-lookup${qs}`);
+}

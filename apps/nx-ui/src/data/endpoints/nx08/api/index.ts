@@ -231,6 +231,34 @@ export async function getPnL(params: { periodStart: string; periodEnd: string })
 }
 
 // ============================================================
+// 對帳查詢（銷售第 7 格）：依客戶彙總未收款
+// 規格 §4.2：業務出貨前要看這個客戶有沒有逾期
+// ============================================================
+
+export type ArByCustomerRow = {
+  customerId: string;
+  customerCode: string | null;
+  customerName: string | null;
+  /** 未收總額（含未到期）*/
+  openAmount: string;
+  /** 其中已逾期的金額 */
+  overdueAmount: string;
+  /** 最久逾期天數；0 = 沒有逾期 */
+  maxOverdueDays: number;
+  /** 未結單據筆數 */
+  docCount: number;
+  /** 最近一筆到期日（YYYY-MM-DD）*/
+  nextDueDate: string | null;
+};
+
+/** 逾期金額大的排前面——業務打開就先看到最該追的 */
+export async function getArByCustomer(): Promise<{ rows: ArByCustomerRow[] }> {
+  const res = await apiFetch('/nx08/dashboard/finance/ar-by-customer', { method: 'GET' });
+  await assertOk(res, 'nxui_nx08_ar_by_customer');
+  return res.json() as Promise<{ rows: ArByCustomerRow[] }>;
+}
+
+// ============================================================
 // 營運報表（P3f、owner + strategy、高權限）
 // ============================================================
 

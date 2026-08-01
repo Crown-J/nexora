@@ -39,6 +39,18 @@ export class SoController {
     return this.svc.listOpenQuoteLines(user, customerId);
   }
 
+  /// 保固查詢（九宮格 銷售第 8 格、規格 §4.2）：查「這個客戶買過這顆嗎、什麼時候買的」
+  /// ⚠️ 須排在 :id 路由前
+  @Get('warranty-lookup')
+  @Permission('sale.so.list')
+  warrantyLookup(
+    @CurrentUser() user: RequestUser,
+    @Query('customerId') customerId?: string,
+    @Query('partNo') partNo?: string,
+  ) {
+    return this.svc.warrantyLookup(user, customerId, partNo);
+  }
+
   /// 即時銷退站 5（2026-07-19）：該客戶可退貨 SO＋行（含已退量/可退量；⚠️ 須排在 :id 路由前）
   @Get('returnable-lines')
   @Permission('sale.sr.create')

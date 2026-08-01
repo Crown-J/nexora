@@ -1,13 +1,10 @@
 // apps/nx-ui/src/app/dashboard/report/finance/ar-overview/page.tsx
-import { NxWorkspacePlaceholder } from '@design/layout/NxWorkspacePlaceholder';
+// 對帳查詢（九宮格 銷售第 7 格）
+// 2026-08-01 v3.0.0：原本是施工中的佔位頁（畫面上還把內部代號印給使用者看），
+//   改成規格 §4.2 要的東西——業務出貨前看客戶有沒有逾期。
 
-// @FUNCTION_CODE NX08-FINANCE-AR-UI-001-F01
-export default function Page() {
-  return (
-    <NxWorkspacePlaceholder
-      functionCode="NX08-FINANCE-AR-UI-001-F01"
-      title="應收帳款總覽"
-      desc="AR byStatus 聚合 + 逾期 count。API：GET /nx08/dashboard/finance/ar-overview"
-    />
-  );
+import { ArCheckView } from '@/features/nx08/ar-check/ui/ArCheckView';
+
+export default function Nx08ArCheckRoute() {
+  return <ArCheckView />;
 }

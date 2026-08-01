@@ -30,6 +30,61 @@ export class Nx08FinanceDashboardService {
     return { ok: true, byStatus, overdueCount: overdue };
   }
 
+  /**
+   * 對帳查詢（銷售視角）：依客戶彙總還沒收的錢。
+   * 規格 §4.2：業務「出貨前看客戶有沒有逾期」——所以要的是**每個客戶**的狀況，
+   * ⛔ 不是 arOverview 那種全公司彙總（那個是給財務看的）。
+   *
+   * 逾期金額大的排前面——業務打開就先看到最該追的那幾家。
+   * ⚠️ 走 raw SQL：需要 groupBy 客戶再 join 客戶名稱，Prisma groupBy 接不了 join。
+   */
+  async arByCustomer(user: RequestUser) {
+    const tenantId = requireTenantId(user);
+    const rows = await this.prisma.$queryRaw<
+      {
+        customerId: string;
+        customerCode: string | null;
+        customerName: string | null;
+        openAmount: PrismaNs.Decimal;
+        overdueAmount: PrismaNs.Decimal;
+        maxOverdueDays: number | null;
+        docCount: bigint;
+        nextDueDate: Date | null;
+      }[]
+    >`
+      SELECT
+        l.customer_id                                      AS "customerId",
+        p.code                                             AS "customerCode",
+        p.name                                             AS "customerName",
+        COALESCE(SUM(l.balance_amount), 0)                 AS "openAmount",
+        COALESCE(SUM(CASE WHEN l.due_date < CURRENT_DATE
+                          THEN l.balance_amount ELSE 0 END), 0) AS "overdueAmount",
+        MAX(CASE WHEN l.due_date < CURRENT_DATE
+                 THEN (CURRENT_DATE - l.due_date) END)     AS "maxOverdueDays",
+        COUNT(*)                                           AS "docCount",
+        MIN(l.due_date)                                    AS "nextDueDate"
+      FROM nx05_ar_ledger l
+      LEFT JOIN nx01_partner p ON p.id = l.customer_id
+      WHERE l.tenant_id = ${tenantId}
+        AND l.balance_amount > 0
+      GROUP BY l.customer_id, p.code, p.name
+      ORDER BY "overdueAmount" DESC, "openAmount" DESC
+    `;
+
+    return {
+      rows: rows.map((r) => ({
+        customerId: r.customerId,
+        customerCode: r.customerCode,
+        customerName: r.customerName,
+        openAmount: r.openAmount.toString(),
+        overdueAmount: r.overdueAmount.toString(),
+        maxOverdueDays: r.maxOverdueDays ?? 0,
+        docCount: Number(r.docCount),
+        nextDueDate: r.nextDueDate ? r.nextDueDate.toISOString().slice(0, 10) : null,
+      })),
+    };
+  }
+
   /** AP 總覽（即將到期 30 天內 + 未付）。 */
   async apOverview(user: RequestUser) {
     const tenantId = requireTenantId(user);

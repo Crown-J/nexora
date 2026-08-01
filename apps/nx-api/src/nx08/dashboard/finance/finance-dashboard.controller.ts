@@ -18,6 +18,14 @@ export class Nx08FinanceDashboardController {
   @Get('ar-overview')
   arOverview(@CurrentUser() user: RequestUser) { return this.svc.arOverview(user); }
 
+  /// 對帳查詢（銷售視角）：依客戶彙總未收款、逾期大的排前面。規格 §4.2
+  /// ⚠️ 本 controller 類別層只開財務角色，但規格把「對帳查詢」放在銷售第 7 格
+  ///    （業務出貨前要看客戶有沒有逾期）——所以這一支方法層加開 SALES。
+  ///    ⛔ 只加這一支，ap-overview／cash-flow／pnl 仍不開給業務。
+  @Get('ar-by-customer')
+  @Roles('SYSADMIN', 'OWNER', 'FINANCE', 'SALES')
+  arByCustomer(@CurrentUser() user: RequestUser) { return this.svc.arByCustomer(user); }
+
   @Get('ap-overview')
   apOverview(@CurrentUser() user: RequestUser) { return this.svc.apOverview(user); }
 
