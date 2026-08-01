@@ -42,6 +42,12 @@ const ENTRIES: Entry[] = [
     status: '完成',
   },
   {
+    href: '/preview/master-table',
+    name: '全站共用表格（MasterTable）',
+    desc: '⭐ 單據列表 16 頁＋主檔列表 24 頁都用它；階段 4 已套字級規範',
+    status: '完成',
+  },
+  {
     name: '主檔編輯模板',
     desc: '⛔ 不做新的——EntityMasterPage 已是 config-driven 且符合一頁式，24 個主檔在用；改視覺屬階段 4',
     status: '不做',

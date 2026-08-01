@@ -317,7 +317,9 @@ export function MasterTable<T>({
       className="flex-1 overflow-auto nx-master-scroll [scroll-padding-top:48px]"
       onKeyDown={handleTableKey}
     >
-      <table className={cn('w-full border-collapse text-[13px]', columnWidths && 'table-fixed')}>
+      {/* v3.0.0 階段 4：內文 13px → 15px（規格 §6 內文 15-16px 起跳）。
+          這張表是單據列表(16 頁)與主檔列表(24 頁)共用的，改一次全站到位。 */}
+      <table className={cn('w-full border-collapse text-[15px]', columnWidths && 'table-fixed')}>
         {columnWidths ? (
           <colgroup>
             {showFirstCol ? <col style={{ width: 48 }} /> : null}
@@ -327,7 +329,9 @@ export function MasterTable<T>({
           </colgroup>
         ) : null}
         <thead className="sticky top-0 z-10 border-b border-border/40 bg-card/95 backdrop-blur-md">
-          <tr className="text-left text-[11.5px] font-semibold uppercase tracking-[0.02em] text-muted-foreground">
+          {/* v3.0.0 階段 4：表頭 11.5px → 14px，且 ⛔ 不用灰字——
+              老花看灰字最吃力，欄名看不清就等於整張表看不懂（規格 §6）。 */}
+          <tr className="text-left text-[14px] font-semibold uppercase tracking-[0.02em] text-foreground">
             {showFirstCol ? (
               <th className="w-12 px-3 py-[9px]">
                 {selectionMode ? (
