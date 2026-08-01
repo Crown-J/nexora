@@ -1,12 +1,9 @@
-// apps/nx-ui/src/app/nine-grid-preview/page.tsx
+// apps/nx-ui/src/app/preview/nine-grid/page.tsx
 //
-// 九宮格設計預覽頁（v3.0.0 階段 1 Step 2）
-// 用途：不必登入、不必外殼就能檢視與操作九宮格，改樣式時直接看。
+// 九宮格預覽（原 /nine-grid-preview，2026-08-01 併入 /preview 區）
 //
 // 這頁同時是「NineGrid 是純元件」的證明——它不依賴 WorkbenchTabsProvider，
-// onNavigate 由呼叫端決定（這裡只把結果印在畫面上）。
-//
-// ⚠️ 這是開發用頁面，不進九宮格、不掛選單。階段 4 收尾時決定保留或刪除。
+// onPick 由呼叫端決定（這裡只把結果印在畫面上）。
 
 'use client';
 
@@ -31,9 +28,9 @@ export default function NineGridPreviewPage() {
   }, []);
 
   return (
-    <main className="min-h-dvh bg-background p-10 text-foreground">
-      <h1 className="text-2xl">九宮格預覽</h1>
-      <p className="mt-2 text-base text-muted-foreground">
+    <div className="p-8">
+      <h1 className="text-2xl">九宮格導覽</h1>
+      <p className="mt-2 text-[15px] text-muted-foreground">
         按 F2 或下面的按鈕開啟。開啟後：1–9 選格、0 回上一層、Esc 關閉。
       </p>
 
@@ -45,8 +42,8 @@ export default function NineGridPreviewPage() {
         開啟九宮格
       </button>
 
-      <div className="mt-6 rounded-lg border border-border bg-card p-5">
-        <div className="text-sm text-muted-foreground">最後選到的目的地</div>
+      <div className="mt-6 max-w-xl rounded-lg border border-border bg-card p-5">
+        <div className="text-[14px] text-muted-foreground">最後選到的目的地</div>
         <div className="mt-1 text-lg">
           {picked ? `${picked.label} → ${picked.href}` : '（尚未選擇）'}
         </div>
@@ -57,6 +54,6 @@ export default function NineGridPreviewPage() {
         onClose={() => setOpen(false)}
         onPick={(t) => setPicked({ href: t.href ?? `（即時工作站 ${t.station}）`, label: t.label })}
       />
-    </main>
+    </div>
   );
 }
