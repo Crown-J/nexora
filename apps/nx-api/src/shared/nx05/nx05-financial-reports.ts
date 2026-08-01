@@ -29,6 +29,8 @@ interface RawRow {
   statement: string | null;
   statementSection: string | null;
   cashFlowType: string;
+  /** A 資產／L 負債權益／I 收入／E 費用。現金流量表要靠它分出損益科目。 */
+  category: string;
   departmentId: string | null;
   departmentName: string | null;
   openingDebit: Dec;
@@ -77,6 +79,7 @@ async function loadRows(
         select: {
           code: true,
           name: true,
+          category: true,
           cashFlowType: true,
           statementSection: true,
           parent: { select: { code: true } },
@@ -96,6 +99,7 @@ async function loadRows(
     statementSection:
       r.accountCode.statementSection ?? r.accountCode.accountClass?.statementSection ?? null,
     cashFlowType: r.accountCode.cashFlowType,
+    category: r.accountCode.category,
     departmentId: r.departmentId,
     departmentName: r.department?.name ?? null,
     openingDebit: new PrismaNs.Decimal(r.openingDebit),
@@ -543,5 +547,247 @@ export async function getCashFlowSummary(
     cashMovement,
     isReconciled: difference.isZero(),
     difference,
+  };
+}
+
+// ────────────────────────────────────────────────────────────
+// ⑤ 正式現金流量表（間接法）
+// ────────────────────────────────────────────────────────────
+
+export interface CashFlowLine {
+  accountCode: string;
+  accountName: string;
+  /** 對現金的影響：正＝流入、負＝流出。 */
+  amount: Dec;
+}
+
+export interface CashFlowStatement {
+  periodCode: string;
+  method: 'INDIRECT';
+  /** 本期損益（收入 − 費用）。 */
+  netIncome: Dec;
+  /** 從營業活動移出的損益項目（利息費用、處分資產損益等，歸投資或籌資）。 */
+  reclassifiedOut: CashFlowLine[];
+  /** 非現金項目調整（累計折舊等）。 */
+  nonCashAdjustments: CashFlowLine[];
+  /** 營運資產負債的變動。 */
+  workingCapital: CashFlowLine[];
+  operating: Dec;
+  investingLines: CashFlowLine[];
+  investing: Dec;
+  financingLines: CashFlowLine[];
+  financing: Dec;
+  /** ⭐ 期初開帳分錄：承接進來的餘額，不是本期的交易，⛔ 不屬於任何一種活動。 */
+  carryoverLines: CashFlowLine[];
+  /** 期初開帳分錄實際動到現金的部分（例：承接存貨時以現金支付）。 */
+  carryoverCash: Dec;
+  netChange: Dec;
+  openingCash: Dec;
+  closingCash: Dec;
+  /** 三大活動＋開帳的現金影響 是否等於現金科目的實際變動。 */
+  isReconciled: boolean;
+  difference: Dec;
+  /** 這張表看的時候要知道的事（缺什麼、什麼時候不能跑）。 */
+  notes: string[];
+}
+
+/**
+ * ⭐ 正式現金流量表——**間接法**（2026-08-01 執行長拍板）。
+ *
+ * 🔴 為什麼是間接法：
+ *   ① 台灣實務就是間接法——會計師、銀行授信、投資人看的都是它，出直接法反而要多解釋一次
+ *   ② 它的材料是損益表＋兩期資產負債表差額，這些現在就有；
+ *      直接法要求每一筆現金收付都能正確歸類，而**收付款還沒接進總帳**，材料不齊
+ *
+ * ⭐ 算法的骨架只有一句話：**借貸恆等 → 現金的變動 ＝ 所有非現金科目變動的反號**。
+ *   把非現金科目按 cashFlowType 分成三堆，三堆合計必然等於現金淨變動——
+ *   這不是「湊出來的」，是複式簿記本來就保證的。所以核對不符只有一種可能：
+ *   有科目的現金流量分類標錯或漏標。
+ *
+ * 🔴 期初開帳分錄（OPEN-*）獨立成一段、⛔ 不混進三大活動。
+ *   承接進來的餘額不是本期的交易——把 2.32 億的期初存貨算成「營業活動現金流出」
+ *   會讓這張表徹底失真。
+ *
+ * ⚠⚠ **必須在年度結帳「之前」跑**（與現金流量分類彙總同一個理由）：
+ *   年度結帳把損益科目結轉進 3202／3201，本期損益會變成 0、
+ *   金額改以權益科目的形式出現，這張表的分段就講不出原本的故事了。
+ */
+export async function getCashFlowStatement(
+  db: Db,
+  p: { tenantId: string; periodCode: string },
+): Promise<CashFlowStatement> {
+  const period = await loadPeriod(db, p.tenantId, p.periodCode);
+  const raw = await loadRows(db, p.tenantId, period.id);
+
+  // ── 期初開帳分錄的部分：從分錄行撈，因為餘額表看不出傳票是哪個交易代號 ──
+  const openLines = await db.nx05VoucherLine.groupBy({
+    by: ['accountCodeId', 'drCr'],
+    where: {
+      tenantId: p.tenantId,
+      voucher: {
+        fiscalPeriodId: period.id,
+        status: 'POSTED',
+        postingRule: { code: { startsWith: 'OPEN-' } },
+      },
+    },
+    _sum: { amount: true },
+  });
+  const accIds = await db.nx05AccountCode.findMany({
+    where: { tenantId: p.tenantId },
+    select: { id: true, code: true },
+  });
+  const codeById = new Map(accIds.map((a) => [a.id, a.code]));
+  const carryByCode = new Map<string, Dec>();
+  for (const g of openLines) {
+    const code = codeById.get(g.accountCodeId);
+    if (!code) continue;
+    const amt = new PrismaNs.Decimal(g._sum.amount ?? 0);
+    const cur = carryByCode.get(code) ?? D0;
+    carryByCode.set(code, g.drCr === 'D' ? cur.add(amt) : cur.sub(amt));
+  }
+
+  // ── 逐科目：本期變動、扣掉期初開帳的部分 ──
+  interface Acc {
+    code: string;
+    name: string;
+    category: string;
+    cf: string;
+    movement: Dec; // 交易造成的變動（借正貸負）
+    carry: Dec; // 期初開帳造成的變動
+    opening: Dec;
+    closing: Dec;
+  }
+  const byAcc = new Map<string, Acc>();
+  for (const r of raw) {
+    const cur =
+      byAcc.get(r.accountCode) ??
+      ({
+        code: r.accountCode,
+        name: r.accountName,
+        category: r.category,
+        cf: r.cashFlowType,
+        movement: D0,
+        carry: carryByCode.get(r.accountCode) ?? D0,
+        opening: D0,
+        closing: D0,
+      } satisfies Acc);
+    cur.movement = cur.movement.add(net(r.periodDebit, r.periodCredit));
+    cur.opening = cur.opening.add(net(r.openingDebit, r.openingCredit));
+    cur.closing = cur.closing.add(net(r.closingDebit, r.closingCredit));
+    byAcc.set(r.accountCode, cur);
+  }
+
+  const mkLine = (a: Acc, amount: Dec): CashFlowLine => ({
+    accountCode: a.code,
+    accountName: a.name,
+    amount,
+  });
+  const isPl = (a: Acc) => a.category === 'I' || a.category === 'E';
+
+  let netIncome = D0;
+  const reclassifiedOut: CashFlowLine[] = [];
+  const nonCashAdjustments: CashFlowLine[] = [];
+  const workingCapital: CashFlowLine[] = [];
+  const investingLines: CashFlowLine[] = [];
+  const financingLines: CashFlowLine[] = [];
+  const carryoverLines: CashFlowLine[] = [];
+  let investing = D0;
+  let financing = D0;
+  let carryoverCash = D0;
+  let openingCash = D0;
+  let closingCash = D0;
+  let cashMovementAll = D0;
+
+  const accs = [...byAcc.values()].sort((x, y) => x.code.localeCompare(y.code));
+  for (const a of accs) {
+    // 期初開帳的部分先切出來
+    if (!a.carry.isZero()) carryoverLines.push(mkLine(a, a.carry.neg()));
+
+    if (a.cf === 'C') {
+      openingCash = openingCash.add(a.opening);
+      closingCash = closingCash.add(a.closing);
+      cashMovementAll = cashMovementAll.add(a.movement);
+      carryoverCash = carryoverCash.add(a.carry);
+      continue;
+    }
+
+    const tx = a.movement.sub(a.carry); // 交易性變動
+    const effect = tx.neg(); // 對現金的影響（非現金科目的反號）
+    if (isPl(a)) {
+      // 損益科目：全部先進本期損益，屬投資／籌資的再移出去
+      netIncome = netIncome.sub(a.movement);
+      if (a.cf === 'I' || a.cf === 'F') {
+        if (!a.movement.isZero()) reclassifiedOut.push(mkLine(a, a.movement));
+      }
+    }
+
+    if (effect.isZero()) continue;
+    switch (a.cf) {
+      case 'N':
+        if (!isPl(a)) nonCashAdjustments.push(mkLine(a, effect));
+        break;
+      case 'O':
+        if (!isPl(a)) workingCapital.push(mkLine(a, effect));
+        break;
+      case 'I':
+        investingLines.push(mkLine(a, effect));
+        investing = investing.add(effect);
+        break;
+      case 'F':
+        financingLines.push(mkLine(a, effect));
+        financing = financing.add(effect);
+        break;
+      default:
+        break;
+    }
+  }
+
+  const sum = (ls: CashFlowLine[]) => ls.reduce((s, l) => s.add(l.amount), D0);
+  const operating = netIncome
+    .add(sum(reclassifiedOut))
+    .add(sum(nonCashAdjustments))
+    .add(sum(workingCapital));
+
+  const netChange = operating.add(investing).add(financing);
+  // 現金科目的實際變動裡，屬於期初開帳的那一段要分開講
+  const operationalCashMovement = cashMovementAll.sub(carryoverCash);
+  const difference = netChange.sub(operationalCashMovement);
+
+  const notes: string[] = [
+    '⚠ 折舊尚未接進總帳——在固定資產那一軌接上之前，營業活動的現金流量會偏高。',
+    '⚠ 本表必須在年度結帳之前跑：結帳會把損益科目結轉進權益，本期損益會變成 0。',
+  ];
+  if (!carryoverCash.isZero() || carryoverLines.length > 0) {
+    notes.push(
+      '⭐ 期初開帳分錄已獨立成一段、⛔ 不計入三大活動——承接進來的餘額不是本期的交易。',
+    );
+  }
+  if (!difference.isZero()) {
+    notes.push(
+      '🔴 三大活動合計與現金實際變動不符。複式簿記本來就保證兩者相等，' +
+        '所以差額只有一種可能：有科目的現金流量分類標錯或漏標（標成「不適用」）。',
+    );
+  }
+
+  return {
+    periodCode: period.code,
+    method: 'INDIRECT',
+    netIncome,
+    reclassifiedOut,
+    nonCashAdjustments,
+    workingCapital,
+    operating,
+    investingLines,
+    investing,
+    financingLines,
+    financing,
+    carryoverLines,
+    carryoverCash,
+    netChange,
+    openingCash,
+    closingCash,
+    isReconciled: difference.isZero(),
+    difference,
+    notes,
   };
 }
