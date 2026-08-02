@@ -639,7 +639,11 @@ function ItemsStep({
         const minTrig = r.minPrice !== null && pr < Number(r.minPrice);
         if (costTrig || minTrig) {
           if (!floorReason.trim()) {
-            setFloorWarn(costTrig ? `單價低於成本 ${r.cost}，請填原因` : `單價低於最低售價 ${r.minPrice}，請填原因`);
+            // ⭐ 執行長 2026-08-02 拍板：業務只看得到市場行情價與公司定價、⛔ 看不到成本。
+            //    這裡原本把 r.cost / r.minPrice 的數字直接印在警告裡——
+            //    minPrice ＝ 平均成本 ×(1+客戶等級毛利率)，兩個都等於把進價交出去
+            //    （業務只要改價格試到警告跳出來就能反推）。改成只講事實、⛔ 不帶數字。
+            setFloorWarn('單價低於底價，請填原因');
             setTimeout(() => document.getElementById('is-floor-reason')?.focus(), 0);
             return;
           }

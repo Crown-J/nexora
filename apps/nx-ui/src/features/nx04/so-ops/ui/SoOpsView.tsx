@@ -20,6 +20,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Trash2 } from 'lucide-react';
 
 import { listWarehouses } from '@data/endpoints/nx01/api/warehouse';
@@ -33,10 +34,12 @@ import {
 } from '@data/endpoints/shared/address/partner-address-api';
 import { getPartner } from '@data/endpoints/shared/master/partner/api/partner';
 import type { PartnerDto } from '@data/types/shared/master/partner';
+import type { OpenQuoteLine } from '@data/types/nx04/so';
 import { FlowPanes } from '@design/templates/FlowPanes';
 import { FlowTemplate, type FlowApi, type FlowSection } from '@design/templates/FlowTemplate';
 
 import { CustomerPicker, type PickedCustomer } from '../../quote/ui/CustomerPicker';
+import { OpenQuotePickerDialog } from '../../quote/ui/OpenQuotePickerDialog';
 import { PartPicker, type PickedPart } from '../../quote/ui/PartPicker';
 import {
   autoAllocate,
@@ -88,6 +91,11 @@ export function SoOpsView() {
   /** 明細段：左欄選到第幾列、鍵盤在哪一側（與報價段同一個模型） */
   const [lineSel, setLineSel] = useState(0);
   const [itemsPane, setItemsPane] = useState<'list' | 'props'>('list');
+  /** 帶入報價的挑選器（路 A：客戶回頭買之前報過的東西） */
+  const [quotePickerOpen, setQuotePickerOpen] = useState(false);
+  /** 從報價檢視頁按「轉銷貨」進來時，只跑一次的預帶 */
+  const seededRef = useRef(false);
+  const searchParams = useSearchParams();
 
   const [msgOpts, setMsgOpts] = useState<SalesMsgOpts>(DEFAULT_SALES_MSG_OPTS);
 
@@ -226,6 +234,78 @@ export function SoOpsView() {
     [lines, customer, warehouses],
   );
 
+  /**
+   * ⭐ 從「還沒成交的報價」帶入明細（路 A）。
+   * 數量取報價還沒轉走的量、單價用報價當初談定的價（⛔ 不重新帶價——那會推翻業務跟客戶講好的數字），
+   * 出貨分配照 addPart 同一套規則自動拆。
+   */
+  const addFromQuoteLines = useCallback(
+    async (picked: OpenQuoteLine[]) => {
+      const wh = customer?.defaultWarehouseId ?? warehouses[0]?.id ?? '';
+      const fresh: SalesLine[] = [];
+      for (const r of picked) {
+        if (lines.some((l) => l.partId === r.partId)) continue; // 同一支料不重複加
+        if (fresh.some((l) => l.partId === r.partId)) continue; // 同一批勾到兩張報價的同一支料
+        const qty = Number(r.remainQty) || 0;
+        if (qty <= 0) continue;
+        let avail = 0;
+        if (wh) {
+          try {
+            const bal = await lookupStockBalance(r.partId, wh);
+            avail = bal?.availableQty ?? 0;
+          } catch {
+            /* 查不到當作 0 → 全部走調撥，後端會擋 */
+          }
+        }
+        fresh.push({
+          partId: r.partId,
+          partNo: r.partNo,
+          partName: r.partName,
+          brandName: null,
+          availableTotal: String(avail),
+          qty,
+          unitPrice: Number(r.unitPrice) || 0,
+          remark: '',
+          // 從正式報價帶進來的，本來就有報價紀錄了⛔ 不必再補一筆
+          hadQuoteRecord: true,
+          quoteItemId: r.quoteItemId,
+          allocations: wh ? autoAllocate(wh, qty, avail) : [],
+        });
+      }
+      if (fresh.length) setLines((prev) => [...prev, ...fresh]);
+      setQuotePickerOpen(false);
+    },
+    [lines, customer, warehouses],
+  );
+
+  /**
+   * ⭐ 從報價檢視頁按「轉銷貨」進來：`?customerId=`（可帶 `&fromQuote=` 只為留痕）。
+   *    自動選好客戶 → 跳到「明細」那一段 → 直接把報價挑選器打開，
+   *    業務只要勾一勾就好，⛔ 不必重選客戶也⛔ 不必重打料號。
+   * ⚠️ 只跑一次：之後使用者自己換客戶就⛔ 不再干預。
+   */
+  useEffect(() => {
+    if (seededRef.current) return;
+    const cid = searchParams.get('customerId');
+    if (!cid) return;
+    seededRef.current = true;
+    void (async () => {
+      try {
+        const p = await getPartner(cid);
+        handlePickCustomer({
+          id: p.id,
+          code: p.code,
+          name: p.name,
+          defaultWarehouseId: p.defaultWarehouseId ?? null,
+        });
+        flowApi.current?.goTo(1);
+        setQuotePickerOpen(true);
+      } catch {
+        /* 帶不到就當一般開單，⛔ 不擋 */
+      }
+    })();
+  }, [searchParams, handlePickCustomer]);
+
   const patchLine = useCallback((partId: string, patch: Partial<SalesLine>) => {
     setLines((prev) => prev.map((l) => (l.partId === partId ? { ...l, ...patch } : l)));
   }, []);
@@ -362,6 +442,9 @@ export function SoOpsView() {
           warehouseId: a.warehouseId,
           qty: a.qty,
           unitPriceSnapshot: l.unitPrice,
+          // ⭐ 帶入報價的行要把 quoteItemId 傳下去：後端據此把報價標成已成交、
+          //    並把同客戶同料號的其他舊報價作廢（cascadeOnSoAdopt）。
+          quoteItemId: l.quoteItemId,
           transferSourceType: a.source === 'PEER' ? 'G' : a.source === 'TRANSFER' ? 'T' : 'S',
           belowMinReason: l.belowMinReason || undefined,
           remark: l.remark || undefined,
@@ -625,6 +708,19 @@ export function SoOpsView() {
                 <p className="nx-hint mt-2">
                   打料號、品名或車型加進來。⚠️ 單價會帶「這個客戶最近成交／建議售價」，帶不到就留 0 讓你自己填。
                 </p>
+                {/*
+                  ⭐ 路 A 的最後一哩：客戶回頭要買之前報過的東西，勾一勾就進明細、⛔ 不必重打。
+                     帶進來的行會夾帶 quoteItemId → 送出後報價自動標成已成交。
+                */}
+                <button
+                  type="button"
+                  className="nx-btn mt-3"
+                  disabled={!customer}
+                  title={customer ? undefined : '先在第 1 段選客戶'}
+                  onClick={() => setQuotePickerOpen(true)}
+                >
+                  帶入這家客戶還沒成交的報價
+                </button>
               </div>
 
               {lines.length === 0 ? (
@@ -1092,20 +1188,31 @@ export function SoOpsView() {
   ];
 
   return (
-    <FlowTemplate
-      title="建立銷貨單"
-      sections={sections}
-      apiRef={flowApi}
-      onCancel={resetAll}
-      onSubmit={() => void buildOrder()}
-      submitLabel={
-        orderResult
-          ? `已建單 ${orderResult.docNo}`
-          : submitting
-            ? '建單中…'
-            : `建立銷貨單（${lines.length} 項）`
-      }
-    />
+    <>
+      <FlowTemplate
+        title="建立銷貨單"
+        sections={sections}
+        apiRef={flowApi}
+        onCancel={resetAll}
+        onSubmit={() => void buildOrder()}
+        submitLabel={
+          orderResult
+            ? `已建單 ${orderResult.docNo}`
+            : submitting
+              ? '建單中…'
+              : `建立銷貨單（${lines.length} 項）`
+        }
+      />
+      {quotePickerOpen && customer && (
+        <OpenQuotePickerDialog
+          customerId={customer.id}
+          customerName={customer.name}
+          existingPartIds={lines.map((l) => l.partId)}
+          onClose={() => setQuotePickerOpen(false)}
+          onConfirm={(picked) => void addFromQuoteLines(picked)}
+        />
+      )}
+    </>
   );
 }
 
