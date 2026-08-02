@@ -219,6 +219,11 @@ export function QuoteOpsView() {
   const [noMatch, setNoMatch] = useState(false);
   const [rows, setRows] = useState<QuoteCandidate[]>([]);
   const [rowsLoading, setRowsLoading] = useState(false);
+  /**
+   * 「檢查庫存」左欄清單目前選到第幾列（⛔ 不是「已加入」——已加入看 lines）。
+   * 右欄儀表板顯示的就是這一列。
+   */
+  const [stockSel, setStockSel] = useState(0);
   /** 各倉別（用來把 stockByWh 的 id 翻成看得懂的倉名）*/
   const [warehouses, setWarehouses] = useState<{ id: string; code: string; name: string }[]>([]);
 
@@ -231,6 +236,8 @@ export function QuoteOpsView() {
   const searchRef = useRef<HTMLInputElement>(null);
   /** 下拉清單容器：↑↓ 時要把高亮列捲進可視範圍 */
   const hitListRef = useRef<HTMLDivElement>(null);
+  /** 「檢查庫存」左欄清單容器（跳段時焦點落點、↑↓ 捲動用） */
+  const stockListRef = useRef<HTMLDivElement>(null);
   const customerRef = useRef<HTMLInputElement>(null);
   const reqRef = useRef(0);
 
@@ -431,6 +438,8 @@ export function QuoteOpsView() {
         if (!alive) return;
         setRows(r.candidates);
         setWarehouses(r.warehouses ?? []);
+        // 換了一支料 → 清單回到第一列，⛔ 不要停在上一支料的第 5 列
+        setStockSel(0);
       })
       .catch(() => {
         if (!alive) return;
@@ -480,6 +489,25 @@ export function QuoteOpsView() {
   const removeLine = useCallback((partId: string) => {
     setLines((prev) => prev.filter((l) => l.partId !== partId));
   }, []);
+
+  /**
+   * 空白鍵切換：已加入 → 移除、沒加入 → 加入（沿用舊浮層工作站的行為，執行長 2026-08-02）。
+   * ⛔ 不做成「只能加入」——按錯一顆還要跑去第 4 段刪，那條路太遠。
+   */
+  const toggleLine = useCallback(
+    (c: QuoteCandidate) => {
+      if (lines.some((l) => l.partId === c.id)) removeLine(c.id);
+      else addLine(c);
+    },
+    [lines, addLine, removeLine],
+  );
+
+  // ↑↓ 時把選到的那列捲進可視範圍
+  useEffect(() => {
+    stockListRef.current
+      ?.querySelector(`[data-stock="${stockSel}"]`)
+      ?.scrollIntoView({ block: 'nearest' });
+  }, [stockSel]);
 
   /** 有數量也有價的才算數（對齊舊站 validLines 口徑） */
   const validLines = useMemo(
@@ -968,97 +996,179 @@ export function QuoteOpsView() {
       label: '檢查庫存',
       // ⛔ 不掛 blocked——看庫存是過程不是存檔條件
       content: (
-        <div>
+        <div className="flex min-h-0 flex-1 flex-col">
           {/*
             ⭐ 這一段回答兩個問題（執行長 2026-08-01 訂正）：
                 「這支料的通用件有哪些？」「在哪些倉位？」
             ⛔ 這裡不出現任何價格——比價是下一段「報價」的事。
                混在一起會讓業務在還沒確定要出哪一支料的時候就先看價、先想折扣。
+
+            ⭐ 2026-08-02 執行長改版：左邊清單、右邊儀表板。
+               原本是一張寬表格，倉位全部擠成一排小標籤——料一多就得橫向捲，
+               而且看不出「哪個倉最多」。改成左邊只列通用零件（一列一支、可用鍵盤走），
+               右邊把選到的那一支攤開來看：可出量、各倉分佈、身分。
+            ⭐ 空白鍵加入／移除（沿用舊浮層工作站，⛔ 不改手勢）。
           */}
-          <div className="overflow-x-auto rounded-lg border border-border">
-            <table className="w-full min-w-[720px] border-collapse">
-              <thead>
-                <tr className="border-b-2 border-border text-left">
-                  <th className="nx-th">料號 / 品名 / 廠牌</th>
-                  <th className="nx-th">通用件</th>
-                  <th className="nx-th">在哪些倉位</th>
-                  <th className="nx-th text-right">
-                    可出量
-                    <div className="nx-th-note">全公司</div>
-                  </th>
-                  <th className="nx-th" />
-                </tr>
-              </thead>
-              <tbody>
-                {rowsLoading ? (
-                  <tr>
-                    <td colSpan={5} className="nx-hint px-3 py-6">
-                      查詢中…
-                    </td>
-                  </tr>
-                ) : rows.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="nx-hint px-3 py-6">
-                      上一段選一支料，這裡列出它和它的通用件、各在哪個倉。
-                    </td>
-                  </tr>
-                ) : (
-                  rows.map((c) => {
+          {rowsLoading ? (
+            <div className="nx-hint">查詢中…</div>
+          ) : rows.length === 0 ? (
+            <div className="nx-hint">上一段選一支料，這裡列出它和它的通用件、各在哪個倉。</div>
+          ) : (
+            <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+              {/* ───── 左：通用零件清單 ───── */}
+              <div className="flex min-h-0 flex-col">
+                <div className="mb-2 flex flex-wrap items-baseline gap-x-3">
+                  <span className="nx-t-sub">通用零件</span>
+                  <span className="nx-hint">共 {rows.length} 支</span>
+                  <span className="nx-hint ml-auto">↑↓ 選　·　空白鍵加入／移除　·　Enter 去報價</span>
+                </div>
+
+                {/*
+                  ⚠️ 清單容器自己接焦點（tabIndex + data-flow-focus），列本身 tabIndex={-1}：
+                     這樣 Tab 只會停在清單上一次，用 ↑↓ 在列間走，⛔ 不會 Tab 十幾下才過得去。
+                     滑鼠使用者點列＝選取，加入／移除走右欄那顆按鈕（§7.1 兩條路都在）。
+                */}
+                <div
+                  ref={stockListRef}
+                  tabIndex={0}
+                  data-flow-focus
+                  role="listbox"
+                  aria-label="通用零件"
+                  onKeyDown={(e) => {
+                    if (rows.length === 0) return;
+                    if (e.key === 'ArrowDown') {
+                      e.preventDefault();
+                      setStockSel((i) => Math.min(rows.length - 1, i + 1));
+                    } else if (e.key === 'ArrowUp') {
+                      e.preventDefault();
+                      setStockSel((i) => Math.max(0, i - 1));
+                    } else if (e.key === ' ') {
+                      // ⚠️ 一定要 preventDefault：空白鍵預設會把整頁往下捲一頁
+                      e.preventDefault();
+                      const c = rows[stockSel];
+                      if (c) toggleLine(c);
+                    } else if (e.key === 'Enter') {
+                      e.preventDefault();
+                      flowApi.current?.goTo(3);
+                    }
+                  }}
+                  className="min-h-0 flex-1 space-y-2 overflow-auto rounded-lg border border-border p-2 focus:outline focus:outline-2 focus:outline-primary"
+                >
+                  {rows.map((c, i) => {
                     const avail = totalAvailable(c);
-                    const spots = stockSpots(c, warehouses);
                     const added = lines.some((l) => l.partId === c.id);
+                    const sel = i === stockSel;
                     return (
-                      <tr key={c.id} className="border-b border-border last:border-b-0">
-                        <td className="nx-td">
-                          <div className="font-medium">{c.code}</div>
-                          <div className="nx-hint">
+                      <button
+                        key={c.id}
+                        type="button"
+                        data-stock={i}
+                        tabIndex={-1}
+                        role="option"
+                        aria-selected={sel}
+                        onClick={() => setStockSel(i)}
+                        /*
+                          ⭐ 兩個狀態各用一種訊號，⛔ 不要搶同一個：
+                             「現在選到誰」＝邊框（主色）、「已經加進報價了」＝底色（綠）。
+                             用同一種的話，選到一支已加入的零件就分不出是哪個意思。
+                        */
+                        className={[
+                          'flex w-full items-center gap-3 rounded-lg border-2 px-3 py-2.5 text-left',
+                          sel ? 'border-primary' : 'border-border',
+                          added ? 'bg-emerald-600/10' : sel ? 'bg-primary/[0.07]' : 'hover:bg-foreground/[0.04]',
+                        ].join(' ')}
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-baseline gap-x-2">
+                            <span className="nx-mono font-medium">{c.code}</span>
+                            {c.role === 1 ? (
+                              <span className="nx-tag-primary">客戶問的這支</span>
+                            ) : (
+                              <span className="nx-tag">可代用</span>
+                            )}
+                            {added ? (
+                              <span className="nx-pill-ok">✓ 已加入</span>
+                            ) : null}
+                          </div>
+                          <div className="nx-hint truncate">
                             {c.name}・{c.brandName ?? '—'}
                             {c.isOem ? '・正廠' : ''}
                           </div>
-                        </td>
-                        <td className="nx-td">
-                          {c.role === 1 ? (
-                            <span className="nx-tag-primary">客戶問的這支</span>
-                          ) : (
-                            <span className="nx-tag">可代用</span>
-                          )}
-                        </td>
-                        <td className="nx-td">
-                          {spots.length === 0 ? (
-                            <span className="text-[15px] font-bold text-red-500">都沒貨</span>
-                          ) : (
-                            <div className="flex flex-wrap gap-1.5">
-                              {spots.map((s) => (
-                                <span key={s.name} className="nx-tag font-normal">
-                                  {s.name} <b className="tabular-nums">{s.qty.toLocaleString()}</b>
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                        </td>
-                        {/* ⚠️ 沒貨轉紅：utilities 層排在 components 層之後，text-red-500 會蓋過 .nx-num-lg 的顏色，⛔ 不需要 important */}
-                        <td
-                          className={`nx-num-lg px-3 py-2.5 text-right ${avail > 0 ? '' : 'text-red-500'}`}
+                        </div>
+                        <div
+                          className={`shrink-0 text-right ${avail > 0 ? 'nx-num-lg' : 'nx-num-lg text-red-500'}`}
                         >
                           {avail.toLocaleString()}
-                        </td>
-                        <td className="nx-td text-right">
-                          <button
-                            type="button"
-                            disabled={added}
-                            onClick={() => addLine(c)}
-                            className="nx-btn-cell"
-                          >
-                            {added ? '已加入' : '拿這支報'}
-                          </button>
-                        </td>
-                      </tr>
+                        </div>
+                      </button>
                     );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
+                  })}
+                </div>
+              </div>
+
+              {/* ───── 右：選到那一支的儀表板 ───── */}
+              {(() => {
+                const cur = rows[stockSel];
+                if (!cur) return <div className="nx-hint">左邊選一支。</div>;
+                const avail = totalAvailable(cur);
+                const spots = stockSpots(cur, warehouses);
+                const top = spots[0]?.qty ?? 0;
+                const added = lines.some((l) => l.partId === cur.id);
+                return (
+                  <div className="flex min-h-0 flex-col rounded-lg border border-border bg-muted/40 p-4">
+                    <div className="nx-t-sub break-all">{cur.code}</div>
+                    <div className="nx-hint mt-0.5">
+                      {cur.name}・{cur.brandName ?? '—'}・{cur.isOem ? '正廠' : '副廠'}
+                      {cur.secCode ? `・廠牌料號 ${cur.secCode}` : ''}
+                    </div>
+
+                    {/* 全公司可出量：這一段最重要的一個數字，⭐ 所以只有它是大字 */}
+                    <div className="mt-4 flex items-baseline gap-2 border-t border-border pt-4">
+                      <span className="nx-hint">全公司可出</span>
+                      <span className={avail > 0 ? 'nx-num-xl' : 'nx-num-xl text-red-500'}>
+                        {avail.toLocaleString()}
+                      </span>
+                    </div>
+
+                    {/*
+                      各倉分佈：長條的長度＝跟最多的那個倉比。
+                      ⭐ 業務要的是「去哪個倉調最快」，⛔ 純數字排排站看不出誰多誰少。
+                    */}
+                    <div className="mt-4 min-h-0 flex-1 overflow-auto">
+                      {spots.length === 0 ? (
+                        <div className="text-[15px] font-bold text-red-500">各倉都沒貨</div>
+                      ) : (
+                        <div className="space-y-2.5">
+                          {spots.map((s) => (
+                            <div key={s.name}>
+                              <div className="flex items-baseline justify-between gap-2">
+                                <span className="nx-body truncate">{s.name}</span>
+                                <span className="nx-num font-medium">{s.qty.toLocaleString()}</span>
+                              </div>
+                              <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-foreground/10">
+                                <div
+                                  className="h-full rounded-full bg-primary"
+                                  style={{ width: `${top > 0 ? Math.max(4, (s.qty / top) * 100) : 0}%` }}
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => toggleLine(cur)}
+                      className={added ? 'nx-btn mt-4 w-full' : 'nx-btn-primary mt-4 w-full'}
+                    >
+                      {added ? '移出報價（空白鍵）' : '加入報價（空白鍵）'}
+                    </button>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
         </div>
       ),
     },
@@ -1099,7 +1209,7 @@ export function QuoteOpsView() {
                 {lines.length === 0 ? (
                   <tr>
                     <td colSpan={9} className="nx-hint px-3 py-6">
-                      上一段按「拿這支報」把料帶下來。
+                      上一段用空白鍵把要報的零件加進來。
                     </td>
                   </tr>
                 ) : (

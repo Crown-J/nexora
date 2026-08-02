@@ -107,9 +107,17 @@ export function FlowTemplate({
     //    只捲不聚焦，使用者還得再拿滑鼠點一下欄位，等於鍵盤流程斷在這裡。
     //    ⛔ 只找輸入類元素，不含 button——聚焦到按鈕上會讓 Enter 變成誤觸送出。
     const focusField = () => {
-      const field = el.querySelector<HTMLElement>(
-        'input:not([readonly]):not([disabled]), textarea:not([readonly]):not([disabled]), select:not([disabled])',
-      );
+      /*
+        ⭐ data-flow-focus ＝ 這一段自己指定「跳過來該聚焦哪裡」（2026-08-02）。
+           有些段落根本沒有輸入框——例如「檢查庫存」是一份用 ↑↓ 與空白鍵操作的清單。
+           沒有這個約定的話跳過去焦點會留在上一段，⛔ 鍵盤流程就斷在那裡。
+           ⚠️ 標記的元素自己要能接焦點（tabIndex），⛔ 否則 focus() 沒有作用。
+      */
+      const field =
+        el.querySelector<HTMLElement>('[data-flow-focus]') ??
+        el.querySelector<HTMLElement>(
+          'input:not([readonly]):not([disabled]), textarea:not([readonly]):not([disabled]), select:not([disabled])',
+        );
       if (!field) return;
       // ⚠️ preventScroll 是必要的：focus() 預設會把元素捲進畫面，
       //    那一下會跟我們自己算的捲動位置打架（尤其欄位在段落中段時會多跳一次）。
