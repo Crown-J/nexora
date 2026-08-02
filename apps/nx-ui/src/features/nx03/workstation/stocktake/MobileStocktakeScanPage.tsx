@@ -109,7 +109,7 @@ function CountInputDialog({ item, busy, onClose, onSubmit }: CountInputDialogPro
       <div className="relative w-full rounded-t-2xl border-t border-[#2A2A30] bg-[#0E0E12] p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)]">
         <div className="mb-3 flex items-center justify-between">
           <div className="min-w-0">
-            <div className="font-mono text-xs text-white/40">{item.partNo ?? item.partId}</div>
+            <div className="font-mono text-[14px] text-white/40">{item.partNo ?? item.partId}</div>
             <div className="truncate text-sm font-semibold text-white">{item.partName ?? '—'}</div>
           </div>
           <button
@@ -430,7 +430,7 @@ export function MobileStocktakeScanPage({ id }: { id: string }) {
             >
               <div className="min-w-0 flex-1 space-y-1">
                 <div className="flex items-center gap-2 text-sm">
-                  <span className="font-mono text-xs text-white/40">{it.partNo ?? it.partId.slice(0, 8)}</span>
+                  <span className="font-mono text-[14px] text-white/40">{it.partNo ?? it.partId.slice(0, 8)}</span>
                   <span className="min-w-0 flex-1 truncate text-white/80">{it.partName ?? '—'}</span>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 text-[10px] text-white/50 tabular-nums">

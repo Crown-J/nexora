@@ -185,7 +185,7 @@ export function InventoryReport() {
                 key: 'partNo',
                 label: '料號',
                 hideOnMobile: true,
-                render: (it) => <span className="font-mono text-xs">{it.partNo ?? it.partId.slice(0, 8)}</span>,
+                render: (it) => <span className="font-mono text-[14px]">{it.partNo ?? it.partId.slice(0, 8)}</span>,
               },
               {
                 key: 'partName',
@@ -240,7 +240,7 @@ export function InventoryReport() {
                 key: 'partNo',
                 label: '料號',
                 hideOnMobile: true,
-                render: (it) => <span className="font-mono text-xs">{it.partNo ?? it.partId.slice(0, 8)}</span>,
+                render: (it) => <span className="font-mono text-[14px]">{it.partNo ?? it.partId.slice(0, 8)}</span>,
               },
               {
                 key: 'partName',
@@ -262,7 +262,7 @@ export function InventoryReport() {
               {
                 key: 'lastMovementDate',
                 label: '最後動向',
-                render: (it) => <span className="font-mono text-xs">{it.lastMovementDate ?? '—'}</span>,
+                render: (it) => <span className="font-mono text-[14px]">{it.lastMovementDate ?? '—'}</span>,
               },
               {
                 key: 'dormantDays',
@@ -295,7 +295,7 @@ export function InventoryReport() {
                 key: 'partNo',
                 label: '料號',
                 hideOnMobile: true,
-                render: (it) => <span className="font-mono text-xs">{it.partNo ?? it.partId.slice(0, 8)}</span>,
+                render: (it) => <span className="font-mono text-[14px]">{it.partNo ?? it.partId.slice(0, 8)}</span>,
               },
               {
                 key: 'partName',

@@ -113,7 +113,7 @@ export function StockSettingSplitView({ vm }: StockSettingSplitViewProps) {
                   selectedId === r.id && 'bg-muted/70',
                 )}
               >
-                <div className="font-mono text-xs">{r.partCode}</div>
+                <div className="font-mono text-[14px]">{r.partCode}</div>
                 <div className="truncate text-xs text-muted-foreground">{r.partName}</div>
                 <div className="mt-1 flex justify-between text-xs">
                   <span>{r.warehouseName}</span>

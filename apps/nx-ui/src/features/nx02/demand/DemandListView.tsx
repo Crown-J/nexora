@@ -259,14 +259,14 @@ export function DemandListView() {
           <tbody>
             {rows.map((d) => (
               <tr key={d.id} className="border-b border-border/50 hover:bg-muted/10">
-                <td className="px-3 py-2 font-mono text-xs">{d.docNo}</td>
+                <td className="px-3 py-2 font-mono text-[14px]">{d.docNo}</td>
                 <td className="px-3 py-2">
                   <span className={cn('rounded px-2 py-0.5 text-[10px]', TYPE_TONE[d.demandType])}>
                     {TYPE_LABEL[d.demandType]}
                   </span>
                 </td>
                 <td className="px-3 py-2">
-                  <div className="font-mono text-xs text-muted-foreground">{d.part?.code ?? d.partId}</div>
+                  <div className="font-mono text-[14px] text-muted-foreground">{d.part?.code ?? d.partId}</div>
                   <div className="text-sm">{d.part?.name ?? '—'}</div>
                 </td>
                 <td className="px-3 py-2 text-xs">{d.warehouse?.code ?? d.warehouseId}</td>

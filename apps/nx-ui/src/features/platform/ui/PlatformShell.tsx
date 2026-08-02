@@ -77,7 +77,7 @@ export function PlatformShell({ children }: { children: React.ReactNode }) {
 
   if (authState === 'checking') {
     return (
-      <div className="min-h-screen bg-black text-zinc-500 font-mono text-xs flex items-center justify-center">
+      <div className="min-h-screen bg-black text-zinc-500 font-mono text-[14px] flex items-center justify-center">
         verifying platform session...
       </div>
     );

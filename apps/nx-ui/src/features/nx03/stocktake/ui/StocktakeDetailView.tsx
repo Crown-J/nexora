@@ -299,9 +299,9 @@ function ItemRow(props: {
   return (
     <tr className="border-t hover:bg-muted/20">
       <td className="px-2 py-1">{item.lineNo}</td>
-      <td className="px-2 py-1 font-mono text-xs">{item.partNo}</td>
+      <td className="px-2 py-1 font-mono text-[14px]">{item.partNo}</td>
       <td className="px-2 py-1">{item.partName}</td>
-      <td className="px-2 py-1 font-mono text-xs">{item.locationId}</td>
+      <td className="px-2 py-1 font-mono text-[14px]">{item.locationId}</td>
       <td className="px-2 py-1 text-right tabular-nums">{item.systemQty}</td>
       <td className="px-2 py-1 text-right tabular-nums text-xs text-muted-foreground">{item.snapshotQty}</td>
       <td className="px-2 py-1 text-right">

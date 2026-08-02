@@ -215,7 +215,7 @@ export function ClosingWorkbench() {
               value={selectedYp}
               onChange={(e) => setSelectedYp(e.target.value)}
               placeholder="YYYY-EE"
-              className="h-8 w-28 rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-2 font-mono text-xs text-[#E8E8EB] outline-none focus:border-[#E8A020]/60"
+              className="h-8 w-28 rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-2 font-mono text-[14px] text-[#E8E8EB] outline-none focus:border-[#E8A020]/60"
             />
             <button
               type="button"

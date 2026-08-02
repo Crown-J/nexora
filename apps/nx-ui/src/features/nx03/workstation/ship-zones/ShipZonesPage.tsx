@@ -97,7 +97,7 @@ function MailCard({
           value={tracking}
           onChange={(e) => setTracking(e.target.value)}
           placeholder="物流單號"
-          className="h-9 rounded border border-border bg-transparent px-2 font-mono text-xs text-foreground placeholder:text-muted-foreground focus:outline-none"
+          className="h-9 rounded border border-border bg-transparent px-2 font-mono text-[14px] text-foreground placeholder:text-muted-foreground focus:outline-none"
         />
       </div>
       <button

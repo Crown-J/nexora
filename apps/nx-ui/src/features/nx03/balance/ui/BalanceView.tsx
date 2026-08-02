@@ -182,7 +182,7 @@ export function BalanceView({ vm }: BalanceViewProps) {
                       : '';
                 return (
                   <tr key={r.id} className={cx('border-b border-border/60', rowBg)}>
-                    <td className="px-3 py-2 font-mono text-xs">
+                    <td className="px-3 py-2 font-mono text-[14px]">
                       <Link
                         href={ledgerHrefForPart(r.partCode)}
                         className="text-primary underline-offset-2 hover:underline"
@@ -243,7 +243,7 @@ export function BalanceView({ vm }: BalanceViewProps) {
                   <div className="min-w-0 flex-1">
                     <Link
                       href={ledgerHrefForPart(r.partCode)}
-                      className="font-mono text-xs text-primary underline-offset-2 hover:underline"
+                      className="font-mono text-[14px] text-primary underline-offset-2 hover:underline"
                     >
                       {r.partCode}
                     </Link>

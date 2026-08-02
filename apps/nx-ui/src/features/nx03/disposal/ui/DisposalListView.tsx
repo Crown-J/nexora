@@ -144,7 +144,7 @@ export function DisposalListView() {
             ) : (
               rows.map((r) => (
                 <tr key={r.id} className="border-b border-border/50 hover:bg-muted/20">
-                  <td className="px-3 py-2 font-mono text-xs">
+                  <td className="px-3 py-2 font-mono text-[14px]">
                     <Link
                       href={`/dashboard/inventory/disposal/${encodeURIComponent(r.id)}`}
                       className="text-primary hover:underline"
@@ -200,7 +200,7 @@ function CreateDialog({
               value={warehouseId}
               onChange={(e) => setWarehouseId(e.target.value)}
               placeholder="如 NX01WRHS0000001"
-              className="mt-1 w-full rounded-md border bg-background px-2 py-1 font-mono text-xs"
+              className="mt-1 w-full rounded-md border bg-background px-2 py-1 font-mono text-[14px]"
             />
           </label>
           <label className="block">

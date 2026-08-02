@@ -222,7 +222,7 @@ export function SalesReport() {
                     key: 'partNo',
                     label: '料號',
                     hideOnMobile: true,
-                    render: (p) => <span className="font-mono text-xs">{p.partNo}</span>,
+                    render: (p) => <span className="font-mono text-[14px]">{p.partNo}</span>,
                   },
                   {
                     key: 'partName',

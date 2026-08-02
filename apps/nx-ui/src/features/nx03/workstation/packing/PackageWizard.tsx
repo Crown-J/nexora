@@ -140,7 +140,7 @@ export function PackageWizard({ onCreated, onCancel }: { onCreated: (id: string)
                     <button key={s.soId} type="button" onClick={() => toggleSo(s.soId)} className={cx('flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left', selSo.has(s.soId) ? 'border-primary/50 bg-primary/5' : 'border-border hover:bg-muted/20')}>
                       <input type="checkbox" checked={selSo.has(s.soId)} readOnly className="h-4 w-4 accent-primary" />
                       <span className="truncate text-sm font-medium text-foreground">{s.customerName}</span>
-                      <span className="shrink-0 font-mono text-xs text-muted-foreground">{s.soDocNo}</span>
+                      <span className="shrink-0 font-mono text-[14px] text-muted-foreground">{s.soDocNo}</span>
                       <span className="ml-auto shrink-0 text-xs text-muted-foreground tabular-nums">{s.lines.length} 項</span>
                     </button>
                   ))}
@@ -172,7 +172,7 @@ export function PackageWizard({ onCreated, onCancel }: { onCreated: (id: string)
                 <div key={s.soId} className="rounded-lg border border-border p-3">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-foreground">{s.customerName}</span>
-                    <span className="font-mono text-xs text-muted-foreground">{s.soDocNo}</span>
+                    <span className="font-mono text-[14px] text-muted-foreground">{s.soDocNo}</span>
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">{type === 'P' ? '（自取、免地址）' : (s.deliveryAddress || '⚠ 未填送貨地址')}</p>
                 </div>

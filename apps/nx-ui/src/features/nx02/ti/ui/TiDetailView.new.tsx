@@ -510,7 +510,7 @@ function TiInlineEditRow({
     >
       <td className="px-3 py-1 text-xs text-primary">{editItem.lineNo}</td>
       <td className="px-2 py-1" colSpan={2}>
-        <span className="font-mono text-xs">{editItem.partNo}　{editItem.partName}</span>
+        <span className="font-mono text-[14px]">{editItem.partNo}　{editItem.partName}</span>
       </td>
       <td className="px-2 py-1 text-xs text-muted-foreground">{editItem.sourceSoDocNo ?? '—'}</td>
       <td className="px-2 py-1">
@@ -615,13 +615,13 @@ function TiItemsTable({
                 }`}
               >
                 <td className="px-3 py-2 text-xs text-muted-foreground">{it.lineNo}</td>
-                <td className="px-3 py-2 font-mono text-xs">
+                <td className="px-3 py-2 font-mono text-[14px]">
                   <div>{it.partNo}</div>
                   {it.secCode ? <div className="mt-0.5 text-[10px] text-muted-foreground" title="廠牌料號">{it.secCode}</div> : null}
                 </td>
                 <td className="px-3 py-2">{it.partName}</td>
-                <td className="px-3 py-2 font-mono text-xs">{it.sourceSoDocNo ?? '—'}</td>
-                <td className="px-3 py-2 font-mono text-xs">{locCode(it.locationId)}</td>
+                <td className="px-3 py-2 font-mono text-[14px]">{it.sourceSoDocNo ?? '—'}</td>
+                <td className="px-3 py-2 font-mono text-[14px]">{locCode(it.locationId)}</td>
                 <td className="px-3 py-2 text-right tabular-nums">{Number(it.qty)}</td>
                 <td className="px-3 py-2 text-right tabular-nums">
                   {noPrice ? <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[11px] text-amber-800">待回價</span> : fmt(it.unitCost)}
@@ -803,7 +803,7 @@ function TiToRrDialog({
                       }
                     />
                   </td>
-                  <td className="px-2 py-1.5 font-mono text-xs">{it.partNo}</td>
+                  <td className="px-2 py-1.5 font-mono text-[14px]">{it.partNo}</td>
                   <td className="px-2 py-1.5">{it.partName}</td>
                   <td className="px-2 py-1.5 text-right tabular-nums">{Number(it.qty)}</td>
                   <td className="px-2 py-1.5 text-right">

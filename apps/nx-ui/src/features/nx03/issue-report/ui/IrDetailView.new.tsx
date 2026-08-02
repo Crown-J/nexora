@@ -349,9 +349,9 @@ export function IrDetailPanel({
               <span className="rounded bg-muted px-2 py-0.5 text-xs">{irSourceLabel(ir)}</span>
               {ir.sourceDocId ? (
                 srcHref ? (
-                  <Link href={srcHref} className="font-mono text-xs text-primary hover:underline">{ir.sourceDocId}</Link>
+                  <Link href={srcHref} className="font-mono text-[14px] text-primary hover:underline">{ir.sourceDocId}</Link>
                 ) : (
-                  <span className="font-mono text-xs text-muted-foreground">{ir.sourceDocId}</span>
+                  <span className="font-mono text-[14px] text-muted-foreground">{ir.sourceDocId}</span>
                 )
               ) : null}
             </div>
@@ -372,10 +372,10 @@ export function IrDetailPanel({
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-muted-foreground">關聯處置單：</span>
                     {relHref ? (
-                      <Link href={relHref} className="font-mono text-xs text-primary hover:underline">{ir.relatedDocId}</Link>
+                      <Link href={relHref} className="font-mono text-[14px] text-primary hover:underline">{ir.relatedDocId}</Link>
                     ) : (
                       <>
-                        <span className="font-mono text-xs">{ir.relatedDocId}</span>
+                        <span className="font-mono text-[14px]">{ir.relatedDocId}</span>
                         {ir.dispositionType === 'W' ? (
                           <Link href="/dashboard/purchase/warranty" className="text-xs text-primary hover:underline">（保固列表）</Link>
                         ) : null}
@@ -600,7 +600,7 @@ function IrDisposeDialog({
         {effectiveMode === 'link' || disp === 'C' ? (
           <label className="block text-sm">
             <span className="mb-1 block text-xs text-muted-foreground">既有單據 ID（系統會驗證存在）</span>
-            <input value={relatedDocId} onChange={(e) => setRelatedDocId(e.target.value)} placeholder="貼上處置單 ID" className={`${cls} font-mono text-xs`} />
+            <input value={relatedDocId} onChange={(e) => setRelatedDocId(e.target.value)} placeholder="貼上處置單 ID" className={`${cls} font-mono text-[14px]`} />
           </label>
         ) : null}
 
@@ -609,13 +609,13 @@ function IrDisposeDialog({
             <div className="text-xs text-amber-600">特價售出：未連結既有銷貨單時、自動開特價銷貨單（成本走平均成本、售價填下方特價）。</div>
             <label className="block text-sm">
               <span className="mb-1 block text-xs text-muted-foreground">連結既有銷貨單 ID（可空 = 自動開單）</span>
-              <input value={relatedDocId} onChange={(e) => setRelatedDocId(e.target.value)} className={`${cls} font-mono text-xs`} />
+              <input value={relatedDocId} onChange={(e) => setRelatedDocId(e.target.value)} className={`${cls} font-mono text-[14px]`} />
             </label>
             {!relatedDocId.trim() ? (
               <div className="grid gap-2 md:grid-cols-2">
                 <label className="block text-sm">
                   <span className="mb-1 block text-xs text-muted-foreground">買家 ID *</span>
-                  <input value={xCustomerId} onChange={(e) => setXCustomerId(e.target.value)} className={`${cls} font-mono text-xs`} />
+                  <input value={xCustomerId} onChange={(e) => setXCustomerId(e.target.value)} className={`${cls} font-mono text-[14px]`} />
                 </label>
                 <label className="block text-sm">
                   <span className="mb-1 block text-xs text-muted-foreground">特價單價 *</span>

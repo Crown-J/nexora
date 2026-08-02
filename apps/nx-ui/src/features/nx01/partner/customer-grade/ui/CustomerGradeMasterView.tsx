@@ -142,7 +142,7 @@ export function CustomerGradeMasterView() {
             ) : (
               rows.map((row) => (
                 <tr key={row.id} className="border-t border-border/60">
-                  <td className="px-2 py-2 font-mono text-xs">{row.code}</td>
+                  <td className="px-2 py-2 font-mono text-[14px]">{row.code}</td>
                   <td className="px-2 py-2">{row.name}</td>
                   <td className="px-2 py-2 tabular-nums">{row.marginPct ?? '—'}</td>
                   <td className="px-2 py-2 text-xs tabular-nums">{row.sortNo}</td>

@@ -883,7 +883,7 @@ export function RrCreatePanel({
                           }
                         />
                       </td>
-                      <td className="px-2 py-1.5 font-mono text-xs">{it.partNo}</td>
+                      <td className="px-2 py-1.5 font-mono text-[14px]">{it.partNo}</td>
                       <td className="px-2 py-1.5">{it.partName}</td>
                       <td className="px-2 py-1.5 text-right tabular-nums">{it.qty}</td>
                       <td className="px-2 py-1.5 text-right tabular-nums text-muted-foreground">{Number(it.receivedQty || 0)}</td>
@@ -951,7 +951,7 @@ export function RrCreatePanel({
                           }
                         />
                       </td>
-                      <td className="px-2 py-1.5 font-mono text-xs">{it.partNo}</td>
+                      <td className="px-2 py-1.5 font-mono text-[14px]">{it.partNo}</td>
                       <td className="px-2 py-1.5">{it.partName}</td>
                       <td className="px-2 py-1.5 text-right tabular-nums">{it.qty}</td>
                       <td className="px-2 py-1.5 text-right">
@@ -1192,14 +1192,14 @@ function RrInlineItemRow({
       <td className="px-3 py-1 text-xs text-primary">{editItem ? editItem.lineNo : '＋'}</td>
       <td className="px-2 py-1" colSpan={2}>
         {editItem ? (
-          <span className="font-mono text-xs">{editItem.partNo}　{editItem.partName}</span>
+          <span className="font-mono text-[14px]">{editItem.partNo}　{editItem.partName}</span>
         ) : (
           <PartPicker inputRef={partRef} onPick={setPart} />
         )}
       </td>
       <td className="px-2 py-1">
         {editItem ? (
-          <span className="font-mono text-xs">{locs.find((l) => l.id === editItem.locationId)?.code ?? editItem.locationId}</span>
+          <span className="font-mono text-[14px]">{locs.find((l) => l.id === editItem.locationId)?.code ?? editItem.locationId}</span>
         ) : (
           <select value={loc} onChange={(e) => setLoc(e.target.value)} className={cell} disabled={busy}>
             <option value="">— 庫位 —</option>
@@ -1240,7 +1240,7 @@ function RrInlineItemRow({
       <td className="px-3 py-1 text-right tabular-nums text-muted-foreground">{fmt(lineAmount)}</td>
       <td className="px-2 py-1">
         {editItem ? (
-          <input value={batchNo} onChange={(e) => setBatchNo(e.target.value)} onKeyDown={enterCommit} placeholder="自動產" className={`${cell} font-mono text-xs`} />
+          <input value={batchNo} onChange={(e) => setBatchNo(e.target.value)} onKeyDown={enterCommit} placeholder="自動產" className={`${cell} font-mono text-[14px]`} />
         ) : (
           <span className="px-1 text-xs text-muted-foreground">自動</span>
         )}
@@ -1338,9 +1338,9 @@ function RrItemsTable({
                 }`}
               >
                 <td className="px-3 py-2 text-xs text-muted-foreground">{it.lineNo}</td>
-                <td className="px-3 py-2 font-mono text-xs">{it.partNo}</td>
+                <td className="px-3 py-2 font-mono text-[14px]">{it.partNo}</td>
                 <td className="px-3 py-2">{it.partName}</td>
-                <td className="px-3 py-2 font-mono text-xs">{locCode(it.locationId)}</td>
+                <td className="px-3 py-2 font-mono text-[14px]">{locCode(it.locationId)}</td>
                 <td className="px-3 py-2 text-right tabular-nums">{Number(it.qty)}</td>
                 <td className="px-3 py-2 text-right tabular-nums">{it.actualQty != null ? Number(it.actualQty) : <span className="text-muted-foreground">—</span>}</td>
                 <td className="px-3 py-2 text-right text-xs">
@@ -1354,7 +1354,7 @@ function RrItemsTable({
                 </td>
                 <td className="px-3 py-2 text-right tabular-nums">{fmt(it.unitCost)}</td>
                 <td className="px-3 py-2 text-right font-medium tabular-nums">{fmt(it.lineAmount)}</td>
-                <td className="px-3 py-2 font-mono text-xs">{it.batchNo ?? '—'}</td>
+                <td className="px-3 py-2 font-mono text-[14px]">{it.batchNo ?? '—'}</td>
                 <td className="px-3 py-2 text-xs">{it.warrantyExpiredAt ? it.warrantyExpiredAt.slice(0, 10) : '—'}</td>
                 {editable ? (
                   <td className="px-3 py-2 text-right">
@@ -1488,7 +1488,7 @@ function PoLineAddDialog({
                       <td className="px-2 py-1.5 text-center">
                         <input type="checkbox" disabled={remain <= 0} checked={checked.has(it.id)} onChange={() => toggle(it.id)} />
                       </td>
-                      <td className="cursor-pointer px-2 py-1.5 font-mono text-xs" onClick={() => remain > 0 && toggle(it.id)}>{it.partNo}</td>
+                      <td className="cursor-pointer px-2 py-1.5 font-mono text-[14px]" onClick={() => remain > 0 && toggle(it.id)}>{it.partNo}</td>
                       <td className="cursor-pointer px-2 py-1.5" onClick={() => remain > 0 && toggle(it.id)}>{it.partName}</td>
                       <td className="px-2 py-1.5 text-right tabular-nums">{it.qty}</td>
                       <td className="px-2 py-1.5 text-right tabular-nums text-muted-foreground">{Number(it.receivedQty || 0)}</td>

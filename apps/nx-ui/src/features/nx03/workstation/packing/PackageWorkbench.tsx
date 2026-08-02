@@ -41,7 +41,7 @@ const COLUMNS: MasterTableColumn<PackageRow>[] = [
   { key: 'plDate', label: '包貨日期', sortable: true, render: (r) => r.plDate ?? '—' },
   { key: 'customerLabel', label: '客戶', render: (r) => r.customerLabel },
   { key: 'lineCount', label: '項數', render: (r) => <span className="tabular-nums">{r.lineCount}</span> },
-  { key: 'warehouseCode', label: '倉別', render: (r) => <span className="font-mono text-xs">{r.warehouseCode}</span> },
+  { key: 'warehouseCode', label: '倉別', render: (r) => <span className="font-mono text-[14px]">{r.warehouseCode}</span> },
 ];
 
 const CONFIG: DocWorkbenchConfig<PackageRow, PkgCriteria> = {

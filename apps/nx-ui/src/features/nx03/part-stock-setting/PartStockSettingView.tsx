@@ -205,11 +205,11 @@ function SettingRow({ row, onChanged }: { row: Setting; onChanged: () => void })
   return (
     <tr className={`border-t ${row.isActive ? '' : 'opacity-50'}`}>
       <td className="px-3 py-1">
-        <div className="font-mono text-xs">{row.part?.code ?? row.partId}</div>
+        <div className="font-mono text-[14px]">{row.part?.code ?? row.partId}</div>
         <div className="text-xs text-muted-foreground">{row.part?.name ?? '—'}</div>
       </td>
       <td className="px-3 py-1">
-        <div className="font-mono text-xs">{row.warehouse?.code ?? row.warehouseId}</div>
+        <div className="font-mono text-[14px]">{row.warehouse?.code ?? row.warehouseId}</div>
         <div className="text-xs text-muted-foreground">{row.warehouse?.name ?? ''}</div>
       </td>
       <td className="px-3 py-1 text-right tabular-nums">
@@ -239,10 +239,10 @@ function SettingRow({ row, onChanged }: { row: Setting; onChanged: () => void })
             value={defaultLoc}
             onChange={(e) => setDefaultLoc(e.target.value)}
             placeholder="locationId (清空 = 移除)"
-            className="w-40 rounded border bg-background px-1 font-mono text-xs"
+            className="w-40 rounded border bg-background px-1 font-mono text-[14px]"
           />
         ) : (
-          <span className="font-mono text-xs">{row.defaultLocationId ?? '—'}</span>
+          <span className="font-mono text-[14px]">{row.defaultLocationId ?? '—'}</span>
         )}
       </td>
       <td className="px-3 py-1">

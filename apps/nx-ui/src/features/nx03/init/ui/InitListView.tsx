@@ -129,7 +129,7 @@ export function InitListView({ vm }: InitListViewProps) {
                 const b = statusBadge(r.status);
                 return (
                   <tr key={r.id} className="border-b border-border/60">
-                    <td className="px-3 py-2 font-mono text-xs">
+                    <td className="px-3 py-2 font-mono text-[14px]">
                       <Link href={`/dashboard/inventory/init/${r.id}`} className="text-primary hover:underline">
                         {r.docNo}
                       </Link>

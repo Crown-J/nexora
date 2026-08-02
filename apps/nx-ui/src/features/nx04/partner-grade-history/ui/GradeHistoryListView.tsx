@@ -210,8 +210,8 @@ export function GradeHistoryListView({
             <tbody>
               {rows.map((r) => (
                 <tr key={r.id} className="border-t hover:bg-muted/30">
-                  <td className="px-3 py-2 font-mono text-xs">{r.partnerId}</td>
-                  <td className="px-3 py-2 font-mono text-xs">
+                  <td className="px-3 py-2 font-mono text-[14px]">{r.partnerId}</td>
+                  <td className="px-3 py-2 font-mono text-[14px]">
                     {r.oldGradeId} → <strong>{r.newGradeId}</strong>
                   </td>
                   <td className="px-3 py-2 text-xs">{r.reason}</td>

@@ -114,7 +114,7 @@ export function PartSearchSelect({
                     )}
                   >
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate font-mono text-xs text-foreground">{p.code}</span>
+                      <span className="block truncate font-mono text-[14px] text-foreground">{p.code}</span>
                       <span className="block truncate text-[11px] text-muted-foreground">{p.name}</span>
                     </span>
                     {value === p.id ? <Check className="size-3.5 shrink-0 text-primary" /> : null}

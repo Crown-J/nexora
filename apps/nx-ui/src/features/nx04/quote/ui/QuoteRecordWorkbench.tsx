@@ -218,9 +218,9 @@ export function QuoteRecordWorkbench() {
   const baseColumns: MasterTableColumn<QuoteRecord>[] = useMemo(
     () => [
       { key: 'recordDate', label: '報價日期', sortable: true, render: (r) => r.recordDate.slice(0, 10) },
-      { key: 'customerCode', label: '客戶編號', render: (r) => <span className="font-mono text-xs">{r.customerCode ?? '—'}</span> },
+      { key: 'customerCode', label: '客戶編號', render: (r) => <span className="font-mono text-[14px]">{r.customerCode ?? '—'}</span> },
       { key: 'customerName', label: '客戶名稱', render: (r) => r.customerName ?? r.customerId },
-      { key: 'baseNo', label: '基準料號', render: (r) => <span className="font-mono text-xs">{r.baseNo ?? r.partNo ?? '—'}</span> },
+      { key: 'baseNo', label: '基準料號', render: (r) => <span className="font-mono text-[14px]">{r.baseNo ?? r.partNo ?? '—'}</span> },
       { key: 'brandName', label: '廠牌', render: (r) => r.brandName ?? '—' },
       { key: 'partName', label: '品名', render: (r) => r.partName ?? '—' },
       { key: 'qty', label: '數量', sortable: true, render: (r) => <span className="tabular-nums">{fmtNum(r.qty)}</span> },

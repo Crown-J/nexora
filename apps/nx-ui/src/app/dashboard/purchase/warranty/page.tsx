@@ -394,7 +394,7 @@ export default function WarrantyClaimListPage() {
             <tbody>
               {rows.map((r) => (
                 <tr key={r.id} className="border-t border-white/5">
-                  <td className="px-3 py-2 font-mono text-xs">{r.docNo}</td>
+                  <td className="px-3 py-2 font-mono text-[14px]">{r.docNo}</td>
                   <td className="px-3 py-2">{CLAIM_TYPE_LABEL[r.claimType]}</td>
                   <td className="px-3 py-2">{r.supplier?.code} {r.supplier?.name}</td>
                   <td className="px-3 py-2">{r.partNo} {r.partName}</td>
@@ -452,7 +452,7 @@ export default function WarrantyClaimListPage() {
                                 type="number"
                                 step="0.01"
                                 min="0"
-                                className="rounded border border-amber-500/40 bg-amber-500/10 px-1 py-0.5 font-mono text-xs text-amber-300"
+                                className="rounded border border-amber-500/40 bg-amber-500/10 px-1 py-0.5 font-mono text-[14px] text-amber-300"
                                 placeholder="退款金額（建議=成本×數量）"
                                 value={resultDraft[r.id]?.refundAmount ?? ''}
                                 onChange={(e) => setResultDraft((s) => ({

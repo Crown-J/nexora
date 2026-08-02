@@ -83,7 +83,7 @@ export function PackageDetailPanel({ id, onChanged }: { id: string; onChanged: (
         </div>
         {sealed.parcels.map((p) => (
           <div key={p.id} className="overflow-hidden rounded-lg border border-border">
-            <div className="border-b border-border bg-muted/30 px-3 py-1.5 font-mono text-xs text-foreground">{p.parcelNo}</div>
+            <div className="border-b border-border bg-muted/30 px-3 py-1.5 font-mono text-[14px] text-foreground">{p.parcelNo}</div>
             {p.lines.map((l) => (
               <div key={l.id} className="flex items-center gap-2 border-t border-border/60 px-3 py-1.5 text-sm first:border-t-0">
                 <span className="truncate font-mono text-foreground">{l.partNo}</span>
@@ -148,7 +148,7 @@ export function PackageDetailPanel({ id, onChanged }: { id: string; onChanged: (
                     {so.lines.map((l) => (
                       <button key={l.pkItemId} type="button" onClick={() => toggle(l.pkItemId)} className={cx('flex w-full items-center gap-2 px-2.5 py-1.5 text-left', sel.has(l.pkItemId) ? 'bg-primary/5' : 'hover:bg-muted/20')}>
                         <input type="checkbox" checked={sel.has(l.pkItemId)} readOnly className="h-3.5 w-3.5 accent-primary" />
-                        <span className="truncate font-mono text-xs text-foreground">{l.partNo}</span>
+                        <span className="truncate font-mono text-[14px] text-foreground">{l.partNo}</span>
                         <span className="ml-auto shrink-0 text-xs text-primary tabular-nums">×{l.qty}</span>
                       </button>
                     ))}

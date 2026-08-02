@@ -563,7 +563,7 @@ function PrInlineEditRow({
     >
       <td className="px-3 py-1 text-xs text-primary">{editItem.lineNo}</td>
       <td className="px-2 py-1" colSpan={2}>
-        <span className="font-mono text-xs">{editItem.partNo}　{editItem.partName}</span>
+        <span className="font-mono text-[14px]">{editItem.partNo}　{editItem.partName}</span>
       </td>
       <td className="px-2 py-1">
         <select value={loc} onChange={(e) => setLoc(e.target.value)} className={cell} disabled={busy}>
@@ -665,9 +665,9 @@ function PrItemsTable({
                 }`}
               >
                 <td className="px-3 py-2 text-xs text-muted-foreground">{it.lineNo}</td>
-                <td className="px-3 py-2 font-mono text-xs">{it.partNo}</td>
+                <td className="px-3 py-2 font-mono text-[14px]">{it.partNo}</td>
                 <td className="px-3 py-2">{it.partName}</td>
-                <td className="px-3 py-2 font-mono text-xs">{locCode(it.locationId)}</td>
+                <td className="px-3 py-2 font-mono text-[14px]">{locCode(it.locationId)}</td>
                 <td className="px-3 py-2 text-right tabular-nums">{Number(it.qty)}</td>
                 <td className="px-3 py-2 text-right tabular-nums">{fmt(it.unitCost)}</td>
                 <td className="px-3 py-2 text-right font-medium tabular-nums">{fmt(it.lineAmount)}</td>
@@ -806,7 +806,7 @@ function RrLineAddDialog({
                       <td className="px-2 py-1.5 text-center">
                         <input type="checkbox" disabled={dup} checked={checked.has(it.id)} onChange={() => toggle(it.id)} title={dup ? '已帶入本單' : undefined} />
                       </td>
-                      <td className="cursor-pointer px-2 py-1.5 font-mono text-xs" onClick={() => !dup && toggle(it.id)}>{it.partNo}</td>
+                      <td className="cursor-pointer px-2 py-1.5 font-mono text-[14px]" onClick={() => !dup && toggle(it.id)}>{it.partNo}</td>
                       <td className="cursor-pointer px-2 py-1.5" onClick={() => !dup && toggle(it.id)}>{it.partName}{dup ? <span className="ml-2 text-[10px] text-muted-foreground">（已帶入）</span> : null}</td>
                       <td className="px-2 py-1.5 text-right tabular-nums">{Number(it.actualQty ?? it.qty)}</td>
                       <td className="px-2 py-1.5 text-right">
@@ -1039,7 +1039,7 @@ export function PrCreatePanel({
                         }
                       />
                     </td>
-                    <td className="px-2 py-1.5 font-mono text-xs">{it.partNo}</td>
+                    <td className="px-2 py-1.5 font-mono text-[14px]">{it.partNo}</td>
                     <td className="px-2 py-1.5">{it.partName}</td>
                     <td className="px-2 py-1.5 text-right tabular-nums">{Number(it.actualQty ?? it.qty)}</td>
                     <td className="px-2 py-1.5 text-right">

@@ -157,7 +157,7 @@ export function ScopePicker({ scopeType, value, onChange, disabled }: ScopePicke
         <span className={value ? '' : 'text-muted-foreground'}>
           {value ? (
             <span className="space-x-1">
-              <span className="font-mono text-xs text-muted-foreground">{value}</span>
+              <span className="font-mono text-[14px] text-muted-foreground">{value}</span>
               <span>{currentLabel && currentLabel !== value ? `· ${currentLabel}` : ''}</span>
             </span>
           ) : (
@@ -193,7 +193,7 @@ export function ScopePicker({ scopeType, value, onChange, disabled }: ScopePicke
                   onClick={() => handlePick(e)}
                   className="block w-full px-2 py-1.5 text-left text-sm hover:bg-muted/40"
                 >
-                  <div className="font-mono text-xs text-muted-foreground">{e.id}</div>
+                  <div className="font-mono text-[14px] text-muted-foreground">{e.id}</div>
                   <div>{formatLabel(e)}</div>
                 </button>
               ))

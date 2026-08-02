@@ -659,7 +659,7 @@ export function SalesOperationWorkspace({
                       variantId === v.id ? 'bg-amber-500/15' : 'hover:bg-muted/15'
                     )}
                   >
-                    <span className="font-mono text-xs font-medium">{v.partNo}</span>
+                    <span className="font-mono text-[14px] font-medium">{v.partNo}</span>
                     <span>{v.partName}</span>
                     <span className="text-xs text-muted-foreground">{v.roleLabel}</span>
                   </button>
@@ -705,7 +705,7 @@ export function SalesOperationWorkspace({
                           : 'border-border/50 hover:bg-muted/15'
                       )}
                     >
-                      <span className="font-mono text-xs text-muted-foreground">{row.code}</span>
+                      <span className="font-mono text-[14px] text-muted-foreground">{row.code}</span>
                       <span className="min-w-0">{row.name}</span>
                       <span className="text-right tabular-nums text-foreground">
                         {row.qty === null ? '—' : row.qty}
@@ -863,7 +863,7 @@ export function SalesOperationWorkspace({
                             }}
                           >
                             <td className="px-2 py-2 font-medium">{item.label}</td>
-                            <td className="px-2 py-2 font-mono text-xs">
+                            <td className="px-2 py-2 font-mono text-[14px]">
                               {item.row?.docNo ?? (item.key === 'c' ? '—' : '—')}
                             </td>
                             <td className="px-2 py-2 tabular-nums text-muted-foreground">
@@ -1124,17 +1124,17 @@ export function SalesOperationWorkspace({
             {/* ⚠️ v3.0.0：這裡原本列「F2 第一區搜尋」，但 F2 已是九宮格（規格 §7.3）、
                    本站也沒真的綁過這個鍵。假的快捷鍵不列在快捷鍵表上。 */}
             <li>
-              <kbd className="rounded border px-1 font-mono text-xs">Alt+1</kbd> 第二區庫存（左 Enter → 右；再 Enter
+              <kbd className="rounded border px-1 font-mono text-[14px]">Alt+1</kbd> 第二區庫存（左 Enter → 右；再 Enter
               → 第三區）
             </li>
             <li>
-              <kbd className="rounded border px-1 font-mono text-xs">Alt+2</kbd> 第三區客戶框
+              <kbd className="rounded border px-1 font-mono text-[14px]">Alt+2</kbd> 第三區客戶框
             </li>
             <li>
-              <kbd className="rounded border px-1 font-mono text-xs">Alt+A</kbd> 第四區報價（等同第三區紀錄表 Enter）
+              <kbd className="rounded border px-1 font-mono text-[14px]">Alt+A</kbd> 第四區報價（等同第三區紀錄表 Enter）
             </li>
             <li>
-              <kbd className="rounded border px-1 font-mono text-xs">?</kbd> 本說明（不在文字欄內）
+              <kbd className="rounded border px-1 font-mono text-[14px]">?</kbd> 本說明（不在文字欄內）
             </li>
             <li className="text-xs text-muted-foreground">部分瀏覽器可能攔截 Alt 組合鍵。</li>
           </ul>

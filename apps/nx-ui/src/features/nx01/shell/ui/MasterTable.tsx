@@ -417,7 +417,9 @@ export function MasterTable<T>({
                         aria-label={`選取 ${id}`}
                       />
                     ) : (
-                      <span className="font-mono text-[11px] tabular-nums text-muted-foreground/70">
+                      // v3.0.0 階段 4：序號 11px → 14px（§6 最小級距 14），
+                      // 且灰字改「同色降一階」——muted-foreground 才是規格禁的灰字。
+                      <span className="font-mono text-[14px] tabular-nums text-foreground/75">
                         {String(i + 1).padStart(4, '0')}
                       </span>
                     )}
@@ -476,7 +478,8 @@ export function MasterTable<T>({
         {tableWithDnd}
 
         {/* footer 對齊 demo .nx-tfoot */}
-        <div className="flex items-center gap-[14px] border-t border-border/40 bg-card/80 px-[14px] py-[10px] text-[12.5px] text-muted-foreground">
+        {/* v3.0.0 階段 4：footer 12.5px → 14px、灰字改同色降一階（§6） */}
+        <div className="flex items-center gap-[14px] border-t border-border/40 bg-card/80 px-[14px] py-[10px] text-[14px] text-foreground/75">
           <span className="font-variant-numeric tabular-nums">
             共 <span className="text-foreground">{total}</span> 筆 · 顯示 {rows.length} 筆
             {footerHint ? ` · ${footerHint}` : ''}
@@ -486,7 +489,7 @@ export function MasterTable<T>({
               {onPageSizeChange ? (
                 <PageSizeSelector value={pageSize} onChange={onPageSizeChange} />
               ) : (
-                <span className="text-muted-foreground/70">每頁 {pageSize} 筆</span>
+                <span className="text-foreground/75">每頁 {pageSize} 筆</span>
               )}
             </div>
           )}
@@ -521,7 +524,8 @@ function PageSizeSelector({
           type="button"
           title="調整每頁筆數"
           className={cn(
-            'inline-flex h-[30px] items-center gap-1 rounded-md border border-border/40 bg-background/60 px-2 text-[12px] font-medium text-foreground transition-all hover:border-border/60 hover:bg-background',
+            // v3.0.0 階段 4：12px → 14px（§6 最小級距 14）
+            'inline-flex h-[30px] items-center gap-1 rounded-md border border-border/40 bg-background/60 px-2 text-[14px] font-medium text-foreground transition-all hover:border-border/60 hover:bg-background',
             'data-[state=open]:border-[var(--primary)]/40 data-[state=open]:bg-[var(--primary)]/10 data-[state=open]:text-[var(--primary)]',
           )}
         >
@@ -539,7 +543,7 @@ function PageSizeSelector({
             key={n}
             onClick={() => onChange(n)}
             className={cn(
-              'cursor-pointer rounded-md px-2 py-1.5 text-sm focus:bg-[var(--primary)]/12 focus:text-[var(--primary)] data-[highlighted]:bg-[var(--primary)]/12 data-[highlighted]:text-[var(--primary)]',
+              'cursor-pointer rounded-md px-2 py-1.5 text-[15px] focus:bg-[var(--primary)]/12 focus:text-[var(--primary)] data-[highlighted]:bg-[var(--primary)]/12 data-[highlighted]:text-[var(--primary)]',
               n === value ? 'text-[var(--primary)]' : 'text-foreground',
             )}
           >

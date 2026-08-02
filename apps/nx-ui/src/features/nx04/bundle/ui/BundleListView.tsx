@@ -133,7 +133,7 @@ export function BundleListView() {
             ) : (
               rows.map((r) => (
                 <tr key={r.id} className="border-b border-border/50 hover:bg-muted/20">
-                  <td className="px-3 py-2 font-mono text-xs">
+                  <td className="px-3 py-2 font-mono text-[14px]">
                     <Link
                       href={`/dashboard/sale/bundle/${encodeURIComponent(r.id)}`}
                       className="text-primary hover:underline"
@@ -206,7 +206,7 @@ function CreateDialog({
               value={code}
               onChange={(e) => setCode(e.target.value)}
               placeholder="例：MAINT-BASIC"
-              className="mt-1 w-full rounded-md border bg-background px-2 py-1 font-mono text-xs uppercase"
+              className="mt-1 w-full rounded-md border bg-background px-2 py-1 font-mono text-[14px] uppercase"
             />
           </label>
           <label className="block">

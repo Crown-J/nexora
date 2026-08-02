@@ -142,7 +142,7 @@ export function QuoteRecordPickerDialog({
                       </span>
                     </td>
                     <td className="px-2 py-1.5">{r.recordDate.slice(0, 10)}</td>
-                    <td className="px-2 py-1.5 font-mono text-xs">
+                    <td className="px-2 py-1.5 font-mono text-[14px]">
                       {r.baseNo ?? r.partNo}
                       {/* 調貨詢價軌 2026-07-12：報價當下已決定走同行調貨 → 拉入開單時記得標補貨來源 */}
                       {r.isTransfer ? (

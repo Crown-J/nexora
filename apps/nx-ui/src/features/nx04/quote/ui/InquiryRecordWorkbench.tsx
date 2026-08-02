@@ -214,9 +214,9 @@ export function InquiryRecordWorkbench() {
   const baseColumns: MasterTableColumn<InquiryRecord>[] = useMemo(
     () => [
       { key: 'recordDate', label: '詢價日期', sortable: true, render: (r) => r.recordDate.slice(0, 10) },
-      { key: 'partnerCode', label: '同行編號', render: (r) => <span className="font-mono text-xs">{r.partnerCode ?? '—'}</span> },
+      { key: 'partnerCode', label: '同行編號', render: (r) => <span className="font-mono text-[14px]">{r.partnerCode ?? '—'}</span> },
       { key: 'partnerName', label: '同行名稱', render: (r) => r.partnerName ?? r.sourcePartnerId },
-      { key: 'baseNo', label: '基準料號', render: (r) => <span className="font-mono text-xs">{r.baseNo ?? r.partNo ?? '—'}</span> },
+      { key: 'baseNo', label: '基準料號', render: (r) => <span className="font-mono text-[14px]">{r.baseNo ?? r.partNo ?? '—'}</span> },
       { key: 'brandName', label: '廠牌', render: (r) => r.brandName ?? '—' },
       { key: 'partName', label: '品名', render: (r) => r.partName ?? '—' },
       { key: 'qty', label: '數量', sortable: true, render: (r) => <span className="tabular-nums">{fmtNum(r.qty)}</span> },

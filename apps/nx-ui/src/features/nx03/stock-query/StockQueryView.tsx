@@ -199,7 +199,7 @@ function ByPartTab() {
                   <tbody>
                     {w.locations.map((l) => (
                       <tr key={l.locationId} className="border-t">
-                        <td className="px-3 py-1 font-mono text-xs">{l.locationCode}</td>
+                        <td className="px-3 py-1 font-mono text-[14px]">{l.locationCode}</td>
                         <td className="px-3 py-1">{l.locationName ?? '—'}</td>
                         <td className="px-3 py-1 text-xs">{l.zone ?? '—'}</td>
                         <td className="px-3 py-1 text-right tabular-nums">{l.onHandQty}</td>
@@ -262,7 +262,7 @@ function ByLocationTab() {
               <tbody>
                 {data.items.map((it) => (
                   <tr key={it.partId} className="border-t">
-                    <td className="px-3 py-1 font-mono text-xs">{it.partNo}</td>
+                    <td className="px-3 py-1 font-mono text-[14px]">{it.partNo}</td>
                     <td className="px-3 py-1">{it.partName}</td>
                     <td className="px-3 py-1 text-right tabular-nums">{it.onHandQty}</td>
                     <td className="px-3 py-1 text-right tabular-nums text-xs">{it.avgCost}</td>
@@ -329,7 +329,7 @@ function ByWarehouseTab() {
             <tbody>
               {data.items.map((it) => (
                 <tr key={it.partId} className="border-t">
-                  <td className="px-3 py-1 font-mono text-xs">{it.partNo}</td>
+                  <td className="px-3 py-1 font-mono text-[14px]">{it.partNo}</td>
                   <td className="px-3 py-1">{it.partName}</td>
                   <td className="px-3 py-1 text-right tabular-nums">{it.onHandQty}</td>
                   <td className="px-3 py-1 text-right tabular-nums text-xs">{it.reservedQty}</td>

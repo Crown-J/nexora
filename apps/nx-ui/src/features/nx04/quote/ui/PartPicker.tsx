@@ -134,10 +134,10 @@ export function PartPicker({
             >
               <div className="flex items-center justify-between gap-2">
                 <span className="min-w-0 flex-1 truncate">
-                  <span className="font-mono text-xs text-muted-foreground">{r.code}</span>　{r.name}
+                  <span className="font-mono text-[14px] text-muted-foreground">{r.code}</span>　{r.name}
                   {r.brandName ? <span className="ml-1 text-xs text-muted-foreground">· {r.brandName}</span> : null}
                 </span>
-                <span className="shrink-0 font-mono text-xs text-muted-foreground">
+                <span className="shrink-0 font-mono text-[14px] text-muted-foreground">
                   可出{' '}
                   <span className={Number(r.availableTotal) > 0 ? 'font-semibold text-emerald-600' : ''}>
                     {Number(r.availableTotal).toLocaleString()}

@@ -201,7 +201,7 @@ export function SalesOrderWorkspace({ snapshot }: { snapshot: QuoteSnapshot | nu
                       }}
                       onKeyDown={(e) => onLineKeyDown(i, 'part', e)}
                       placeholder="料號"
-                      className="w-full rounded border border-border/60 bg-background/80 px-2 py-1.5 font-mono text-xs"
+                      className="w-full rounded border border-border/60 bg-background/80 px-2 py-1.5 font-mono text-[14px]"
                     />
                   </td>
                   <td className="p-2">

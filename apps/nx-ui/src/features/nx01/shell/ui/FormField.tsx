@@ -38,7 +38,7 @@ export function FormField({
         className={cn(
           'rounded-md border px-3 py-2 text-sm',
           'border-[var(--nx-surface-input-border)] bg-[var(--nx-surface-input)]',
-          mono && 'font-mono text-xs',
+          mono && 'font-mono text-[14px]',
           dim && 'text-[var(--nx-surface-input-muted)]',
           tone === 'amber' && '!border-[var(--primary)]/30 !bg-[var(--primary)]/8 text-[var(--primary)]',
           tone === 'green' && '!border-[var(--color-success)]/30 !bg-[var(--color-success)]/8 text-[var(--color-success)]',

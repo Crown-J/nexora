@@ -252,7 +252,7 @@ export function PurchaseReport() {
                 key: 'partNo',
                 label: '料號',
                 hideOnMobile: true,
-                render: (it) => <span className="font-mono text-xs">{it.partNo ?? it.partId}</span>,
+                render: (it) => <span className="font-mono text-[14px]">{it.partNo ?? it.partId}</span>,
               },
               {
                 key: 'partName',

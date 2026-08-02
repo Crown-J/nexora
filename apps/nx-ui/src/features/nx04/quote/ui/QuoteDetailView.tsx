@@ -1147,8 +1147,8 @@ function QuoteItemsTable({
                   }`}
                 >
                   <td className="px-3 py-2 text-xs text-muted-foreground">{it.lineNo}</td>
-                  <td className="px-3 py-2 font-mono text-xs">{it.baseNo ?? it.partNo}</td>
-                  <td className="px-3 py-2 font-mono text-xs">{it.brandNo ?? '—'}</td>
+                  <td className="px-3 py-2 font-mono text-[14px]">{it.baseNo ?? it.partNo}</td>
+                  <td className="px-3 py-2 font-mono text-[14px]">{it.brandNo ?? '—'}</td>
                   <td className="px-3 py-2 text-xs">{it.brandName ?? '—'}</td>
                   <td className="px-3 py-2">{it.partName}</td>
                   <td className="px-3 py-2 text-right tabular-nums">{it.qty}</td>

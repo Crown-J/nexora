@@ -16,7 +16,7 @@ export function NxWorkspacePlaceholder({ functionCode, title, desc }: NxWorkspac
       <div className="text-4xl" aria-hidden>
         🚧
       </div>
-      <p className="font-mono text-xs text-[#888780]">{functionCode}</p>
+      <p className="font-mono text-[14px] text-[#888780]">{functionCode}</p>
       <h1 className="text-xl font-medium text-[#f0ede8]">{title}</h1>
       <p className="text-sm text-[#888780]">{desc}</p>
     </div>

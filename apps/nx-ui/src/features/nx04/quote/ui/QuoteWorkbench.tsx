@@ -76,7 +76,7 @@ const COLUMNS: MasterTableColumn<Quote>[] = [
   },
   { key: 'createdAt', label: '建單日期', sortable: true, render: (r) => r.createdAt.slice(0, 10) },
   { key: 'quoteDate', label: '報價日期', sortable: true, render: (r) => r.quoteDate.slice(0, 10) },
-  { key: 'customerCode', label: '客戶編號', render: (r) => <span className="font-mono text-xs">{r.customerCode ?? '—'}</span> },
+  { key: 'customerCode', label: '客戶編號', render: (r) => <span className="font-mono text-[14px]">{r.customerCode ?? '—'}</span> },
   { key: 'customerName', label: '客戶名稱', render: (r) => r.customerName ?? r.customerId },
   { key: 'createdByName', label: '建單人員', render: (r) => r.createdByName ?? '—' },
   { key: 'itemCount', label: '項目數', render: (r) => <span className="tabular-nums">{r.itemCount ?? 0}</span> },

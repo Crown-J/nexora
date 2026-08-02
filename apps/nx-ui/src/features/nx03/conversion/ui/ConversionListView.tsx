@@ -180,7 +180,7 @@ export function ConversionListView() {
                       {CV_TYPE_LABEL[r.conversionType] ?? r.conversionType}
                     </span>
                   </td>
-                  <td className="px-3 py-2 font-mono text-xs">{r.warehouseId}</td>
+                  <td className="px-3 py-2 font-mono text-[14px]">{r.warehouseId}</td>
                   <td className="px-3 py-2">
                     <span className="rounded bg-muted px-2 py-0.5 text-xs">
                       {CV_STATUS_LABEL[r.status] ?? r.status}

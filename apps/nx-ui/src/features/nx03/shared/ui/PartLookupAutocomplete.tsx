@@ -326,7 +326,7 @@ export function PartLookupAutocomplete({
           aria-controls={listboxId}
           aria-autocomplete="list"
           className={cx(
-            'w-full rounded border border-border bg-background px-2 py-1 font-mono text-xs',
+            'w-full rounded border border-border bg-background px-2 py-1 font-mono text-[14px]',
             inputClassName,
           )}
           placeholder={placeholder}

@@ -657,7 +657,7 @@ function StInlineItemRow({
       <td className="px-3 py-1 text-xs text-primary">{isEdit ? editItem!.lineNo : nextLineNo}</td>
       <td className="px-2 py-1" colSpan={2} onKeyDown={(e) => { if (e.key === 'Enter' && !isEdit) { e.preventDefault(); fromRef.current?.focus(); } }}>
         {isEdit ? (
-          <span className="font-mono text-xs">{editItem!.partNo}　{editItem!.partName}</span>
+          <span className="font-mono text-[14px]">{editItem!.partNo}　{editItem!.partName}</span>
         ) : (
           <PartPicker key={pickerKey} inputRef={partRef} onPick={(p) => { setPart(p); setTimeout(() => fromRef.current?.focus(), 0); }} />
         )}
@@ -781,10 +781,10 @@ function StItemsTable({
                 }`}
               >
                 <td className="px-3 py-2 text-xs text-muted-foreground">{it.lineNo}</td>
-                <td className="px-3 py-2 font-mono text-xs">{it.partNo}</td>
+                <td className="px-3 py-2 font-mono text-[14px]">{it.partNo}</td>
                 <td className="px-3 py-2">{it.partName}</td>
-                <td className="px-3 py-2 font-mono text-xs">{locCode(it.fromLocationId, fromLocs)}</td>
-                <td className="px-3 py-2 font-mono text-xs">{locCode(it.toLocationId, toLocs)}</td>
+                <td className="px-3 py-2 font-mono text-[14px]">{locCode(it.fromLocationId, fromLocs)}</td>
+                <td className="px-3 py-2 font-mono text-[14px]">{locCode(it.toLocationId, toLocs)}</td>
                 <td className="px-3 py-2 text-right tabular-nums">{it.qty}</td>
                 <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">{Number(it.unitCost) > 0 ? fmt(it.unitCost) : '—'}</td>
                 {editable ? (

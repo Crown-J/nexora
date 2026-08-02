@@ -239,7 +239,7 @@ export function PhoneticDictionaryMasterView() {
                   <td className="px-2 py-2 text-xs text-muted-foreground">
                     {row.altPhonetics.length ? row.altPhonetics.join(', ') : '—'}
                   </td>
-                  <td className="px-2 py-2 font-mono text-xs">{row.primaryInitial}</td>
+                  <td className="px-2 py-2 font-mono text-[14px]">{row.primaryInitial}</td>
                   <td className="px-2 py-2 text-xs">
                     {row.isActive ? <span className="text-primary">啟用</span> : <span className="text-muted-foreground">停用</span>}
                   </td>

@@ -170,9 +170,9 @@ export function LocationsView() {
             <tbody>
               {rows.map((r) => (
                 <tr key={r.id} className={`border-t ${r.isActive ? '' : 'opacity-50'}`}>
-                  <td className="px-3 py-1 font-mono text-xs">{r.code}</td>
+                  <td className="px-3 py-1 font-mono text-[14px]">{r.code}</td>
                   <td className="px-3 py-1">{r.name ?? '—'}</td>
-                  <td className="px-3 py-1 font-mono text-xs">{r.warehouseId}</td>
+                  <td className="px-3 py-1 font-mono text-[14px]">{r.warehouseId}</td>
                   <td className="px-3 py-1 text-xs">{r.zone ?? '—'}</td>
                   <td className="px-3 py-1 text-xs">
                     {[r.rack, r.levelNo, r.binNo].filter((v) => v !== null && v !== undefined).join(' / ') || '—'}

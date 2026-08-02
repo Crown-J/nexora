@@ -87,7 +87,7 @@ const COLUMNS: MasterTableColumn<IssueReport>[] = [
   },
   { key: 'reportDate', label: '回報日期', sortable: true, render: (r) => r.reportDate.slice(0, 10) },
   { key: 'issueType', label: '異常類型', render: (r) => IR_ISSUE_LABEL[r.issueType] ?? r.issueType },
-  { key: 'partNo', label: '料號', sortable: true, render: (r) => <span className="font-mono text-xs">{r.partNo}</span> },
+  { key: 'partNo', label: '料號', sortable: true, render: (r) => <span className="font-mono text-[14px]">{r.partNo}</span> },
   { key: 'partName', label: '品名', render: (r) => r.partName },
   { key: 'qty', label: '數量', sortable: true, render: (r) => <span className="tabular-nums">{Number(r.qty)}</span> },
   { key: 'warehouseCode', label: '倉庫', render: (r) => r.warehouse?.code ?? '—' },

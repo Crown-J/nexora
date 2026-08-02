@@ -209,7 +209,7 @@ function InitItemRow({
             inputClassName="min-w-[10rem]"
           />
         ) : (
-          <span className="font-mono text-xs">{row.partNo}</span>
+          <span className="font-mono text-[14px]">{row.partNo}</span>
         )}
       </td>
       <td className="max-w-[200px] px-2 py-2 text-xs">{row.partName || '—'}</td>

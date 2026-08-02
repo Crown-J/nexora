@@ -53,7 +53,7 @@ const COLUMNS: MasterTableColumn<Rfq>[] = [
   },
   { key: 'createdAt', label: '建單日期', sortable: true, render: (r) => r.createdAt.slice(0, 10) },
   { key: 'rfqDate', label: '詢價日期', sortable: true, render: (r) => r.rfqDate.slice(0, 10) },
-  { key: 'supplierCode', label: '供應商編號', render: (r) => <span className="font-mono text-xs">{r.supplierCode ?? '—'}</span> },
+  { key: 'supplierCode', label: '供應商編號', render: (r) => <span className="font-mono text-[14px]">{r.supplierCode ?? '—'}</span> },
   { key: 'supplierName', label: '供應商名稱', render: (r) => r.supplierName ?? (r.supplierId ? r.supplierId : '未指定') },
   { key: 'contactName', label: '聯絡人', render: (r) => r.contactName ?? '—' },
   { key: 'createdByName', label: '建單人員', render: (r) => r.createdByName ?? '—' },

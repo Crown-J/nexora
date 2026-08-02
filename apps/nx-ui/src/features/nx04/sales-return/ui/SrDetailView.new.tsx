@@ -781,7 +781,7 @@ function SrInlineEditRow({
     >
       <td className="px-3 py-1 text-xs text-primary">{editItem.lineNo}</td>
       <td className="px-2 py-1" colSpan={2}>
-        <span className="font-mono text-xs">{editItem.partNo}　{editItem.partName}</span>
+        <span className="font-mono text-[14px]">{editItem.partNo}　{editItem.partName}</span>
       </td>
       <td className="px-2 py-1">
         <select value={reason} onChange={(e) => setReason(e.target.value)} className={cell}>
@@ -899,7 +899,7 @@ function SrItemsTable({
                 }`}
               >
                 <td className="px-3 py-2 text-xs text-muted-foreground">{it.lineNo}</td>
-                <td className="px-3 py-2 font-mono text-xs">{it.partNo}</td>
+                <td className="px-3 py-2 font-mono text-[14px]">{it.partNo}</td>
                 <td className="px-3 py-2">{it.partName}</td>
                 <td className="px-3 py-2 text-xs">{REASON_LABEL[it.returnReason] ?? it.returnReason}</td>
                 <td className="px-3 py-2 text-right tabular-nums">{it.qty}</td>
@@ -1040,7 +1040,7 @@ function SoLineAddDialog({
                     <td className="px-2 py-1.5 text-center">
                       <input type="checkbox" checked={checked.has(it.id)} onChange={() => toggle(it.id)} />
                     </td>
-                    <td className="cursor-pointer px-2 py-1.5 font-mono text-xs" onClick={() => toggle(it.id)}>{it.partNo}</td>
+                    <td className="cursor-pointer px-2 py-1.5 font-mono text-[14px]" onClick={() => toggle(it.id)}>{it.partNo}</td>
                     <td className="cursor-pointer px-2 py-1.5" onClick={() => toggle(it.id)}>{it.partName}</td>
                     <td className="px-2 py-1.5 text-right tabular-nums">{it.qty}</td>
                     <td className="px-2 py-1.5 text-right">

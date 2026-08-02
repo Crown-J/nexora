@@ -744,7 +744,7 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
         ) : f.type === 'select' || f.type === 'ref' ? (
           <span>{optionLabel(f, row[f.key], refOptions)}</span>
         ) : (
-          <span className={f.mono ? 'font-mono text-xs' : undefined}>
+          <span className={f.mono ? 'font-mono text-[14px]' : undefined}>
             {String(row[f.key] ?? '—')}
           </span>
         ),
@@ -1036,7 +1036,7 @@ function DetailPane({
             placeholder={f.placeholder}
             className={cn(
               'rounded-md border border-[var(--primary)]/30 bg-[var(--nx-surface-input)] px-2.5 py-1.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-[var(--primary)]/60 focus:ring-1 focus:ring-[var(--primary)]/40',
-              f.type === 'json' && 'font-mono text-xs',
+              f.type === 'json' && 'font-mono text-[14px]',
             )}
           />
         </div>

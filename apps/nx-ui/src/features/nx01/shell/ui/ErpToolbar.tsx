@@ -206,7 +206,7 @@ export function ErpToolbar({
       <div className="flex items-center gap-1 border-b border-[var(--primary)]/30 bg-gradient-to-r from-[var(--primary)]/6 to-[var(--primary)]/3 px-3 py-1.5">
         <ToolbarButton icon={Check} label="完成選取" enabled onClick={onToggleSelection} accent />
         <ToolbarSeparator />
-        <span className="px-1 text-[14px] text-muted-foreground">
+        <span className="px-1 text-[14px] text-foreground/75">
           已選 <span className="font-mono text-[var(--primary)]">{selectedCount}</span> 筆
         </span>
         <div className="flex-1" />
@@ -232,7 +232,7 @@ export function ErpToolbar({
     return (
       <ToolbarPortal>
       <div className="flex items-center gap-1 border-b border-[var(--primary)]/30 bg-gradient-to-r from-[var(--primary)]/6 to-[var(--primary)]/3 px-3 py-1.5">
-        <span className="inline-flex items-center gap-1 rounded-md border border-[var(--primary)]/40 bg-[var(--primary)]/12 px-2 py-0.5 text-[13px] font-medium text-[var(--primary)]">
+        <span className="inline-flex items-center gap-1 rounded-md border border-[var(--primary)]/40 bg-[var(--primary)]/12 px-2 py-0.5 text-[14px] font-medium text-[var(--primary)]">
           <Pencil className="size-4" />
           編輯中
         </span>
@@ -240,7 +240,7 @@ export function ErpToolbar({
         <ToolbarButton icon={Save} letter="S" label="存檔" enabled onClick={onSave} accent />
         <ToolbarButton icon={X} letter="C" label="取消" enabled onClick={onCancel} />
         <div className="flex-1" />
-        <span className="px-1 text-[14px] text-muted-foreground">
+        <span className="px-1 text-[14px] text-foreground/75">
           編輯模式 · Alt+S 存檔 / Alt+C 取消
         </span>
       </div>
@@ -290,7 +290,7 @@ export function ErpToolbar({
     >
       <NavButton icon={ChevronsLeft} disabled={navFirstDisabled} onClick={handleFirst} title={`第一${navLabel}`} />
       <NavButton icon={ChevronLeft} disabled={navFirstDisabled} onClick={handlePrev} title={`上一${navLabel}`} />
-      <span className="min-w-[3.5rem] px-1 text-center font-mono text-[14px] tabular-nums text-muted-foreground">
+      <span className="min-w-[3.5rem] px-1 text-center font-mono text-[14px] tabular-nums text-foreground/75">
         {navIndex} / {navTotal}
       </span>
       <NavButton icon={ChevronRight} disabled={navLastDisabled} onClick={handleNext} title={`下一${navLabel}`} />
@@ -409,13 +409,13 @@ export function ErpToolbar({
           className="absolute inset-x-0 bottom-0 max-h-[75vh] overflow-y-auto rounded-t-2xl bg-card p-2 shadow-2xl"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="px-3 py-2 text-sm font-bold text-foreground">更多操作</div>
+          <div className="px-3 py-2 text-[15px] font-bold text-foreground">更多操作</div>
           {onOpenFilter ? (
             <MoreRow icon={Filter} label={filterCount > 0 ? `篩選 · ${filterCount}` : '篩選'} onClick={() => { onOpenFilter(); setMoreOpen(false); }} />
           ) : null}
           {sortOptions && onSortChange ? (
             <>
-              <div className="border-t border-border/40 px-3 pt-2 text-[13px] font-semibold uppercase tracking-wider text-muted-foreground">排序</div>
+              <div className="border-t border-border/40 px-3 pt-2 text-[14px] font-semibold text-foreground/75">排序</div>
               {sortOptions.map((o) => {
                 const active = sortKey === o.key;
                 return (
@@ -442,7 +442,7 @@ export function ErpToolbar({
           {onShowInactiveChange ? (
             <MoreRow icon={Trash2} label={showInactive ? '隱藏停用' : '顯示停用（垃圾桶）'} onClick={() => { onShowInactiveChange(!showInactive); setMoreOpen(false); }} />
           ) : null}
-          <button type="button" onClick={() => setMoreOpen(false)} className="mt-1 w-full rounded-lg border border-border/50 px-3 py-3 text-[14px] text-muted-foreground">
+          <button type="button" onClick={() => setMoreOpen(false)} className="mt-1 w-full rounded-lg border border-border/50 px-3 py-3 text-[14px] text-foreground/75">
             關閉
           </button>
         </div>
@@ -613,14 +613,14 @@ export function ExportMenuButton({
         {/* 2026-06-18 執行長範式:O 匯出只 CSV / PDF、列印走獨立 P 按鈕 */}
         <DropdownMenuItem
           onClick={() => onSelect('csv')}
-          className="cursor-pointer rounded-md px-2 py-1.5 text-sm text-foreground focus:bg-primary/15 focus:text-primary data-[highlighted]:bg-primary/15 data-[highlighted]:text-primary"
+          className="cursor-pointer rounded-md px-2 py-1.5 text-[15px] text-foreground focus:bg-primary/15 focus:text-primary data-[highlighted]:bg-primary/15 data-[highlighted]:text-primary"
         >
           <FileSpreadsheet className="mr-2 size-4.5" />
           匯出 CSV
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => onSelect('pdf')}
-          className="cursor-pointer rounded-md px-2 py-1.5 text-sm text-foreground focus:bg-primary/15 focus:text-primary data-[highlighted]:bg-primary/15 data-[highlighted]:text-primary"
+          className="cursor-pointer rounded-md px-2 py-1.5 text-[15px] text-foreground focus:bg-primary/15 focus:text-primary data-[highlighted]:bg-primary/15 data-[highlighted]:text-primary"
         >
           <FileText className="mr-2 size-4.5" />
           匯出 PDF

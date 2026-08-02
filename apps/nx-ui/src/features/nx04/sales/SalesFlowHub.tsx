@@ -418,7 +418,7 @@ function WarehouseAssignDialog({
         ) : (
           <ul className="space-y-2 text-sm">
             {partNos.map((p) => (
-              <li key={p} className="flex justify-between gap-2 border-b border-border/40 py-1.5 font-mono text-xs">
+              <li key={p} className="flex justify-between gap-2 border-b border-border/40 py-1.5 font-mono text-[14px]">
                 <span>{p}</span>
                 <span className="text-muted-foreground">
                   {assign[p] === 'TRANSFER' ? '調貨' : assign[p]}
@@ -655,7 +655,7 @@ const QuoteCreatePanel = forwardRef<
                         className="w-full text-left"
                         onClick={() => setRowFocus(i)}
                       >
-                        <div className="font-mono text-xs text-primary">{pn}</div>
+                        <div className="font-mono text-[14px] text-primary">{pn}</div>
                         <div className="text-xs text-muted-foreground">{nm}</div>
                       </button>
                       <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -764,7 +764,7 @@ function TodayQuoteList({ rows }: { rows: TodayQuoteRow[] }) {
         <ul className="divide-y divide-border/40">
           {rows.map((r) => (
             <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm">
-              <span className="font-mono text-xs text-muted-foreground">{r.id}</span>
+              <span className="font-mono text-[14px] text-muted-foreground">{r.id}</span>
               <span className="text-foreground">{r.cust}</span>
               <span
                 className={cn(
@@ -994,7 +994,7 @@ function SalesQueryPanel({
                         isSel ? 'bg-primary/15 ring-1 ring-primary/40' : 'hover:bg-muted/50',
                       )}
                     >
-                      <span className="font-mono text-xs text-primary">{p.partNo}</span>
+                      <span className="font-mono text-[14px] text-primary">{p.partNo}</span>
                       {isSel ? (
                         <span className="ml-2 text-[10px] text-primary">✓ 已選</span>
                       ) : null}

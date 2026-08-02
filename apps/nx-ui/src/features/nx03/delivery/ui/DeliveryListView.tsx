@@ -213,15 +213,15 @@ export function DeliveryListView() {
                 const detailPath = `/dashboard/inventory/delivery/${encodeURIComponent(r.id)}?kind=${r.kind}`;
                 return (
                   <tr key={r.id} className="border-b border-border/50 hover:bg-muted/20">
-                    <td className="px-3 py-2 font-mono text-xs">
+                    <td className="px-3 py-2 font-mono text-[14px]">
                       <Link href={detailPath} className="text-primary hover:underline">
                         {r.docNo}
                       </Link>
                     </td>
                     <td className="px-3 py-2 tabular-nums">{r.dnDate?.slice(0, 10)}</td>
-                    <td className="px-3 py-2 font-mono text-xs">{r.driverUserId}</td>
-                    <td className="px-3 py-2 font-mono text-xs">{r.vehicleNo ?? '—'}</td>
-                    <td className="px-3 py-2 font-mono text-xs">{r.sourceLabel}</td>
+                    <td className="px-3 py-2 font-mono text-[14px]">{r.driverUserId}</td>
+                    <td className="px-3 py-2 font-mono text-[14px]">{r.vehicleNo ?? '—'}</td>
+                    <td className="px-3 py-2 font-mono text-[14px]">{r.sourceLabel}</td>
                     <td className="px-3 py-2">
                       <span
                         className={`rounded px-2 py-0.5 text-[10px] ${STATUS_TONE[r.status] ?? 'bg-muted'}`}

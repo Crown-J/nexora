@@ -146,7 +146,7 @@ export function BatchInstantQuoteDialog({
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold">
             批次即時報價
-            <span className="ml-2 font-mono text-xs text-muted-foreground">{items.length} 顆</span>
+            <span className="ml-2 font-mono text-[14px] text-muted-foreground">{items.length} 顆</span>
           </h3>
           <button type="button" onClick={onClose} className="rounded p-1 hover:bg-accent/20" aria-label="關閉">
             <X className="h-4 w-4" />
@@ -174,7 +174,7 @@ export function BatchInstantQuoteDialog({
                   return (
                     <tr key={it.partId} className="border-b border-border/40 last:border-b-0">
                       <td className="px-2 py-1.5">
-                        <span className="font-mono text-xs text-muted-foreground">{it.code}</span>
+                        <span className="font-mono text-[14px] text-muted-foreground">{it.code}</span>
                         <span className="ml-2">{it.name}</span>
                       </td>
                       <td className="px-2 py-1.5">

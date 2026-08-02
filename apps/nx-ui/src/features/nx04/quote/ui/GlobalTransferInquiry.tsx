@@ -999,7 +999,7 @@ function TransferInquiryDialog({ onClose }: { onClose: () => void }) {
                           }}
                           className="block w-full px-2 py-1.5 text-left text-sm hover:bg-accent/15"
                         >
-                          <span className="font-mono text-xs text-muted-foreground">{b.code}</span>
+                          <span className="font-mono text-[14px] text-muted-foreground">{b.code}</span>
                           {b.code === b.name ? null : <>　{b.name}</>}
                         </button>
                       ))}

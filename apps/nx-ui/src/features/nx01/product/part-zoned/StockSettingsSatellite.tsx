@@ -319,7 +319,7 @@ export function StockSettingsSatellite({
         <td className="py-1.5 pr-3 text-right font-mono tabular-nums text-[#E8E8EB]">{it.minQty}</td>
         <td className="py-1.5 pr-3 text-right font-mono tabular-nums text-[#E8E8EB]">{it.maxQty}</td>
         <td className="py-1.5 pr-3 text-right font-mono tabular-nums text-[#888892]">{it.reorderQty}</td>
-        <td className="py-1.5 pr-3 font-mono text-xs text-[#888892]">
+        <td className="py-1.5 pr-3 font-mono text-[14px] text-[#888892]">
           {it.defaultLocationId
             ? locations.find((l) => l.id === it.defaultLocationId)?.code ?? it.defaultLocationId
             : '—'}

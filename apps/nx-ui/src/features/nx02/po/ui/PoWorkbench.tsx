@@ -61,7 +61,7 @@ const COLUMNS: MasterTableColumn<Po>[] = [
   { key: 'purchaseType', label: '類型', render: (r) => PURCHASE_TYPE_LABEL[r.purchaseType ?? 'D'] ?? r.purchaseType },
   { key: 'createdAt', label: '建單日期', sortable: true, render: (r) => r.createdAt.slice(0, 10) },
   { key: 'poDate', label: '採購日期', sortable: true, render: (r) => r.poDate.slice(0, 10) },
-  { key: 'supplierCode', label: '供應商編號', render: (r) => <span className="font-mono text-xs">{r.supplierCode ?? '—'}</span> },
+  { key: 'supplierCode', label: '供應商編號', render: (r) => <span className="font-mono text-[14px]">{r.supplierCode ?? '—'}</span> },
   { key: 'supplierName', label: '供應商名稱', render: (r) => r.supplierName ?? r.supplierId },
   { key: 'expectedDate', label: '預計到貨', render: (r) => r.expectedDate ? r.expectedDate.slice(0, 10) : '—' },
   { key: 'createdByName', label: '建單人員', render: (r) => r.createdByName ?? '—' },

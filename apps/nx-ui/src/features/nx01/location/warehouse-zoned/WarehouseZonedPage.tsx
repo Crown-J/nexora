@@ -612,7 +612,7 @@ export function WarehouseZonedPage({
         key: 'code',
         label: '代碼',
         minWidthClass: 'min-w-[100px]',
-        render: (row) => <span className="font-mono text-xs">{row.code}</span>,
+        render: (row) => <span className="font-mono text-[14px]">{row.code}</span>,
       },
       {
         key: 'name',

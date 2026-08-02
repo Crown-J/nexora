@@ -152,7 +152,7 @@ export function PeriodPicker({
           />
         </div>
       ) : (
-        <span className="ml-2 font-mono text-xs text-[#E8A020]">{value.label}</span>
+        <span className="ml-2 font-mono text-[14px] text-[#E8A020]">{value.label}</span>
       )}
     </div>
   );

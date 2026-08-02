@@ -261,7 +261,7 @@ export function PnLReport() {
                     key: 'accountCode',
                     label: '科目代號',
                     hideOnMobile: true,
-                    render: (it) => <span className="font-mono text-xs">{it.accountCode}</span>,
+                    render: (it) => <span className="font-mono text-[14px]">{it.accountCode}</span>,
                   },
                   {
                     key: 'accountName',

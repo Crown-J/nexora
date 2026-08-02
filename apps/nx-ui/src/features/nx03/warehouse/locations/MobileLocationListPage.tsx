@@ -81,7 +81,7 @@ function LocationCard({ loc }: { loc: WarehouseLocation }) {
         <Package className="mt-0.5 h-4 w-4 shrink-0 text-white/40" aria-hidden />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <span className="shrink-0 font-mono text-xs text-white/40">{loc.partSku}</span>
+            <span className="shrink-0 font-mono text-[14px] text-white/40">{loc.partSku}</span>
             <span className="min-w-0 flex-1 truncate text-white/80">{loc.partName}</span>
           </div>
           <div className="mt-1 flex items-center gap-2 text-xs">

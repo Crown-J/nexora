@@ -110,7 +110,7 @@ export function TutorialOverlay({ content, onDismiss }: Props) {
           {content.workflow ? (
             <section data-guide-section className="rounded border bg-muted/30 p-3 text-sm">
               <h3 className="text-xs font-semibold uppercase text-muted-foreground mb-1">操作流程</h3>
-              <p className="font-mono text-xs">{content.workflow}</p>
+              <p className="font-mono text-[14px]">{content.workflow}</p>
             </section>
           ) : null}
 

@@ -710,7 +710,7 @@ export function PartZonedPage({
         key: 'code',
         label: '料號',
         minWidthClass: 'min-w-[130px]',
-        render: (row) => <span className="font-mono text-xs">{row.code}</span>,
+        render: (row) => <span className="font-mono text-[14px]">{row.code}</span>,
       },
       {
         key: 'name',

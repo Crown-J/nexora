@@ -436,7 +436,7 @@ export function PaylogCreateDialog({
                             max={c.balanceAmount}
                             value={c.settledAmount}
                             onChange={(e) => updateSettled(idx, e.target.value)}
-                            className="h-7 w-24 rounded border border-[#E8A020]/40 bg-[#0A0A0C] px-1.5 text-right font-mono text-xs text-[#E8A020] outline-none"
+                            className="h-7 w-24 rounded border border-[#E8A020]/40 bg-[#0A0A0C] px-1.5 text-right font-mono text-[14px] text-[#E8A020] outline-none"
                           />
                         ) : (
                           <span className="text-[#5A5A60]">—</span>

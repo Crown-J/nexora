@@ -716,7 +716,7 @@ function DemandMiddleColumn({
                     onMouseEnter={() => setFocusIdx(idx)}
                   >
                     <td className="px-2 py-2 align-middle">
-                      <p className="break-all font-mono text-xs font-medium leading-snug text-foreground">{d.partCode}</p>
+                      <p className="break-all font-mono text-[14px] font-medium leading-snug text-foreground">{d.partCode}</p>
                       <p className="mt-0.5 text-[10px] text-muted-foreground tabular-nums">{d.no}</p>
                     </td>
                     <td className="min-w-0 px-2 py-2 align-middle">

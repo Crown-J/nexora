@@ -165,9 +165,9 @@ function LinesTable(props: {
             {rows.map((r) => (
               <tr key={r.id} className="border-t hover:bg-muted/20">
                 <td className="px-2 py-1">{r.lineNo}</td>
-                <td className="px-2 py-1 font-mono text-xs">{r.partNo}</td>
+                <td className="px-2 py-1 font-mono text-[14px]">{r.partNo}</td>
                 <td className="px-2 py-1">{r.partName}</td>
-                <td className="px-2 py-1 font-mono text-xs">{r.locationId}</td>
+                <td className="px-2 py-1 font-mono text-[14px]">{r.locationId}</td>
                 <td className="px-2 py-1 text-right tabular-nums">{r.qty}</td>
                 <td className="px-2 py-1 text-right tabular-nums">{r.unitCost}</td>
                 <td className="px-2 py-1 text-right tabular-nums">{r.totalCost}</td>

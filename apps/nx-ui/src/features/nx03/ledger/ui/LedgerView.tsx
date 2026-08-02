@@ -209,7 +209,7 @@ export function LedgerView({ vm }: LedgerViewProps) {
                     </span>
                   </td>
                   <td className="px-3 py-2">{SOURCE_LABEL[r.sourceDocType] ?? r.sourceDocType}</td>
-                  <td className="px-3 py-2 font-mono text-xs">{r.partCode}</td>
+                  <td className="px-3 py-2 font-mono text-[14px]">{r.partCode}</td>
                   <td className="max-w-[180px] truncate px-3 py-2">{r.partName}</td>
                   <td className="px-3 py-2">{r.warehouseName}</td>
                   <td className="px-3 py-2 text-muted-foreground">{r.locationName ?? '—'}</td>
@@ -223,7 +223,7 @@ export function LedgerView({ vm }: LedgerViewProps) {
                   <td className="px-3 py-2 text-right tabular-nums">{ntd.format(r.totalCost)}</td>
                   <td className="px-3 py-2 text-right tabular-nums">{r.balanceQty.toLocaleString('zh-TW')}</td>
                   <td className="px-3 py-2 text-right tabular-nums text-xs">{ntd.format(r.balanceCost)}</td>
-                  <td className="px-3 py-2 font-mono text-xs">{r.sourceDocId}</td>
+                  <td className="px-3 py-2 font-mono text-[14px]">{r.sourceDocId}</td>
                 </tr>
               ))
             )}
@@ -258,7 +258,7 @@ export function LedgerView({ vm }: LedgerViewProps) {
                       {SOURCE_LABEL[r.sourceDocType] ?? r.sourceDocType}
                     </span>
                   </div>
-                  <div className="mt-1 font-mono text-xs text-primary">{r.partCode}</div>
+                  <div className="mt-1 font-mono text-[14px] text-primary">{r.partCode}</div>
                   <div className="mt-0.5 truncate text-sm font-medium text-foreground">{r.partName}</div>
                   <div className="mt-0.5 truncate text-xs text-muted-foreground">
                     {r.warehouseName}

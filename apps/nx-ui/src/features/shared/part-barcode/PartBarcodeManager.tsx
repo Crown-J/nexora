@@ -88,7 +88,7 @@ export function PartBarcodeManager({ partId }: { partId: string }) {
             value={barcode}
             onChange={(e) => setBarcode(e.target.value)}
             placeholder="EAN / Code128 / QR 內容"
-            className="w-64 rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-2 py-1.5 font-mono text-xs text-[#E8E8EC]"
+            className="w-64 rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-2 py-1.5 font-mono text-[14px] text-[#E8E8EC]"
             autoFocus
           />
         </label>

@@ -844,7 +844,7 @@ function SoInlineItemRow({
       <td className="px-2 py-1" colSpan={3} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); qtyRef.current?.focus(); } }}>
         {isEdit ? (
           <div className="space-y-1">
-            <div className="font-mono text-xs">{editItem!.partNo}　{editItem!.partName}</div>
+            <div className="font-mono text-[14px]">{editItem!.partNo}　{editItem!.partName}</div>
             {/* 偉盟設計檢視 P1-5：替代出貨（實際出貨料號、可空；清除=照下單料號出） */}
             <div className="flex items-center gap-1">
               <span className="shrink-0 text-[10px] text-muted-foreground">替代出貨：</span>
@@ -1032,7 +1032,7 @@ function SoItemsTable({
                 }`}
               >
                 <td className="px-3 py-2 text-xs text-muted-foreground">{it.lineNo}</td>
-                <td className="px-3 py-2 font-mono text-xs">
+                <td className="px-3 py-2 font-mono text-[14px]">
                   {it.partNo}
                   {/* 偉盟設計檢視 P1-5：替代出貨（實際出貨料號 ≠ 下單料號）標示 */}
                   {it.actualPartNo && it.actualPartNo !== it.partNo ? (
@@ -1175,8 +1175,8 @@ function SoQuoteLinePicker({
                 {lines.map((l) => (
                   <tr key={l.quoteItemId} className="cursor-pointer hover:bg-accent/10" onClick={() => toggle(l.quoteItemId)}>
                     <td className="px-2 py-1.5 text-center"><input type="checkbox" checked={checked.has(l.quoteItemId)} readOnly /></td>
-                    <td className="px-2 py-1.5 font-mono text-xs">{l.docNo}</td>
-                    <td className="px-2 py-1.5 font-mono text-xs">{l.partNo}</td>
+                    <td className="px-2 py-1.5 font-mono text-[14px]">{l.docNo}</td>
+                    <td className="px-2 py-1.5 font-mono text-[14px]">{l.partNo}</td>
                     <td className="px-2 py-1.5">{l.partName}</td>
                     <td className="px-2 py-1.5 text-right tabular-nums">{l.remainQty}</td>
                     <td className="px-2 py-1.5 text-right tabular-nums">{fmt(l.unitPrice)}</td>

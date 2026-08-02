@@ -186,7 +186,7 @@ export function ShortageView({ vm }: ShortageViewProps) {
                           ) : null}
                         </td>
                         <td className="px-2 py-2">
-                          <div className="font-mono text-xs">{r.partNo}</div>
+                          <div className="font-mono text-[14px]">{r.partNo}</div>
                           <div className="text-xs text-muted-foreground">{r.partName}</div>
                         </td>
                         <td className="px-2 py-2">{r.warehouseName}</td>
@@ -204,7 +204,7 @@ export function ShortageView({ vm }: ShortageViewProps) {
                           {r.refRfqId ? (
                             <Link
                               href={`/dashboard/purchase/rfq/${encodeURIComponent(r.refRfqId)}`}
-                              className="font-mono text-xs text-primary underline"
+                              className="font-mono text-[14px] text-primary underline"
                             >
                               {r.refRfqId}
                             </Link>
@@ -253,7 +253,7 @@ export function ShortageView({ vm }: ShortageViewProps) {
                         />
                       ) : null}
                       <div className="min-w-0 flex-1">
-                        <div className="font-mono text-xs text-primary">{r.partNo}</div>
+                        <div className="font-mono text-[14px] text-primary">{r.partNo}</div>
                         <div className="mt-0.5 truncate text-sm font-medium text-foreground">{r.partName}</div>
                         <div className="mt-0.5 text-xs text-muted-foreground">{r.warehouseName}</div>
                       </div>

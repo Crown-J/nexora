@@ -762,7 +762,7 @@ function RfqInlineItemRow({
       <td className="px-3 py-1 text-xs text-primary">{editItem ? editItem.lineNo : '＋'}</td>
       <td className="px-2 py-1" colSpan={2}>
         {editItem ? (
-          <span className="font-mono text-xs">{editItem.partNo}　{editItem.partName}</span>
+          <span className="font-mono text-[14px]">{editItem.partNo}　{editItem.partName}</span>
         ) : (
           <PartPicker inputRef={partRef} onPick={setPart} />
         )}
@@ -879,7 +879,7 @@ function RfqItemsTable({
                 }`}
               >
                 <td className="px-3 py-2 text-xs text-muted-foreground">{it.lineNo}</td>
-                <td className="px-3 py-2 font-mono text-xs">
+                <td className="px-3 py-2 font-mono text-[14px]">
                   <div>{it.partNo}</div>
                   {it.secCode ? <div className="mt-0.5 text-[10px] text-muted-foreground" title="廠牌料號">{it.secCode}</div> : null}
                 </td>

@@ -131,7 +131,7 @@ export function RoleDetailView({ roleId }: { roleId: string }) {
               </span>
             ) : null}
           </h1>
-          <p className="mt-1 font-mono text-xs text-muted-foreground">{role.code}</p>
+          <p className="mt-1 font-mono text-[14px] text-muted-foreground">{role.code}</p>
           {role.description ? (
             <p className="mt-1 text-sm text-muted-foreground">{role.description}</p>
           ) : null}

@@ -230,7 +230,7 @@ export function PurchaseDomesticRfqNodeView({ demands, onRfqCountChange }: Purch
                     setMode('detail');
                   }}
                 >
-                  <td className="px-2 py-2 font-mono text-xs font-medium text-foreground">{r.docNo}</td>
+                  <td className="px-2 py-2 font-mono text-[14px] font-medium text-foreground">{r.docNo}</td>
                   <td className="px-2 py-2 tabular-nums text-muted-foreground">{r.date}</td>
                   <td className="min-w-0 truncate px-2 py-2 text-foreground" title={r.vendor}>
                     {r.vendor}
