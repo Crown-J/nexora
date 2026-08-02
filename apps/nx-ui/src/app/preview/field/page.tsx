@@ -100,12 +100,13 @@ export default function PreviewFieldPage() {
               label: '確認取件',
               tone: 'confirm',
               onClick: (t) => {
+                if (!t) return;
                 complete(t.id);
                 setLog(`完成 ${t.code} × ${t.qty}`);
               },
             },
-            { key: 'short', label: '缺料', tone: 'problem', onClick: (t) => setLog(`回報缺料：${t.code}`) },
-            { key: 'skip', label: '跳過', onClick: (t) => setLog(`跳過 ${t.code}`) },
+            { key: 'short', label: '缺料', tone: 'problem', onClick: (t) => t && setLog(`回報缺料：${t.code}`) },
+            { key: 'skip', label: '跳過', onClick: (t) => t && setLog(`跳過 ${t.code}`) },
           ]}
         />
       </div>

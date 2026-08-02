@@ -122,7 +122,7 @@ export function PickField() {
               tone: 'confirm',
               disabled: busy,
               onClick: (t) =>
-                void run(t.id, async (i) => {
+                t && void run(t.id, async (i) => {
                   const r = await pickAggregate(i.warehouseId, i.partId);
                   return `${i.partNo} 撿了 ${r.picked}`;
                 }),
@@ -134,7 +134,7 @@ export function PickField() {
               disabled: busy,
               // ⚠️ 這會對剩餘量開一張正式的異常回報單，⛔ 不只是畫面上跳過
               onClick: (t) =>
-                void run(t.id, async (i) => {
+                t && void run(t.id, async (i) => {
                   const r = await reportPickIssue({
                     warehouseId: i.warehouseId,
                     partId: i.partId,
@@ -150,6 +150,7 @@ export function PickField() {
               disabled: busy,
               // 純畫面：先做下一件，⛔ 不動帳
               onClick: (t) => {
+                if (!t) return;
                 const i = tasks.findIndex((x) => x.id === t.id);
                 const next = tasks.slice(i + 1).find((x) => !x.done) ?? tasks.find((x) => !x.done);
                 setCurrentId(next?.id);

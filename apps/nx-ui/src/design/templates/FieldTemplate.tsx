@@ -47,7 +47,11 @@ export type FieldAction = {
   /** confirm＝完成這一件（主要動作）· problem＝出狀況 · neutral＝其他 */
   tone?: 'confirm' | 'problem' | 'neutral';
   disabled?: boolean;
-  onClick: (task: FieldTask) => void;
+  /**
+   * ⚠️ task 可能是 null：「裝進容器」型流程（包貨・出貨）在佇列清空後
+   * 手上還有一個沒封的箱，那時動作仍要能按。⛔ 不要無條件解參考。
+   */
+  onClick: (task: FieldTask | null) => void;
 };
 
 export type FieldTemplateProps = {
@@ -64,6 +68,17 @@ export type FieldTemplateProps = {
   onScan?: (code: string) => void;
   /** 走動版右下角的掃碼鈕插槽（相機元件在 features 層） */
   scanSlot?: React.ReactNode;
+  /**
+   * ⭐ 取代「當前這一件」那張卡的插槽。
+   *
+   * 為什麼需要它：現場流程有兩種形狀——
+   *   · 一次一件（撿貨・上架・驗收・盤點）→ 當前＝一筆任務，用內建的卡就好
+   *   · 裝進容器（包貨・出貨）        → 當前＝「正在裝的那個箱／那一車」，
+   *     它不是佇列裡的一筆，是一個會被加東西進去的容器
+   * 佇列・進度・動作列・掃描槍・三套佈局全部照舊共用，只有「當前」這一塊換掉。
+   * ⛔ 不為了包貨另外分叉一支殼——那會回到「每頁各做各的」。
+   */
+  currentSlot?: React.ReactNode;
   /** ⚠️ 只給預覽頁覆蓋用；正式頁⛔ 不要傳——佈局該由裝置與工作站決定 */
   forceLayout?: FieldLayout;
   emptyText?: string;
@@ -107,10 +122,13 @@ function ActionBar({
   actions,
   task,
   tall,
+  allowNoTask,
 }: {
   actions: FieldAction[];
   task: FieldTask | null;
   tall: boolean;
+  /** 佇列空了但容器還在（包貨・出貨）：動作仍要能按，⛔ 不能整排變灰 */
+  allowNoTask?: boolean;
 }) {
   return (
     <div className="flex gap-2">
@@ -118,8 +136,8 @@ function ActionBar({
         <button
           key={a.key}
           type="button"
-          disabled={a.disabled || !task}
-          onClick={() => task && a.onClick(task)}
+          disabled={a.disabled || (!task && !allowNoTask)}
+          onClick={() => a.onClick(task)}
           className={[
             'flex items-center justify-center rounded-lg border-2 px-4 text-[17px] text-foreground disabled:opacity-50',
             tall ? 'h-16' : 'h-12',
@@ -150,6 +168,7 @@ export function FieldTemplate({
   actions,
   onScan,
   scanSlot,
+  currentSlot,
   forceLayout,
   emptyText = '目前沒有要處理的。',
 }: FieldTemplateProps) {
@@ -203,9 +222,23 @@ export function FieldTemplate({
 
   if (!tasks.length) {
     return (
-      <div className="flex h-full flex-col p-5">
+      <div className="flex h-full flex-col gap-3 p-5">
         <h1 className="nx-t-page">{title}</h1>
-        <div className="nx-alert-ok mt-4">{emptyText}</div>
+        <div className="nx-alert-ok">{emptyText}</div>
+        {/*
+          ⚠️ 佇列空了⛔ 不代表沒事做——「裝進容器」型的流程（包貨・出貨）
+          手上還有一個沒封的箱。實跑時踩到：把最後一張單裝進箱之後，
+          箱子連同封箱鍵一起不見了，使用者卡在那裡。
+          所以只要有 currentSlot（＝有容器），空佇列仍然要把它和動作列留著。
+        */}
+        {currentSlot && (
+          <>
+            {currentSlot}
+            <div className="mt-auto">
+              <ActionBar actions={actions} task={null} tall={false} allowNoTask />
+            </div>
+          </>
+        )}
       </div>
     );
   }
@@ -218,7 +251,7 @@ export function FieldTemplate({
           <h1 className="nx-t-sec">{title}</h1>
           <Progress idx={idx} total={tasks.length} done={doneCount} />
         </div>
-        <CurrentCard task={current} big />
+        {currentSlot ?? <CurrentCard task={current} big />}
         <div className="mt-auto flex flex-col gap-2">
           {scanSlot}
           <ActionBar actions={actions} task={current} tall />
@@ -262,7 +295,7 @@ export function FieldTemplate({
             ))}
           </div>
           <div className="flex min-w-0 flex-1 flex-col gap-3">
-            <CurrentCard task={current} big={false} />
+            {currentSlot ?? <CurrentCard task={current} big={false} />}
             <div className="mt-auto">
               <ActionBar actions={actions} task={current} tall={false} />
               {/* ⚠️ 使用者看得到的文字不用 ⛔／⚠️ 這種內部標記——那是規格書的慣例、不是產品用語 */}
