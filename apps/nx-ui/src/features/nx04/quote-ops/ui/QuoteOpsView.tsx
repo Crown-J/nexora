@@ -54,6 +54,14 @@ type QuoteLine = {
   remark: string;
   /** 加入當下的可出量，只用來提醒「報了但沒貨」*/
   available: number;
+  // ── 比價用（執行長 2026-08-01：價格只在「報價」這一段出現）──
+  /** 市場行情價（主檔 A 價）：保養廠拿去跟車主講的 */
+  marketPrice: string | null;
+  /** 公司定價（主檔 B 價）：我們賣他的 */
+  listPrice: string | null;
+  /** 這個客戶上次買這支多少 */
+  customerLastAmount: string | null;
+  customerLastDate: string | null;
 };
 
 function num(v: string | null | undefined): number {
@@ -72,6 +80,17 @@ function totalAvailable(c: QuoteCandidate): number {
   return Object.values(c.stockByWh ?? {}).reduce((s, v) => s + num(v), 0);
 }
 
+/** 這支料有貨的倉別（⛔ 只列有貨的——零的倉列出來只是雜訊） */
+function stockSpots(
+  c: QuoteCandidate,
+  warehouses: { id: string; code: string; name: string }[],
+): { name: string; qty: number }[] {
+  return warehouses
+    .map((w) => ({ name: w.name, qty: num(c.stockByWh?.[w.id]) }))
+    .filter((x) => x.qty > 0)
+    .sort((a, b) => b.qty - a.qty);
+}
+
 export function QuoteOpsView() {
   const [customer, setCustomer] = useState<PickedCustomer | null>(null);
   const [credit, setCredit] = useState<CreditCheckResult | CreditCheckBlocked | null>(null);
@@ -83,6 +102,8 @@ export function QuoteOpsView() {
   const [searched, setSearched] = useState(false);
   const [rows, setRows] = useState<QuoteCandidate[]>([]);
   const [rowsLoading, setRowsLoading] = useState(false);
+  /** 各倉別（用來把 stockByWh 的 id 翻成看得懂的倉名）*/
+  const [warehouses, setWarehouses] = useState<{ id: string; code: string; name: string }[]>([]);
 
   const [lines, setLines] = useState<QuoteLine[]>([]);
   const [saving, setSaving] = useState(false);
@@ -92,11 +113,14 @@ export function QuoteOpsView() {
 
   const searchRef = useRef<HTMLInputElement>(null);
   const hitListRef = useRef<HTMLDivElement>(null);
+  const customerRef = useRef<HTMLInputElement>(null);
   const reqRef = useRef(0);
 
-  // 規格 §3.3：進來游標就在搜尋框——客戶隨時來電就能直接打料號
+  // ⭐ 進來先鎖「對象」（執行長 2026-08-01 訂正）：
+  //    流程第一段就是對象，游標卻跳去第二段的搜尋框，等於一開始就把人往下拉。
+  //    先選客戶還有一個實質理由——選了才知道他的價、他的預設倉、他欠不欠錢。
   useEffect(() => {
-    searchRef.current?.focus();
+    customerRef.current?.focus();
   }, []);
 
   // 選了客戶 → 問一次「他現在能不能出貨」
@@ -148,8 +172,16 @@ export function QuoteOpsView() {
     let alive = true;
     setRowsLoading(true);
     getQuoteCandidates(currentPartId, customer?.id, customer?.defaultWarehouseId ?? undefined)
-      .then((r) => alive && setRows(r.candidates))
-      .catch(() => alive && setRows([]))
+      .then((r) => {
+        if (!alive) return;
+        setRows(r.candidates);
+        setWarehouses(r.warehouses ?? []);
+      })
+      .catch(() => {
+        if (!alive) return;
+        setRows([]);
+        setWarehouses([]);
+      })
       .finally(() => {
         if (alive) setRowsLoading(false);
       });
@@ -177,6 +209,10 @@ export function QuoteOpsView() {
           unitPrice: c.listPrice ?? '',
           remark: '',
           available: totalAvailable(c),
+          marketPrice: c.marketPrice,
+          listPrice: c.listPrice,
+          customerLastAmount: c.customerLastAmount,
+          customerLastDate: c.customerLastDate,
         },
       ];
     });
@@ -289,8 +325,11 @@ export function QuoteOpsView() {
               ) : (
                 <CustomerPicker
                   onPick={setCustomer}
+                  // 選定客戶後把游標交給下一段的查料框——⛔ 不要讓人自己找下一步在哪
                   onCommit={() => searchRef.current?.focus()}
                   partnerType="C,O"
+                  inputRef={customerRef}
+                  autoFocus
                 />
               )}
             </div>
@@ -387,95 +426,108 @@ export function QuoteOpsView() {
     {
       key: 'stock',
       label: '檢查庫存',
-      // ⛔ 同上，不掛 blocked——看庫存是過程不是存檔條件
+      // ⛔ 不掛 blocked——看庫存是過程不是存檔條件
       content: (
-        <div className="overflow-x-auto rounded-lg border border-border bg-card">
-          <table className="w-full min-w-[760px] border-collapse">
-            <thead>
-              <tr className="border-b-2 border-border text-left">
-                <th className="px-3 py-2.5 text-[14px] font-bold text-foreground">料號 / 品名 / 廠牌</th>
-                <th className="px-3 py-2.5 text-right text-[14px] font-bold text-foreground">可出量</th>
-                <th className="px-3 py-2.5 text-right text-[14px] font-bold text-foreground">
-                  市場行情價
-                  <div className="text-[12px] font-normal text-foreground/70">保養廠對車主</div>
-                </th>
-                <th className="px-3 py-2.5 text-right text-[14px] font-bold text-foreground">
-                  公司定價
-                  <div className="text-[12px] font-normal text-foreground/70">我們賣他</div>
-                </th>
-                <th className="px-3 py-2.5 text-right text-[14px] font-bold text-foreground">上次賣他</th>
-                <th className="px-3 py-2.5" />
-              </tr>
-            </thead>
-            <tbody>
-              {rowsLoading ? (
-                <tr>
-                  <td colSpan={6} className="px-3 py-6 text-[15px] text-foreground/70">
-                    查詢中…
-                  </td>
+        <div>
+          {/*
+            ⭐ 這一段回答兩個問題（執行長 2026-08-01 訂正）：
+                「這支料的通用件有哪些？」「在哪些倉位？」
+            ⛔ 這裡不出現任何價格——比價是下一段「報價」的事。
+               混在一起會讓業務在還沒確定要出哪一支料的時候就先看價、先想折扣。
+          */}
+          <div className="overflow-x-auto rounded-lg border border-border bg-card">
+            <table className="w-full min-w-[720px] border-collapse">
+              <thead>
+                <tr className="border-b-2 border-border text-left">
+                  <th className="px-3 py-2.5 text-[14px] font-bold text-foreground">料號 / 品名 / 廠牌</th>
+                  <th className="px-3 py-2.5 text-[14px] font-bold text-foreground">通用件</th>
+                  <th className="px-3 py-2.5 text-[14px] font-bold text-foreground">在哪些倉位</th>
+                  <th className="px-3 py-2.5 text-right text-[14px] font-bold text-foreground">
+                    可出量
+                    <div className="text-[12px] font-normal text-foreground/70">全公司</div>
+                  </th>
+                  <th className="px-3 py-2.5" />
                 </tr>
-              ) : rows.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-3 py-6 text-[15px] text-foreground/70">
-                    上一段選一支料，這裡列出它和它的替代料。
-                  </td>
-                </tr>
-              ) : (
-                rows.map((c) => {
-                  const avail = totalAvailable(c);
-                  const added = lines.some((l) => l.partId === c.id);
-                  return (
-                    <tr key={c.id} className="border-b border-border last:border-b-0">
-                      <td className="px-3 py-2.5">
-                        <div className="text-[15px] font-medium text-foreground">
-                          {c.code}
+              </thead>
+              <tbody>
+                {rowsLoading ? (
+                  <tr>
+                    <td colSpan={5} className="px-3 py-6 text-[15px] text-foreground/70">
+                      查詢中…
+                    </td>
+                  </tr>
+                ) : rows.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-3 py-6 text-[15px] text-foreground/70">
+                      上一段選一支料，這裡列出它和它的通用件、各在哪個倉。
+                    </td>
+                  </tr>
+                ) : (
+                  rows.map((c) => {
+                    const avail = totalAvailable(c);
+                    const spots = stockSpots(c, warehouses);
+                    const added = lines.some((l) => l.partId === c.id);
+                    return (
+                      <tr key={c.id} className="border-b border-border last:border-b-0">
+                        <td className="px-3 py-2.5">
+                          <div className="text-[15px] font-medium text-foreground">{c.code}</div>
+                          <div className="text-[14px] text-foreground/80">
+                            {c.name}・{c.brandName ?? '—'}
+                            {c.isOem ? '・正廠' : ''}
+                          </div>
+                        </td>
+                        <td className="px-3 py-2.5">
                           {c.role === 1 ? (
-                            <span className="ml-2 rounded bg-primary/15 px-1.5 py-0.5 text-[12px] text-foreground">
-                              主件
+                            <span className="rounded bg-primary/15 px-2 py-1 text-[14px] font-medium text-foreground">
+                              客戶問的這支
                             </span>
                           ) : (
-                            <span className="ml-2 rounded border border-border px-1.5 py-0.5 text-[12px] text-foreground">
-                              替代
+                            <span className="rounded border-2 border-border px-2 py-1 text-[14px] font-medium text-foreground">
+                              可代用
                             </span>
                           )}
-                        </div>
-                        <div className="text-[14px] text-foreground/80">
-                          {c.name}・{c.brandName ?? '—'}
-                          {c.isOem ? '・正廠' : ''}
-                        </div>
-                      </td>
-                      <td
-                        className={`px-3 py-2.5 text-right text-[20px] font-bold tabular-nums ${
-                          avail > 0 ? 'text-foreground' : 'text-red-500'
-                        }`}
-                      >
-                        {avail.toLocaleString()}
-                      </td>
-                      <td className="px-3 py-2.5 text-right text-[18px] font-bold tabular-nums text-foreground">
-                        {money(c.marketPrice)}
-                      </td>
-                      <td className="px-3 py-2.5 text-right text-[18px] font-bold tabular-nums text-foreground">
-                        {money(c.listPrice)}
-                      </td>
-                      <td className="px-3 py-2.5 text-right text-[15px] tabular-nums text-foreground">
-                        {c.customerLastAmount ? money(c.customerLastAmount) : '—'}
-                      </td>
-                      <td className="px-3 py-2.5 text-right">
-                        <button
-                          type="button"
-                          disabled={added}
-                          onClick={() => addLine(c)}
-                          className="rounded-md border-2 border-border bg-background px-3 py-1.5 text-[14px] font-medium text-foreground hover:border-primary disabled:opacity-50 disabled:hover:border-border"
+                        </td>
+                        <td className="px-3 py-2.5">
+                          {spots.length === 0 ? (
+                            <span className="text-[15px] font-bold text-red-500">都沒貨</span>
+                          ) : (
+                            <div className="flex flex-wrap gap-1.5">
+                              {spots.map((s) => (
+                                <span
+                                  key={s.name}
+                                  className="rounded-md border-2 border-border px-2 py-1 text-[14px] text-foreground"
+                                >
+                                  {s.name}{' '}
+                                  <b className="tabular-nums">{s.qty.toLocaleString()}</b>
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </td>
+                        <td
+                          className={`px-3 py-2.5 text-right text-[20px] font-bold tabular-nums ${
+                            avail > 0 ? 'text-foreground' : 'text-red-500'
+                          }`}
                         >
-                          {added ? '已加入' : '加進報價'}
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+                          {avail.toLocaleString()}
+                        </td>
+                        <td className="px-3 py-2.5 text-right">
+                          <button
+                            type="button"
+                            disabled={added}
+                            onClick={() => addLine(c)}
+                            className="rounded-md border-2 border-border bg-background px-3 py-1.5 text-[14px] font-medium text-foreground hover:border-primary disabled:opacity-50 disabled:hover:border-border"
+                          >
+                            {added ? '已加入' : '拿這支報'}
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       ),
     },
@@ -485,11 +537,26 @@ export function QuoteOpsView() {
       blocked: validLines.length > 0 ? undefined : '還沒有可報的項目（要有數量與價格）',
       content: (
         <div>
+          {/*
+            ⭐ 比價集中在這一段（執行長 2026-08-01 訂正）：
+               三個參考價擺在報價欄旁邊——市場行情（保養廠對車主講的）、
+               公司定價（我們的價）、上次賣他（議價依據）。
+               ⛔ 上一段「檢查庫存」刻意不放價，那裡只決定「要出哪一支」。
+          */}
           <div className="overflow-x-auto rounded-lg border-2 border-border bg-card">
-            <table className="w-full min-w-[820px] border-collapse">
+            <table className="w-full min-w-[980px] border-collapse">
               <thead>
                 <tr className="border-b-2 border-border text-left">
                   <th className="px-3 py-2.5 text-[14px] font-bold text-foreground">料號 / 品名</th>
+                  <th className="px-3 py-2.5 text-right text-[14px] font-bold text-foreground">
+                    市場行情價
+                    <div className="text-[12px] font-normal text-foreground/70">保養廠對車主</div>
+                  </th>
+                  <th className="px-3 py-2.5 text-right text-[14px] font-bold text-foreground">
+                    公司定價
+                    <div className="text-[12px] font-normal text-foreground/70">我們賣他</div>
+                  </th>
+                  <th className="px-3 py-2.5 text-right text-[14px] font-bold text-foreground">上次賣他</th>
                   <th className="px-3 py-2.5 text-right text-[14px] font-bold text-foreground">數量</th>
                   <th className="px-3 py-2.5 text-right text-[14px] font-bold text-foreground">報價</th>
                   <th className="px-3 py-2.5 text-right text-[14px] font-bold text-foreground">小計</th>
@@ -500,8 +567,8 @@ export function QuoteOpsView() {
               <tbody>
                 {lines.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-3 py-6 text-[15px] text-foreground/70">
-                      上一段按「加進報價」把料帶下來。
+                    <td colSpan={9} className="px-3 py-6 text-[15px] text-foreground/70">
+                      上一段按「拿這支報」把料帶下來。
                     </td>
                   </tr>
                 ) : (
@@ -515,6 +582,24 @@ export function QuoteOpsView() {
                             <span className="ml-2 font-bold text-red-500">目前沒貨</span>
                           ) : null}
                         </div>
+                      </td>
+                      <td className="px-3 py-2.5 text-right text-[17px] font-bold tabular-nums text-foreground">
+                        {money(l.marketPrice)}
+                      </td>
+                      <td className="px-3 py-2.5 text-right text-[17px] font-bold tabular-nums text-foreground">
+                        {money(l.listPrice)}
+                      </td>
+                      <td className="px-3 py-2.5 text-right text-[15px] tabular-nums text-foreground">
+                        {l.customerLastAmount ? (
+                          <>
+                            {money(l.customerLastAmount)}
+                            <div className="text-[13px] text-foreground/70">
+                              {l.customerLastDate ? l.customerLastDate.slice(0, 10) : ''}
+                            </div>
+                          </>
+                        ) : (
+                          '—'
+                        )}
                       </td>
                       <td className="px-3 py-2.5 text-right">
                         <input
