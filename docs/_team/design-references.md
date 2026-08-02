@@ -57,6 +57,25 @@ Hank 在做 UI（特別是登入 / 首頁 / dashboard / 動畫元件 / 行銷頁
 | Tailwind UI | https://tailwindui.com/ | 排版範式（付費、看截圖即可）|
 | Untitled UI | https://www.untitledui.com/ | B2B SaaS 元件庫、Figma 主流 |
 
+## 📄 單據 / 表格美學（執行長 2026-08-02 提供）
+
+> 用於：v3.0.0 六支外殼——特別是**檢視殼**（單據全貌）與**清單殼**
+> ⚠️ **借視覺、⛔ 不借互動模型**：這批全是滑鼠導向產品，沒有一個能純鍵盤跑完，
+> 直接照抄會撞上介面規格 §1「熟手只記快捷鍵」與 §7「拔掉滑鼠做得完」
+
+| 站名 | URL | 真正的手法（⛔ 不只是「很美」）| 對應哪支殼 |
+|---|---|---|---|
+| Stripe Invoicing | https://stripe.com/ | 結論放最上面（金額、狀態一眼看到），字級 / 灰階對比 / 明細間距的黃金比例 | 檢視殼 |
+| AWS Billing · GCP 帳務 | https://aws.amazon.com/ | 成千上萬筆扣款明細：多層級表頭 ＋ **側邊抽屜**維持整潔，⛔ 不另開頁 | 檢視殼 |
+| Shopify 訂單詳情 | https://www.shopify.com/ | **左主體右附屬並排不分頁**：商品明細 / 顧客 / 物流 / 付款同屏卻條理分明 | 檢視殼 |
+| Linear | https://linear.app/ | **點擊即編輯**——⛔ 沒有「編輯模式」這個概念 ⚠️ 只可用於主檔與草稿，**過帳後單據不適用**（無稽核軌跡） | 清單殼 |
+| Notion Table View | https://www.notion.so/ | 輸入框 / 下拉選單融進表格 cell，同上⚠️ | 清單殼 |
+| Ant Design Table | https://ant.design/components/table | 複雜單據情境的編排規格：可摺疊 / 固定欄位 / 多級表頭 | 清單殼 |
+| Refactoring UI | https://www.refactoringui.com/ | ⭐ 手法不是版型：**用間距與字重做層次、⛔ 不用線框**。六支殼通用 | 全部 |
+| Formspree Library | https://formspree.io/library/ | 表單排版結構與間距靈感庫 | 開單殼 |
+| Page Flows | https://pageflows.com/ | 錄製 Stripe / Airbnb / Notion 真實操作流——看**流程編排**不只看畫面 | 開單殼 |
+| Mobbin | https://mobbin.com/ | 截圖庫，搜 Onboarding / Sign Up 研究表單美學 | 開單殼 |
+
 ## ✨ 動畫工具庫
 
 | 工具 | URL | 用途 / 何時用 |
