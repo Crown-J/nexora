@@ -265,7 +265,8 @@ export function FieldTemplate({
             <CurrentCard task={current} big={false} />
             <div className="mt-auto">
               <ActionBar actions={actions} task={current} tall={false} />
-              {onScan && <p className="nx-hint mt-2">掃描槍直接掃，⛔ 不必先點畫面。</p>}
+              {/* ⚠️ 使用者看得到的文字不用 ⛔／⚠️ 這種內部標記——那是規格書的慣例、不是產品用語 */}
+              {onScan && <p className="nx-hint mt-2">掃描槍直接掃，不必先點畫面。</p>}
             </div>
           </div>
         </div>
