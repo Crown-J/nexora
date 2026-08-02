@@ -19,7 +19,13 @@
 //
 // 鍵盤：Alt + 1~9 捲到第 N 區。滑鼠：滾輪自由移動。
 //
-// ⚠️ 捲動用 behavior:'auto'（瞬間定位），⛔ 不用 smooth。兩個理由：
+// ⚠️ 以下這段是 2026-08-01 的決定，2026-08-02 已被修正（保留原文以免又繞回來）：
+//    當時把規格 §6 讀成「動畫全禁」而做成瞬間定位，執行長 2026-08-02 指出跳段需要
+//    上下滑動的過渡才看得出方向；§6 原文是「全部關掉**或縮到最短**」，短過渡本來就在規格內。
+//    現行做法＝自己用 requestAnimationFrame 跑 180ms（見 goTo），
+//    ⛔ 仍然不用 behavior:'smooth'——下面第 2 點的靜默失效問題依舊成立。
+//
+// ⚠️（2026-08-01 原文）捲動用 behavior:'auto'（瞬間定位），⛔ 不用 smooth。兩個理由：
 //   1. 規格 §6 明寫動畫全部關掉——smooth 捲動就是動畫
 //   2. ⭐ 實測發現 smooth 在部分瀏覽器環境**靜默失效**（scrollTop 完全不動），
 //      整個 Alt+數字 跳段等於失靈而且不會報錯。auto 在哪裡都會動。
@@ -82,9 +88,13 @@ export function FlowTemplate({
   const [active, setActive] = useState(0);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
+  /** 中斷進行中的跳段動畫（連按兩次要能收掉前一個，⛔ 不然兩個動畫會互搶 scrollTop） */
+  const cancelAnimRef = useRef<(() => void) | null>(null);
+
   const goTo = useCallback((i: number) => {
-    const el = scrollRef.current?.querySelector<HTMLElement>(`[data-idx="${i}"]`);
-    if (!el) return;
+    const root = scrollRef.current;
+    const el = root?.querySelector<HTMLElement>(`[data-idx="${i}"]`);
+    if (!root || !el) return;
 
     // ⭐ 跳段當下就把左欄標到這一段（執行長 2026-08-01 回報）：
     //    原本只捲動、目前段位完全靠 IntersectionObserver 事後回填，
@@ -93,24 +103,115 @@ export function FlowTemplate({
     //    觀察器保留給「使用者自己用滾輪捲」的情況。
     setActive(i);
 
-    // ⛔ 不用 smooth：規格 §6 動畫全關，且實測 smooth 會在某些環境靜默失效（見檔頭）
-    el.scrollIntoView({ behavior: 'auto', block: 'start' });
-
     // ⭐ 跳過去就要能直接打字（執行長 2026-08-01）：
     //    只捲不聚焦，使用者還得再拿滑鼠點一下欄位，等於鍵盤流程斷在這裡。
     //    ⛔ 只找輸入類元素，不含 button——聚焦到按鈕上會讓 Enter 變成誤觸送出。
-    const field = el.querySelector<HTMLElement>(
-      'input:not([readonly]):not([disabled]), textarea:not([readonly]):not([disabled]), select:not([disabled])',
+    const focusField = () => {
+      const field = el.querySelector<HTMLElement>(
+        'input:not([readonly]):not([disabled]), textarea:not([readonly]):not([disabled]), select:not([disabled])',
+      );
+      if (!field) return;
+      // ⚠️ preventScroll 是必要的：focus() 預設會把元素捲進畫面，
+      //    那一下會跟我們自己算的捲動位置打架（尤其欄位在段落中段時會多跳一次）。
+      field.focus({ preventScroll: true });
+      // ⭐ 連內容一起反白（執行長 2026-08-01 回報）：
+      //    只有游標進去，長輩看不出焦點跑到哪裡了。整段選起來是最明顯的訊號，
+      //    而且直接打字就會覆蓋掉舊值——省一次全選刪除。
+      if (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement) {
+        field.select();
+      }
+    };
+
+    const from = root.scrollTop;
+    const max = root.scrollHeight - root.clientHeight;
+    // 目標位置＝這一段的頂端對齊容器頂端。⛔ 不用 offsetTop（要看 offsetParent 是誰，會被中間的定位元素拐走）
+    const to = Math.max(
+      0,
+      Math.min(max, from + (el.getBoundingClientRect().top - root.getBoundingClientRect().top)),
     );
-    if (!field) return;
-    field.focus();
-    // ⭐ 連內容一起反白（執行長 2026-08-01 回報）：
-    //    只有游標進去，長輩看不出焦點跑到哪裡了。整段選起來是最明顯的訊號，
-    //    而且直接打字就會覆蓋掉舊值——省一次全選刪除。
-    if (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement) {
-      field.select();
+
+    cancelAnimRef.current?.();
+
+    /**
+     * ⭐ 上下滑動的過渡（執行長 2026-08-02）：
+     *    卡片式版面之後，跳段等於「翻一頁」——瞬間切換看起來像整個畫面被抽換掉，
+     *    使用者分不出是往上還往下。滑過去那一下就是在講「你往下移動了一段」。
+     *
+     * ⚠️ 規格 §6 寫的是「動畫全部關掉**或縮到最短**」——⛔ 不是全禁。
+     *    180ms 是「看得出方向」與「不拖慢熟手」的交界；⛔ 不要再加長。
+     *
+     * ⛔ 不用 scrollTo({behavior:'smooth'})，兩個理由：
+     *    1. 時間長度由瀏覽器決定，我們控不了「縮到最短」這條規格
+     *    2. 實測它在部分環境（含我們的預覽窗格）靜默失效、scrollTop 完全不動且不報錯
+     *    自己用 requestAnimationFrame 逐格寫 scrollTop，哪裡都會動、長度也是我們說了算。
+     */
+    const reduce =
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const dist = to - from;
+
+    if (reduce || Math.abs(dist) < 2) {
+      root.scrollTop = to;
+      focusField();
+      return;
     }
+
+    const DURATION = 180;
+    let raf = 0;
+    let watchdog = 0;
+    let done = false;
+
+    /** 收尾：對齊到定位＋聚焦。⛔ 只能跑一次（動畫跑完與保險逾時都會呼叫它） */
+    const finish = () => {
+      if (done) return;
+      done = true;
+      cancelAnimationFrame(raf);
+      clearTimeout(watchdog);
+      cancelAnimRef.current = null;
+      root.scrollTop = to; // 收尾對齊，⛔ 不留 0.4px 的殘差讓吸附再修一次
+      focusField();
+    };
+
+    let startTs: number | null = null;
+    const step = (ts: number) => {
+      if (done) return;
+      if (startTs === null) startTs = ts;
+      const p = Math.min(1, (ts - startTs) / DURATION);
+      // ease-out：起步快、收尾穩。⛔ 不用回彈類曲線——那會讓人以為捲過頭了
+      root.scrollTop = from + dist * (1 - Math.pow(1 - p, 3));
+      if (p < 1) {
+        raf = requestAnimationFrame(step);
+        return;
+      }
+      finish();
+    };
+
+    raf = requestAnimationFrame(step);
+
+    /**
+     * ⚠️ 保險絲（2026-08-02 實測踩到）：requestAnimationFrame 在「畫面沒有在合成」的環境
+     *    ⛔ 一次都不會被呼叫，而且不報錯——背景分頁、省電模式、我們的預覽窗格都是。
+     *    只靠 rAF 的話那些情況下 scrollTop 永遠不會被寫，等於整個跳段失效
+     *    （左欄跳到第 4 段、畫面停在第 1 段——比沒有動畫還糟）。
+     *    setTimeout 在那些環境仍會觸發，所以拿它當保底：時間到了就直接定位。
+     *    ⛔ 這條不能拿掉：動畫是加分，能不能跳到那一段是底線。
+     */
+    watchdog = window.setTimeout(finish, DURATION + 120);
+
+    cancelAnimRef.current = () => {
+      done = true;
+      cancelAnimationFrame(raf);
+      clearTimeout(watchdog);
+    };
   }, []);
+
+  // 卸載時收掉未跑完的動畫（⛔ 不然元件沒了還在寫 scrollTop）
+  useEffect(
+    () => () => {
+      cancelAnimRef.current?.();
+    },
+    [],
+  );
 
   // Alt + 數字：捲到對應區
   useEffect(() => {

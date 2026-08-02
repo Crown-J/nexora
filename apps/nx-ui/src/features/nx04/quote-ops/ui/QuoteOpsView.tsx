@@ -121,13 +121,31 @@ function pickShipTo(rows: PartnerAddressRow[]): string | null {
   return parts.length ? parts.join('') : null;
 }
 
-/** 基本資料的一欄。⛔ 值不用灰字（規格 §6），只有標籤降一階 */
-function Field({ label, value }: { label: string; value: string | null | undefined }) {
+/**
+ * 基本資料的一欄。⛔ 值不用灰字（規格 §6），只有標籤降一階。
+ *
+ * ⭐ 2026-08-02 執行長指正：原本把欄位塞進「貨怎麼出」「錢」兩個有標題的小框裡——
+ *    ⛔ 那是在做分類，但業務看客戶資料時根本不需要分類，他要的是一張看得舒服的表。
+ *    改成單一張表：所有欄位同一個網格、同一種樣式、標籤對齊值對齊，⛔ 沒有標題、沒有內框。
+ *
+ * children 用來放非純文字的值（例如狀態徽章）；⛔ 兩者不並存，有 children 就以它為準。
+ */
+function Field({
+  label,
+  value,
+  wide,
+  children,
+}: {
+  label: string;
+  value?: string | null;
+  wide?: boolean;
+  children?: React.ReactNode;
+}) {
   return (
-    <div>
+    <div className={wide ? 'md:col-span-2' : undefined}>
       {/* ⚠️ 標籤原本是 13px，2026-08-02 收斂時抬到 14（§6 的最小級距）*/}
-      <div className="nx-hint">{label}</div>
-      <div className="text-[15px] font-medium text-foreground">{value || '—'}</div>
+      <div className="nx-hint mb-1">{label}</div>
+      {children ?? <div className="text-[15px] font-medium text-foreground">{value || '—'}</div>}
     </div>
   );
 }
@@ -702,14 +720,16 @@ export function QuoteOpsView() {
                 className="rounded-md focus:outline focus:outline-2 focus:outline-primary"
               >
                 {/*
-                  卡片分三段，照業務講電話時會用到的順序：
-                    ① 這是誰（名字要大、電話要好認）
-                    ② 貨怎麼出（送哪、哪個倉、配送還自取）
-                    ③ 錢（等級、付款條件、有沒有欠）
-                  ⭐ 授信狀態直接放進卡片——那是「這個客戶」的一部分，
+                  卡片就是一張表：抬頭寫這是誰，底下一個網格把該知道的欄位排齊。
+                  ⭐ 授信狀態直接放進表裡——那是「這個客戶」的一部分，
                      ⛔ 不該只是飄在上面的一條警示條。
+
+                  ⚠️ 2026-08-02 執行長指正，⛔ 不要再改回去：
+                     原本欄位被裝進「貨怎麼出」「錢」兩個有標題的小框——那是在做分類，
+                     但業務看客戶資料時不需要分類，他要的是一張看得舒服的表。
+                     分類標題與內框全部拿掉，欄位改成單一網格、同一種樣式、標籤與值各自對齊。
                 */}
-                <div className="mb-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-border pb-4">
                   <span className="nx-t-page">{profile.name}</span>
                   <span className="nx-mono">{profile.code}</span>
                   {profile.contactName || profile.phone || profile.mobile ? (
@@ -723,45 +743,37 @@ export function QuoteOpsView() {
                   </span>
                 </div>
 
-                <div className="grid gap-4 lg:grid-cols-2">
-                  <div className="nx-card-inner">
-                    <div className="nx-t-sub mb-2">貨怎麼出</div>
-                    <div className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
-                      <Field
-                        label="取貨方式"
-                        value={
-                          profile.defaultDeliveryType
-                            ? (DELIVERY_LABEL[profile.defaultDeliveryType] ?? profile.defaultDeliveryType)
-                            : null
-                        }
-                      />
-                      <Field label="預設出貨倉" value={profile.defaultWarehouseName} />
-                      <div className="sm:col-span-2">
-                        <Field label="送貨地址" value={shipTo} />
-                      </div>
-                    </div>
-                  </div>
+                {/*
+                  ⭐ 一張表、四欄。順序照業務講電話時會問到的先後：
+                     先確認是誰家（統編／等級）→ 錢怎麼算（付款條件／欠款）→ 貨怎麼走（取貨／倉／地址）。
+                  ⚠️ 地址跨滿兩欄——它是唯一會長到換行的欄位，擠在四分之一欄會很醜。
+                */}
+                <div className="grid gap-x-8 gap-y-5 pt-4 sm:grid-cols-2 lg:grid-cols-4">
+                  <Field label="統一編號" value={profile.taxId} />
+                  <Field label="客戶等級" value={profile.customerGradeName ?? profile.customerGradeCode} />
+                  <Field label="付款條件" value={profile.paymentTermDomestic} />
+                  <Field label="目前欠款狀況">
+                    {credit == null ? (
+                      <div className="text-[15px] font-medium text-foreground">—</div>
+                    ) : !credit.passed ? (
+                      <span className="nx-pill-danger">擋單中</span>
+                    ) : credit.overdueTransferToCash ? (
+                      <span className="nx-pill-warn">逾期 {credit.details.overdueDays} 天</span>
+                    ) : (
+                      <span className="nx-pill-ok">正常</span>
+                    )}
+                  </Field>
 
-                  <div className="nx-card-inner">
-                    <div className="nx-t-sub mb-2">錢</div>
-                    <div className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
-                      <Field label="客戶等級" value={profile.customerGradeName ?? profile.customerGradeCode} />
-                      <Field label="付款條件" value={profile.paymentTermDomestic} />
-                      <Field label="統一編號" value={profile.taxId} />
-                      <Field
-                        label="目前欠款狀況"
-                        value={
-                          credit == null
-                            ? null
-                            : !credit.passed
-                              ? '⛔ 擋單中'
-                              : credit.overdueTransferToCash
-                                ? `⚠️ 逾期 ${credit.details.overdueDays} 天`
-                                : '正常'
-                        }
-                      />
-                    </div>
-                  </div>
+                  <Field
+                    label="取貨方式"
+                    value={
+                      profile.defaultDeliveryType
+                        ? (DELIVERY_LABEL[profile.defaultDeliveryType] ?? profile.defaultDeliveryType)
+                        : null
+                    }
+                  />
+                  <Field label="預設出貨倉" value={profile.defaultWarehouseName} />
+                  <Field label="送貨地址" value={shipTo} wide />
                 </div>
               </div>
             ) : (
