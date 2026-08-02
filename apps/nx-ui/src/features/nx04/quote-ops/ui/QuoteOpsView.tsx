@@ -22,7 +22,7 @@
 
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Search, Trash2 } from 'lucide-react';
 
 import {
@@ -30,11 +30,11 @@ import {
   type CreditCheckBlocked,
   type CreditCheckResult,
 } from '@data/endpoints/nx04/credit-guard/api/credit-guard';
-import { getQuoteCandidates } from '@data/endpoints/nx04/quote/api/quote';
+import { getQuoteCandidates, getQuotePriceHistory } from '@data/endpoints/nx04/quote/api/quote';
 import { createQuoteRecord } from '@data/endpoints/nx04/record/api/record';
 import { quickSearchParts } from '@data/endpoints/nx01/part-search/api/part-search';
 import type { PartSearchRow } from '@data/types/nx01/part-search';
-import type { QuoteCandidate } from '@data/types/nx04/quote';
+import type { QuoteCandidate, QuotePriceHistoryRow } from '@data/types/nx04/quote';
 import { FlowTemplate, type FlowApi, type FlowSection } from '@design/templates/FlowTemplate';
 
 import { createPartner, getPartner } from '@data/endpoints/shared/master/partner/api/partner';
@@ -85,6 +85,23 @@ function num(v: string | null | undefined): number {
   return Number.isFinite(n) ? n : 0;
 }
 
+/**
+ * ⭐⚠️ 業績值計算——這是「插槽」，⛔ 不是最終規則（執行長 2026-08-02：
+ *      「可以先設定好，後面設計完 KPI 可以帶入」）。
+ *
+ * 目前暫定 業績＝營收認列金額＝數量 × 報價。整頁只有這一支函式在算業績，
+ * KPI 規則定案後 ⛔ 只改這裡、⛔ 不要散到畫面各處。
+ *
+ * ⚠️ 待執行長拍板的業務語意（⛔ 我不自己決定）：
+ *   1. 業績算「營收」還是「毛利」？算毛利的話要成本——目前這支 API 的候選列
+ *      （QuoteCandidate）⛔ 沒有帶任何成本欄位，要接毛利得先擴 API。
+ *   2. 報價階段就算業績，還是成交才算？現在這頁存的是報價紀錄、不是銷貨單。
+ *   3. 退貨、折讓要不要回沖？
+ */
+function calcPerformance(qty: number, unitPrice: number): number {
+  return qty * unitPrice;
+}
+
 function money(v: string | null | undefined): string {
   if (v == null || v === '') return '—';
   const n = Number(v);
@@ -97,7 +114,11 @@ function totalAvailable(c: QuoteCandidate): number {
 }
 
 /** 取貨方式代碼 → 看得懂的字（值域對齊 partner DTO 的 D/P/C）*/
-const DELIVERY_LABEL: Record<string, string> = { D: '配送', P: '自取', C: '寄貨' };
+const DELIVERY_LABEL: Record<string, string> = {
+  D: '配送',
+  P: '自取',
+  C: '寄貨',
+};
 
 /**
  * 從地址清單挑出「要送去哪」：預設送貨地址 → 任一送貨地址 → 都沒有就 null。
@@ -228,6 +249,14 @@ export function QuoteOpsView() {
   const [warehouses, setWarehouses] = useState<{ id: string; code: string; name: string }[]>([]);
 
   const [lines, setLines] = useState<QuoteLine[]>([]);
+  /**
+   * 「過去成交／報價」就地展開（執行長 2026-08-02：報價那一欄要打得開）。
+   * histPartId＝目前展開的是哪一列；⛔ 一次只展開一列（兩列同時攤開表格會被撐爛）。
+   * ⚠️ 舊浮層工作站這一段是彈窗，新架構⛔ 不做彈窗（規格 §2.1）——改成表格內就地展開。
+   */
+  const [histPartId, setHistPartId] = useState<string | null>(null);
+  const [hist, setHist] = useState<QuotePriceHistoryRow[] | null>(null);
+  const [histLoading, setHistLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savedMsg, setSavedMsg] = useState<string | null>(null);
   const [errMsg, setErrMsg] = useState<string | null>(null);
@@ -240,6 +269,8 @@ export function QuoteOpsView() {
   const stockListRef = useRef<HTMLDivElement>(null);
   const customerRef = useRef<HTMLInputElement>(null);
   const reqRef = useRef(0);
+  /** 歷史查詢的競態序號（連點兩列時，⛔ 不能讓先回來的蓋掉後點的） */
+  const histReqRef = useRef(0);
 
   // ⭐ 進來先鎖「對象」（執行長 2026-08-01 訂正）：
   //    流程第一段就是對象，游標卻跳去第二段的搜尋框，等於一開始就把人往下拉。
@@ -393,7 +424,11 @@ export function QuoteOpsView() {
         const res = await quickSearchParts({ partNo: kw, pageSize: 50 });
         let list = res.rows;
         if (list.length === 0) {
-          const alt = await quickSearchParts({ keyword: kw, modelQuery: kw, pageSize: 50 });
+          const alt = await quickSearchParts({
+            keyword: kw,
+            modelQuery: kw,
+            pageSize: 50,
+          });
           list = alt.rows;
         }
         if (seq !== reqRef.current) return;
@@ -518,6 +553,42 @@ export function QuoteOpsView() {
     () => validLines.reduce((s, l) => s + num(l.qty) * num(l.unitPrice), 0),
     [validLines],
   );
+  /** 這一通電話報出去的業績合計。⚠️ 規則見 calcPerformance 的註解（暫定值、待 KPI 定案） */
+  const perfTotal = useMemo(
+    () => validLines.reduce((s, l) => s + calcPerformance(num(l.qty), num(l.unitPrice)), 0),
+    [validLines],
+  );
+
+  /**
+   * 展開／收起某一列的「過去成交與報價」。
+   * ⚠️ 需要客戶才查得到（API 以 customerId + partId 為鍵）——散客沒有客戶就查不了。
+   */
+  const toggleHistory = useCallback(
+    (partId: string) => {
+      if (histPartId === partId) {
+        setHistPartId(null);
+        return;
+      }
+      setHistPartId(partId);
+      setHist(null);
+      if (!customer) return;
+      setHistLoading(true);
+      const seq = ++histReqRef.current;
+      getQuotePriceHistory(customer.id, partId, 10)
+        .then((r) => {
+          if (seq !== histReqRef.current) return;
+          setHist(r.rows);
+        })
+        .catch(() => {
+          if (seq !== histReqRef.current) return;
+          setHist([]);
+        })
+        .finally(() => {
+          if (seq === histReqRef.current) setHistLoading(false);
+        });
+    },
+    [histPartId, customer],
+  );
 
   /** 給客戶的訊息——沿用共用產生器，⛔ 不自己排版 */
   const msgText = useMemo(
@@ -559,7 +630,8 @@ export function QuoteOpsView() {
   const save = useCallback(async () => {
     if (!customer || validLines.length === 0) return;
     // §2.1 允許的浮層只有「確認對話」這一種——單一問句、兩個按鈕
-    if (!window.confirm(`把這 ${validLines.length} 筆報價存進 ${customer.name} 的報價紀錄？`)) return;
+    if (!window.confirm(`把這 ${validLines.length} 筆報價存進 ${customer.name} 的報價紀錄？`))
+      return;
     setSaving(true);
     setErrMsg(null);
     try {
@@ -645,7 +717,8 @@ export function QuoteOpsView() {
             {draft ? (
               <div className="border-t border-border pt-5">
                 <div className="nx-t-sub mb-4">
-                  建立客戶　<span className="font-normal text-foreground/75">代碼由系統自動產生</span>
+                  建立客戶　
+                  <span className="font-normal text-foreground/75">代碼由系統自動產生</span>
                 </div>
                 {/* ⭐ 兩欄網格（規格 §6 欄位密度 6–8）：⛔ 不用四欄——1366 下一欄放不下一個地址 */}
                 <div className="nx-form-grid">
@@ -653,7 +726,12 @@ export function QuoteOpsView() {
                     <span className="nx-label">客戶類型</span>
                     <select
                       value={draft.partnerType}
-                      onChange={(e) => setDraft({ ...draft, partnerType: e.target.value as PartnerType })}
+                      onChange={(e) =>
+                        setDraft({
+                          ...draft,
+                          partnerType: e.target.value as PartnerType,
+                        })
+                      }
                       className="nx-field"
                     >
                       <option value="C">保養廠</option>
@@ -675,7 +753,12 @@ export function QuoteOpsView() {
                     <span className="nx-label">預設取貨方式</span>
                     <select
                       value={draft.defaultDeliveryType}
-                      onChange={(e) => setDraft({ ...draft, defaultDeliveryType: e.target.value })}
+                      onChange={(e) =>
+                        setDraft({
+                          ...draft,
+                          defaultDeliveryType: e.target.value,
+                        })
+                      }
                       className="nx-field"
                     >
                       <option value="D">配送</option>
@@ -687,7 +770,12 @@ export function QuoteOpsView() {
                     <span className="nx-label">預設倉位</span>
                     <select
                       value={draft.defaultWarehouseId}
-                      onChange={(e) => setDraft({ ...draft, defaultWarehouseId: e.target.value })}
+                      onChange={(e) =>
+                        setDraft({
+                          ...draft,
+                          defaultWarehouseId: e.target.value,
+                        })
+                      }
                       className="nx-field"
                     >
                       <option value="">（不指定）</option>
@@ -765,8 +853,8 @@ export function QuoteOpsView() {
                     取消
                   </button>
                   <span className="nx-hint">
-                    ⚠️ 交易條件（付款方式、額度、月結）系統先給預設值——
-                    客戶要談月結請轉財務，⛔ 不在這裡決定。
+                    ⚠️ 交易條件（付款方式、額度、月結）系統先給預設值—— 客戶要談月結請轉財務，⛔
+                    不在這裡決定。
                   </span>
                 </div>
               </div>
@@ -828,7 +916,10 @@ export function QuoteOpsView() {
                 */}
                 <div className="grid gap-x-8 gap-y-5 pt-4 sm:grid-cols-2 lg:grid-cols-4">
                   <Field label="統一編號" value={profile.taxId} />
-                  <Field label="客戶等級" value={profile.customerGradeName ?? profile.customerGradeCode} />
+                  <Field
+                    label="客戶等級"
+                    value={profile.customerGradeName ?? profile.customerGradeCode}
+                  />
                   <Field label="付款條件" value={profile.paymentTermDomestic} />
                   <Field label="目前欠款狀況">
                     {credit == null ? (
@@ -846,7 +937,8 @@ export function QuoteOpsView() {
                     label="取貨方式"
                     value={
                       profile.defaultDeliveryType
-                        ? (DELIVERY_LABEL[profile.defaultDeliveryType] ?? profile.defaultDeliveryType)
+                        ? (DELIVERY_LABEL[profile.defaultDeliveryType] ??
+                          profile.defaultDeliveryType)
                         : null
                     }
                   />
@@ -1020,7 +1112,9 @@ export function QuoteOpsView() {
                 <div className="mb-2 flex flex-wrap items-baseline gap-x-3">
                   <span className="nx-t-sub">通用零件</span>
                   <span className="nx-hint">共 {rows.length} 支</span>
-                  <span className="nx-hint ml-auto">↑↓ 選　·　空白鍵加入／移除　·　Enter 去報價</span>
+                  <span className="nx-hint ml-auto">
+                    ↑↓ 選　·　空白鍵加入／移除　·　Enter 去報價
+                  </span>
                 </div>
 
                 {/*
@@ -1075,7 +1169,11 @@ export function QuoteOpsView() {
                         className={[
                           'flex w-full items-center gap-3 rounded-lg border-2 px-3 py-2.5 text-left',
                           sel ? 'border-primary' : 'border-border',
-                          added ? 'bg-emerald-600/10' : sel ? 'bg-primary/[0.07]' : 'hover:bg-foreground/[0.04]',
+                          added
+                            ? 'bg-emerald-600/10'
+                            : sel
+                              ? 'bg-primary/[0.07]'
+                              : 'hover:bg-foreground/[0.04]',
                         ].join(' ')}
                       >
                         <div className="min-w-0 flex-1">
@@ -1086,9 +1184,7 @@ export function QuoteOpsView() {
                             ) : (
                               <span className="nx-tag">可代用</span>
                             )}
-                            {added ? (
-                              <span className="nx-pill-ok">✓ 已加入</span>
-                            ) : null}
+                            {added ? <span className="nx-pill-ok">✓ 已加入</span> : null}
                           </div>
                           <div className="nx-hint truncate">
                             {c.name}・{c.brandName ?? '—'}
@@ -1148,7 +1244,9 @@ export function QuoteOpsView() {
                               <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-foreground/10">
                                 <div
                                   className="h-full rounded-full bg-primary"
-                                  style={{ width: `${top > 0 ? Math.max(4, (s.qty / top) * 100) : 0}%` }}
+                                  style={{
+                                    width: `${top > 0 ? Math.max(4, (s.qty / top) * 100) : 0}%`,
+                                  }}
                                 />
                               </div>
                             </div>
@@ -1197,7 +1295,10 @@ export function QuoteOpsView() {
                     公司定價
                     <div className="nx-th-note">我們賣他</div>
                   </th>
-                  <th className="nx-th text-right">上次賣他</th>
+                  <th className="nx-th text-right">
+                    上次賣他
+                    <div className="nx-th-note">點開看全部</div>
+                  </th>
                   <th className="nx-th text-right">數量</th>
                   <th className="nx-th text-right">報價</th>
                   <th className="nx-th text-right">小計</th>
@@ -1214,79 +1315,182 @@ export function QuoteOpsView() {
                   </tr>
                 ) : (
                   lines.map((l) => (
-                    <tr key={l.partId} className="border-b border-border last:border-b-0">
-                      <td className="nx-td">
-                        <div className="font-medium">{l.code}</div>
-                        <div className="nx-hint">
-                          {l.name}
-                          {l.available <= 0 ? (
-                            <span className="ml-2 font-bold text-red-500">目前沒貨</span>
-                          ) : null}
-                        </div>
-                      </td>
-                      <td className="nx-num-md px-3 py-2.5 text-right">{money(l.marketPrice)}</td>
-                      <td className="nx-num-md px-3 py-2.5 text-right">{money(l.listPrice)}</td>
-                      <td className="nx-num px-3 py-2.5 text-right">
-                        {l.customerLastAmount ? (
-                          <>
-                            {money(l.customerLastAmount)}
+                    <Fragment key={l.partId}>
+                      <tr className="border-b border-border last:border-b-0">
+                        <td className="nx-td">
+                          <div className="font-medium">{l.code}</div>
+                          <div className="nx-hint">
+                            {l.name}
+                            {l.available <= 0 ? (
+                              <span className="ml-2 font-bold text-red-500">目前沒貨</span>
+                            ) : null}
+                          </div>
+                        </td>
+                        <td className="nx-num-md px-3 py-2.5 text-right">{money(l.marketPrice)}</td>
+                        <td className="nx-num-md px-3 py-2.5 text-right">{money(l.listPrice)}</td>
+                        {/*
+                        ⭐ 這一格可以打開（執行長 2026-08-02）：原本只印一個「上次賣他」的數字，
+                           業務要議價時真正想看的是「這支我報過幾次、成交在什麼價」。
+                        ⚠️ 需要客戶才查得到（API 以 客戶＋料號 為鍵），散客沒得查。
+                      */}
+                        <td className="nx-num px-3 py-2.5 text-right">
+                          <button
+                            type="button"
+                            disabled={!customer}
+                            onClick={() => toggleHistory(l.partId)}
+                            aria-expanded={histPartId === l.partId}
+                            title={customer ? '看過去的報價與成交' : '要先選客戶才查得到'}
+                            className="rounded px-1 text-right tabular-nums underline decoration-dotted underline-offset-4 hover:bg-foreground/[0.06] disabled:no-underline disabled:opacity-60"
+                          >
+                            {l.customerLastAmount ? money(l.customerLastAmount) : '—'}
                             <div className="nx-hint">
-                              {l.customerLastDate ? l.customerLastDate.slice(0, 10) : ''}
+                              {l.customerLastAmount && l.customerLastDate
+                                ? l.customerLastDate.slice(0, 10)
+                                : customer
+                                  ? '查紀錄'
+                                  : ''}
                             </div>
-                          </>
-                        ) : (
-                          '—'
-                        )}
-                      </td>
-                      <td className="px-3 py-2.5 text-right">
-                        <input
-                          value={l.qty}
-                          onChange={(e) => patchLine(l.partId, { qty: e.target.value })}
-                          inputMode="decimal"
-                          aria-label={`${l.code} 數量`}
-                          className="nx-field-cell w-24 text-right tabular-nums"
-                        />
-                      </td>
-                      <td className="px-3 py-2.5 text-right">
-                        <input
-                          value={l.unitPrice}
-                          onChange={(e) => patchLine(l.partId, { unitPrice: e.target.value })}
-                          inputMode="decimal"
-                          aria-label={`${l.code} 報價`}
-                          className="nx-field-cell w-28 text-right tabular-nums"
-                        />
-                      </td>
-                      <td className="nx-num-md px-3 py-2.5 text-right">
-                        {(num(l.qty) * num(l.unitPrice)).toLocaleString()}
-                      </td>
-                      <td className="px-3 py-2.5">
-                        <input
-                          value={l.remark}
-                          onChange={(e) => patchLine(l.partId, { remark: e.target.value })}
-                          placeholder="選填"
-                          aria-label={`${l.code} 備註`}
-                          className="nx-field-cell min-w-[120px]"
-                        />
-                      </td>
-                      <td className="px-3 py-2.5 text-right">
-                        <button
-                          type="button"
-                          onClick={() => removeLine(l.partId)}
-                          aria-label={`移除 ${l.code}`}
-                          title="移除"
-                          className="nx-btn-cell px-2 hover:border-red-500"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </td>
-                    </tr>
+                          </button>
+                        </td>
+                        <td className="px-3 py-2.5 text-right">
+                          <input
+                            value={l.qty}
+                            onChange={(e) => patchLine(l.partId, { qty: e.target.value })}
+                            inputMode="decimal"
+                            aria-label={`${l.code} 數量`}
+                            className="nx-field-cell w-24 text-right tabular-nums"
+                          />
+                        </td>
+                        <td className="px-3 py-2.5 text-right">
+                          <input
+                            value={l.unitPrice}
+                            onChange={(e) => patchLine(l.partId, { unitPrice: e.target.value })}
+                            inputMode="decimal"
+                            aria-label={`${l.code} 報價`}
+                            className="nx-field-cell w-28 text-right tabular-nums"
+                          />
+                          {/*
+                          ⭐ 打了價就看得到「這個價讓了多少」（執行長 2026-08-02 要的即時回饋的一半）。
+                             基準是公司定價（B 價）＝我們原本要賣他的價。
+                          ⛔ 不拿市場行情價當基準——那是保養廠對車主的價，不是我們的。
+                        */}
+                          {(() => {
+                            const p = num(l.unitPrice);
+                            const base = num(l.listPrice);
+                            if (p <= 0 || base <= 0 || p === base) return null;
+                            const diff = p - base;
+                            const pct = Math.round((diff / base) * 100);
+                            return (
+                              <div
+                                className={`nx-hint mt-1 tabular-nums ${diff < 0 ? 'text-red-600' : 'text-emerald-700'}`}
+                              >
+                                {diff < 0 ? '▼' : '▲'}
+                                {Math.abs(diff).toLocaleString()}（{pct > 0 ? '+' : ''}
+                                {pct}%）
+                              </div>
+                            );
+                          })()}
+                        </td>
+                        <td className="nx-num-md px-3 py-2.5 text-right">
+                          {(num(l.qty) * num(l.unitPrice)).toLocaleString()}
+                        </td>
+                        <td className="px-3 py-2.5">
+                          <input
+                            value={l.remark}
+                            onChange={(e) => patchLine(l.partId, { remark: e.target.value })}
+                            placeholder="選填"
+                            aria-label={`${l.code} 備註`}
+                            className="nx-field-cell min-w-[120px]"
+                          />
+                        </td>
+                        <td className="px-3 py-2.5 text-right">
+                          <button
+                            type="button"
+                            onClick={() => removeLine(l.partId)}
+                            aria-label={`移除 ${l.code}`}
+                            title="移除"
+                            className="nx-btn-cell px-2 hover:border-red-500"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </td>
+                      </tr>
+
+                      {/* ───── 就地展開：這支料對這個客戶的過去報價與成交 ───── */}
+                      {histPartId === l.partId ? (
+                        <tr className="border-b border-border bg-muted/50">
+                          <td colSpan={9} className="px-3 py-3">
+                            {histLoading ? (
+                              <div className="nx-hint">讀取中…</div>
+                            ) : !hist || hist.length === 0 ? (
+                              <div className="nx-hint">這支料沒有可查的報價或成交紀錄。</div>
+                            ) : (
+                              <div>
+                                <div className="nx-hint mb-2">
+                                  {l.code} 的過去紀錄　·　點一列可以把那個價帶進報價欄
+                                </div>
+                                <div className="space-y-1">
+                                  {hist.map((h, idx) => (
+                                    <button
+                                      key={`${h.date}-${h.kind}-${idx}`}
+                                      type="button"
+                                      onClick={() =>
+                                        patchLine(l.partId, {
+                                          unitPrice: String(num(h.amount)),
+                                        })
+                                      }
+                                      title="把這個價帶進報價欄"
+                                      className="flex w-full items-baseline gap-3 rounded-md border border-border bg-card px-3 py-2 text-left hover:border-primary"
+                                    >
+                                      <span className="nx-mono shrink-0">
+                                        {h.date.slice(0, 10)}
+                                      </span>
+                                      {/* 成交與報價是兩件事：成交是真的賣掉了、報價只是報過 */}
+                                      <span
+                                        className={
+                                          h.kind === 'SALE' ? 'nx-pill-ok' : 'nx-tag font-normal'
+                                        }
+                                      >
+                                        {h.kind === 'SALE' ? '成交' : '報價'}
+                                      </span>
+                                      <span className="nx-hint shrink-0">
+                                        {h.scope === 'CUSTOMER' ? '這家' : '同級距'}
+                                      </span>
+                                      <span className="nx-hint min-w-0 flex-1 truncate">
+                                        {[h.customerCode, h.customerName].filter(Boolean).join(' ')}
+                                      </span>
+                                      <span className="nx-num shrink-0">
+                                        × {Number(h.qty ?? 1).toLocaleString()}
+                                      </span>
+                                      <span className="nx-num-md shrink-0">{money(h.amount)}</span>
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ) : null}
+                    </Fragment>
                   ))
                 )}
               </tbody>
             </table>
           </div>
-          <div className="nx-body mt-3 text-right font-medium">
-            合計 <span className="nx-num-xl">{total.toLocaleString()}</span>
+          {/*
+            ⭐ 業績值（執行長 2026-08-02：「報價後應該可以看到業績值」）。
+            ⚠️ 目前規則是暫定的（見檔頭 calcPerformance 的註解），KPI 定案後只改那一支函式。
+               標籤上明寫「暫以報價金額計」，⛔ 不要讓使用者以為這已經是正式的業績數字。
+          */}
+          <div className="mt-3 flex flex-wrap items-baseline justify-end gap-x-8 gap-y-1">
+            <div className="nx-body font-medium">
+              本次業績
+              <span className="nx-hint ml-1">暫以報價金額計</span>
+              <span className="nx-num-lg ml-2">{perfTotal.toLocaleString()}</span>
+            </div>
+            <div className="nx-body font-medium">
+              合計 <span className="nx-num-xl">{total.toLocaleString()}</span>
+            </div>
           </div>
         </div>
       ),

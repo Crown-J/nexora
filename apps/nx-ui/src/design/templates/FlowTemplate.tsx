@@ -22,7 +22,7 @@
 // ⚠️ 以下這段是 2026-08-01 的決定，2026-08-02 已被修正（保留原文以免又繞回來）：
 //    當時把規格 §6 讀成「動畫全禁」而做成瞬間定位，執行長 2026-08-02 指出跳段需要
 //    上下滑動的過渡才看得出方向；§6 原文是「全部關掉**或縮到最短**」，短過渡本來就在規格內。
-//    現行做法＝自己用 requestAnimationFrame 跑 180ms（見 goTo），
+//    現行做法＝自己用 requestAnimationFrame 跑 260ms（見 goTo），
 //    ⛔ 仍然不用 behavior:'smooth'——下面第 2 點的靜默失效問題依舊成立。
 //
 // ⚠️（2026-08-01 原文）捲動用 behavior:'auto'（瞬間定位），⛔ 不用 smooth。兩個理由：
@@ -90,6 +90,8 @@ export function FlowTemplate({
 
   /** 中斷進行中的跳段動畫（連按兩次要能收掉前一個，⛔ 不然兩個動畫會互搶 scrollTop） */
   const cancelAnimRef = useRef<(() => void) | null>(null);
+  /** 跳段動畫進行中？⚠️ 用 ref 不用 state——它每格都要被讀，變成 state 會逼整頁重畫 */
+  const animatingRef = useRef(false);
 
   const goTo = useCallback((i: number) => {
     const root = scrollRef.current;
@@ -146,7 +148,8 @@ export function FlowTemplate({
      *    使用者分不出是往上還往下。滑過去那一下就是在講「你往下移動了一段」。
      *
      * ⚠️ 規格 §6 寫的是「動畫全部關掉**或縮到最短**」——⛔ 不是全禁。
-     *    180ms 是「看得出方向」與「不拖慢熟手」的交界；⛔ 不要再加長。
+     *    長度 2026-08-02 由 180ms 調到 260ms：180 太短，配上 ease-out 的急起步
+     *    看起來是「彈一下」而不是「滑過去」（執行長回報）。⛔ 不要再加長，260 已經是上限感。
      *
      * ⛔ 不用 scrollTo({behavior:'smooth'})，兩個理由：
      *    1. 時間長度由瀏覽器決定，我們控不了「縮到最短」這條規格
@@ -164,10 +167,22 @@ export function FlowTemplate({
       return;
     }
 
-    const DURATION = 180;
+    const DURATION = 260;
     let raf = 0;
     let watchdog = 0;
     let done = false;
+
+    /**
+     * ⚠️ 動畫期間關掉捲動吸附（2026-08-02 執行長回報「有點像卡了一下」的元凶之一）：
+     *    我們每一格都在寫 scrollTop，瀏覽器的吸附同時也想把捲動位置拉到吸附點，
+     *    兩邊互相修正就會抖。⛔ 不能整段關掉吸附——那是滑鼠捲動要用的，
+     *    所以只在動畫這 260ms 內關，收尾時還原。
+     */
+    const snapBefore = root.style.scrollSnapType;
+    root.style.scrollSnapType = 'none';
+
+    // ⭐ 動畫期間不讓 scroll 事件回頭改「目前段位」（見下方 syncActive 的說明）
+    animatingRef.current = true;
 
     /** 收尾：對齊到定位＋聚焦。⛔ 只能跑一次（動畫跑完與保險逾時都會呼叫它） */
     const finish = () => {
@@ -177,16 +192,27 @@ export function FlowTemplate({
       clearTimeout(watchdog);
       cancelAnimRef.current = null;
       root.scrollTop = to; // 收尾對齊，⛔ 不留 0.4px 的殘差讓吸附再修一次
+      root.style.scrollSnapType = snapBefore;
+      animatingRef.current = false;
       focusField();
     };
 
-    let startTs: number | null = null;
-    const step = (ts: number) => {
+    /*
+     * ⚠️ 起算時間用 performance.now()，⛔ 不要等第一個 rAF 的 ts：
+     *    那樣第一格的進度是 0，等於畫面「先停一格再開始動」——
+     *    執行長回報的「卡了一下」有一部分就是這一格。
+     */
+    const startTs = performance.now();
+    const step = () => {
       if (done) return;
-      if (startTs === null) startTs = ts;
-      const p = Math.min(1, (ts - startTs) / DURATION);
-      // ease-out：起步快、收尾穩。⛔ 不用回彈類曲線——那會讓人以為捲過頭了
-      root.scrollTop = from + dist * (1 - Math.pow(1 - p, 3));
+      const p = Math.min(1, (performance.now() - startTs) / DURATION);
+      /*
+       * ease-in-out：兩頭慢、中間快。
+       * ⚠️ 原本用 ease-out（起步最快），從靜止瞬間衝出去看起來就是「彈一下」。
+       *    ⛔ 不用回彈類曲線——那會讓人以為捲過頭了。
+       */
+      const e = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+      root.scrollTop = from + dist * e;
       if (p < 1) {
         raf = requestAnimationFrame(step);
         return;
@@ -262,6 +288,18 @@ export function FlowTemplate({
   const syncActive = useCallback(() => {
     const root = scrollRef.current;
     if (!root) return;
+    /*
+     * ⭐ 動畫期間直接不算（2026-08-02 執行長回報「左側切換狀態也會閃了一下」的根因）：
+     *    跳段動畫每一格都在寫 scrollTop，每一次都會觸發 scroll 事件 → 這支就把
+     *    「目前段位」算成中間經過的那幾段 → 左欄在 260ms 內被刷成 2、3、4 才停在 4。
+     *    看起來就是閃一下。
+     *    ⛔ 不能改成「只在動畫結束才算」——使用者自己用滾輪捲的時候還是要即時跟。
+     *    goTo 一開始就已經把左欄標到目的地了，動畫期間本來就沒有東西要算。
+     *
+     * ⚠️ 這同時也是「卡了一下」的主因：每一格 setState 就是整頁重畫一次，
+     *    260ms 內十幾次重畫（而且這一頁有表格與清單）——幀直接掉光。
+     */
+    if (animatingRef.current) return;
     const rootTop = root.getBoundingClientRect().top;
     // 判定線＝容器頂端下方 80px：跨過這條線的最後一段，就是「現在在看的」
     const LINE = 80;
