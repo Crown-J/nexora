@@ -1,0 +1,258 @@
+<!-- docs/_team/工作報告-2026-08-02.html -->
+<!-- 版本：v1.0（2026-08-02 收工） -->
+<!-- 說明：2026-08-02 下午場工作報告。給執行長看的當日成果、發現與待決事項。 -->
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NEXORA 工作報告　2026-08-02</title>
+<style>
+  :root{
+    --bg:#eef1f4; --card:#fff; --fg:#1a1d24; --fg2:#1a1d24bf;
+    --line:#00000018; --line2:#00000030;
+    --ok:#0f7a4d; --okbg:#0f7a4d14; --warn:#a35c00; --warnbg:#a35c0014;
+    --danger:#b3261e; --dangerbg:#b3261e12; --accent:#1a56b0; --accentbg:#1a56b012;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#12151a; --card:#191d24; --fg:#e9edf2; --fg2:#e9edf2bf;
+      --line:#ffffff1a; --line2:#ffffff33;
+      --ok:#5fd39b; --okbg:#5fd39b14; --warn:#e0a24a; --warnbg:#e0a24a14;
+      --danger:#f08076; --dangerbg:#f0807614; --accent:#7aa9f0; --accentbg:#7aa9f014; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font:15px/1.75 -apple-system,"Segoe UI","Noto Sans TC","PingFang TC",sans-serif;}
+  .wrap{max-width:940px;margin:0 auto;padding:28px 20px 72px}
+  header{margin-bottom:28px}
+  h1{font-size:26px;font-weight:700;margin:0 0 6px}
+  .sub{color:var(--fg2);font-size:15px}
+  h2{font-size:20px;font-weight:700;margin:36px 0 12px;padding-top:20px;border-top:1px solid var(--line2)}
+  h3{font-size:17px;font-weight:700;margin:22px 0 8px}
+  p{margin:8px 0}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:12px 0}
+  .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .stat .n{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.2}
+  .stat .l{font-size:14px;color:var(--fg2)}
+  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:15px}
+  th{text-align:left;font-size:14px;font-weight:700;padding:8px 10px;border-bottom:1px solid var(--line2)}
+  td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
+  code,.mono{font-family:ui-monospace,"SFMono-Regular",Consolas,monospace;font-size:14px}
+  .tag{display:inline-block;border-radius:999px;padding:1px 10px;font-size:14px;border:1px solid var(--line2)}
+  .ok{color:var(--ok);background:var(--okbg);border-color:var(--ok)}
+  .warn{color:var(--warn);background:var(--warnbg);border-color:var(--warn)}
+  .danger{color:var(--danger);background:var(--dangerbg);border-color:var(--danger)}
+  .box-warn{border-left:4px solid var(--warn);background:var(--warnbg)}
+  .box-danger{border-left:4px solid var(--danger);background:var(--dangerbg)}
+  .box-star{border-left:4px solid var(--accent);background:var(--accentbg)}
+  ul{margin:8px 0;padding-left:22px}
+  li{margin:5px 0}
+  .muted{color:var(--fg2)}
+  .scroll{overflow-x:auto}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>NEXORA 工作報告</h1>
+  <div class="sub">2026-08-02　下午場（盤點討論 → 六支外殼定案 → 動工）　分支 <code>feature/v3.0.0</code></div>
+</header>
+
+<div class="grid">
+  <div class="stat"><div class="n">12</div><div class="l">本場 commit</div></div>
+  <div class="stat"><div class="n">115</div><div class="l">變更檔案</div></div>
+  <div class="stat"><div class="n">+4,221</div><div class="l">新增行數</div></div>
+  <div class="stat"><div class="n">14</div><div class="l">新元件／頁面</div></div>
+</div>
+<p class="muted">今天整天含上午場共 31 個 commit。本報告只涵蓋下午這一場。</p>
+
+<h2>一、這一場最重要的三件事</h2>
+
+<div class="card box-star">
+  <h3 style="margin-top:0">1　把「兩百多頁」收斂成「六支外殼」</h3>
+  <p>用<b>使用者一天中的時刻</b>去推，⛔ 不從資料表推。已驗兩個角色：</p>
+  <table>
+    <tr><th>角色</th><th class="r">時刻</th><th class="r">現有頁數</th><th class="r">收斂後</th><th>用到幾支殼</th></tr>
+    <tr><td>銷售作業</td><td class="r">13</td><td class="r">44</td><td class="r">約 10</td><td>5（無現場殼）</td></tr>
+    <tr><td>倉庫作業</td><td class="r">13</td><td class="r">48</td><td class="r">約 12</td><td>5（無開單殼）</td></tr>
+  </table>
+  <p>兩個角色工作性質差最遠（一個坐位子、一個戴手套），六支都撐得住，<b>⛔ 不需要第七支</b>。<br>
+  規格書：<code>docs/專案/介面規格/NEXORA-外殼規格-v3.0.0.md</code></p>
+</div>
+
+<div class="card box-star">
+  <h3 style="margin-top:0">2　建立「已作廢決策清單」</h3>
+  <p>解決執行長點出的真痛點——<b>「舊的設定一直干擾你的判定」</b>。</p>
+  <p>程式碼不會告訴你它是現行決策還是已作廢的殘留（作廢的四級價躺在 schema 裡，跟現行的公司定價長得一樣真實）。
+  每條記四件事：被推翻什麼／被什麼取代／哪一天／程式碼還有什麼殘留。</p>
+  <p>目前 <b>19 條</b>。開工必讀順序：<code>CLAUDE.md → git log → 本檔 → 規格書</code></p>
+</div>
+
+<div class="card box-star">
+  <h3 style="margin-top:0">3　六支殼裡做出兩支新的、一支補強</h3>
+  <table>
+    <tr><th>殼</th><th>狀態</th><th>說明</th></tr>
+    <tr><td>工作檯</td><td><span class="tag ok">已存在</span></td><td>⚠️ 我曾誤報成「沒有」，已更正。缺角色化（卡在權限已拔掉）</td></tr>
+    <tr><td>開單</td><td><span class="tag ok">2 頁</span></td><td>建立報價、建立銷貨單</td></tr>
+    <tr><td><b>檢視</b></td><td><span class="tag ok">新做</span></td><td>唯讀單據＋動作列，報價單先上線</td></tr>
+    <tr><td>清單</td><td><span class="tag warn">只改外觀</span></td><td>27＋頁字級收斂，骨架仍是舊的</td></tr>
+    <tr><td><b>現場</b></td><td><span class="tag ok">新做</span></td><td>殼＋三套佈局＋工作站機制＋五個流程</td></tr>
+    <tr><td>報表</td><td><span class="tag danger">還沒有</span></td><td>建議等總帳（見文末）</td></tr>
+  </table>
+</div>
+
+<h2>二、逐項成果</h2>
+
+<h3>檢視殼（六支裡唯一全新的一支）</h3>
+<ul>
+  <li>先給結論：主體＋狀態＋<b>三個關鍵數字</b>放最上面；細節收頁籤</li>
+  <li>⭐ <b>動作列＝修改的唯一入口，畫面本身唯讀</b>。已生效的單⛔ 不可直接改欄位——
+      改完舊值就消失、帳不可稽核，跟「命脈＝可信可稽核的帳」直接衝突。
+      做法同電商：下單後不能編輯訂單，只能「申請改地址」「申請取消」</li>
+  <li>已上線 <code>/dashboard/sale/qt/[id]</code>；純設計預覽在 <code>/preview/detail</code></li>
+</ul>
+
+<h3>報價轉銷貨（路 A 全線打通）</h3>
+<p>查價 → 出正式報價 → 等客戶回 → <b>轉銷貨</b> → 帶入品項 → 開單。</p>
+<ul>
+  <li>單價用報價當初談定的價，⛔ 不重新帶價（那會推翻業務跟客戶講好的數字）</li>
+  <li>⛔ 不自動把整張報價塞進去，讓業務勾——客戶常只買其中幾項</li>
+  <li>帶進來的行夾帶報價行 id → 送出後報價自動標成已成交、同客戶同料號的舊報價自動作廢</li>
+</ul>
+<p><b>實測：</b>報價頁按轉銷貨 → 客戶自動選好 → 跳明細段 → 挑選器自動打開 → 勾選帶入 →
+明細金額與報價單一致（未稅 200／含稅 210）。⛔ 未按送出，沒有產生真實銷貨單。</p>
+
+<h3>現場殼（今天的主體）</h3>
+<p><b>一支殼・一個路由・三套佈局</b>：走動（手機）／定點（固定螢幕）／看板（電腦）。</p>
+<table>
+  <tr><th>流程</th><th>狀態</th><th>備註</th></tr>
+  <tr><td>撿貨</td><td><span class="tag ok">真的按過</span></td><td>寫入→驗證→還原，資料完全復原</td></tr>
+  <tr><td>包貨</td><td><span class="tag ok">真的按過</span></td><td>抓到兩個實跑才會炸的 bug</td></tr>
+  <tr><td>出貨</td><td><span class="tag warn">鏈路驗過</span></td><td>自取／寄貨沒資料可按</td></tr>
+  <tr><td>驗收</td><td><span class="tag warn">頁面好了</span></td><td>本機 0 筆進貨單，沒資料可按</td></tr>
+  <tr><td>盤點</td><td><span class="tag warn">頁面好了</span></td><td>本機 0 筆盤點單</td></tr>
+  <tr><td><b>上架</b></td><td><span class="tag danger">做不了</span></td><td><b>後端根本沒有上架流程</b>，只有「建議庫位」</td></tr>
+</table>
+
+<p><b>幾個關鍵決定：</b></p>
+<ul>
+  <li><b>看板一律沿用既有元件</b>，⛔ 不重寫——舊的三欄看板已有「待撿／已撿／已取消」與管理動作，那正是看板該做的事</li>
+  <li><b>工作站綁在螢幕上，⛔ 不綁在人身上</b>：那台螢幕第一次開機問一次「你是哪個站」，之後記住。存瀏覽器本機、⛔ 不動資料庫</li>
+  <li><b>⛔ 不做「小規模／大規模」設定</b>：沒註冊工作站→全走手機→自動是單人作業；註冊了→定點→自動是多工作線。沒有人會選錯</li>
+  <li><b>掃描槍＝打很快的鍵盤＋Enter</b>：間隔超過 300ms 就當人在按。實測慢打不會誤觸發</li>
+  <li><b>盤點⛔ 不顯示系統帳上的數量</b>——先看到答案再去數，數出來的一定是答案</li>
+</ul>
+
+<h3>清單殼第一刀＋字級守門</h3>
+<ul>
+  <li>兩支共用元件（27／29 頁共用）字級收斂；<b>全站代碼欄 12px → 14px：171 處／84 個檔</b>
+      ——料號是 ERP 裡最常被眼睛掃的一欄，卻全站用最小字級</li>
+  <li>三種資料量級驗過：幣別 4 筆／廠牌 463 筆／適配車型 <b>142,690 筆</b>，表格內字級只剩 14 與 15px</li>
+  <li>⭐ <b>加 lint 規則守住下限</b>：v3 新範式區＝error（⛔ 不准回歸）、其餘＝warn（2,679 則慢慢清）。
+      規則上線<b>當場就抓到兩個我肉眼沒看到的違規</b></li>
+</ul>
+
+<h2>三、發現（這些比程式碼重要）</h2>
+
+<div class="card box-danger">
+  <h3 style="margin-top:0">⚠️ 業務看得到成本（已修一半）</h3>
+  <p>即時銷售站在低於底價時，警告訊息<b>把成本數字直接印出來</b>。業務只要改價格試到警告跳出來，
+  就能反推任何一顆零件的進價。而那個工作站掛在每一頁上、是活的。</p>
+  <p><b>已修：</b>訊息改成只講事實不帶數字，擋的邏輯完全不變。<br>
+  <b>⚠️ 未修：</b>後端仍把成本回傳到瀏覽器（開發者工具看得到）。
+  建議跟定價改制一起改——新底價＝公司定價×(1−折讓上限) 本來就不需要成本，⛔ 不要同樣的工做兩次。</p>
+</div>
+
+<div class="card box-warn">
+  <h3 style="margin-top:0">⚠️ 「已上線 80」裡有 19 個是空殼</h3>
+  <p>整個<b>物流作業</b>（5 格）、整個<b>經營作業</b>（7 格）、行政人員資料（4 格）、倉庫分析（2）、出納報表（1）——
+  點進去只有一個標題和一段說明文字。</p>
+  <p>所以真實的改版進度是 <b>2 / 60</b>，⛔ 不是 2 / 80。全站這種佔位頁共 54 個（＝後端做完、UI 沒做）。</p>
+</div>
+
+<div class="card box-warn">
+  <h3 style="margin-top:0">⚠️ 封箱之後回不去了</h3>
+  <p>為了驗證出貨走了完整一條鏈，發現<b>封箱是單向的</b>——退回建箱中與作廢都被狀態機擋下。</p>
+  <p>⭐ 這個設計是對的（膠帶封了就是封了）。但它直接回答了「銷貨建單怎麼測」：
+  <b>這條鏈上有一個不可逆的點，而且它在「送出」之後</b>。</p>
+  <p>更麻煩的是<b>封箱是跨模組的</b>——它同時把銷貨單從「已確認」推到「已出貨」。
+  所以清除測試痕跡永遠不是「刪一筆」，是「還原一串」（實際跨了 5 張表）。</p>
+</div>
+
+<div class="card box-warn">
+  <h3 style="margin-top:0">⚠️ 其他挖到的洞</h3>
+  <ul>
+    <li><b>九宮格「盤點單」的清單一直是壞的</b>——前端打死路徑 <code>/nx02/stock-take</code>，
+        後端實際是 <code>nx03/stocktake</code>，永遠顯示「無資料」</li>
+    <li><b>進貨驗收在電腦上顯示手機畫面</b>（已修）</li>
+    <li><b>適配車型清單露出內部代碼</b> <code>NX01PART0000001</code> 而不是料號</li>
+    <li><b>上架整段沒有後端</b>——驗收完貨去哪，系統沒有管</li>
+    <li>全站還有 <b>2,679 處</b>字級違規（已加 lint 規則守住不再新增）</li>
+  </ul>
+</div>
+
+<h2>四、我自己犯的錯（列出來避免重蹈）</h2>
+<table>
+  <tr><th>錯</th><th>後果</th><th>怎麼發現的</th></tr>
+  <tr><td>誤報「工作檯完全沒有頁面」</td><td>差點重做一個已經在跑的東西</td><td>動工前 grep 現況</td></tr>
+  <tr><td>誤報「轉銷貨完全沒有」</td><td>後端其實有一鍵轉單的端點、只是沒人用</td><td>查別的東西時撞到</td></tr>
+  <tr><td>兩次把 ⛔／⚠️ 這種內部標記寫進使用者看得到的畫面</td><td>產品裡出現規格書的符號</td><td>實跑時看到</td></tr>
+  <tr><td>子元件寫在 render 裡</td><td>掃描槍打到一半焦點會掉</td><td>新加的 lint 規則抓到</td></tr>
+  <tr><td>現場殼沒有逃生出口</td><td>手持機被誤判就切不回走動版、整台裝置不能用</td><td>自己回頭想到</td></tr>
+  <tr><td>清測試資料只清了 4 張表</td><td>撿貨池變成比測試前還少</td><td>清完回頭驗證</td></tr>
+</table>
+<p class="muted">⭐ 六個裡有四個是「真的按下去」或「回頭驗證」才發現的，光看畫面看不出來。</p>
+
+<h2>五、今天拍板的事（已寫進規格與清單）</h2>
+<ul>
+  <li><b>定價鏈</b>：產品組分析市場 → 市場行情價 → 採購詢價 → 進價 → <b>公司定價</b>（唯一紀律基準）</li>
+  <li><b>底價</b>改成「公司定價 ×(1−客戶等級折讓上限)」，⛔ 廢掉成本式。業務⛔ 看不到成本</li>
+  <li><b>業績 KPI</b>：量＝銷售金額×客戶等級加成；質＝(銷售金額−公司定價金額)×加成。<b>加成高等級高</b></li>
+  <li><b>六支外殼</b>定案，⛔ 沒有第七支。樹狀結構圖歸檢視殼</li>
+  <li><b>全域搜尋⛔ 不做成頁面</b>——同一個框，依角色回不同答案</li>
+  <li><b>現場殼</b>：一支殼・一個路由・三套佈局；工作站綁螢幕；⛔ 不做規模設定；單人模式介面可合併但帳⛔ 不能合併</li>
+  <li><b>條碼掃描</b>列為「⛔ 不做彈窗」的第四種例外</li>
+</ul>
+
+<h2>六、⚠️ 待執行長拍板（明天優先處理）</h2>
+<table>
+  <tr><th>#</th><th>要決定什麼</th><th>不決定的話卡住什麼</th></tr>
+  <tr><td>1</td><td><b>客戶等級 <code>marginPct</code> 的語意</b>——折讓上限？KPI 加成？兩個都要？<br>
+      <span class="muted">同一個欄位在後端註解叫「最低毛利率」、在畫面上叫「加成率(%)」</span></td>
+      <td>底價改制、業績計算都動不了</td></tr>
+  <tr><td>2</td><td><b>要不要換軌回總帳</b>——六個過帳入口只接了兩個</td>
+      <td>報表殼沒有意義；⚠️ 要動後端，跟介面軌紀律衝突</td></tr>
+  <tr><td>3</td><td><b>亞羅一天開幾張銷貨單</b></td><td>開單殼要不要做「老手模式」</td></tr>
+  <tr><td>4</td><td><b>115 個進不去的頁面</b>怎麼處置、<b>23 個未建格子</b>的優先序</td><td>剩下的工作量算不出來</td></tr>
+  <tr><td>5</td><td>本機資料庫缺 20 張表（含整個傳票／會計期間）要不要補</td><td>銷貨走到簽收就會炸</td></tr>
+</table>
+
+<h2>七、我的建議：下一步⛔ 不是報表殼</h2>
+<div class="card box-star">
+  <p>九宮格上 19 個空殼裡有 15 個是報表。但<b>報表的價值建立在帳是對的</b>——
+  而總帳的六個過帳入口只接了兩個（退貨、庫存單據、兩個期初全部是 0 呼叫點）。</p>
+  <p><b>⭐ 先把報表殼蓋漂亮，等於替一份還不完整的帳做精美包裝。</b></p>
+  <p>建議下一步是<b>把總帳那四個過帳入口接完</b>。CLAUDE.md 自己寫著「總帳／財報脊椎優先於銷售 UI 精修」。<br>
+  ⚠️ 但那要動 <code>apps/nx-api/</code>，跟介面軌的紀律衝突——<b>要執行長拍板換軌</b>。</p>
+</div>
+
+<h2>八、還欠的驗證</h2>
+<ul>
+  <li>⚠️ <b>走動（手機）佈局從未在真裝置上跑過</b>。已補逃生出口，現在電腦上選「手持機」就能看版面，
+      但<b>觸控手感與戴手套只能實機確認</b>。<br>
+      <span class="muted">手機尺寸實測：工作按鈕 48–64px 高、數量字 40px、⛔ 無橫向捲動</span></li>
+  <li>自取簽收／寄貨寄出：本機只有配送型的單，沒按過</li>
+  <li>驗收、盤點：本機 0 筆資料，沒按過</li>
+</ul>
+
+<p class="muted" style="margin-top:36px;padding-top:16px;border-top:1px solid var(--line2)">
+本機資料庫已完全還原成測試前的狀態（撿貨池 2 項、銷貨單回到「已確認」、⛔ 無殘留的撿貨／包貨／包裹單）。
+備份 CSV 留在暫存區。
+</p>
+
+</div>
+</body>
+</html>
