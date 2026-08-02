@@ -321,6 +321,29 @@ export function FlowTemplate({
     return () => root.removeEventListener('scroll', syncActive);
   }, [syncActive]);
 
+  /**
+   * ⭐ 焦點跑到哪一段，左欄就標哪一段（執行長 2026-08-02 回報的 bug）：
+   *    在「報價」一直按 Tab 會走進「發送訊息」的欄位，但左欄還停在報價——
+   *    因為原本只在「捲動」與「跳段」時更新，⛔ 沒有人在聽焦點移動。
+   *    ⚠️ Tab 走到下一段時瀏覽器只把該欄位捲進畫面、不見得跨過段落判定線，
+   *       所以⛔ 不能指望 scroll 事件補上這件事——要直接聽焦點。
+   *
+   * ⚠️ 動畫期間不理會：goTo 收尾時自己會聚焦，那一下不該再改段位（它已經標好了）。
+   */
+  useEffect(() => {
+    const root = scrollRef.current;
+    if (!root) return;
+    const onFocusIn = (e: FocusEvent) => {
+      if (animatingRef.current) return;
+      const el = e.target instanceof Element ? e.target.closest('[data-idx]') : null;
+      if (!el) return;
+      const i = Number(el.getAttribute('data-idx'));
+      if (Number.isFinite(i)) setActive(i);
+    };
+    root.addEventListener('focusin', onFocusIn);
+    return () => root.removeEventListener('focusin', onFocusIn);
+  }, []);
+
   function submit() {
     const bad = sections.findIndex((s) => s.blocked);
     if (bad >= 0) {
