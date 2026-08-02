@@ -23,7 +23,13 @@
 
 import { useCallback, useEffect, useRef } from 'react';
 
-import { useWorkstation, type FieldLayout } from '@design/hooks/useWorkstation';
+import {
+  STATION_KINDS,
+  STATION_LABEL,
+  useWorkstation,
+  type FieldLayout,
+  type StationKind,
+} from '@design/hooks/useWorkstation';
 
 export type FieldTask = {
   id: string;
@@ -152,11 +158,84 @@ function ActionBar({
   );
 }
 
+/**
+ * ⭐ 逃生出口（2026-08-02 補）：讓這台螢幕自己說它是什麼。
+ *
+ * ⚠️ 為什麼非有不可：佈局的自動判斷靠「粗指標 ＋ 螢幕 <900px」。
+ *    倉庫手持機型號千奇百怪——**萬一沒被認出來，倉管會拿到看板而且切不回去**，
+ *    整台裝置等於不能用。有這個出口，偵測就只是「沒設定時的方便預設」。
+ *
+ * ⛔ 用原生 select：手機會叫出系統選單（觸控目標夠大、戴手套也點得到），
+ *    鍵盤也能操作，⛔ 不必自己刻一套下拉。
+ */
+export function StationPicker({
+  value,
+  auto,
+  onPick,
+  onClear,
+}: {
+  value: StationKind | null;
+  auto: boolean;
+  onPick: (k: StationKind) => void;
+  onClear: () => void;
+}) {
+  return (
+    <label className="flex items-center gap-1.5">
+      <span className="nx-hint">這台螢幕</span>
+      <select
+        className="h-9 rounded-md border border-border bg-card px-2 text-[15px] text-foreground"
+        value={value ?? ''}
+        onChange={(e) => (e.target.value ? onPick(e.target.value as StationKind) : onClear())}
+        aria-label="這台螢幕是什麼"
+      >
+        <option value="">自動判斷{auto ? '（目前）' : ''}</option>
+        {STATION_KINDS.map((k) => (
+          <option key={k} value={k}>
+            {STATION_LABEL[k]}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
 function Progress({ idx, total, done }: { idx: number; total: number; done: number }) {
   return (
     <span className="nx-hint">
       第 {idx + 1} / {total} 件　·　已完成 {done}
     </span>
+  );
+}
+
+/**
+ * 三套佈局共用的標題列。
+ * ⭐ 逃生出口（StationPicker）三套都放——⚠️ 尤其走動版非放不可：
+ *    被誤判成看板的手機，使用者要有地方切回來。
+ */
+function FieldHeader({
+  title,
+  big,
+  ws,
+  progress,
+}: {
+  title: string;
+  big: boolean;
+  ws: ReturnType<typeof useWorkstation>;
+  progress?: { idx: number; total: number; done: number };
+}) {
+  return (
+    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-2">
+      <h1 className={big ? 'nx-t-page' : 'nx-t-sec'}>{title}</h1>
+      {progress && <Progress idx={progress.idx} total={progress.total} done={progress.done} />}
+      <span className="ml-auto">
+        <StationPicker
+          value={ws.station?.kind ?? null}
+          auto={ws.layoutSource === 'auto'}
+          onPick={ws.register}
+          onClear={ws.clear}
+        />
+      </span>
+    </div>
   );
 }
 
@@ -223,7 +302,7 @@ export function FieldTemplate({
   if (!tasks.length) {
     return (
       <div className="flex h-full flex-col gap-3 p-5">
-        <h1 className="nx-t-page">{title}</h1>
+        <FieldHeader title={title} big ws={ws} />
         <div className="nx-alert-ok">{emptyText}</div>
         {/*
           ⚠️ 佇列空了⛔ 不代表沒事做——「裝進容器」型的流程（包貨・出貨）
@@ -247,10 +326,7 @@ export function FieldTemplate({
   if (layout === 'roam') {
     return (
       <div className="flex h-full flex-col gap-3 p-4">
-        <div className="flex items-baseline justify-between">
-          <h1 className="nx-t-sec">{title}</h1>
-          <Progress idx={idx} total={tasks.length} done={doneCount} />
-        </div>
+        <FieldHeader title={title} big={false} ws={ws} progress={{ idx, total: tasks.length, done: doneCount }} />
         {currentSlot ?? <CurrentCard task={current} big />}
         <div className="mt-auto flex flex-col gap-2">
           {scanSlot}
@@ -264,13 +340,7 @@ export function FieldTemplate({
   if (layout === 'station') {
     return (
       <div className="flex h-full flex-col gap-3 p-5">
-        <div className="flex items-baseline gap-3">
-          <h1 className="nx-t-page">{title}</h1>
-          {ws.station && <span className="nx-tag">{ws.station.label}</span>}
-          <span className="ml-auto">
-            <Progress idx={idx} total={tasks.length} done={doneCount} />
-          </span>
-        </div>
+        <FieldHeader title={title} big={true} ws={ws} progress={{ idx, total: tasks.length, done: doneCount }} />
         <div className="flex min-h-0 flex-1 gap-4">
           <div className="min-h-0 w-72 shrink-0 overflow-auto rounded-xl border border-border">
             {tasks.map((t) => (
@@ -310,12 +380,7 @@ export function FieldTemplate({
   // ── 看板（電腦・主管視角）：看全部進度 ───────────
   return (
     <div className="flex h-full flex-col gap-3 p-5">
-      <div className="flex items-baseline gap-3">
-        <h1 className="nx-t-page">{title}</h1>
-        <span className="ml-auto">
-          <Progress idx={idx} total={tasks.length} done={doneCount} />
-        </span>
-      </div>
+      <FieldHeader title={title} big={true} ws={ws} progress={{ idx, total: tasks.length, done: doneCount }} />
       {/*
         ⚠️ 看板是「看」不是「做」——⛔ 不放完成鍵。
            要動手請到手機或該站的螢幕上做，這樣才知道是誰做的。

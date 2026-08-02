@@ -26,6 +26,7 @@ import {
   type ShipZones,
 } from '@data/endpoints/nx03/workstation/api';
 import { FieldTemplate, type FieldTask } from '@design/templates/FieldTemplate';
+import { LegacyBoardFrame } from '@design/templates/LegacyBoardFrame';
 import { useWorkstation } from '@design/hooks/useWorkstation';
 
 import { ShipZonesPage } from './ShipZonesPage';
@@ -60,7 +61,10 @@ export function ShipField() {
   }, [load]);
 
   // 看板：⭐ 沿用既有的出貨三區頁（含配送配單），⛔ 不重寫
-  if (ws.ready && ws.layout === 'board') return <ShipZonesPage />;
+  if (ws.ready && ws.layout === 'board') return (
+    // ⚠️ 舊看板繞過現場殼，逃生出口要另外包回去（誤判成電腦的手持機才切得回走動版）
+    <LegacyBoardFrame><ShipZonesPage /></LegacyBoardFrame>
+  );
 
   if (!zones) return <div className="nx-hint p-5">載入中⋯</div>;
 

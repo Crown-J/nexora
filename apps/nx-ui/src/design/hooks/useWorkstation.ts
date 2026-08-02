@@ -31,15 +31,31 @@
 
 import { useCallback, useSyncExternalStore } from 'react';
 
-/** 三種定點站（執行長 2026-08-02 拍板：收貨區也要） */
-export const STATION_KINDS = ['receiving', 'packing', 'shipping'] as const;
+/**
+ * 這台螢幕是什麼。
+ *
+ * 前三個是定點站（執行長 2026-08-02 拍板：收貨區也要）。
+ *
+ * ⭐ 後兩個是 2026-08-02 補的**逃生出口**，⛔ 不是原設計的一部分：
+ *    原本只有「沒註冊＝自動判斷」，而自動判斷是靠「粗指標 ＋ 螢幕 <900px」。
+ *    ⚠️ 倉庫的手持機型號千奇百怪——**萬一它沒被認出來是手機，
+ *    倉管會拿到看板、而且沒有任何辦法切回走動版**。
+ *    手持機本來就是一台永遠做同一件事的螢幕，讓它自己註冊最合理，
+ *    也跟「綁螢幕⛔ 不綁人」是同一個道理。
+ */
+export const STATION_KINDS = ['receiving', 'packing', 'shipping', 'handheld', 'board'] as const;
 export type StationKind = (typeof STATION_KINDS)[number];
 
 export const STATION_LABEL: Record<StationKind, string> = {
   receiving: '收貨區',
   packing: '包貨台',
   shipping: '出貨台',
+  handheld: '手持機',
+  board: '看板',
 };
+
+/** 定點站＝會出現「左佇列＋右當前件」那套佈局的三種 */
+export const FIXED_STATIONS: StationKind[] = ['receiving', 'packing', 'shipping'];
 
 /** 現場殼的三套佈局（外殼規格 §7） */
 export type FieldLayout =
@@ -120,12 +136,30 @@ export function useWorkstation() {
   }, []);
 
   /**
-   * ⭐ 佈局由「裝置 ＋ 有沒有註冊工作站」自然決定，⛔ 不是設定出來的：
-   *   手機          → 走動
-   *   註冊過的螢幕  → 定點
-   *   其餘電腦      → 看板（主管視角）
+   * ⭐ 佈局優先序：**這台螢幕自己說的 > 自動判斷**。
+   *
+   *   註冊成手持機   → 走動
+   *   註冊成看板     → 看板
+   *   註冊成定點站   → 定點
+   *   ⛔ 沒註冊      → 自動判斷：手機→走動、其餘→看板
+   *
+   * ⚠️ 為什麼註冊要蓋過自動判斷（2026-08-02 補）：
+   *    自動判斷靠「粗指標 ＋ 螢幕 <900px」，倉庫手持機型號千奇百怪，
+   *    **偵測失準時倉管會拿到看板而且切不回去**。
+   *    有了註冊當出口，偵測只是「沒設定時的方便預設」⛔ 不是唯一依據。
    */
-  const layout: FieldLayout = roam ? 'roam' : station ? 'station' : 'board';
+  const layout: FieldLayout = station
+    ? station.kind === 'handheld'
+      ? 'roam'
+      : station.kind === 'board'
+        ? 'board'
+        : 'station'
+    : roam
+      ? 'roam'
+      : 'board';
 
-  return { ready, layout, station, roam, register, clear };
+  /** 這個佈局是自己選的還是自動判斷的——畫面上要講清楚，⛔ 不要讓人以為系統壞了 */
+  const layoutSource: 'registered' | 'auto' = station ? 'registered' : 'auto';
+
+  return { ready, layout, layoutSource, station, roam, register, clear };
 }

@@ -28,6 +28,7 @@ import {
   type PackWorkspace,
 } from '@data/endpoints/nx03/workstation/api';
 import { FieldTemplate, type FieldTask } from '@design/templates/FieldTemplate';
+import { LegacyBoardFrame } from '@design/templates/LegacyBoardFrame';
 import { useWorkstation } from '@design/hooks/useWorkstation';
 
 import { PackageWorkbench } from './PackageWorkbench';
@@ -57,7 +58,10 @@ export function PackField() {
   }, [load]);
 
   // 看板：⭐ 沿用既有的包裹工作台，⛔ 不重寫
-  if (ws.ready && ws.layout === 'board') return <PackageWorkbench />;
+  if (ws.ready && ws.layout === 'board') return (
+    // ⚠️ 舊看板繞過現場殼，逃生出口要另外包回去（誤判成電腦的手持機才切得回走動版）
+    <LegacyBoardFrame><PackageWorkbench /></LegacyBoardFrame>
+  );
 
   if (!wsData) return <div className="nx-hint p-5">載入中⋯</div>;
 

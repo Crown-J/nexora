@@ -23,6 +23,7 @@ import {
   type PickItem,
 } from '@data/endpoints/nx03/workstation/api';
 import { FieldTemplate, type FieldTask } from '@design/templates/FieldTemplate';
+import { LegacyBoardFrame } from '@design/templates/LegacyBoardFrame';
 import { useWorkstation } from '@design/hooks/useWorkstation';
 
 import { BarcodeScanner } from '../shared/BarcodeScanner';
@@ -55,7 +56,10 @@ export function PickField() {
   }, [load]);
 
   // 看板：⭐ 沿用既有三欄看板，⛔ 不重寫
-  if (ws.ready && ws.layout === 'board') return <PickBoard />;
+  if (ws.ready && ws.layout === 'board') return (
+    // ⚠️ 舊看板繞過現場殼，逃生出口要另外包回去（誤判成電腦的手持機才切得回走動版）
+    <LegacyBoardFrame><PickBoard /></LegacyBoardFrame>
+  );
 
   if (items === null) return <div className="nx-hint p-5">載入中⋯</div>;
 
