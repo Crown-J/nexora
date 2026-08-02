@@ -35,10 +35,12 @@ import { createQuoteRecord } from '@data/endpoints/nx04/record/api/record';
 import { quickSearchParts } from '@data/endpoints/nx01/part-search/api/part-search';
 import type { PartSearchRow } from '@data/types/nx01/part-search';
 import type { QuoteCandidate } from '@data/types/nx04/quote';
-import { FlowTemplate, type FlowSection } from '@design/templates/FlowTemplate';
+import { FlowTemplate, type FlowApi, type FlowSection } from '@design/templates/FlowTemplate';
 
 import { createPartner, getPartner } from '@data/endpoints/shared/master/partner/api/partner';
-import type { PartnerDto } from '@data/types/shared/master/partner';
+import { createPartnerAddress } from '@data/endpoints/shared/address/partner-address-api';
+import { listWarehouses } from '@data/endpoints/nx01/api/warehouse';
+import type { PartnerDto, PartnerType } from '@data/types/shared/master/partner';
 
 import { CustomerPicker, type PickedCustomer } from '../../quote/ui/CustomerPicker';
 import { buildQuoteMessage, defaultMsgOpts } from '../../quote/ui/quote-message';
@@ -123,13 +125,37 @@ export function QuoteOpsView() {
   /** 選定客戶後的完整基本資料（下方常駐面板用）*/
   const [profile, setProfile] = useState<PartnerDto | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
-  /** 建立新客戶的草稿；null＝沒有在建 */
-  const [draft, setDraft] = useState<{ name: string; contactName: string; phone: string; mobile: string } | null>(
-    null,
-  );
+  /**
+   * 建立新客戶的草稿；null＝沒有在建。
+   * 欄位＝執行長 2026-08-01 指定的最小集合。
+   * ⛔ 交易條件（付款方式、額度、月結）不放這裡——那要跟財務接洽，不是業務接電話時決定的。
+   */
+  const [draft, setDraft] = useState<{
+    partnerType: PartnerType;
+    name: string;
+    address: string;
+    defaultWarehouseId: string;
+    defaultDeliveryType: string;
+    contactName: string;
+    phone: string;
+    mobile: string;
+    remark: string;
+  } | null>(null);
   const [creating, setCreating] = useState(false);
   const [createErr, setCreateErr] = useState<string | null>(null);
   const draftNameRef = useRef<HTMLInputElement>(null);
+  /** 建檔用的倉別選項（開頁就抓一次） */
+  const [whOptions, setWhOptions] = useState<{ id: string; code: string; name: string }[]>([]);
+  /** 選定客戶後的卡片；⭐ 選完焦點落在這裡，Enter 進下一段 */
+  const cardRef = useRef<HTMLDivElement>(null);
+  /** 流程模板交出來的 goTo（⚠️ 只在事件處理器裡用） */
+  const flowApi = useRef<FlowApi | null>(null);
+  /**
+   * ⚠️ 卡片要等客戶資料抓回來才存在，所以⛔ 不能在 onPick 當下就 focus——那時它還沒 render。
+   *    改成先舉旗，資料到齊的那一刻再聚焦，並且只做這一次
+   *    （不然使用者換去別的欄位、資料一重整就被搶回來）。
+   */
+  const wantCardFocus = useRef(false);
 
   const [term, setTerm] = useState('');
   const [hits, setHits] = useState<PartSearchRow[]>([]);
@@ -182,10 +208,48 @@ export function QuoteOpsView() {
     };
   }, [customer]);
 
+  /**
+   * 選完客戶 → 焦點交給下方卡片。
+   * ⚠️ 一定要放 effect：卡片是 profile 到齊才 render 的，
+   *    在 onPick 或 API 回呼裡用 setTimeout 都可能早於 React 提交、cardRef 還是 null（實測踩過）。
+   *    effect 保證在提交之後才跑。
+   */
+  useEffect(() => {
+    if (!profile || !wantCardFocus.current) return;
+    wantCardFocus.current = false;
+    cardRef.current?.focus();
+  }, [profile]);
+
+  // 建檔要選預設倉，開頁先把倉別抓好——⛔ 不要等使用者按了建立客戶才轉圈
+  useEffect(() => {
+    let alive = true;
+    listWarehouses({ pageSize: 100, isActive: true })
+      .then((r) => {
+        if (!alive) return;
+        setWhOptions(r.items.map((w) => ({ id: w.id, code: w.code, name: w.name })));
+      })
+      .catch(() => {
+        /* 拿不到就讓那一欄空著，⛔ 不擋建檔 */
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
   /** 查無客戶 → 就地開一張空白基本資料讓業務填（⛔ 不跳去主檔頁） */
   const startCreate = useCallback((typedName: string) => {
     setCreateErr(null);
-    setDraft({ name: typedName, contactName: '', phone: '', mobile: '' });
+    setDraft({
+      partnerType: 'C', // 電話進來的九成是保養廠，預設它
+      name: typedName,
+      address: '',
+      defaultWarehouseId: '',
+      defaultDeliveryType: 'D', // 配送
+      contactName: '',
+      phone: '',
+      mobile: '',
+      remark: '',
+    });
     setTimeout(() => draftNameRef.current?.focus(), 0);
   }, []);
 
@@ -194,14 +258,34 @@ export function QuoteOpsView() {
     setCreating(true);
     setCreateErr(null);
     try {
-      // partnerType 'C'＝保養廠客戶；代碼留空由後端自動產生
+      // 代碼留空由後端自動產生（執行長：客戶代碼系統設定、不用輸入）
       const created = await createPartner({
         name: draft.name.trim(),
-        partnerType: 'C',
+        partnerType: draft.partnerType,
         contactName: draft.contactName.trim() || undefined,
         phone: draft.phone.trim() || undefined,
         mobile: draft.mobile.trim() || undefined,
+        remark: draft.remark.trim() || undefined,
+        defaultWarehouseId: draft.defaultWarehouseId || undefined,
+        defaultDeliveryType: draft.defaultDeliveryType || undefined,
       });
+
+      // ⚠️ 地址不在 partner 主表上（2026-06-06 起改走 partner_address 衛星表），
+      //    所以要在建完客戶之後另外開一筆送貨地址。
+      //    ⛔ 電話中不逼業務拆縣市/路/巷/弄/號/樓——用單行 freeformAddress，之後主檔再整理。
+      if (draft.address.trim()) {
+        try {
+          await createPartnerAddress(created.id, {
+            addressType: 'SHIPPING',
+            isDefault: true,
+            freeformAddress: draft.address.trim(),
+          });
+        } catch {
+          // ⚠️ 客戶已經建起來了，地址失敗不該讓整件事回不去——客戶照樣帶入，地址之後補
+          setCreateErr('客戶已建立，但地址沒存進去——請稍後到客戶管理補。');
+        }
+      }
+
       setDraft(null);
       // 建完直接當成這通電話的對象，⛔ 不用再回去搜一次
       setCustomer({
@@ -388,39 +472,32 @@ export function QuoteOpsView() {
       content: (
         <div>
           <div className="flex flex-wrap items-end gap-3">
+            {/*
+              ⭐ 客戶欄常駐、⛔ 選完不換成靜態文字（執行長 2026-08-01）：
+                 換掉之後 Alt+1 就找不到輸入欄，想改客戶只能用滑鼠。
+                 留著它，Alt+1 回來就會自動聚焦並把文字整段反白，直接重打即可。
+            */}
             <div className="min-w-[320px]">
-              {customer ? (
-                <div className="flex h-12 items-center gap-2 rounded-lg border-2 border-border bg-card px-3">
-                  <span className="text-[16px] font-medium text-foreground">
-                    {customer.code} {customer.name}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCustomer(null);
-                      setDraft(null);
-                      setTimeout(() => customerRef.current?.focus(), 0);
-                    }}
-                    className="ml-auto rounded border border-border px-2 py-0.5 text-[13px] hover:bg-accent"
-                  >
-                    換一家
-                  </button>
-                </div>
-              ) : (
-                <CustomerPicker
-                  onPick={setCustomer}
-                  // 選定客戶後把游標交給下一段的查料框——⛔ 不要讓人自己找下一步在哪
-                  onCommit={() => searchRef.current?.focus()}
-                  partnerType="C,O"
-                  inputRef={customerRef}
-                  onCreateNew={startCreate}
-                  big
-                  autoFocus
-                />
-              )}
+              <CustomerPicker
+                onPick={(c) => {
+                  // ⭐ 選完焦點落到下方卡片（不是直接衝到搜尋）——
+                  //    讓業務先確認「這家對不對」，Enter 才進下一段。
+                  //    ⚠️ 卡片要等資料抓回來才存在，所以只舉旗、實際聚焦在資料到齊時做。
+                  wantCardFocus.current = true;
+                  setCustomer(c);
+                }}
+                onCommit={() => cardRef.current?.focus()}
+                partnerType="C,O"
+                inputRef={customerRef}
+                onCreateNew={startCreate}
+                big
+                autoFocus
+              />
             </div>
             <p className="text-[14px] text-foreground/70">
-              打編號或名稱，↑↓ 選、Enter 帶入；注音首碼按 Alt+Z。查不到會出現「建立客戶」。
+              打編號或名稱，↑↓ 選、Enter 帶入；注音首碼按 Alt+Z。查不到按 Enter 直接建客戶。
+              <br />
+              要換客戶：再按一次 Alt+1，欄位會反白讓你重打。
             </p>
           </div>
 
@@ -444,9 +521,23 @@ export function QuoteOpsView() {
           <div className="mt-4 rounded-lg border-2 border-border bg-card p-4">
             {draft ? (
               <div>
-                <div className="mb-3 text-[15px] font-bold text-foreground">建立客戶（代碼由系統自動給）</div>
+                <div className="mb-3 text-[15px] font-bold text-foreground">
+                  建立客戶　<span className="font-normal text-foreground/70">代碼由系統自動產生</span>
+                </div>
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                   <label className="block">
+                    <span className="mb-1 block text-[14px] font-medium text-foreground">客戶類型</span>
+                    <select
+                      value={draft.partnerType}
+                      onChange={(e) => setDraft({ ...draft, partnerType: e.target.value as PartnerType })}
+                      className={`h-11 w-full px-2 text-[15px] ${FIELD}`}
+                    >
+                      <option value="C">保養廠</option>
+                      <option value="O">同行</option>
+                      <option value="L">散客</option>
+                    </select>
+                  </label>
+                  <label className="block lg:col-span-2">
                     <span className="mb-1 block text-[14px] font-medium text-foreground">客戶名稱（必填）</span>
                     <input
                       ref={draftNameRef}
@@ -455,6 +546,46 @@ export function QuoteOpsView() {
                       className={`h-11 w-full px-2 text-[15px] ${FIELD}`}
                     />
                   </label>
+                  <label className="block">
+                    <span className="mb-1 block text-[14px] font-medium text-foreground">預設取貨方式</span>
+                    <select
+                      value={draft.defaultDeliveryType}
+                      onChange={(e) => setDraft({ ...draft, defaultDeliveryType: e.target.value })}
+                      className={`h-11 w-full px-2 text-[15px] ${FIELD}`}
+                    >
+                      <option value="D">配送</option>
+                      <option value="P">自取</option>
+                      <option value="C">寄貨</option>
+                    </select>
+                  </label>
+
+                  <label className="block lg:col-span-3">
+                    <span className="mb-1 block text-[14px] font-medium text-foreground">
+                      客戶地址（送去哪）
+                    </span>
+                    <input
+                      value={draft.address}
+                      onChange={(e) => setDraft({ ...draft, address: e.target.value })}
+                      placeholder="整行打進來就好，⛔ 不用拆縣市巷弄"
+                      className={`h-11 w-full px-2 text-[15px] ${FIELD}`}
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="mb-1 block text-[14px] font-medium text-foreground">預設倉位</span>
+                    <select
+                      value={draft.defaultWarehouseId}
+                      onChange={(e) => setDraft({ ...draft, defaultWarehouseId: e.target.value })}
+                      className={`h-11 w-full px-2 text-[15px] ${FIELD}`}
+                    >
+                      <option value="">（不指定）</option>
+                      {whOptions.map((w) => (
+                        <option key={w.id} value={w.id}>
+                          {w.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
                   <label className="block">
                     <span className="mb-1 block text-[14px] font-medium text-foreground">聯絡人</span>
                     <input
@@ -476,6 +607,14 @@ export function QuoteOpsView() {
                     <input
                       value={draft.mobile}
                       onChange={(e) => setDraft({ ...draft, mobile: e.target.value })}
+                      className={`h-11 w-full px-2 text-[15px] ${FIELD}`}
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="mb-1 block text-[14px] font-medium text-foreground">備註</span>
+                    <input
+                      value={draft.remark}
+                      onChange={(e) => setDraft({ ...draft, remark: e.target.value })}
                       className={`h-11 w-full px-2 text-[15px] ${FIELD}`}
                     />
                   </label>
@@ -505,15 +644,38 @@ export function QuoteOpsView() {
                     取消
                   </button>
                   <span className="text-[14px] text-foreground/70">
-                    ⚠️ 只建最少欄位，其餘（等級、付款條件、倉別）之後到客戶管理補。
+                    ⚠️ 交易條件（付款方式、額度、月結）系統先給預設值——
+                    客戶要談月結請轉財務，⛔ 不在這裡決定。
                   </span>
                 </div>
               </div>
             ) : profileLoading ? (
               <div className="text-[15px] text-foreground/70">讀取客戶資料中…</div>
             ) : profile ? (
-              <div>
-                <div className="mb-3 text-[15px] font-bold text-foreground">客戶基本資料</div>
+              /*
+                ⭐ 選完客戶焦點落在這張卡片、Enter 進下一段（執行長 2026-08-01）：
+                   先讓業務確認「這家對不對」再往下走——⛔ 不要選完就直接衝進搜尋，
+                   選錯人整通電話的價都會報到別家身上。
+              */
+              <div
+                ref={cardRef}
+                tabIndex={0}
+                role="group"
+                aria-label="客戶基本資料，按 Enter 進下一段"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    flowApi.current?.goTo(1); // 進「搜尋」那一段
+                  }
+                }}
+                className="rounded-md focus:outline focus:outline-2 focus:outline-primary"
+              >
+                <div className="mb-3 flex flex-wrap items-center gap-3">
+                  <span className="text-[15px] font-bold text-foreground">客戶基本資料</span>
+                  <span className="rounded border border-border px-2 py-0.5 text-[13px] text-foreground">
+                    確認無誤按 Enter 進下一段
+                  </span>
+                </div>
                 <div className="grid gap-x-6 gap-y-2 sm:grid-cols-2 lg:grid-cols-4">
                   <Field label="編號" value={profile.code} />
                   <Field label="名稱" value={profile.name} />
@@ -888,6 +1050,7 @@ export function QuoteOpsView() {
       // 九宮格是「報價作業 ▸ 建立報價」，落地頁就該叫建立報價（執行長 2026-08-01）
       title="建立報價"
       sections={sections}
+      apiRef={flowApi}
       onCancel={resetAll}
       onSubmit={() => void save()}
       submitLabel={saving ? '存檔中…' : `存成報價紀錄（${validLines.length}）`}

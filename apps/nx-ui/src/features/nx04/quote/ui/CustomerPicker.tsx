@@ -65,6 +65,12 @@ export function CustomerPicker({
   const [open, setOpen] = useState(false);
   const [hi, setHi] = useState(0);
   const [picked, setPicked] = useState(false);
+  /**
+   * ⚠️ 「確實搜過、而且真的是零筆」才算查無。
+   *    ⛔ 不能只看 rows.length===0——打完字立刻按 Enter 時搜尋還沒回來、rows 本來就是空的，
+   *       那樣會把「還沒查到」誤判成「查不到」，直接跳出建檔表單、誤建客戶。
+   */
+  const [noMatch, setNoMatch] = useState(false);
   const reqRef = useRef(0);
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -82,6 +88,7 @@ export function CustomerPicker({
       if (!t) {
         setRows([]);
         setOpen(false);
+        setNoMatch(false);
         return;
       }
       // 沒打字不算「查無」——查無只在真的搜過而且是空的時候才成立
@@ -101,6 +108,7 @@ export function CustomerPicker({
             defaultWarehouseName: p.defaultWarehouseName,
           })),
         );
+        setNoMatch(res.items.length === 0);
         setOpen(true);
         setHi(0);
       } catch {
@@ -144,6 +152,7 @@ export function CustomerPicker({
         value={text}
         onChange={(e) => {
           setPicked(false);
+          setNoMatch(false); // 一改字就不再是「查無」，等這次搜尋回來再說
           setText(e.target.value);
         }}
         onKeyDown={(e) => {
@@ -177,7 +186,17 @@ export function CustomerPicker({
           }
           if (e.key === 'Enter') {
             e.preventDefault();
-            if (picked) onCommit();
+            if (picked) {
+              onCommit();
+              return;
+            }
+            // ⭐ 查無資料時 Enter 直接建檔（執行長 2026-08-01）：
+            //    畫面已經跳出「建立客戶」，卻只能用滑鼠按，鍵盤流程斷在這裡。
+            // ⚠️ 條件用 noMatch 不是 !rows.length——搜尋還沒回來時不能算查無（見 noMatch 註解）
+            if (onCreateNew && text.trim() && noMatch) {
+              setOpen(false);
+              onCreateNew(text.trim());
+            }
           }
         }}
         placeholder="輸入編號/名稱；注音首碼按 Alt+Z（例 we→太古）"
@@ -217,7 +236,7 @@ export function CustomerPicker({
         ⭐ 新客戶第一通電話就會發生，⛔ 不該逼業務跳去主檔頁建完再回來重打一次。
         只有呼叫端給了 onCreateNew 才出現。
       */}
-      {onCreateNew && !picked && text.trim() && open && rows.length === 0 ? (
+      {onCreateNew && !picked && text.trim() && open && noMatch ? (
         <div className="absolute z-30 mt-1 w-full rounded-lg border-2 border-border bg-card p-3 shadow-lg">
           <div className="text-[15px] text-foreground">
             找不到「<b>{text.trim()}</b>」
@@ -231,7 +250,7 @@ export function CustomerPicker({
             }}
             className="mt-2 h-11 w-full rounded-md border-2 border-primary bg-primary/10 px-4 text-[15px] font-bold text-foreground hover:bg-primary/20"
           >
-            ＋ 建立客戶
+            ＋ 建立客戶（Enter）
           </button>
         </div>
       ) : null}

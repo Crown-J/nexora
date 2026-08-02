@@ -30,6 +30,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AlertCircle, Check } from 'lucide-react';
 
+/** 區塊內容可以拿到的能力（讓區塊自己決定什麼時候把人帶到下一段） */
+export type FlowApi = {
+  /** 跳到第 i 段（0 起算）：捲過去＋聚焦該段第一個輸入欄＋左欄標定 */
+  goTo: (i: number) => void;
+};
+
 export type FlowSection = {
   key: string;
   label: string;
@@ -44,6 +50,13 @@ export type FlowTemplateProps = {
   onSubmit: () => void;
   onCancel: () => void;
   submitLabel?: string;
+  /**
+   * 把 goTo 交給外面（掛載後填入）。
+   * ⭐ 用途：某一段做完了要自己把人帶到下一段——例如選完客戶按 Enter 進「搜尋」，
+   *    ⛔ 不必逼使用者再按一次 Alt+2。
+   * ⚠️ 只能在事件處理器裡呼叫（render 期間讀 ref 會違反 react-hooks/refs）。
+   */
+  apiRef?: React.MutableRefObject<FlowApi | null>;
 };
 
 export function FlowTemplate({
@@ -52,6 +65,7 @@ export function FlowTemplate({
   onSubmit,
   onCancel,
   submitLabel = '送出',
+  apiRef,
 }: FlowTemplateProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
@@ -102,6 +116,15 @@ export function FlowTemplate({
     window.addEventListener('keydown', h, true);
     return () => window.removeEventListener('keydown', h, true);
   }, [sections.length, goTo]);
+
+  // 把 goTo 交給外面用（⛔ 在 effect 裡填、不在 render 期間碰 ref）
+  useEffect(() => {
+    if (!apiRef) return;
+    apiRef.current = { goTo };
+    return () => {
+      apiRef.current = null;
+    };
+  }, [apiRef, goTo]);
 
   // 捲到哪一區，頂部就標哪一區（外部事件回呼，不是 effect body 裡直接改 state）
   useEffect(() => {
