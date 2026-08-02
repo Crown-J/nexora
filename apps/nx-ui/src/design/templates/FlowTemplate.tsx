@@ -126,23 +126,42 @@ export function FlowTemplate({
     };
   }, [apiRef, goTo]);
 
-  // 捲到哪一區，頂部就標哪一區（外部事件回呼，不是 effect body 裡直接改 state）
+  /**
+   * 使用者自己捲的時候，左欄跟著標到「目前在看的那一段」。
+   *
+   * ⭐ 2026-08-01 執行長回報「左欄順序會亂跳」，根因在這裡，已從 IntersectionObserver 換掉：
+   *    IO 的回呼**只帶進出狀態有變的區塊**，舊寫法卻在那一小堆裡挑最上面的當作目前段。
+   *    捲到「搜尋」時，「檢查庫存」剛好進入偵測範圍（有變）、「搜尋」早就在畫面上（沒變）
+   *    → entries 只有檢查庫存 → 左欄就標成檢查庫存。畫面在搜尋、左欄指檢查庫存。
+   *
+   * ⛔ 不修 IO 的判斷式而是整個換掉，兩個理由：
+   *    1. 用捲動位置直接算是確定性的——同樣的捲動位置永遠得到同樣的段，⛔ 不依賴回呼時機
+   *    2. IO 需要瀏覽器合成畫面才會觸發，某些環境（含我們的預覽窗格）完全不觸發、且不報錯，
+   *       等於這段邏輯無法驗證。scroll 事件到處都會動。
+   */
+  const syncActive = useCallback(() => {
+    const root = scrollRef.current;
+    if (!root) return;
+    const rootTop = root.getBoundingClientRect().top;
+    // 判定線＝容器頂端下方 80px：跨過這條線的最後一段，就是「現在在看的」
+    const LINE = 80;
+    let idx = 0;
+    root.querySelectorAll<HTMLElement>('[data-idx]').forEach((el) => {
+      if (el.getBoundingClientRect().top - rootTop <= LINE) {
+        idx = Number(el.getAttribute('data-idx'));
+      }
+    });
+    setActive(idx);
+  }, []);
+
   useEffect(() => {
     const root = scrollRef.current;
     if (!root) return;
-    const obs = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((e) => e.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-        const first = visible[0];
-        if (first) setActive(Number(first.target.getAttribute('data-idx')));
-      },
-      { root, rootMargin: '0px 0px -60% 0px', threshold: 0 },
-    );
-    root.querySelectorAll('[data-idx]').forEach((el) => obs.observe(el));
-    return () => obs.disconnect();
-  }, [sections.length]);
+    // ⛔ 這裡不主動呼叫一次 syncActive——那會在 effect 同步路徑上 setState；
+    //    初值 0 本來就對（一進來就在第一段）。
+    root.addEventListener('scroll', syncActive, { passive: true });
+    return () => root.removeEventListener('scroll', syncActive);
+  }, [syncActive]);
 
   function submit() {
     const bad = sections.findIndex((s) => s.blocked);

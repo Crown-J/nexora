@@ -38,7 +38,11 @@ import type { QuoteCandidate } from '@data/types/nx04/quote';
 import { FlowTemplate, type FlowApi, type FlowSection } from '@design/templates/FlowTemplate';
 
 import { createPartner, getPartner } from '@data/endpoints/shared/master/partner/api/partner';
-import { createPartnerAddress } from '@data/endpoints/shared/address/partner-address-api';
+import {
+  createPartnerAddress,
+  listPartnerAddresses,
+  type PartnerAddressRow,
+} from '@data/endpoints/shared/address/partner-address-api';
 import { listWarehouses } from '@data/endpoints/nx01/api/warehouse';
 import type { PartnerDto, PartnerType } from '@data/types/shared/master/partner';
 
@@ -98,6 +102,31 @@ function totalAvailable(c: QuoteCandidate): number {
   return Object.values(c.stockByWh ?? {}).reduce((s, v) => s + num(v), 0);
 }
 
+/** 取貨方式代碼 → 看得懂的字（值域對齊 partner DTO 的 D/P/C）*/
+const DELIVERY_LABEL: Record<string, string> = { D: '配送', P: '自取', C: '寄貨' };
+
+/**
+ * 從地址清單挑出「要送去哪」：預設送貨地址 → 任一送貨地址 → 都沒有就 null。
+ * 結構化欄位（縣市/路/巷/弄）與 freeform 兩種都要能顯示——舊資料多半是 freeform。
+ */
+function pickShipTo(rows: PartnerAddressRow[]): string | null {
+  const ship = rows.filter((r) => r.addressType === 'SHIPPING' && r.isActive);
+  const pick = ship.find((r) => r.isDefault) ?? ship[0];
+  if (!pick) return null;
+  if (pick.freeformAddress?.trim()) return pick.freeformAddress.trim();
+  const parts = [
+    pick.postalCode,
+    pick.city?.name,
+    pick.district?.name,
+    pick.streetName,
+    pick.lane ? `${pick.lane}巷` : null,
+    pick.alley ? `${pick.alley}弄` : null,
+    pick.buildingNo ? `${pick.buildingNo}號` : null,
+    pick.floor ? `${pick.floor}樓` : null,
+  ].filter(Boolean);
+  return parts.length ? parts.join('') : null;
+}
+
 /** 基本資料的一欄。⛔ 值不用灰字（規格 §6），只有標籤降一階 */
 function Field({ label, value }: { label: string; value: string | null | undefined }) {
   return (
@@ -125,6 +154,8 @@ export function QuoteOpsView() {
   /** 選定客戶後的完整基本資料（下方常駐面板用）*/
   const [profile, setProfile] = useState<PartnerDto | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
+  /** 送貨地址（衛星表；⭐ 業務要知道這批貨要送去哪） */
+  const [shipTo, setShipTo] = useState<string | null>(null);
   /**
    * 建立新客戶的草稿；null＝沒有在建。
    * 欄位＝執行長 2026-08-01 指定的最小集合。
@@ -190,6 +221,7 @@ export function QuoteOpsView() {
     if (!customer) {
       setCredit(null);
       setProfile(null);
+      setShipTo(null);
       return;
     }
     let alive = true;
@@ -197,6 +229,10 @@ export function QuoteOpsView() {
     checkCredit(customer.id, 0)
       .then((r) => alive && setCredit(r))
       .catch(() => alive && setCredit(null));
+    // 送貨地址在衛星表、不在 partner 主表上，所以要另外抓一次
+    listPartnerAddresses(customer.id)
+      .then((rows) => alive && setShipTo(pickShipTo(rows)))
+      .catch(() => alive && setShipTo(null));
     getPartner(customer.id)
       .then((p) => alive && setProfile(p))
       .catch(() => alive && setProfile(null))
@@ -670,21 +706,67 @@ export function QuoteOpsView() {
                 }}
                 className="rounded-md focus:outline focus:outline-2 focus:outline-primary"
               >
-                <div className="mb-3 flex flex-wrap items-center gap-3">
-                  <span className="text-[15px] font-bold text-foreground">客戶基本資料</span>
-                  <span className="rounded border border-border px-2 py-0.5 text-[13px] text-foreground">
+                {/*
+                  卡片分三段，照業務講電話時會用到的順序：
+                    ① 這是誰（名字要大、電話要好認）
+                    ② 貨怎麼出（送哪、哪個倉、配送還自取）
+                    ③ 錢（等級、付款條件、有沒有欠）
+                  ⭐ 授信狀態直接放進卡片——那是「這個客戶」的一部分，
+                     ⛔ 不該只是飄在上面的一條警示條。
+                */}
+                <div className="mb-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                  <span className="text-[22px] font-bold leading-7 text-foreground">{profile.name}</span>
+                  <span className="font-mono text-[15px] text-foreground">{profile.code}</span>
+                  {profile.contactName || profile.phone || profile.mobile ? (
+                    <span className="text-[15px] text-foreground">
+                      {profile.contactName ? `${profile.contactName}　` : ''}
+                      {profile.phone ?? profile.mobile ?? ''}
+                    </span>
+                  ) : null}
+                  <span className="ml-auto rounded border border-border px-2 py-0.5 text-[13px] text-foreground">
                     確認無誤按 Enter 進下一段
                   </span>
                 </div>
-                <div className="grid gap-x-6 gap-y-2 sm:grid-cols-2 lg:grid-cols-4">
-                  <Field label="編號" value={profile.code} />
-                  <Field label="名稱" value={profile.name} />
-                  <Field label="聯絡人" value={profile.contactName} />
-                  <Field label="電話" value={profile.phone ?? profile.mobile} />
-                  <Field label="統一編號" value={profile.taxId} />
-                  <Field label="客戶等級" value={profile.customerGradeName ?? profile.customerGradeCode} />
-                  <Field label="付款條件" value={profile.paymentTermDomestic} />
-                  <Field label="預設出貨倉" value={profile.defaultWarehouseName} />
+
+                <div className="grid gap-3 lg:grid-cols-2">
+                  <div className="rounded-md border border-border p-3">
+                    <div className="mb-2 text-[13px] font-bold text-foreground">貨怎麼出</div>
+                    <div className="grid gap-x-6 gap-y-2 sm:grid-cols-2">
+                      <Field
+                        label="取貨方式"
+                        value={
+                          profile.defaultDeliveryType
+                            ? (DELIVERY_LABEL[profile.defaultDeliveryType] ?? profile.defaultDeliveryType)
+                            : null
+                        }
+                      />
+                      <Field label="預設出貨倉" value={profile.defaultWarehouseName} />
+                      <div className="sm:col-span-2">
+                        <Field label="送貨地址" value={shipTo} />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-md border border-border p-3">
+                    <div className="mb-2 text-[13px] font-bold text-foreground">錢</div>
+                    <div className="grid gap-x-6 gap-y-2 sm:grid-cols-2">
+                      <Field label="客戶等級" value={profile.customerGradeName ?? profile.customerGradeCode} />
+                      <Field label="付款條件" value={profile.paymentTermDomestic} />
+                      <Field label="統一編號" value={profile.taxId} />
+                      <Field
+                        label="目前欠款狀況"
+                        value={
+                          credit == null
+                            ? null
+                            : !credit.passed
+                              ? '⛔ 擋單中'
+                              : credit.overdueTransferToCash
+                                ? `⚠️ 逾期 ${credit.details.overdueDays} 天`
+                                : '正常'
+                        }
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             ) : (
