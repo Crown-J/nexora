@@ -138,9 +138,11 @@ export function V3Shell({ children }: Props) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-6 text-foreground">
         <div className="w-full max-w-xl rounded-lg border border-border bg-card p-6 shadow-lg">
-          <div className="text-xs tracking-[0.35em] text-muted-foreground">NEXORA</div>
-          <div className="mt-2 text-lg">連線異常</div>
-          <div className="mt-2 text-base leading-relaxed text-muted-foreground">{view.errorMsg}</div>
+          {/* ⚠️ 這是連線失敗畫面——出事的時候更要看得清楚。
+              原本品牌字 12px、內文用灰字，兩者都違反 §6。 */}
+          <div className="nx-hint tracking-[0.35em]">NEXORA</div>
+          <div className="nx-t-sec mt-2">連線異常</div>
+          <div className="nx-body mt-2 leading-relaxed">{view.errorMsg}</div>
           <button
             type="button"
             onClick={() => router.replace('/login')}

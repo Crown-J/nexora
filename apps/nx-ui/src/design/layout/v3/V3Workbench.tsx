@@ -60,10 +60,10 @@ function MetricTile({ m, onGo }: { m: Metric; onGo: (href: string, label: string
       // ⛔ 無 transition：規格 §6 動畫全部關掉
       className={`flex items-baseline justify-between gap-3 rounded-lg border-2 bg-card px-4 py-3 text-left hover:bg-primary/[0.06] focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${border}`}
     >
-      <span className="text-[15px] font-medium text-foreground">{m.label}</span>
-      <span className="text-[30px] font-bold leading-9 tabular-nums text-foreground">
-        {m.value ?? '—'}
-      </span>
+      <span className="nx-body font-medium">{m.label}</span>
+      {/* ⚠️ 原本 30px 不在 v3.css 收斂後的六種字級裡（14/15/17/20/22/26）——
+          自己選數字正是 v3.css 要消滅的行為。改掛 nx-num-xl（26px）。 */}
+      <span className="nx-num-xl leading-9">{m.value ?? '—'}</span>
     </button>
   );
 }
@@ -81,11 +81,14 @@ function Block({
 }) {
   return (
     <section className="flex flex-col gap-2">
-      <h2 className="text-[16px] font-bold text-foreground">{title}</h2>
+      {/* ⚠️ 原本 16px——v3.css 已把 16 併進 15（肉眼分不出、卻多一個決定）。
+          這是「段落標題」語意，掛 nx-t-sec（17px）。 */}
+      <h2 className="nx-t-sec">{title}</h2>
       {metrics.map((m) => (
         <MetricTile key={m.label} m={m} onGo={onGo} />
       ))}
-      {note ? <p className="mt-1 text-[13px] text-foreground/70">{note}</p> : null}
+      {/* ⚠️ 原本 13px 直接違反 §6（最小級距 14）；/70 也不是 v3.css 定的 /75 */}
+      {note ? <p className="nx-hint mt-1">{note}</p> : null}
     </section>
   );
 }
@@ -154,7 +157,9 @@ export function V3Workbench() {
           }}
           placeholder="料號／品名／車型"
           aria-label="查價查貨"
-          className="h-14 w-full rounded-lg border-2 border-border bg-card pl-12 pr-4 text-[17px] text-foreground placeholder:text-foreground/50 focus:border-primary focus:outline-none"
+          // 一段的主要輸入框＝整頁最大的目標。⚠️ 這裡刻意留 border-2 與 bg-card：
+          // 搜尋框永遠是聚焦狀態，⛔ 不該套 nx-field-lg 的「未輸入退成灰底」
+          className="nx-field-lg h-14 border-2 bg-card pl-12"
         />
       </div>
 
