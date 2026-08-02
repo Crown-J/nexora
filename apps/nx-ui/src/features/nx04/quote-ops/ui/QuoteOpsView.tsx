@@ -22,7 +22,7 @@
 
 'use client';
 
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Search, Trash2 } from 'lucide-react';
 
 import {
@@ -35,6 +35,7 @@ import { createQuoteRecord } from '@data/endpoints/nx04/record/api/record';
 import { quickSearchParts } from '@data/endpoints/nx01/part-search/api/part-search';
 import type { PartSearchRow } from '@data/types/nx01/part-search';
 import type { QuoteCandidate, QuotePriceHistoryRow } from '@data/types/nx04/quote';
+import { FlowPanes } from '@design/templates/FlowPanes';
 import { FlowTemplate, type FlowApi, type FlowSection } from '@design/templates/FlowTemplate';
 
 import { createPartner, getPartner } from '@data/endpoints/shared/master/partner/api/partner';
@@ -47,7 +48,13 @@ import { listWarehouses } from '@data/endpoints/nx01/api/warehouse';
 import type { PartnerDto, PartnerType } from '@data/types/shared/master/partner';
 
 import { CustomerPicker, type PickedCustomer } from '../../quote/ui/CustomerPicker';
-import { buildQuoteMessage, defaultMsgOpts } from '../../quote/ui/quote-message';
+import {
+  buildQuoteMessage,
+  defaultMsgOpts,
+  MSG_OPT_DEFS,
+  MSG_OPTS_KEY,
+  type MsgOpts,
+} from '../../quote/ui/quote-message';
 
 /** 這通電話已經報出去的一行 */
 type QuoteLine = {
@@ -245,6 +252,8 @@ export function QuoteOpsView() {
    * 右欄儀表板顯示的就是這一列。
    */
   const [stockSel, setStockSel] = useState(0);
+  /** 「報價」左欄選到第幾列；右欄的報價屬性顯示的就是這一列 */
+  const [lineSel, setLineSel] = useState(0);
   /** 各倉別（用來把 stockByWh 的 id 翻成看得懂的倉名）*/
   const [warehouses, setWarehouses] = useState<{ id: string; code: string; name: string }[]>([]);
 
@@ -261,12 +270,44 @@ export function QuoteOpsView() {
   const [savedMsg, setSavedMsg] = useState<string | null>(null);
   const [errMsg, setErrMsg] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  /**
+   * 訊息內容設定（會記住）。⚠️ 與舊浮層工作站共用同一把 localStorage 鑰匙（MSG_OPTS_KEY）——
+   * ⛔ 不另開一把：同一個人在新舊兩邊調出來的訊息格式要一樣，否則客戶收到的會長不同。
+   */
+  const [msgOpts, setMsgOpts] = useState<MsgOpts>(defaultMsgOpts);
+
+  // 開頁讀回上次的設定。⚠️ 只在客戶端做（localStorage 在 SSR 不存在）
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(MSG_OPTS_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw) as Partial<MsgOpts>;
+      // ⚠️ 用預設值墊底：舊資料可能少了後來新增的選項，直接套會變成 undefined
+      setMsgOpts({ ...defaultMsgOpts, ...saved });
+    } catch {
+      /* 壞掉的設定就當作沒有，⛔ 不要因此擋住整頁 */
+    }
+  }, []);
+
+  const setMsgOpt = useCallback((key: keyof MsgOpts, value: boolean) => {
+    setMsgOpts((prev) => {
+      const next = { ...prev, [key]: value };
+      try {
+        window.localStorage.setItem(MSG_OPTS_KEY, JSON.stringify(next));
+      } catch {
+        /* 存不進去（無痕模式之類）不影響這一次的使用 */
+      }
+      return next;
+    });
+  }, []);
 
   const searchRef = useRef<HTMLInputElement>(null);
   /** 下拉清單容器：↑↓ 時要把高亮列捲進可視範圍 */
   const hitListRef = useRef<HTMLDivElement>(null);
   /** 「檢查庫存」左欄清單容器（跳段時焦點落點、↑↓ 捲動用） */
   const stockListRef = useRef<HTMLDivElement>(null);
+  /** 「報價」左欄清單容器（同上） */
+  const lineListRef = useRef<HTMLDivElement>(null);
   const customerRef = useRef<HTMLInputElement>(null);
   const reqRef = useRef(0);
   /** 歷史查詢的競態序號（連點兩列時，⛔ 不能讓先回來的蓋掉後點的） */
@@ -522,7 +563,12 @@ export function QuoteOpsView() {
   }, []);
 
   const removeLine = useCallback((partId: string) => {
-    setLines((prev) => prev.filter((l) => l.partId !== partId));
+    setLines((prev) => {
+      const next = prev.filter((l) => l.partId !== partId);
+      // 刪掉最後一列時選取要退回來，⛔ 不然右欄會指到一個不存在的列
+      setLineSel((i) => Math.min(i, Math.max(0, next.length - 1)));
+      return next;
+    });
   }, []);
 
   /**
@@ -543,6 +589,11 @@ export function QuoteOpsView() {
       ?.querySelector(`[data-stock="${stockSel}"]`)
       ?.scrollIntoView({ block: 'nearest' });
   }, [stockSel]);
+  useEffect(() => {
+    lineListRef.current
+      ?.querySelector(`[data-line="${lineSel}"]`)
+      ?.scrollIntoView({ block: 'nearest' });
+  }, [lineSel]);
 
   /** 有數量也有價的才算數（對齊舊站 validLines 口徑） */
   const validLines = useMemo(
@@ -605,10 +656,10 @@ export function QuoteOpsView() {
           price: l.unitPrice,
           remark: l.remark || undefined,
         })),
-        defaultMsgOpts,
+        msgOpts,
         customer?.defaultWarehouseName,
       ),
-    [validLines, customer],
+    [validLines, customer, msgOpts],
   );
 
   useEffect(() => {
@@ -662,15 +713,23 @@ export function QuoteOpsView() {
       key: 'customer',
       label: '對象',
       blocked: customer ? undefined : '還沒選客戶（散客可先跳過，存檔前要補）',
+      /*
+        ⭐ 2026-08-02 改成兩欄骨架（執行長拍板沿用舊浮層工作站的版面）：
+           左＝客戶搜尋（做事）、右＝客戶基本資料（看跟著選中客戶走的資料）。
+        ⚠️ 建檔表單放右欄、⛔ 不佔整段：搜尋框要一直留著，
+           不然按「取消」時它已經被卸載、焦點回不去（舊版就是把整段換掉才會有這問題）。
+      */
       content: (
-        <div>
-          <div className="flex flex-wrap items-end gap-3">
-            {/*
+        <FlowPanes
+          mainTitle="客戶搜尋"
+          mainNote="↑↓ 選　·　Enter 帶入　·　Alt+Z 注音首碼"
+          main={
+            <div>
+              {/*
               ⭐ 客戶欄常駐、⛔ 選完不換成靜態文字（執行長 2026-08-01）：
                  換掉之後 Alt+1 就找不到輸入欄，想改客戶只能用滑鼠。
                  留著它，Alt+1 回來就會自動聚焦並把文字整段反白，直接重打即可。
             */}
-            <div className="min-w-[320px]">
               <CustomerPicker
                 onPick={(c) => {
                   // ⭐ 選完焦點落到下方卡片（不是直接衝到搜尋）——
@@ -686,42 +745,40 @@ export function QuoteOpsView() {
                 big
                 autoFocus
               />
-            </div>
-            <p className="nx-hint">
-              打編號或名稱，↑↓ 選、Enter 帶入；注音首碼按 Alt+Z。查不到按 Enter 直接建客戶。
-              <br />
-              要換客戶：再按一次 Alt+1，欄位會反白讓你重打。
-            </p>
-          </div>
+              <p className="nx-hint mt-3">
+                打編號或名稱，↑↓ 選、Enter 帶入；注音首碼按 Alt+Z。查不到按 Enter 直接建客戶。
+                <br />
+                要換客戶：再按一次 Alt+1，欄位會反白讓你重打。
+              </p>
 
-          {credit && !credit.passed ? (
-            <div className="nx-alert-danger mt-3">⛔ 這個客戶目前擋單：{credit.blockedReason}</div>
-          ) : null}
-          {credit && credit.passed && credit.overdueTransferToCash ? (
-            <div className="nx-alert-warn mt-3">
-              ⚠️ 這個客戶已逾期 {credit.details.overdueDays} 天——這一單要收現金。
-            </div>
-          ) : null}
-
-          {/*
-            ⭐ 客戶基本資料常駐在下方（執行長 2026-08-01）：
-               選到客戶就顯示他是誰、怎麼聯絡、什麼交易條件——業務講電話時要對得上人。
-               查不到客戶時同一個位置變成可編輯的建檔表單，存完直接變成這通的對象。
-               ⛔ 不跳去主檔頁：跳出去再回來，剛剛打的字跟情境都沒了。
-          */}
-          {/*
-            ⚠️ 2026-08-02 改版：這一塊原本是「卡中卡」（外面已經是一張段落卡、裡面再包一個 border-2 的框）。
-               雙層框線是視覺雜訊，改成一條分隔線——上面是要填的、下面是系統告訴你的。
-          */}
-          <div className="mt-5">
-            {draft ? (
-              <div className="border-t border-border pt-5">
-                <div className="nx-t-sub mb-4">
-                  建立客戶　
-                  <span className="font-normal text-foreground/75">代碼由系統自動產生</span>
+              {credit && !credit.passed ? (
+                <div className="nx-alert-danger mt-3">
+                  ⛔ 這個客戶目前擋單：{credit.blockedReason}
                 </div>
-                {/* ⭐ 兩欄網格（規格 §6 欄位密度 6–8）：⛔ 不用四欄——1366 下一欄放不下一個地址 */}
-                <div className="nx-form-grid">
+              ) : null}
+              {credit && credit.passed && credit.overdueTransferToCash ? (
+                <div className="nx-alert-warn mt-3">
+                  ⚠️ 這個客戶已逾期 {credit.details.overdueDays} 天——這一單要收現金。
+                </div>
+              ) : null}
+            </div>
+          }
+          sideTitle={draft ? '建立客戶' : '客戶基本資料'}
+          sideNote={draft ? '代碼由系統自動產生' : profile ? '確認無誤按 Enter 進下一段' : undefined}
+          side={
+            /*
+              ⭐ 選到客戶就顯示他是誰、怎麼聯絡、什麼交易條件——業務講電話時要對得上人。
+                 查不到客戶時同一個位置變成建檔表單，存完直接變成這通的對象。
+                 ⛔ 不跳去主檔頁：跳出去再回來，剛剛打的字跟情境都沒了。
+            */
+            <div className="h-full overflow-auto">
+              {draft ? (
+                <div>
+                  {/*
+                    ⚠️ 這裡刻意單欄（⛔ 不用 nx-form-grid 的兩欄）：
+                       這一側只有整段的 4 成寬，兩欄會把每欄壓到放不下一個地址。
+                  */}
+                  <div className="grid gap-4">
                   <label className="block">
                     <span className="nx-label">客戶類型</span>
                     <select
@@ -787,8 +844,8 @@ export function QuoteOpsView() {
                     </select>
                   </label>
 
-                  {/* 長欄位跨滿兩欄，⛔ 不要讓地址擠在半欄裡 */}
-                  <label className="block md:col-span-2">
+                  {/* ⚠️ 這裡是單欄，⛔ 不能掛 col-span-2——那會在單欄網格上長出一個隱形的第二欄 */}
+                  <label className="block">
                     <span className="nx-label">客戶地址（送去哪）</span>
                     <input
                       value={draft.address}
@@ -852,15 +909,15 @@ export function QuoteOpsView() {
                   >
                     取消
                   </button>
-                  <span className="nx-hint">
-                    ⚠️ 交易條件（付款方式、額度、月結）系統先給預設值—— 客戶要談月結請轉財務，⛔
-                    不在這裡決定。
-                  </span>
                 </div>
-              </div>
-            ) : profileLoading ? (
-              <div className="nx-hint border-t border-border pt-5">讀取客戶資料中…</div>
-            ) : profile ? (
+                  <p className="nx-hint mt-3">
+                    ⚠️ 交易條件（付款方式、額度、月結）系統先給預設值——
+                    客戶要談月結請轉財務，⛔ 不在這裡決定。
+                  </p>
+                </div>
+              ) : profileLoading ? (
+                <div className="nx-hint">讀取客戶資料中…</div>
+              ) : profile ? (
               /*
                 ⭐ 選完客戶焦點落在這張卡片、Enter 進下一段（執行長 2026-08-01）：
                    先讓業務確認「這家對不對」再往下走——⛔ 不要選完就直接衝進搜尋，
@@ -883,10 +940,10 @@ export function QuoteOpsView() {
                   ⭐ 修法是兩件：內距給到 24px（p-6）讓字四周有空間；
                      外框再往外推 2px（outline-offset）⛔ 不要壓在卡片邊線上。
                 */
-                className="rounded-xl border border-border p-6 focus:outline focus:outline-2 focus:outline-primary focus:outline-offset-2"
+                className="rounded-lg focus:outline focus:outline-2 focus:outline-primary focus:outline-offset-2"
               >
                 {/*
-                  卡片就是一張表：抬頭寫這是誰，底下一個網格把該知道的欄位排齊。
+                  就是一張表：抬頭寫這是誰，底下一個網格把該知道的欄位排齊。
                   ⭐ 授信狀態直接放進表裡——那是「這個客戶」的一部分，
                      ⛔ 不該只是飄在上面的一條警示條。
 
@@ -894,8 +951,11 @@ export function QuoteOpsView() {
                      原本欄位被裝進「貨怎麼出」「錢」兩個有標題的小框——那是在做分類，
                      但業務看客戶資料時不需要分類，他要的是一張看得舒服的表。
                      分類標題與內框全部拿掉，欄位改成單一網格、同一種樣式、標籤與值各自對齊。
+
+                  ⚠️ 2026-08-02 再改：搬進右欄之後，這裡⛔ 不再自己畫框與內距——
+                     外面的欄位面板已經是框了，兩層框就是先前被指正過的「卡中卡」。
                 */}
-                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-border pb-4">
+                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-border pb-3">
                   <span className="nx-t-page">{profile.name}</span>
                   <span className="nx-mono">{profile.code}</span>
                   {profile.contactName || profile.phone || profile.mobile ? (
@@ -904,17 +964,13 @@ export function QuoteOpsView() {
                       {profile.phone ?? profile.mobile ?? ''}
                     </span>
                   ) : null}
-                  <span className="nx-hint ml-auto rounded border border-border px-2 py-0.5">
-                    確認無誤按 Enter 進下一段
-                  </span>
                 </div>
 
                 {/*
-                  ⭐ 一張表、四欄。順序照業務講電話時會問到的先後：
-                     先確認是誰家（統編／等級）→ 錢怎麼算（付款條件／欠款）→ 貨怎麼走（取貨／倉／地址）。
-                  ⚠️ 地址跨滿兩欄——它是唯一會長到換行的欄位，擠在四分之一欄會很醜。
+                  ⚠️ 欄位改兩欄（原本四欄）：搬到右欄之後只剩整段四成寬，四欄會把每欄壓爛。
+                     地址仍然跨滿——它是唯一會長到換行的欄位。
                 */}
-                <div className="grid gap-x-8 gap-y-5 pt-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="grid gap-x-6 gap-y-5 pt-4 sm:grid-cols-2">
                   <Field label="統一編號" value={profile.taxId} />
                   <Field
                     label="客戶等級"
@@ -946,13 +1002,14 @@ export function QuoteOpsView() {
                   <Field label="送貨地址" value={shipTo} wide />
                 </div>
               </div>
-            ) : (
-              <div className="nx-hint border-t border-border pt-5">
-                還沒選客戶。選定之後這裡會顯示他的基本資料；查不到的話會變成建檔表單。
-              </div>
-            )}
-          </div>
-        </div>
+              ) : (
+                <div className="nx-hint">
+                  還沒選客戶。選定之後這裡會顯示他的基本資料；查不到的話會變成建檔表單。
+                </div>
+              )}
+            </div>
+          }
+        />
       ),
     },
     {
@@ -1106,22 +1163,15 @@ export function QuoteOpsView() {
           ) : rows.length === 0 ? (
             <div className="nx-hint">上一段選一支料，這裡列出它和它的通用件、各在哪個倉。</div>
           ) : (
-            <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
-              {/* ───── 左：通用零件清單 ───── */}
-              <div className="flex min-h-0 flex-col">
-                <div className="mb-2 flex flex-wrap items-baseline gap-x-3">
-                  <span className="nx-t-sub">通用零件</span>
-                  <span className="nx-hint">共 {rows.length} 支</span>
-                  <span className="nx-hint ml-auto">
-                    ↑↓ 選　·　空白鍵加入／移除　·　Enter 去報價
-                  </span>
-                </div>
-
-                {/*
+            <FlowPanes
+              mainTitle="通用零件"
+              mainNote={`共 ${rows.length} 支　·　↑↓ 選　·　空白鍵加入／移除　·　Enter 去報價`}
+              main={
+                /*
                   ⚠️ 清單容器自己接焦點（tabIndex + data-flow-focus），列本身 tabIndex={-1}：
                      這樣 Tab 只會停在清單上一次，用 ↑↓ 在列間走，⛔ 不會 Tab 十幾下才過得去。
                      滑鼠使用者點列＝選取，加入／移除走右欄那顆按鈕（§7.1 兩條路都在）。
-                */}
+                */
                 <div
                   ref={stockListRef}
                   tabIndex={0}
@@ -1146,7 +1196,7 @@ export function QuoteOpsView() {
                       flowApi.current?.goTo(3);
                     }
                   }}
-                  className="min-h-0 flex-1 space-y-2 overflow-auto rounded-lg border border-border p-2 focus:outline focus:outline-2 focus:outline-primary"
+                  className="h-full space-y-2 overflow-auto rounded-md focus:outline focus:outline-2 focus:outline-primary"
                 >
                   {rows.map((c, i) => {
                     const avail = totalAvailable(c);
@@ -1200,10 +1250,10 @@ export function QuoteOpsView() {
                     );
                   })}
                 </div>
-              </div>
-
-              {/* ───── 右：選到那一支的儀表板 ───── */}
-              {(() => {
+              }
+              sideTitle="出貨狀態"
+              sideNote="跟著左邊選中的那一支"
+              side={(() => {
                 const cur = rows[stockSel];
                 if (!cur) return <div className="nx-hint">左邊選一支。</div>;
                 const avail = totalAvailable(cur);
@@ -1211,7 +1261,7 @@ export function QuoteOpsView() {
                 const top = spots[0]?.qty ?? 0;
                 const added = lines.some((l) => l.partId === cur.id);
                 return (
-                  <div className="flex min-h-0 flex-col rounded-lg border border-border bg-muted/40 p-4">
+                  <div className="flex h-full flex-col">
                     <div className="nx-t-sub break-all">{cur.code}</div>
                     <div className="nx-hint mt-0.5">
                       {cur.name}・{cur.brandName ?? '—'}・{cur.isOem ? '正廠' : '副廠'}
@@ -1265,7 +1315,7 @@ export function QuoteOpsView() {
                   </div>
                 );
               })()}
-            </div>
+            />
           )}
         </div>
       ),
@@ -1274,259 +1324,343 @@ export function QuoteOpsView() {
       key: 'quote',
       label: '報價',
       blocked: validLines.length > 0 ? undefined : '還沒有可報的項目（要有數量與價格）',
-      content: (
-        <div>
-          {/*
-            ⭐ 比價集中在這一段（執行長 2026-08-01 訂正）：
-               三個參考價擺在報價欄旁邊——市場行情（保養廠對車主講的）、
-               公司定價（我們的價）、上次賣他（議價依據）。
-               ⛔ 上一段「檢查庫存」刻意不放價，那裡只決定「要出哪一支」。
-          */}
-          <div className="overflow-x-auto rounded-lg border border-border">
-            <table className="w-full min-w-[980px] border-collapse">
-              <thead>
-                <tr className="border-b-2 border-border text-left">
-                  <th className="nx-th">料號 / 品名</th>
-                  <th className="nx-th text-right">
-                    市場行情價
-                    <div className="nx-th-note">保養廠對車主</div>
-                  </th>
-                  <th className="nx-th text-right">
-                    公司定價
-                    <div className="nx-th-note">我們賣他</div>
-                  </th>
-                  <th className="nx-th text-right">
-                    上次賣他
-                    <div className="nx-th-note">點開看全部</div>
-                  </th>
-                  <th className="nx-th text-right">數量</th>
-                  <th className="nx-th text-right">報價</th>
-                  <th className="nx-th text-right">小計</th>
-                  <th className="nx-th">備註</th>
-                  <th className="nx-th" />
-                </tr>
-              </thead>
-              <tbody>
-                {lines.length === 0 ? (
-                  <tr>
-                    <td colSpan={9} className="nx-hint px-3 py-6">
-                      上一段用空白鍵把要報的零件加進來。
-                    </td>
-                  </tr>
-                ) : (
-                  lines.map((l) => (
-                    <Fragment key={l.partId}>
-                      <tr className="border-b border-border last:border-b-0">
-                        <td className="nx-td">
-                          <div className="font-medium">{l.code}</div>
-                          <div className="nx-hint">
-                            {l.name}
+      /*
+        ⭐ 比價集中在這一段（執行長 2026-08-01 訂正）：
+           三個參考價擺在報價欄旁邊——市場行情（保養廠對車主講的）、
+           公司定價（我們的價）、上次賣他（議價依據）。
+           ⛔ 上一段「檢查庫存」刻意不放價，那裡只決定「要出哪一支」。
+
+        ⭐ 2026-08-02 改成兩欄（執行長拍板沿用舊浮層工作站的版面）：
+           左＝報價清單（有哪幾支、各多少錢）、右＝報價屬性（選中那一支的參考價與輸入欄）。
+        ⚠️ 原本是一張九欄寬表格、min-width 980，在 1366 基準下一定要橫向捲——
+           規格 §1 明寫水平像素比垂直像素值錢，⛔ 這種表格本來就不該出現在主流程裡。
+      */
+      content:
+        lines.length === 0 ? (
+          <div className="nx-hint">上一段用空白鍵把要報的零件加進來。</div>
+        ) : (
+          <FlowPanes
+            mainTitle="報價清單"
+            mainNote={`共 ${lines.length} 筆　·　↑↓ 選　·　Del 移除　·　Enter 去發訊息`}
+            main={
+              <div className="flex h-full flex-col">
+                <div
+                  ref={lineListRef}
+                  tabIndex={0}
+                  data-flow-focus
+                  role="listbox"
+                  aria-label="報價清單"
+                  onKeyDown={(e) => {
+                    if (lines.length === 0) return;
+                    if (e.key === 'ArrowDown') {
+                      e.preventDefault();
+                      setLineSel((i) => Math.min(lines.length - 1, i + 1));
+                    } else if (e.key === 'ArrowUp') {
+                      e.preventDefault();
+                      setLineSel((i) => Math.max(0, i - 1));
+                    } else if (e.key === 'Delete') {
+                      // ⛔ 不綁 Backspace：那顆在表單裡是刪字，誤按會直接掉一整列
+                      e.preventDefault();
+                      const l = lines[lineSel];
+                      if (l) removeLine(l.partId);
+                    } else if (e.key === 'Enter') {
+                      e.preventDefault();
+                      flowApi.current?.goTo(4);
+                    }
+                  }}
+                  className="min-h-0 flex-1 space-y-2 overflow-auto rounded-md focus:outline focus:outline-2 focus:outline-primary"
+                >
+                  {lines.map((l, i) => {
+                    const sel = i === lineSel;
+                    const sub = num(l.qty) * num(l.unitPrice);
+                    return (
+                      <button
+                        key={l.partId}
+                        type="button"
+                        data-line={i}
+                        tabIndex={-1}
+                        role="option"
+                        aria-selected={sel}
+                        onClick={() => setLineSel(i)}
+                        className={[
+                          'flex w-full items-center gap-3 rounded-lg border-2 px-3 py-2.5 text-left',
+                          sel ? 'border-primary bg-primary/[0.07]' : 'border-border hover:bg-foreground/[0.04]',
+                        ].join(' ')}
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-baseline gap-x-2">
+                            <span className="nx-mono font-medium">{l.code}</span>
                             {l.available <= 0 ? (
-                              <span className="ml-2 font-bold text-red-500">目前沒貨</span>
+                              <span className="nx-pill-danger">目前沒貨</span>
                             ) : null}
                           </div>
-                        </td>
-                        <td className="nx-num-md px-3 py-2.5 text-right">{money(l.marketPrice)}</td>
-                        <td className="nx-num-md px-3 py-2.5 text-right">{money(l.listPrice)}</td>
-                        {/*
-                        ⭐ 這一格可以打開（執行長 2026-08-02）：原本只印一個「上次賣他」的數字，
-                           業務要議價時真正想看的是「這支我報過幾次、成交在什麼價」。
-                        ⚠️ 需要客戶才查得到（API 以 客戶＋料號 為鍵），散客沒得查。
-                      */}
-                        <td className="nx-num px-3 py-2.5 text-right">
-                          <button
-                            type="button"
-                            disabled={!customer}
-                            onClick={() => toggleHistory(l.partId)}
-                            aria-expanded={histPartId === l.partId}
-                            title={customer ? '看過去的報價與成交' : '要先選客戶才查得到'}
-                            className="rounded px-1 text-right tabular-nums underline decoration-dotted underline-offset-4 hover:bg-foreground/[0.06] disabled:no-underline disabled:opacity-60"
-                          >
-                            {l.customerLastAmount ? money(l.customerLastAmount) : '—'}
-                            <div className="nx-hint">
-                              {l.customerLastAmount && l.customerLastDate
-                                ? l.customerLastDate.slice(0, 10)
-                                : customer
-                                  ? '查紀錄'
-                                  : ''}
-                            </div>
-                          </button>
-                        </td>
-                        <td className="px-3 py-2.5 text-right">
-                          <input
-                            value={l.qty}
-                            onChange={(e) => patchLine(l.partId, { qty: e.target.value })}
-                            inputMode="decimal"
-                            aria-label={`${l.code} 數量`}
-                            className="nx-field-cell w-24 text-right tabular-nums"
-                          />
-                        </td>
-                        <td className="px-3 py-2.5 text-right">
-                          <input
-                            value={l.unitPrice}
-                            onChange={(e) => patchLine(l.partId, { unitPrice: e.target.value })}
-                            inputMode="decimal"
-                            aria-label={`${l.code} 報價`}
-                            className="nx-field-cell w-28 text-right tabular-nums"
-                          />
-                          {/*
-                          ⭐ 打了價就看得到「這個價讓了多少」（執行長 2026-08-02 要的即時回饋的一半）。
-                             基準是公司定價（B 價）＝我們原本要賣他的價。
-                          ⛔ 不拿市場行情價當基準——那是保養廠對車主的價，不是我們的。
-                        */}
-                          {(() => {
-                            const p = num(l.unitPrice);
-                            const base = num(l.listPrice);
-                            if (p <= 0 || base <= 0 || p === base) return null;
-                            const diff = p - base;
-                            const pct = Math.round((diff / base) * 100);
-                            return (
-                              <div
-                                className={`nx-hint mt-1 tabular-nums ${diff < 0 ? 'text-red-600' : 'text-emerald-700'}`}
-                              >
-                                {diff < 0 ? '▼' : '▲'}
-                                {Math.abs(diff).toLocaleString()}（{pct > 0 ? '+' : ''}
-                                {pct}%）
-                              </div>
-                            );
-                          })()}
-                        </td>
-                        <td className="nx-num-md px-3 py-2.5 text-right">
-                          {(num(l.qty) * num(l.unitPrice)).toLocaleString()}
-                        </td>
-                        <td className="px-3 py-2.5">
-                          <input
-                            value={l.remark}
-                            onChange={(e) => patchLine(l.partId, { remark: e.target.value })}
-                            placeholder="選填"
-                            aria-label={`${l.code} 備註`}
-                            className="nx-field-cell min-w-[120px]"
-                          />
-                        </td>
-                        <td className="px-3 py-2.5 text-right">
-                          <button
-                            type="button"
-                            onClick={() => removeLine(l.partId)}
-                            aria-label={`移除 ${l.code}`}
-                            title="移除"
-                            className="nx-btn-cell px-2 hover:border-red-500"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </td>
-                      </tr>
+                          <div className="nx-hint truncate">{l.name}</div>
+                        </div>
+                        <div className="shrink-0 text-right">
+                          <div className="nx-num-md">{sub.toLocaleString()}</div>
+                          <div className="nx-hint tabular-nums">
+                            {num(l.qty)} × {money(l.unitPrice)}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
 
-                      {/* ───── 就地展開：這支料對這個客戶的過去報價與成交 ───── */}
-                      {histPartId === l.partId ? (
-                        <tr className="border-b border-border bg-muted/50">
-                          <td colSpan={9} className="px-3 py-3">
-                            {histLoading ? (
-                              <div className="nx-hint">讀取中…</div>
-                            ) : !hist || hist.length === 0 ? (
-                              <div className="nx-hint">這支料沒有可查的報價或成交紀錄。</div>
-                            ) : (
-                              <div>
-                                <div className="nx-hint mb-2">
-                                  {l.code} 的過去紀錄　·　點一列可以把那個價帶進報價欄
-                                </div>
-                                <div className="space-y-1">
-                                  {hist.map((h, idx) => (
-                                    <button
-                                      key={`${h.date}-${h.kind}-${idx}`}
-                                      type="button"
-                                      onClick={() =>
-                                        patchLine(l.partId, {
-                                          unitPrice: String(num(h.amount)),
-                                        })
-                                      }
-                                      title="把這個價帶進報價欄"
-                                      className="flex w-full items-baseline gap-3 rounded-md border border-border bg-card px-3 py-2 text-left hover:border-primary"
-                                    >
-                                      <span className="nx-mono shrink-0">
-                                        {h.date.slice(0, 10)}
-                                      </span>
-                                      {/* 成交與報價是兩件事：成交是真的賣掉了、報價只是報過 */}
-                                      <span
-                                        className={
-                                          h.kind === 'SALE' ? 'nx-pill-ok' : 'nx-tag font-normal'
-                                        }
-                                      >
-                                        {h.kind === 'SALE' ? '成交' : '報價'}
-                                      </span>
-                                      <span className="nx-hint shrink-0">
-                                        {h.scope === 'CUSTOMER' ? '這家' : '同級距'}
-                                      </span>
-                                      <span className="nx-hint min-w-0 flex-1 truncate">
-                                        {[h.customerCode, h.customerName].filter(Boolean).join(' ')}
-                                      </span>
-                                      <span className="nx-num shrink-0">
-                                        × {Number(h.qty ?? 1).toLocaleString()}
-                                      </span>
-                                      <span className="nx-num-md shrink-0">{money(h.amount)}</span>
-                                    </button>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                          </td>
-                        </tr>
+                {/*
+                  ⭐ 業績值（執行長 2026-08-02：「報價後應該可以看到業績值」）。
+                  ⚠️ 目前規則是暫定的（見檔頭 calcPerformance 的註解），KPI 定案後只改那一支函式。
+                     標籤上明寫「暫以報價金額計」，⛔ 不要讓使用者以為這已經是正式的業績數字。
+                */}
+                <div className="mt-3 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-t border-border pt-3">
+                  <div className="nx-body font-medium">
+                    本次業績
+                    <span className="nx-hint ml-1">暫以報價金額計</span>
+                    <span className="nx-num-lg ml-2">{perfTotal.toLocaleString()}</span>
+                  </div>
+                  <div className="nx-body font-medium">
+                    合計 <span className="nx-num-xl">{total.toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+            }
+            sideTitle="報價屬性"
+            sideNote={lines[lineSel]?.code}
+            side={(() => {
+              const l = lines[lineSel];
+              if (!l) return <div className="nx-hint">左邊選一筆。</div>;
+              const p = num(l.unitPrice);
+              const base = num(l.listPrice);
+              const diff = p > 0 && base > 0 && p !== base ? p - base : null;
+              return (
+                <div className="flex h-full flex-col overflow-auto">
+                  {/*
+                    三個參考價並排——這是議價時眼睛要一次掃過的三個數字。
+                    ⛔ 不要拆成上下三列：拆開之後就得逐個找，失去比價的意義。
+                  */}
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <div className="nx-hint">市場行情價</div>
+                      <div className="nx-hint">保養廠對車主</div>
+                      <div className="nx-num-md mt-1">{money(l.marketPrice)}</div>
+                    </div>
+                    <div>
+                      <div className="nx-hint">公司定價</div>
+                      <div className="nx-hint">我們賣他</div>
+                      <div className="nx-num-md mt-1">{money(l.listPrice)}</div>
+                    </div>
+                    {/*
+                      ⭐ 這一格可以打開（執行長 2026-08-02）：原本只印一個「上次賣他」的數字，
+                         業務要議價時真正想看的是「這支我報過幾次、成交在什麼價」。
+                      ⚠️ 需要客戶才查得到（API 以 客戶＋料號 為鍵），散客沒得查。
+                    */}
+                    <div>
+                      <div className="nx-hint">上次賣他</div>
+                      <div className="nx-hint">{customer ? '點開看全部' : '要先選客戶'}</div>
+                      <button
+                        type="button"
+                        disabled={!customer}
+                        onClick={() => toggleHistory(l.partId)}
+                        aria-expanded={histPartId === l.partId}
+                        className="nx-num-md mt-1 rounded underline decoration-dotted underline-offset-4 hover:bg-foreground/[0.06] disabled:no-underline disabled:opacity-60"
+                      >
+                        {l.customerLastAmount ? money(l.customerLastAmount) : '—'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* ───── 輸入區：這一側唯一要填的東西 ───── */}
+                  <div className="mt-4 grid grid-cols-2 gap-3 border-t border-border pt-4">
+                    <label className="block">
+                      <span className="nx-label">數量</span>
+                      <input
+                        value={l.qty}
+                        onChange={(e) => patchLine(l.partId, { qty: e.target.value })}
+                        inputMode="decimal"
+                        aria-label={`${l.code} 數量`}
+                        className="nx-field text-right tabular-nums"
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="nx-label">報價</span>
+                      <input
+                        value={l.unitPrice}
+                        onChange={(e) => patchLine(l.partId, { unitPrice: e.target.value })}
+                        inputMode="decimal"
+                        aria-label={`${l.code} 報價`}
+                        className="nx-field text-right tabular-nums"
+                      />
+                      {/*
+                        ⭐ 打了價就看得到「這個價讓了多少」。
+                           基準是公司定價（B 價）＝我們原本要賣他的價。
+                        ⛔ 不拿市場行情價當基準——那是保養廠對車主的價，不是我們的。
+                      */}
+                      {diff !== null ? (
+                        <div
+                          className={`nx-hint mt-1 text-right tabular-nums ${
+                            diff < 0 ? 'text-red-600' : 'text-emerald-700'
+                          }`}
+                        >
+                          {diff < 0 ? '▼' : '▲'}
+                          {Math.abs(diff).toLocaleString()}（{diff > 0 ? '+' : ''}
+                          {Math.round((diff / base) * 100)}%）
+                        </div>
                       ) : null}
-                    </Fragment>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-          {/*
-            ⭐ 業績值（執行長 2026-08-02：「報價後應該可以看到業績值」）。
-            ⚠️ 目前規則是暫定的（見檔頭 calcPerformance 的註解），KPI 定案後只改那一支函式。
-               標籤上明寫「暫以報價金額計」，⛔ 不要讓使用者以為這已經是正式的業績數字。
-          */}
-          <div className="mt-3 flex flex-wrap items-baseline justify-end gap-x-8 gap-y-1">
-            <div className="nx-body font-medium">
-              本次業績
-              <span className="nx-hint ml-1">暫以報價金額計</span>
-              <span className="nx-num-lg ml-2">{perfTotal.toLocaleString()}</span>
-            </div>
-            <div className="nx-body font-medium">
-              合計 <span className="nx-num-xl">{total.toLocaleString()}</span>
-            </div>
-          </div>
-        </div>
-      ),
+                    </label>
+                    <label className="col-span-2 block">
+                      <span className="nx-label">備註</span>
+                      <input
+                        value={l.remark}
+                        onChange={(e) => patchLine(l.partId, { remark: e.target.value })}
+                        placeholder="選填（會照設定決定要不要寫進訊息）"
+                        aria-label={`${l.code} 備註`}
+                        className="nx-field"
+                      />
+                    </label>
+                  </div>
+
+                  <div className="mt-4 flex items-baseline gap-2 border-t border-border pt-4">
+                    <span className="nx-hint">小計</span>
+                    <span className="nx-num-xl">
+                      {(num(l.qty) * num(l.unitPrice)).toLocaleString()}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => removeLine(l.partId)}
+                      aria-label={`移除 ${l.code}`}
+                      className="nx-btn ml-auto hover:border-red-500"
+                    >
+                      <Trash2 className="mr-1 h-4 w-4" />
+                      移除這筆
+                    </button>
+                  </div>
+
+                  {/* ───── 展開：這支料對這個客戶的過去報價與成交 ───── */}
+                  {histPartId === l.partId ? (
+                    <div className="mt-4 border-t border-border pt-4">
+                      {histLoading ? (
+                        <div className="nx-hint">讀取中…</div>
+                      ) : !hist || hist.length === 0 ? (
+                        <div className="nx-hint">這支料沒有可查的報價或成交紀錄。</div>
+                      ) : (
+                        <div>
+                          <div className="nx-hint mb-2">點一列可以把那個價帶進報價欄</div>
+                          <div className="space-y-1">
+                            {hist.map((h, idx) => (
+                              <button
+                                key={`${h.date}-${h.kind}-${idx}`}
+                                type="button"
+                                onClick={() =>
+                                  patchLine(l.partId, { unitPrice: String(num(h.amount)) })
+                                }
+                                title="把這個價帶進報價欄"
+                                className="flex w-full items-baseline gap-2 rounded-md border border-border bg-card px-2.5 py-2 text-left hover:border-primary"
+                              >
+                                <span className="nx-mono shrink-0">{h.date.slice(0, 10)}</span>
+                                {/* 成交與報價是兩件事：成交是真的賣掉了、報價只是報過 */}
+                                <span
+                                  className={h.kind === 'SALE' ? 'nx-pill-ok' : 'nx-tag font-normal'}
+                                >
+                                  {h.kind === 'SALE' ? '成交' : '報價'}
+                                </span>
+                                <span className="nx-hint shrink-0">
+                                  {h.scope === 'CUSTOMER' ? '這家' : '同級距'}
+                                </span>
+                                <span className="nx-num-md ml-auto shrink-0">
+                                  {money(h.amount)}
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })()}
+          />
+        ),
     },
     {
       key: 'message',
       label: '發送訊息',
+      /*
+        ⭐ 2026-08-02 補回「訊息內容設定」（執行長拍板沿用舊浮層工作站的版面時發現的漏）：
+           舊站這一段是「左＝給客戶的訊息、右＝訊息內容設定（會記住）」，
+           新頁面先前只做了左半邊——訊息一直用寫死的預設選項產生，
+           ⛔ 畫面上完全沒有地方可以改。這正是「一格一格重想」會漏掉的東西。
+      */
       content: (
-        <div>
-          <textarea
-            readOnly
-            value={msgText || '（還沒有可發送的報價——回「報價」那一段填數量與價格）'}
-            aria-label="給客戶的報價訊息"
-            rows={10}
-            className="w-full rounded-lg border border-border bg-muted p-3 text-[15px] leading-relaxed text-foreground"
-          />
-          <div className="mt-3 flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              disabled={!msgText}
-              onClick={() => {
-                void navigator.clipboard.writeText(msgText).then(() => setCopied(true));
-              }}
-              className="nx-btn font-medium"
-            >
-              複製訊息
-            </button>
-            {copied ? <span className="text-[15px] font-bold text-foreground">已複製</span> : null}
-            <span className="nx-hint">
-              複製後貼到 LINE 給客戶。⚠️ 散客可以只複製訊息不存檔；要存報價紀錄才需要客戶。
-            </span>
-          </div>
+        <FlowPanes
+          mainTitle="給客戶的訊息"
+          mainNote="複製後貼到 LINE"
+          main={
+            <div className="flex h-full flex-col">
+              <textarea
+                readOnly
+                value={msgText || '（還沒有可發送的報價——回「報價」那一段填數量與價格）'}
+                aria-label="給客戶的報價訊息"
+                className="min-h-0 w-full flex-1 rounded-lg border border-border bg-muted p-3 text-[15px] leading-relaxed text-foreground"
+              />
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  disabled={!msgText}
+                  onClick={() => {
+                    void navigator.clipboard.writeText(msgText).then(() => setCopied(true));
+                  }}
+                  className="nx-btn font-medium"
+                >
+                  複製訊息
+                </button>
+                {copied ? (
+                  <span className="text-[15px] font-bold text-foreground">已複製</span>
+                ) : null}
+                <span className="nx-hint">
+                  ⚠️ 散客可以只複製訊息不存檔；要存報價紀錄才需要客戶。
+                </span>
+              </div>
 
-          {savedMsg ? <div className="nx-alert-ok mt-3">{savedMsg}</div> : null}
-          {errMsg ? <div className="nx-alert-danger mt-3">{errMsg}</div> : null}
-        </div>
+              {savedMsg ? <div className="nx-alert-ok mt-3">{savedMsg}</div> : null}
+              {errMsg ? <div className="nx-alert-danger mt-3">{errMsg}</div> : null}
+            </div>
+          }
+          sideTitle="訊息內容設定"
+          sideNote="會記住"
+          side={
+            /*
+              ⚠️ 這一側是「切換」不是「填寫」，所以⛔ 不做成表單欄位——
+                 每一項就是一顆可以按的開關，鍵盤走 Tab、按空白或 Enter 切換（原生 checkbox 行為）。
+              ⭐ 改一項訊息就立刻重生，使用者看得到左邊在變——⛔ 不要做成「按套用才生效」。
+            */
+            <div className="h-full overflow-auto">
+              <div className="space-y-2">
+                {MSG_OPT_DEFS.map((d) => (
+                  <label
+                    key={d.key}
+                    className={`flex cursor-pointer items-start gap-3 rounded-lg border-2 px-3 py-2.5 ${
+                      msgOpts[d.key]
+                        ? 'border-primary bg-primary/[0.07]'
+                        : 'border-border hover:bg-foreground/[0.04]'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={msgOpts[d.key]}
+                      onChange={(e) => setMsgOpt(d.key, e.target.checked)}
+                      className="mt-1 h-4 w-4 shrink-0 accent-[var(--primary)]"
+                    />
+                    <span className="nx-body">{d.label}</span>
+                  </label>
+                ))}
+              </div>
+              <p className="nx-hint mt-3">
+                這些選項存在這台電腦上，下次進來還是同一套。⛔ 不影響別人。
+              </p>
+            </div>
+          }
+        />
       ),
     },
   ];
