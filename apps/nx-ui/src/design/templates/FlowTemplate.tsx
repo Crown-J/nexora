@@ -60,6 +60,14 @@ export function FlowTemplate({
   const goTo = useCallback((i: number) => {
     const el = scrollRef.current?.querySelector<HTMLElement>(`[data-idx="${i}"]`);
     if (!el) return;
+
+    // ⭐ 跳段當下就把左欄標到這一段（執行長 2026-08-01 回報）：
+    //    原本只捲動、目前段位完全靠 IntersectionObserver 事後回填，
+    //    結果按了 Alt+1 跳到「對象」，左欄還停在「檢查庫存」——使用者以為沒跳成功。
+    //    ⛔ 不能等觀察器：它的回呼時機不保證，而且捲到頂時可能不觸發。
+    //    觀察器保留給「使用者自己用滾輪捲」的情況。
+    setActive(i);
+
     // ⛔ 不用 smooth：規格 §6 動畫全關，且實測 smooth 會在某些環境靜默失效（見檔頭）
     el.scrollIntoView({ behavior: 'auto', block: 'start' });
 
@@ -69,7 +77,14 @@ export function FlowTemplate({
     const field = el.querySelector<HTMLElement>(
       'input:not([readonly]):not([disabled]), textarea:not([readonly]):not([disabled]), select:not([disabled])',
     );
-    field?.focus();
+    if (!field) return;
+    field.focus();
+    // ⭐ 連內容一起反白（執行長 2026-08-01 回報）：
+    //    只有游標進去，長輩看不出焦點跑到哪裡了。整段選起來是最明顯的訊號，
+    //    而且直接打字就會覆蓋掉舊值——省一次全選刪除。
+    if (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement) {
+      field.select();
+    }
   }, []);
 
   // Alt + 數字：捲到對應區

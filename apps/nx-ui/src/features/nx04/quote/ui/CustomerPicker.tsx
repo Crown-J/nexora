@@ -184,7 +184,9 @@ export function CustomerPicker({
         aria-label="客戶"
         className={
           big
-            ? 'h-12 w-full rounded-lg border-2 border-border bg-background px-3 text-[16px] text-foreground placeholder:text-foreground/50 focus:border-primary focus:outline-none'
+            ? // ⭐ 焦點要看得出來（規格 §1「位置永遠固定」的同一個理由：長輩要一眼知道游標在哪）
+              //    2px 外框 + 2px ring + 淡底色，⛔ 不只是換邊框顏色
+              'h-12 w-full rounded-lg border-2 border-border bg-background px-3 text-[16px] text-foreground placeholder:text-foreground/50 focus:border-primary focus:bg-primary/[0.06] focus:outline-none focus:ring-2 focus:ring-primary'
             : 'w-full rounded border bg-background px-2 py-1 text-sm'
         }
       />

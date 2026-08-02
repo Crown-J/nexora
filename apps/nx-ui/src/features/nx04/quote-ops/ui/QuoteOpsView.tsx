@@ -543,7 +543,8 @@ export function QuoteOpsView() {
               }}
               placeholder="料號／品名／車型"
               aria-label="查料"
-              className="h-14 w-full rounded-lg border-2 border-border bg-card pl-12 pr-4 text-[17px] text-foreground placeholder:text-foreground/50 focus:border-primary focus:outline-none"
+              // 焦點強調與客戶欄同一套：2px 外框 + ring + 淡底色
+              className="h-14 w-full rounded-lg border-2 border-border bg-card pl-12 pr-4 text-[17px] text-foreground placeholder:text-foreground/50 focus:border-primary focus:bg-primary/[0.06] focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
 
