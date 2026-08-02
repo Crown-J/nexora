@@ -62,6 +62,14 @@ export function FlowTemplate({
     if (!el) return;
     // ⛔ 不用 smooth：規格 §6 動畫全關，且實測 smooth 會在某些環境靜默失效（見檔頭）
     el.scrollIntoView({ behavior: 'auto', block: 'start' });
+
+    // ⭐ 跳過去就要能直接打字（執行長 2026-08-01）：
+    //    只捲不聚焦，使用者還得再拿滑鼠點一下欄位，等於鍵盤流程斷在這裡。
+    //    ⛔ 只找輸入類元素，不含 button——聚焦到按鈕上會讓 Enter 變成誤觸送出。
+    const field = el.querySelector<HTMLElement>(
+      'input:not([readonly]):not([disabled]), textarea:not([readonly]):not([disabled]), select:not([disabled])',
+    );
+    field?.focus();
   }, []);
 
   // Alt + 數字：捲到對應區

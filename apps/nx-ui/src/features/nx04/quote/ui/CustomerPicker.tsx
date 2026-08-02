@@ -37,12 +37,22 @@ export function CustomerPicker({
   partnerType = 'C',
   gate,
   inputRef,
+  onCreateNew,
+  big,
 }: {
   /** 選定客戶 */
   onPick: (c: PickedCustomer) => void;
   /** 已選後再按 Enter → 跳下一欄 */
   onCommit: () => void;
   autoFocus?: boolean;
+  /**
+   * 查無資料時，下拉選單顯示「建立客戶」按鈕；按下去呼叫這支（帶目前打的字當新客戶名）。
+   * ⭐ 執行長 2026-08-01：新客戶第一通電話就會發生，⛔ 不該逼業務跳去主檔頁再回來。
+   * 沒給這個 prop 就不顯示按鈕（其他呼叫端行為不變）。
+   */
+  onCreateNew?: (typedName: string) => void;
+  /** 放大版（15-16px、h-12）：當它是頁面主要欄位時用，規格 §6 */
+  big?: boolean;
   /** partner 類型過濾（預設 C 客戶；即時詢價傳 O 挑同行；進貨單傳 S 挑供應商；C,O=保養廠+同行、2026-07-21 賣同行拍板）*/
   partnerType?: 'C' | 'O' | 'S' | 'C,O';
   /** 帳戶閘門 v1.3 複合過濾（給了就取代 partnerType）：SELL=可銷售/TRANSFER=可調貨/PURCHASE=可採購 */
@@ -74,6 +84,7 @@ export function CustomerPicker({
         setOpen(false);
         return;
       }
+      // 沒打字不算「查無」——查無只在真的搜過而且是空的時候才成立
       try {
         const res = await listPartner(
           gate
@@ -170,7 +181,12 @@ export function CustomerPicker({
           }
         }}
         placeholder="輸入編號/名稱；注音首碼按 Alt+Z（例 we→太古）"
-        className="w-full rounded border bg-background px-2 py-1 text-sm"
+        aria-label="客戶"
+        className={
+          big
+            ? 'h-12 w-full rounded-lg border-2 border-border bg-background px-3 text-[16px] text-foreground placeholder:text-foreground/50 focus:border-primary focus:outline-none'
+            : 'w-full rounded border bg-background px-2 py-1 text-sm'
+        }
       />
       {open && rows.length ? (
         <div ref={listRef} className="absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-border bg-card shadow-lg">
@@ -183,11 +199,36 @@ export function CustomerPicker({
                 e.preventDefault();
                 select(r);
               }}
-              className={`block w-full px-2 py-1.5 text-left text-sm ${i === hi ? 'bg-primary/15' : ''} hover:bg-accent/15`}
+              className={`block w-full px-2 text-left ${big ? 'py-2.5 text-[15px]' : 'py-1.5 text-sm'} ${i === hi ? 'bg-primary/15' : ''} hover:bg-accent/15`}
             >
-              <span className="font-mono text-xs text-muted-foreground">{r.code}</span>　{r.name}
+              <span className={`font-mono text-muted-foreground ${big ? 'text-[13px]' : 'text-xs'}`}>{r.code}</span>
+              　{r.name}
             </button>
           ))}
+        </div>
+      ) : null}
+
+      {/*
+        查無資料 → 直接給「建立客戶」（執行長 2026-08-01）。
+        ⭐ 新客戶第一通電話就會發生，⛔ 不該逼業務跳去主檔頁建完再回來重打一次。
+        只有呼叫端給了 onCreateNew 才出現。
+      */}
+      {onCreateNew && !picked && text.trim() && open && rows.length === 0 ? (
+        <div className="absolute z-30 mt-1 w-full rounded-lg border-2 border-border bg-card p-3 shadow-lg">
+          <div className="text-[15px] text-foreground">
+            找不到「<b>{text.trim()}</b>」
+          </div>
+          <button
+            type="button"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              setOpen(false);
+              onCreateNew(text.trim());
+            }}
+            className="mt-2 h-11 w-full rounded-md border-2 border-primary bg-primary/10 px-4 text-[15px] font-bold text-foreground hover:bg-primary/20"
+          >
+            ＋ 建立客戶
+          </button>
         </div>
       ) : null}
     </div>
