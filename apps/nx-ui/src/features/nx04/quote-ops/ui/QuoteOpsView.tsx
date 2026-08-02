@@ -201,11 +201,22 @@ export function QuoteOpsView() {
    */
   const wantCardFocus = useRef(false);
 
+  /*
+   * ⭐ 2026-08-02 執行長指正：零件也要走「關鍵字下拉選單」，⛔ 不做卡片格。
+   *    原本命中結果排成三欄卡片，等於同一頁有兩套操作——客戶是下拉、零件是卡片格，
+   *    使用者得學兩次；而且卡片格不能用 ↑↓ 選，鍵盤流程斷在這裡。
+   *    現在與 CustomerPicker 同一個形狀：打字即查 → 下拉浮在輸入框底下 → ↑↓ 選 → Enter 帶入。
+   */
   const [term, setTerm] = useState('');
   const [hits, setHits] = useState<PartSearchRow[]>([]);
-  const [hitIdx, setHitIdx] = useState(0);
+  /** 下拉裡目前高亮的那一列（⛔ 不是「選定的料」，選定的是 picked） */
+  const [hi, setHi] = useState(0);
+  const [open, setOpen] = useState(false);
+  /** 選定的那支料；null＝還沒選。第 3 段「檢查庫存」看的是它 */
+  const [picked, setPicked] = useState<PartSearchRow | null>(null);
   const [searching, setSearching] = useState(false);
-  const [searched, setSearched] = useState(false);
+  /** ⚠️ 「確實搜過而且真的零筆」才算查無，⛔ 不能只看 hits.length（搜尋還沒回來時本來就是空的） */
+  const [noMatch, setNoMatch] = useState(false);
   const [rows, setRows] = useState<QuoteCandidate[]>([]);
   const [rowsLoading, setRowsLoading] = useState(false);
   /** 各倉別（用來把 stockByWh 的 id 翻成看得懂的倉名）*/
@@ -218,6 +229,7 @@ export function QuoteOpsView() {
   const [copied, setCopied] = useState(false);
 
   const searchRef = useRef<HTMLInputElement>(null);
+  /** 下拉清單容器：↑↓ 時要把高亮列捲進可視範圍 */
   const hitListRef = useRef<HTMLDivElement>(null);
   const customerRef = useRef<HTMLInputElement>(null);
   const reqRef = useRef(0);
@@ -351,32 +363,62 @@ export function QuoteOpsView() {
     }
   }, [draft]);
 
-  const runSearch = useCallback(async () => {
+  /**
+   * 打字即查（debounce 200ms），比照 CustomerPicker。
+   * ⚠️ 選定之後不再自動搜——picked 有值時 term 是「已帶入的料號」，
+   *    再去搜它只會把剛選好的下拉又打開一次。
+   * ⚠️ 一個字不查：料號都是長碼，單字元會撈回整個資料庫。
+   */
+  useEffect(() => {
+    if (picked) return;
     const kw = term.trim();
-    if (!kw) return;
-    setSearching(true);
-    setSearched(true);
     const seq = ++reqRef.current;
-    try {
-      // 料號、品名、車型一起搜——業務講得出哪個就用哪個
-      const res = await quickSearchParts({ partNo: kw, pageSize: 50 });
-      let list = res.rows;
-      if (list.length === 0) {
-        const alt = await quickSearchParts({ keyword: kw, modelQuery: kw, pageSize: 50 });
-        list = alt.rows;
+    const h = setTimeout(async () => {
+      if (kw.length < 2) {
+        setHits([]);
+        setOpen(false);
+        setNoMatch(false);
+        return;
       }
-      if (seq !== reqRef.current) return;
-      setHits(list);
-      setHitIdx(0);
-    } catch {
-      if (seq !== reqRef.current) return;
-      setHits([]);
-    } finally {
-      if (seq === reqRef.current) setSearching(false);
-    }
-  }, [term]);
+      setSearching(true);
+      try {
+        // 料號、品名、車型一起搜——業務講得出哪個就用哪個
+        const res = await quickSearchParts({ partNo: kw, pageSize: 50 });
+        let list = res.rows;
+        if (list.length === 0) {
+          const alt = await quickSearchParts({ keyword: kw, modelQuery: kw, pageSize: 50 });
+          list = alt.rows;
+        }
+        if (seq !== reqRef.current) return;
+        setHits(list);
+        setNoMatch(list.length === 0);
+        setOpen(true);
+        setHi(0);
+      } catch {
+        if (seq !== reqRef.current) return;
+        setHits([]);
+        setNoMatch(false);
+      } finally {
+        if (seq === reqRef.current) setSearching(false);
+      }
+    }, 200);
+    return () => clearTimeout(h);
+  }, [term, picked]);
 
-  const currentPartId = hits[hitIdx]?.id ?? null;
+  // ↑↓ 時把高亮那列捲進可視範圍（⛔ 不然選到第 10 筆時看不到自己選在哪）
+  useEffect(() => {
+    hitListRef.current?.querySelector(`[data-hi="${hi}"]`)?.scrollIntoView({ block: 'nearest' });
+  }, [hi, open]);
+
+  /** 帶入一支料 → 第 3 段「檢查庫存」跟著換 */
+  const selectPart = useCallback((p: PartSearchRow) => {
+    setPicked(p);
+    setTerm(`${p.code}　${p.name}`);
+    setOpen(false);
+    setNoMatch(false);
+  }, []);
+
+  const currentPartId = picked?.id ?? null;
   useEffect(() => {
     if (!currentPartId) {
       setRows([]);
@@ -478,8 +520,10 @@ export function QuoteOpsView() {
     setLines([]);
     setTerm('');
     setHits([]);
+    setPicked(null);
+    setOpen(false);
+    setNoMatch(false);
     setRows([]);
-    setSearched(false);
     setErrMsg(null);
     searchRef.current?.focus();
   }, []);
@@ -569,9 +613,9 @@ export function QuoteOpsView() {
             ⚠️ 2026-08-02 改版：這一塊原本是「卡中卡」（外面已經是一張段落卡、裡面再包一個 border-2 的框）。
                雙層框線是視覺雜訊，改成一條分隔線——上面是要填的、下面是系統告訴你的。
           */}
-          <div className="mt-5 border-t border-border pt-5">
+          <div className="mt-5">
             {draft ? (
-              <div>
+              <div className="border-t border-border pt-5">
                 <div className="nx-t-sub mb-4">
                   建立客戶　<span className="font-normal text-foreground/75">代碼由系統自動產生</span>
                 </div>
@@ -699,7 +743,7 @@ export function QuoteOpsView() {
                 </div>
               </div>
             ) : profileLoading ? (
-              <div className="nx-hint">讀取客戶資料中…</div>
+              <div className="nx-hint border-t border-border pt-5">讀取客戶資料中…</div>
             ) : profile ? (
               /*
                 ⭐ 選完客戶焦點落在這張卡片、Enter 進下一段（執行長 2026-08-01）：
@@ -717,7 +761,13 @@ export function QuoteOpsView() {
                     flowApi.current?.goTo(1); // 進「搜尋」那一段
                   }
                 }}
-                className="rounded-md focus:outline focus:outline-2 focus:outline-primary"
+                /*
+                  ⚠️ 2026-08-02 執行長回報「邊框都快壓到字了」：
+                     原本這個框沒有內距，焦點外框直接貼著文字畫過去。
+                  ⭐ 修法是兩件：內距給到 24px（p-6）讓字四周有空間；
+                     外框再往外推 2px（outline-offset）⛔ 不要壓在卡片邊線上。
+                */
+                className="rounded-xl border border-border p-6 focus:outline focus:outline-2 focus:outline-primary focus:outline-offset-2"
               >
                 {/*
                   卡片就是一張表：抬頭寫這是誰，底下一個網格把該知道的欄位排齊。
@@ -777,7 +827,7 @@ export function QuoteOpsView() {
                 </div>
               </div>
             ) : (
-              <div className="nx-hint">
+              <div className="nx-hint border-t border-border pt-5">
                 還沒選客戶。選定之後這裡會顯示他的基本資料；查不到的話會變成建檔表單。
               </div>
             )}
@@ -792,68 +842,121 @@ export function QuoteOpsView() {
       //    存檔只需要「有客戶」＋「有可報的項目」。掛了會變成查完料還得留著搜尋結果才准存檔。
       content: (
         <div>
+          {/* ⚠️ relative 是下拉的定位基準，⛔ 不能拿掉——拿掉下拉會跑到頁面左上角 */}
           <div className="relative">
             <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-foreground" />
             <input
               ref={searchRef}
               value={term}
-              onChange={(e) => setTerm(e.target.value)}
+              onChange={(e) => {
+                // 一改字就不再是「已選定」，回到搜尋狀態
+                setPicked(null);
+                setNoMatch(false);
+                setTerm(e.target.value);
+              }}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') {
+                if (open && hits.length) {
+                  if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    setHi((i) => Math.min(hits.length - 1, i + 1));
+                    return;
+                  }
+                  if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    setHi((i) => Math.max(0, i - 1));
+                    return;
+                  }
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const r = hits[hi];
+                    if (r) selectPart(r);
+                    return;
+                  }
+                  if (e.key === 'Escape') {
+                    e.preventDefault();
+                    setOpen(false);
+                    return;
+                  }
+                }
+                // 已經選定 → 再按 Enter 進下一段（與「對象」那一段同一個手勢）
+                if (e.key === 'Enter' && picked) {
                   e.preventDefault();
-                  void runSearch();
-                  setTimeout(() => hitListRef.current?.focus(), 0);
+                  flowApi.current?.goTo(2);
                 }
               }}
-              placeholder="料號／品名／車型"
+              placeholder="料號／品名／車型——打兩個字以上就會跳出清單"
               aria-label="查料"
+              autoComplete="off"
+              role="combobox"
+              aria-expanded={open}
+              aria-controls="quote-part-hits"
               className="nx-field-lg pl-12"
             />
-          </div>
 
-          <div
-            ref={hitListRef}
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                setHitIdx((i) => Math.min(i + 1, hits.length - 1));
-              } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                setHitIdx((i) => Math.max(i - 1, 0));
-              } else if (e.key === 'Escape') {
-                e.preventDefault();
-                searchRef.current?.focus();
-              }
-            }}
-            className="mt-4 rounded-lg border border-border p-2 focus:outline focus:outline-2 focus:outline-primary"
-          >
-            <div className="px-1 pb-2 text-[14px] font-bold text-foreground">
-              找到 {hits.length} 筆{searching ? '（查詢中…）' : ''}
-            </div>
-            {hits.length === 0 ? (
-              <div className="nx-hint px-1 py-3">
-                {searched && !searching ? '沒有符合的零件。' : '打料號、品名或車型，按 Enter。'}
-              </div>
-            ) : (
-              /* ⚠️ 命中清單保留段內捲動（max-h）：一次可能上百筆，全部展開會把這一段撐到十個畫面高 */
-              <div className="grid max-h-[46vh] gap-1 overflow-y-auto sm:grid-cols-2 lg:grid-cols-3">
+            {/*
+              ⭐ 關鍵字下拉（執行長 2026-08-02 指正：零件要跟客戶同一套操作）：
+                 ↑↓ 選、Enter 帶入、Esc 收起。⛔ 不做三欄卡片格——那個不能用鍵盤選。
+              ⚠️ 這是規格 §2.1 允許的三種浮層之一（挑選器：選完即關、不承載流程），
+                 ⛔ 不是被禁的彈跳視窗。
+            */}
+            {open && hits.length ? (
+              <div
+                ref={hitListRef}
+                id="quote-part-hits"
+                role="listbox"
+                className="absolute z-30 mt-1 max-h-[52vh] w-full overflow-auto rounded-lg border border-border bg-card shadow-lg"
+              >
                 {hits.map((h, i) => (
                   <button
                     key={h.id}
                     type="button"
-                    onClick={() => setHitIdx(i)}
-                    className={`rounded-md px-2 py-2 text-left ${
-                      i === hitIdx ? 'bg-primary/15 ring-2 ring-primary' : 'hover:bg-foreground/[0.05]'
+                    data-hi={i}
+                    role="option"
+                    aria-selected={i === hi}
+                    // ⚠️ 用 onMouseDown + preventDefault：onClick 會先讓輸入框失焦，
+                    //    下拉在那一瞬間就收掉了，滑鼠永遠點不到（比照 CustomerPicker）
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      selectPart(h);
+                    }}
+                    className={`flex w-full items-baseline gap-3 border-b border-border px-3 py-2.5 text-left last:border-b-0 ${
+                      i === hi ? 'bg-primary/15' : 'hover:bg-accent/15'
                     }`}
                   >
-                    <div className="text-[15px] font-medium text-foreground">{h.code}</div>
-                    <div className="nx-hint">{h.name}</div>
-                    <div className="nx-hint">
+                    <span className="nx-mono shrink-0 font-medium">{h.code}</span>
+                    <span className="min-w-0 flex-1 truncate text-[15px] text-foreground">
+                      {h.name}
+                    </span>
+                    <span className="nx-hint shrink-0">
                       {h.brandName ?? '—'}・可出 {num(h.availableTotal).toLocaleString()}
-                    </div>
+                    </span>
                   </button>
                 ))}
+              </div>
+            ) : null}
+
+            {open && noMatch && !searching ? (
+              <div className="nx-hint absolute z-30 mt-1 w-full rounded-lg border border-border bg-card px-3 py-3 shadow-lg">
+                找不到「{term.trim()}」——換料號、品名或車型再試。
+              </div>
+            ) : null}
+          </div>
+
+          {/* 選定之後的確認列：⛔ 不留在下拉裡，使用者要看得到「我現在拿的是哪一支」 */}
+          <div className="mt-4">
+            {picked ? (
+              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <span className="nx-tag-primary">已帶入</span>
+                <span className="nx-mono font-medium">{picked.code}</span>
+                <span className="nx-body">{picked.name}</span>
+                <span className="nx-hint">
+                  {picked.brandName ?? '—'}・可出 {num(picked.availableTotal).toLocaleString()}
+                </span>
+                <span className="nx-hint ml-auto">再按 Enter 看庫存　·　要換一支就直接重打</span>
+              </div>
+            ) : (
+              <div className="nx-hint">
+                {searching ? '查詢中…' : '打料號、品名或車型，↑↓ 選、Enter 帶入。'}
               </div>
             )}
           </div>
