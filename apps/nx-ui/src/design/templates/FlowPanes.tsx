@@ -33,6 +33,13 @@ export type FlowPanesProps = {
   sideTitle: string;
   sideNote?: React.ReactNode;
   side: React.ReactNode;
+  /**
+   * ⭐ 目前在操作哪一側（沿用舊浮層工作站的「操作中」機制）。
+   *    有些段落（例如報價）兩側都要打字：左邊選項目、右邊改數量與價格，
+   *    使用者一定要看得出「我現在的鍵盤打在哪一邊」。
+   *    ⛔ 不給這個 prop 就不做這個表達（單向的段落不需要，多一個徽章只是雜訊）。
+   */
+  activePane?: 'main' | 'side';
 };
 
 export function FlowPanes({
@@ -42,10 +49,15 @@ export function FlowPanes({
   sideTitle,
   sideNote,
   side,
+  activePane,
 }: FlowPanesProps) {
   return (
     <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
-      <Pane title={mainTitle} note={mainNote}>
+      <Pane
+        title={mainTitle}
+        note={mainNote}
+        active={activePane === undefined ? undefined : activePane === 'main'}
+      >
         {main}
       </Pane>
       {/*
@@ -53,7 +65,12 @@ export function FlowPanes({
         ⚠️ 用 bg-muted/40 ⛔ 不用灰字來表達次要——規格 §6 禁灰字，
            降階要靠底色，⛔ 不靠把字調淡。
       */}
-      <Pane title={sideTitle} note={sideNote} tinted>
+      <Pane
+        title={sideTitle}
+        note={sideNote}
+        tinted
+        active={activePane === undefined ? undefined : activePane === 'side'}
+      >
         {side}
       </Pane>
     </div>
@@ -64,21 +81,37 @@ function Pane({
   title,
   note,
   tinted,
+  active,
   children,
 }: {
   title: string;
   note?: React.ReactNode;
   tinted?: boolean;
+  active?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <section
-      className={`flex min-h-0 flex-col rounded-lg border border-border p-4 ${
-        tinted ? 'bg-muted/40' : ''
-      }`}
+      /*
+        ⚠️ 非操作側只降到 opacity-70，⛔ 不用舊站的 45——
+           舊站是深色小字介面，45 還讀得到；v3 是淺底大字，45 會讓字糊掉（違反規格 §6 高對比）。
+           真正負責表達「在哪一側」的是邊框與「操作中」徽章，透明度只是輔助。
+        ⛔ 無 transition（規格 §6 動畫全關）。
+      */
+      className={[
+        'flex min-h-0 flex-col rounded-lg border-2 p-4',
+        tinted ? 'bg-muted/40' : '',
+        active === true ? 'border-primary' : 'border-border',
+        active === false ? 'opacity-70' : '',
+      ].join(' ')}
     >
       <div className="mb-3 flex flex-wrap items-baseline gap-x-3 border-b border-border pb-2">
         <h3 className="nx-t-sub">{title}</h3>
+        {active === true ? (
+          <span className="rounded border-2 border-primary bg-primary/15 px-2 py-px text-[14px] font-medium text-foreground">
+            操作中
+          </span>
+        ) : null}
         {note ? <span className="nx-hint ml-auto">{note}</span> : null}
       </div>
       {/* ⚠️ min-h-0 不能省：少了它，內容超長時 flex 子項不會縮、段落會被撐爆 */}

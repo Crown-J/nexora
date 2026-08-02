@@ -254,6 +254,12 @@ export function QuoteOpsView() {
   const [stockSel, setStockSel] = useState(0);
   /** 「報價」左欄選到第幾列；右欄的報價屬性顯示的就是這一列 */
   const [lineSel, setLineSel] = useState(0);
+  /**
+   * ⭐ 「報價」這一段兩側都要打字（左邊選項目、右邊改數量與價格），
+   *    所以要記住鍵盤現在在哪一側——沿用舊浮層工作站的 items／props 機制。
+   *    ⛔ 別的段落不需要（只有一側在做事），所以這個狀態只給報價用。
+   */
+  const [quotePane, setQuotePane] = useState<'items' | 'props'>('items');
   /** 各倉別（用來把 stockByWh 的 id 翻成看得懂的倉名）*/
   const [warehouses, setWarehouses] = useState<{ id: string; code: string; name: string }[]>([]);
 
@@ -308,6 +314,8 @@ export function QuoteOpsView() {
   const stockListRef = useRef<HTMLDivElement>(null);
   /** 「報價」左欄清單容器（同上） */
   const lineListRef = useRef<HTMLDivElement>(null);
+  /** 「報價」右欄屬性面板容器（Enter 從左欄進來的落點、Esc 回去的起點） */
+  const propPaneRef = useRef<HTMLDivElement>(null);
   const customerRef = useRef<HTMLInputElement>(null);
   const reqRef = useRef(0);
   /** 歷史查詢的競態序號（連點兩列時，⛔ 不能讓先回來的蓋掉後點的） */
@@ -593,7 +601,26 @@ export function QuoteOpsView() {
     lineListRef.current
       ?.querySelector(`[data-line="${lineSel}"]`)
       ?.scrollIntoView({ block: 'nearest' });
+    // 換一列＝回到左欄操作（沿用舊站：換聚焦項目時操作側回主容器）
+    setQuotePane('items');
   }, [lineSel]);
+
+  /** 從左欄清單進右欄屬性面板：焦點落在「數量」並整段反白，⭐ 進去就能直接打 */
+  const enterPropPane = useCallback(() => {
+    setQuotePane('props');
+    // ⚠️ 要等 React 把「操作中」那一輪畫完再聚焦，⛔ 同步呼叫會抓到還沒更新的節點
+    setTimeout(() => {
+      const el = propPaneRef.current?.querySelector<HTMLInputElement>('input:not([disabled])');
+      el?.focus();
+      el?.select();
+    }, 0);
+  }, []);
+
+  /** 從右欄退回左欄清單（Esc） */
+  const backToLinePane = useCallback(() => {
+    setQuotePane('items');
+    setTimeout(() => lineListRef.current?.focus(), 0);
+  }, []);
 
   /** 有數量也有價的才算數（對齊舊站 validLines 口徑） */
   const validLines = useMemo(
@@ -1340,8 +1367,9 @@ export function QuoteOpsView() {
           <div className="nx-hint">上一段用空白鍵把要報的零件加進來。</div>
         ) : (
           <FlowPanes
+            activePane={quotePane === 'items' ? 'main' : 'side'}
             mainTitle="報價清單"
-            mainNote={`共 ${lines.length} 筆　·　↑↓ 選　·　Del 移除　·　Enter 去發訊息`}
+            mainNote={`共 ${lines.length} 筆　·　↑↓ 選　·　Enter 進右邊改　·　Alt+D 移除`}
             main={
               <div className="flex h-full flex-col">
                 <div
@@ -1350,6 +1378,7 @@ export function QuoteOpsView() {
                   data-flow-focus
                   role="listbox"
                   aria-label="報價清單"
+                  onFocus={() => setQuotePane('items')}
                   onKeyDown={(e) => {
                     if (lines.length === 0) return;
                     if (e.key === 'ArrowDown') {
@@ -1358,14 +1387,26 @@ export function QuoteOpsView() {
                     } else if (e.key === 'ArrowUp') {
                       e.preventDefault();
                       setLineSel((i) => Math.max(0, i - 1));
-                    } else if (e.key === 'Delete') {
-                      // ⛔ 不綁 Backspace：那顆在表單裡是刪字，誤按會直接掉一整列
+                    } else if (e.key === 'Enter') {
+                      /*
+                        ⭐ Enter＝進右欄屬性面板，⛔ 不是跳下一段（執行長 2026-08-02 指正）。
+                           舊浮層工作站這一段就是這樣做的，程式碼裡還留著註解
+                           「本階段 Enter 不再跳發送訊息」——我先前接成跳段是接錯了。
+                           要去發訊息走 Alt+5，⛔ 不佔用 Enter。
+                      */
+                      e.preventDefault();
+                      enterPropPane();
+                    } else if (e.altKey && (e.key === 'd' || e.key === 'D')) {
+                      /*
+                        移除沿用舊站的 Alt+D ＋ 確認，⛔ 不用 Del：
+                        Del 沒有確認、手滑一下就掉一整列；而且它在輸入框裡本來就是刪字，
+                        使用者對它的預期不是「刪掉整筆報價」。
+                      */
                       e.preventDefault();
                       const l = lines[lineSel];
-                      if (l) removeLine(l.partId);
-                    } else if (e.key === 'Enter') {
-                      e.preventDefault();
-                      flowApi.current?.goTo(4);
+                      if (l && window.confirm(`把 ${l.code} ${l.name} 從報價清單移除？`)) {
+                        removeLine(l.partId);
+                      }
                     }
                   }}
                   className="min-h-0 flex-1 space-y-2 overflow-auto rounded-md focus:outline focus:outline-2 focus:outline-primary"
@@ -1425,7 +1466,7 @@ export function QuoteOpsView() {
               </div>
             }
             sideTitle="報價屬性"
-            sideNote={lines[lineSel]?.code}
+            sideNote={quotePane === 'props' ? 'Esc 回清單' : lines[lineSel]?.code}
             side={(() => {
               const l = lines[lineSel];
               if (!l) return <div className="nx-hint">左邊選一筆。</div>;
@@ -1433,7 +1474,19 @@ export function QuoteOpsView() {
               const base = num(l.listPrice);
               const diff = p > 0 && base > 0 && p !== base ? p - base : null;
               return (
-                <div className="flex h-full flex-col overflow-auto">
+                <div
+                  ref={propPaneRef}
+                  onFocus={() => setQuotePane('props')}
+                  onKeyDown={(e) => {
+                    // ⭐ Esc 退回左欄清單（沿用舊站）。⛔ 不 stopPropagation 就會被上層當成取消
+                    if (e.key === 'Escape') {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      backToLinePane();
+                    }
+                  }}
+                  className="flex h-full flex-col overflow-auto"
+                >
                   {/*
                     三個參考價並排——這是議價時眼睛要一次掃過的三個數字。
                     ⛔ 不要拆成上下三列：拆開之後就得逐個找，失去比價的意義。
