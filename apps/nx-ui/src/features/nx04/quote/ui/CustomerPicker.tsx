@@ -184,9 +184,11 @@ export function CustomerPicker({
         aria-label="客戶"
         className={
           big
-            ? // ⭐ 焦點要看得出來（規格 §1「位置永遠固定」的同一個理由：長輩要一眼知道游標在哪）
-              //    2px 外框 + 2px ring + 淡底色，⛔ 不只是換邊框顏色
-              'h-12 w-full rounded-lg border-2 border-border bg-background px-3 text-[16px] text-foreground placeholder:text-foreground/50 focus:border-primary focus:bg-primary/[0.06] focus:outline-none focus:ring-2 focus:ring-primary'
+            ? // ⭐ 焦點的表達方式（執行長 2026-08-01 拍板）：
+              //    沒在輸入的欄位往後退＝灰底（muted 235）；正在輸入的浮出來＝純白（card 255）＋主色框。
+              //    ⛔ 不用粗外框／ring——那個又吵又醜，一排欄位全是粗框反而分不出哪個是現在。
+              //    ⚠️ 聚焦色是 bg-card 不是 bg-background：本佈景 background 只比 muted 亮 3 階，等於沒變化。
+              'h-12 w-full rounded-lg border border-border bg-muted px-3 text-[16px] text-foreground placeholder:text-foreground/50 focus:border-primary focus:bg-card focus:outline-none'
             : 'w-full rounded border bg-background px-2 py-1 text-sm'
         }
       />

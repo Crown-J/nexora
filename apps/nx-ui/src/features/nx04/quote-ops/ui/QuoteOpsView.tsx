@@ -67,6 +67,19 @@ type QuoteLine = {
   customerLastDate: string | null;
 };
 
+/**
+ * ⭐ 全頁一致的輸入框樣式（執行長 2026-08-01 拍板）：
+ *    沒在輸入的欄位往後退＝灰底（muted 235）；正在輸入的浮出來＝純白（card 255）＋主色框。
+ *    ⛔ 不用粗外框／ring——那個又吵又醜，而且一排欄位全是粗框反而分不出哪個是現在。
+ *    ⭐ 這也順便回答了「焦點在哪」：整頁只有一個白底欄位，掃一眼就找到。
+ *
+ * ⚠️ 聚焦色用 bg-card 不是 bg-background：
+ *    這個佈景的 background 是 rgb(238,241,244)、muted 是 rgb(235,238,242)——只差 3 階，
+ *    拿 background 當聚焦色等於沒有變化。card 才是純白 rgb(255,255,255)。
+ */
+const FIELD =
+  'rounded-md border border-border bg-muted text-foreground placeholder:text-foreground/50 focus:border-primary focus:bg-card focus:outline-none';
+
 function num(v: string | null | undefined): number {
   const n = Number(v);
   return Number.isFinite(n) ? n : 0;
@@ -439,7 +452,7 @@ export function QuoteOpsView() {
                       ref={draftNameRef}
                       value={draft.name}
                       onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-                      className="h-11 w-full rounded-md border-2 border-border bg-background px-2 text-[15px] text-foreground focus:border-primary focus:outline-none"
+                      className={`h-11 w-full px-2 text-[15px] ${FIELD}`}
                     />
                   </label>
                   <label className="block">
@@ -447,7 +460,7 @@ export function QuoteOpsView() {
                     <input
                       value={draft.contactName}
                       onChange={(e) => setDraft({ ...draft, contactName: e.target.value })}
-                      className="h-11 w-full rounded-md border-2 border-border bg-background px-2 text-[15px] text-foreground focus:border-primary focus:outline-none"
+                      className={`h-11 w-full px-2 text-[15px] ${FIELD}`}
                     />
                   </label>
                   <label className="block">
@@ -455,7 +468,7 @@ export function QuoteOpsView() {
                     <input
                       value={draft.phone}
                       onChange={(e) => setDraft({ ...draft, phone: e.target.value })}
-                      className="h-11 w-full rounded-md border-2 border-border bg-background px-2 text-[15px] text-foreground focus:border-primary focus:outline-none"
+                      className={`h-11 w-full px-2 text-[15px] ${FIELD}`}
                     />
                   </label>
                   <label className="block">
@@ -463,7 +476,7 @@ export function QuoteOpsView() {
                     <input
                       value={draft.mobile}
                       onChange={(e) => setDraft({ ...draft, mobile: e.target.value })}
-                      className="h-11 w-full rounded-md border-2 border-border bg-background px-2 text-[15px] text-foreground focus:border-primary focus:outline-none"
+                      className={`h-11 w-full px-2 text-[15px] ${FIELD}`}
                     />
                   </label>
                 </div>
@@ -543,8 +556,7 @@ export function QuoteOpsView() {
               }}
               placeholder="料號／品名／車型"
               aria-label="查料"
-              // 焦點強調與客戶欄同一套：2px 外框 + ring + 淡底色
-              className="h-14 w-full rounded-lg border-2 border-border bg-card pl-12 pr-4 text-[17px] text-foreground placeholder:text-foreground/50 focus:border-primary focus:bg-primary/[0.06] focus:outline-none focus:ring-2 focus:ring-primary"
+              className={`h-14 w-full rounded-lg pl-12 pr-4 text-[17px] ${FIELD}`}
             />
           </div>
 
@@ -780,7 +792,7 @@ export function QuoteOpsView() {
                           onChange={(e) => patchLine(l.partId, { qty: e.target.value })}
                           inputMode="decimal"
                           aria-label={`${l.code} 數量`}
-                          className="h-10 w-24 rounded-md border-2 border-border bg-background px-2 text-right text-[16px] tabular-nums text-foreground focus:border-primary focus:outline-none"
+                          className={`h-10 w-24 px-2 text-right text-[16px] tabular-nums ${FIELD}`}
                         />
                       </td>
                       <td className="px-3 py-2.5 text-right">
@@ -789,7 +801,7 @@ export function QuoteOpsView() {
                           onChange={(e) => patchLine(l.partId, { unitPrice: e.target.value })}
                           inputMode="decimal"
                           aria-label={`${l.code} 報價`}
-                          className="h-10 w-28 rounded-md border-2 border-border bg-background px-2 text-right text-[16px] tabular-nums text-foreground focus:border-primary focus:outline-none"
+                          className={`h-10 w-28 px-2 text-right text-[16px] tabular-nums ${FIELD}`}
                         />
                       </td>
                       <td className="px-3 py-2.5 text-right text-[17px] font-bold tabular-nums text-foreground">
@@ -801,7 +813,7 @@ export function QuoteOpsView() {
                           onChange={(e) => patchLine(l.partId, { remark: e.target.value })}
                           placeholder="選填"
                           aria-label={`${l.code} 備註`}
-                          className="h-10 w-full min-w-[120px] rounded-md border-2 border-border bg-background px-2 text-[15px] text-foreground placeholder:text-foreground/50 focus:border-primary focus:outline-none"
+                          className={`h-10 w-full min-w-[120px] px-2 text-[15px] ${FIELD}`}
                         />
                       </td>
                       <td className="px-3 py-2.5 text-right">
