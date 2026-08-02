@@ -260,6 +260,11 @@ export function QuoteOpsView() {
    *    ⛔ 別的段落不需要（只有一側在做事），所以這個狀態只給報價用。
    */
   const [quotePane, setQuotePane] = useState<'items' | 'props'>('items');
+  /**
+   * 「檢查庫存」同一套（執行長 2026-08-02 拍板統一）：
+   * ⭐ Enter 一律是「進右欄」，⛔ 不是跳段；跳段一律走 Alt+數字。
+   */
+  const [stockPane, setStockPane] = useState<'list' | 'detail'>('list');
   /** 各倉別（用來把 stockByWh 的 id 翻成看得懂的倉名）*/
   const [warehouses, setWarehouses] = useState<{ id: string; code: string; name: string }[]>([]);
 
@@ -316,6 +321,8 @@ export function QuoteOpsView() {
   const lineListRef = useRef<HTMLDivElement>(null);
   /** 「報價」右欄屬性面板容器（Enter 從左欄進來的落點、Esc 回去的起點） */
   const propPaneRef = useRef<HTMLDivElement>(null);
+  /** 「檢查庫存」右欄出貨狀態容器（同上） */
+  const stockPaneRef = useRef<HTMLDivElement>(null);
   const customerRef = useRef<HTMLInputElement>(null);
   const reqRef = useRef(0);
   /** 歷史查詢的競態序號（連點兩列時，⛔ 不能讓先回來的蓋掉後點的） */
@@ -604,22 +611,30 @@ export function QuoteOpsView() {
     // 換一列＝回到左欄操作（沿用舊站：換聚焦項目時操作側回主容器）
     setQuotePane('items');
   }, [lineSel]);
+  useEffect(() => {
+    setStockPane('list');
+  }, [stockSel]);
 
-  /** 從左欄清單進右欄屬性面板：焦點落在「數量」並整段反白，⭐ 進去就能直接打 */
-  const enterPropPane = useCallback(() => {
-    setQuotePane('props');
-    // ⚠️ 要等 React 把「操作中」那一輪畫完再聚焦，⛔ 同步呼叫會抓到還沒更新的節點
+  /**
+   * 把焦點送進某一側的面板。
+   *
+   * ⭐ 挑法：先找輸入欄（找到就整段反白、進去直接能打），沒有輸入欄才退而求其次找按鈕。
+   *    「報價」右欄有數量欄 → 落在數量；「檢查庫存」右欄只有一顆加入鈕 → 落在那顆。
+   * ⚠️ 要等 React 把「操作中」那一輪畫完再聚焦，⛔ 同步呼叫會抓到還沒更新的節點。
+   */
+  const focusPane = useCallback((ref: React.RefObject<HTMLDivElement | null>) => {
     setTimeout(() => {
-      const el = propPaneRef.current?.querySelector<HTMLInputElement>('input:not([disabled])');
-      el?.focus();
-      el?.select();
+      const root = ref.current;
+      if (!root) return;
+      const field = root.querySelector<HTMLElement>(
+        'input:not([readonly]):not([disabled]), select:not([disabled]), textarea:not([readonly]):not([disabled])',
+      );
+      const target = field ?? root.querySelector<HTMLElement>('button:not([disabled])');
+      target?.focus();
+      if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
+        target.select();
+      }
     }, 0);
-  }, []);
-
-  /** 從右欄退回左欄清單（Esc） */
-  const backToLinePane = useCallback(() => {
-    setQuotePane('items');
-    setTimeout(() => lineListRef.current?.focus(), 0);
   }, []);
 
   /** 有數量也有價的才算數（對齊舊站 validLines 口徑） */
@@ -1191,8 +1206,9 @@ export function QuoteOpsView() {
             <div className="nx-hint">上一段選一支料，這裡列出它和它的通用件、各在哪個倉。</div>
           ) : (
             <FlowPanes
+              activePane={stockPane === 'list' ? 'main' : 'side'}
               mainTitle="通用零件"
-              mainNote={`共 ${rows.length} 支　·　↑↓ 選　·　空白鍵加入／移除　·　Enter 去報價`}
+              mainNote={`共 ${rows.length} 支　·　↑↓ 選　·　空白鍵加入／移除　·　Enter 看右邊`}
               main={
                 /*
                   ⚠️ 清單容器自己接焦點（tabIndex + data-flow-focus），列本身 tabIndex={-1}：
@@ -1205,6 +1221,7 @@ export function QuoteOpsView() {
                   data-flow-focus
                   role="listbox"
                   aria-label="通用零件"
+                  onFocus={() => setStockPane('list')}
                   onKeyDown={(e) => {
                     if (rows.length === 0) return;
                     if (e.key === 'ArrowDown') {
@@ -1219,8 +1236,15 @@ export function QuoteOpsView() {
                       const c = rows[stockSel];
                       if (c) toggleLine(c);
                     } else if (e.key === 'Enter') {
+                      /*
+                        ⭐ Enter＝進右欄看出貨狀態，⛔ 不是跳到報價段（執行長 2026-08-02 拍板統一）：
+                           全頁的 Enter 語意一致＝「進右欄」，跳段一律走 Alt+數字。
+                           ⚠️ 這是刻意改掉舊浮層工作站的行為——舊站 stage 3 的 Enter 是進 stage 4，
+                              但舊站 stage 4 的 Enter 又是進右欄，兩段語意本來就不一致。
+                      */
                       e.preventDefault();
-                      flowApi.current?.goTo(3);
+                      setStockPane('detail');
+                      focusPane(stockPaneRef);
                     }
                   }}
                   className="h-full space-y-2 overflow-auto rounded-md focus:outline focus:outline-2 focus:outline-primary"
@@ -1279,7 +1303,7 @@ export function QuoteOpsView() {
                 </div>
               }
               sideTitle="出貨狀態"
-              sideNote="跟著左邊選中的那一支"
+              sideNote={stockPane === 'detail' ? 'Esc 回清單' : '跟著左邊選中的那一支'}
               side={(() => {
                 const cur = rows[stockSel];
                 if (!cur) return <div className="nx-hint">左邊選一支。</div>;
@@ -1288,7 +1312,20 @@ export function QuoteOpsView() {
                 const top = spots[0]?.qty ?? 0;
                 const added = lines.some((l) => l.partId === cur.id);
                 return (
-                  <div className="flex h-full flex-col">
+                  <div
+                    ref={stockPaneRef}
+                    onFocus={() => setStockPane('detail')}
+                    onKeyDown={(e) => {
+                      // ⭐ Esc 退回左欄清單（與報價段同一個手勢）
+                      if (e.key === 'Escape') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setStockPane('list');
+                        setTimeout(() => stockListRef.current?.focus(), 0);
+                      }
+                    }}
+                    className="flex h-full flex-col"
+                  >
                     <div className="nx-t-sub break-all">{cur.code}</div>
                     <div className="nx-hint mt-0.5">
                       {cur.name}・{cur.brandName ?? '—'}・{cur.isOem ? '正廠' : '副廠'}
@@ -1395,7 +1432,8 @@ export function QuoteOpsView() {
                            要去發訊息走 Alt+5，⛔ 不佔用 Enter。
                       */
                       e.preventDefault();
-                      enterPropPane();
+                      setQuotePane('props');
+                      focusPane(propPaneRef);
                     } else if (e.altKey && (e.key === 'd' || e.key === 'D')) {
                       /*
                         移除沿用舊站的 Alt+D ＋ 確認，⛔ 不用 Del：
@@ -1482,7 +1520,8 @@ export function QuoteOpsView() {
                     if (e.key === 'Escape') {
                       e.preventDefault();
                       e.stopPropagation();
-                      backToLinePane();
+                      setQuotePane('items');
+                      setTimeout(() => lineListRef.current?.focus(), 0);
                     }
                   }}
                   className="flex h-full flex-col overflow-auto"
