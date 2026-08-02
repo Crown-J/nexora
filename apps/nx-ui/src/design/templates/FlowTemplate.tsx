@@ -24,6 +24,17 @@
 //   2. ⭐ 實測發現 smooth 在部分瀏覽器環境**靜默失效**（scrollTop 完全不動），
 //      整個 Alt+數字 跳段等於失靈而且不會報錯。auto 在哪裡都會動。
 //   左欄的高亮已經負責「我現在在哪一段」，不需要靠捲動過程來表達。
+//
+// ⭐ 2026-08-02 改版：每一段是一張佔滿畫面的卡片（執行長拍板、對照 Formspree 表單庫）
+//    · 目標＝「看起來像獨立頁面，實際上是同一頁往下捲」。
+//      段落改成 min-h-full 的卡片，捲到哪一段畫面上就只有那一張卡、前後被切在畫面外。
+//    · 捲動吸附（snap）讓滾輪停在卡片開頭，⛔ 不會停在兩張卡中間——
+//      這樣滑鼠捲出來的感覺與 Alt+跳段一致（都是「翻一頁」）。
+//    ⚠️ 吸附刻意用 proximity ⛔ 不用 mandatory：
+//       「報價」那種段落有明細表格、一定超過一個畫面高，mandatory 會讓使用者
+//       在長段落中間捲不動（一放手就被彈回段首）。proximity 只在接近邊界時才吸。
+//    ⚠️ 原本墊在最後的 h-48 空白已移除：段落現在自己就有一個畫面高，
+//       最後一段捲得到頂，那塊空白反而變成吸附會停下來的死區。
 
 'use client';
 
@@ -182,9 +193,7 @@ export function FlowTemplate({
         aria-label="流程"
         className="flex w-[200px] shrink-0 flex-col border-r border-border bg-card"
       >
-        <div className="border-b border-border px-4 py-3 text-[17px] font-bold text-foreground">
-          {title}
-        </div>
+        <div className="nx-t-sec border-b border-border px-4 py-3">{title}</div>
 
         <ol className="min-h-0 flex-1 overflow-auto p-2">
           {sections.map((s, i) => (
@@ -223,59 +232,59 @@ export function FlowTemplate({
           ))}
         </ol>
 
-        <div className="border-t border-border px-3 py-2 text-[13px] text-foreground/70">
+        <div className="nx-hint border-t border-border px-3 py-2">
           Alt+1~9 跳段
           <br />
           滑鼠滾輪可自由移動
         </div>
       </nav>
 
-      {/* ───── 右側內容：一頁到底 ───── */}
-      <div className="flex min-w-0 flex-1 flex-col">
+      {/* ───── 右側內容：一頁到底，每段一張佔滿畫面的卡片 ───── */}
+      <div className="flex min-w-0 flex-1 flex-col bg-background">
         {submitError ? (
           <div className="border-b-2 border-red-500 bg-red-500/10 px-4 py-2.5 text-[15px] font-medium text-foreground">
             {submitError}
           </div>
         ) : null}
 
-        <div ref={scrollRef} className="min-h-0 flex-1 overflow-auto">
+        <div ref={scrollRef} className="min-h-0 flex-1 snap-y snap-proximity overflow-auto">
           {sections.map((s, i) => (
+            /*
+              ⭐ min-h-full ＝ 這一段至少佔滿一個畫面 → 看起來像獨立頁面。
+                 內容多的段落（例如報價的明細表）自己長高，⛔ 不裁切、⛔ 不做段內捲動。
+              ⚠️ min-h-full 是相對捲動容器的高度，所以容器必須有確定高度——
+                 靠的是外面那層 min-h-0 flex-1。⛔ 拿掉 min-h-0 這裡會整個垮掉。
+            */
             <section
               key={s.key}
               data-idx={i}
               aria-label={s.label}
-              className="scroll-mt-2 border-b border-border px-5 py-5"
+              className="flex min-h-full snap-start flex-col p-4"
             >
-              <div className="mb-3 flex items-center gap-3">
-                <span className="grid h-8 w-8 place-items-center rounded-full border-2 border-border text-[16px] font-bold tabular-nums text-foreground">
-                  {i + 1}
-                </span>
-                <h2 className="text-[17px] font-bold text-foreground">{s.label}</h2>
-                {s.blocked ? (
-                  <span className="text-[15px] font-medium text-amber-600">{s.blocked}</span>
-                ) : null}
+              <div className="nx-card flex flex-1 flex-col">
+                <div className="mb-4 flex items-center gap-3 border-b border-border pb-3">
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 border-border text-[15px] font-bold tabular-nums text-foreground">
+                    {i + 1}
+                  </span>
+                  <h2 className="nx-t-sec">{s.label}</h2>
+                  {s.blocked ? (
+                    <span className="text-[15px] font-medium text-amber-600">{s.blocked}</span>
+                  ) : null}
+                  {/* 每張卡自報鍵位：⛔ 不要逼使用者記「這是第幾段」才按得出 Alt+N */}
+                  <span className="nx-hint ml-auto shrink-0">Alt+{i + 1}</span>
+                </div>
+                {s.content}
               </div>
-              {s.content}
             </section>
           ))}
-          {/* 最後留白：最後一區也捲得到頂端，⛔ 不要讓它卡在畫面下緣 */}
-          <div className="h-48" aria-hidden="true" />
         </div>
 
         {/* 送出列固定在底部——⛔ 不要讓使用者為了按送出還要捲到最下面 */}
-        <div className="flex items-center gap-2 border-t border-border px-4 py-2.5">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="h-11 rounded-md border-2 border-border px-4 text-[15px] text-foreground hover:bg-accent"
-          >
+        <div className="flex items-center gap-2 border-t border-border bg-card px-4 py-2.5">
+          <button type="button" onClick={onCancel} className="nx-btn">
             取消
           </button>
-          <button
-            type="button"
-            onClick={submit}
-            className="ml-auto h-11 rounded-md border-2 border-primary bg-primary/10 px-6 text-[16px] font-bold text-foreground hover:bg-primary/20"
-          >
+          <button type="button" onClick={submit} className="nx-btn-primary ml-auto px-6">
             {submitLabel}
           </button>
         </div>

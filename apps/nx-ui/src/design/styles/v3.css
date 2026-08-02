@@ -1,0 +1,168 @@
+/* design/styles/v3.css
+ * 版本：v1.0（2026-08-02）
+ * 說明：v3.0.0 介面的語意樣式表。規格＝docs/專案/介面規格/NEXORA-介面架構-v3.0.0.md §6 §7
+ *
+ * ⭐ 這個檔存在的理由（執行長 2026-08-02 拍板）：
+ *    規格 §6 把字級、對比、控件寫死了，但實作時每個欄位都要「重新決定一次」——
+ *    決定一百次就會漂移其中幾次。實測「建立報價」一頁就有 86 處硬編字級、9 種不同大小
+ *    （12/13/14/15/16/17/20/22/26px），其中 12px 直接違反 §6 的「內文 15–16px」。
+ *    ⛔ 一致性靠意志力守不住，只能靠「沒得選」——所以把決定收斂成有名字的類別。
+ *
+ * ⭐ 收斂後只剩 6 種字級：14 / 15 / 17 / 20 / 22 / 26
+ *    · 12px、13px 全部消滅（違反 §6，最小級距抬到 14）
+ *    · 16px 併進 15（兩者肉眼分不出來，卻要多記一個決定）
+ *
+ * ⚠️ 用 px 不用 rem 是刻意的：tokens.css 把 root font-size 設成 110%，
+ *    rem 會被再乘一次。全站 px→rem 正規化是另一軌（TASK-PX-TO-REM-NORMALIZATION），
+ *    ⛔ 不在這一軌順手改——那會讓所有頁面的字同時變大，混進這次改版看不出是誰造成的。
+ *
+ * ⚠️ 「不用灰字」（§6）的落地方式：輔助文字用 text-foreground/75，
+ *    ⛔ 不是 muted-foreground。前者是同色系降一階（老花仍讀得到），後者才是規格禁的灰字。
+ */
+
+@layer components {
+  /* ───────────────────────────── 文字 */
+
+  /** 頁面/物件主名（客戶名、單號這種一眼要抓到的） */
+  .nx-t-page {
+    @apply text-[22px] font-bold leading-7 text-foreground;
+  }
+  /** 段落標題（流程的一段、卡片的抬頭） */
+  .nx-t-sec {
+    @apply text-[17px] font-bold text-foreground;
+  }
+  /** 卡片內的小分區標題 */
+  .nx-t-sub {
+    @apply text-[15px] font-bold text-foreground;
+  }
+  /** 內文（§6 基準） */
+  .nx-body {
+    @apply text-[15px] text-foreground;
+  }
+  /** 輔助說明。⚠️ 同色降階、⛔ 不是灰字 */
+  .nx-hint {
+    @apply text-[14px] text-foreground/75;
+  }
+  /** 欄位標籤 */
+  .nx-label {
+    @apply mb-1 block text-[14px] font-medium text-foreground;
+  }
+  /** 代碼類（料號、客戶代碼）：等寬才對得齊 */
+  .nx-mono {
+    @apply font-mono text-[15px] text-foreground;
+  }
+
+  /* ───────────────────────────── 數字（一律 tabular，⛔ 不然整欄會跳動） */
+
+  .nx-num {
+    @apply text-[15px] tabular-nums text-foreground;
+  }
+  .nx-num-md {
+    @apply text-[17px] font-bold tabular-nums text-foreground;
+  }
+  .nx-num-lg {
+    @apply text-[20px] font-bold tabular-nums text-foreground;
+  }
+  /** 只給「整頁最重要的那一個數字」（合計）。⛔ 一頁出現兩個就沒有重點了 */
+  .nx-num-xl {
+    @apply text-[26px] font-bold tabular-nums text-foreground;
+  }
+
+  /* ───────────────────────────── 輸入控件
+   * ⭐ 焦點用底色表達（執行長 2026-08-01）：
+   *    沒在輸入的欄位往後退＝灰底（muted）；正在輸入的浮出來＝純白（card）＋主色框。
+   *    ⛔ 不用粗外框／ring——一排欄位全是粗框反而分不出哪個是現在。
+   * ⚠️ 聚焦色是 bg-card 不是 bg-background：這個佈景 background 與 muted 只差 3 階，
+   *    拿 background 當聚焦色等於沒有變化；card 才是純白。
+   */
+
+  .nx-field {
+    @apply h-11 w-full rounded-md border border-border bg-muted px-3 text-[15px] text-foreground;
+    @apply placeholder:text-foreground/50 focus:border-primary focus:bg-card focus:outline-none;
+  }
+  /** 表格儲存格內的輸入框（矮一階，⛔ 字級不縮） */
+  .nx-field-cell {
+    @apply h-10 w-full rounded-md border border-border bg-muted px-2 text-[15px] text-foreground;
+    @apply placeholder:text-foreground/50 focus:border-primary focus:bg-card focus:outline-none;
+  }
+  /** 一段的主要輸入框（搜尋）：整頁最大的目標，⭐ 一眼就知道游標該在哪 */
+  .nx-field-lg {
+    @apply h-14 w-full rounded-lg border border-border bg-muted px-4 text-[17px] text-foreground;
+    @apply placeholder:text-foreground/50 focus:border-primary focus:bg-card focus:outline-none;
+  }
+
+  /* ───────────────────────────── 按鈕（高度一致＝同一列不會參差） */
+
+  .nx-btn {
+    @apply inline-flex h-11 items-center justify-center rounded-md border-2 border-border px-4;
+    @apply text-[15px] text-foreground hover:bg-accent disabled:opacity-50;
+  }
+  /** ⭐ 一個畫面只給一顆主要按鈕，⛔ 多了就沒有主次 */
+  .nx-btn-primary {
+    @apply inline-flex h-11 items-center justify-center rounded-md border-2 border-primary bg-primary/10 px-5;
+    @apply text-[15px] font-bold text-foreground hover:bg-primary/20;
+    @apply disabled:border-border disabled:bg-transparent disabled:opacity-50;
+  }
+  /** 表格列內的動作鈕（矮一階） */
+  .nx-btn-cell {
+    @apply inline-flex h-9 items-center justify-center rounded-md border-2 border-border px-3;
+    @apply text-[14px] font-medium text-foreground hover:border-primary disabled:opacity-50 disabled:hover:border-border;
+  }
+
+  /* ───────────────────────────── 表格（§6：內文 15、表頭 14） */
+
+  .nx-th {
+    @apply px-3 py-2.5 text-left text-[14px] font-bold text-foreground;
+  }
+  /** 表頭底下那行說明。⚠️ 字級與表頭同為 14——⛔ 不縮成 12（§6） */
+  .nx-th-note {
+    @apply text-[14px] font-normal text-foreground/75;
+  }
+  .nx-td {
+    @apply px-3 py-2.5 text-[15px] text-foreground;
+  }
+
+  /* ───────────────────────────── 容器 */
+
+  /** 一段的主體卡片 */
+  .nx-card {
+    @apply rounded-xl border border-border bg-card p-5;
+  }
+  /** 卡片內再分的小塊 */
+  .nx-card-inner {
+    @apply rounded-lg border border-border p-3;
+  }
+  /**
+   * ⭐ 表單欄位一律兩欄（執行長 2026-08-02 拍板、對照 Formspree 表單庫）：
+   *    好看的來源不是配色，是「標籤與框左緣對齊、每欄等寬、控件同高」。
+   *    ⛔ 不用 3/4 欄——1366 基準下四欄會把每欄壓到放不下一個地址。
+   *    長欄位（地址、備註）自己掛 md:col-span-2 跨滿。
+   */
+  .nx-form-grid {
+    @apply grid gap-4 md:grid-cols-2;
+  }
+
+  /**
+   * 標籤／膠囊（表格內的「可代用」「倉別 12」這種）。
+   * ⚠️ 字級 14 是下限、⛔ 不再縮——標籤縮小是最常見的違規起點。
+   */
+  .nx-tag {
+    @apply inline-block rounded-md border-2 border-border px-2 py-1 text-[14px] font-medium text-foreground;
+  }
+  /** 強調版：⭐ 一個表格裡只用在「使用者問的那一筆」，⛔ 不拿來當一般標籤 */
+  .nx-tag-primary {
+    @apply inline-block rounded-md bg-primary/15 px-2 py-1 text-[14px] font-medium text-foreground;
+  }
+
+  /* ───────────────────────────── 提示條（三種語意、⛔ 不再多） */
+
+  .nx-alert-danger {
+    @apply rounded-lg border-2 border-red-500 bg-red-500/10 px-4 py-2.5 text-[15px] font-medium text-foreground;
+  }
+  .nx-alert-warn {
+    @apply rounded-lg border-2 border-amber-500 bg-amber-500/10 px-4 py-2.5 text-[15px] font-medium text-foreground;
+  }
+  .nx-alert-ok {
+    @apply rounded-lg border-2 border-border bg-card px-4 py-2.5 text-[15px] font-bold text-foreground;
+  }
+}

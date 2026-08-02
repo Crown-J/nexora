@@ -73,18 +73,12 @@ type QuoteLine = {
   customerLastDate: string | null;
 };
 
-/**
- * ⭐ 全頁一致的輸入框樣式（執行長 2026-08-01 拍板）：
- *    沒在輸入的欄位往後退＝灰底（muted 235）；正在輸入的浮出來＝純白（card 255）＋主色框。
- *    ⛔ 不用粗外框／ring——那個又吵又醜，而且一排欄位全是粗框反而分不出哪個是現在。
- *    ⭐ 這也順便回答了「焦點在哪」：整頁只有一個白底欄位，掃一眼就找到。
- *
- * ⚠️ 聚焦色用 bg-card 不是 bg-background：
- *    這個佈景的 background 是 rgb(238,241,244)、muted 是 rgb(235,238,242)——只差 3 階，
- *    拿 background 當聚焦色等於沒有變化。card 才是純白 rgb(255,255,255)。
+/*
+ * ⚠️ 原本掛在這裡的 FIELD 常數已移除（2026-08-02 字級收斂）——
+ *    輸入框樣式改用 design/styles/v3.css 的 .nx-field / .nx-field-cell / .nx-field-lg。
+ *    ⭐ 焦點用底色表達（灰底退後、白底浮出）的設計沒有變，只是搬到樣式表裡定義一次，
+ *       ⛔ 不再每個欄位重打一次尺寸與字級。
  */
-const FIELD =
-  'rounded-md border border-border bg-muted text-foreground placeholder:text-foreground/50 focus:border-primary focus:bg-card focus:outline-none';
 
 function num(v: string | null | undefined): number {
   const n = Number(v);
@@ -131,7 +125,8 @@ function pickShipTo(rows: PartnerAddressRow[]): string | null {
 function Field({ label, value }: { label: string; value: string | null | undefined }) {
   return (
     <div>
-      <div className="text-[13px] text-foreground/70">{label}</div>
+      {/* ⚠️ 標籤原本是 13px，2026-08-02 收斂時抬到 14（§6 的最小級距）*/}
+      <div className="nx-hint">{label}</div>
       <div className="text-[15px] font-medium text-foreground">{value || '—'}</div>
     </div>
   );
@@ -530,7 +525,7 @@ export function QuoteOpsView() {
                 autoFocus
               />
             </div>
-            <p className="text-[14px] text-foreground/70">
+            <p className="nx-hint">
               打編號或名稱，↑↓ 選、Enter 帶入；注音首碼按 Alt+Z。查不到按 Enter 直接建客戶。
               <br />
               要換客戶：再按一次 Alt+1，欄位會反白讓你重打。
@@ -538,12 +533,10 @@ export function QuoteOpsView() {
           </div>
 
           {credit && !credit.passed ? (
-            <div className="mt-3 rounded-lg border-2 border-red-500 bg-red-500/10 px-4 py-2.5 text-[15px] font-medium text-foreground">
-              ⛔ 這個客戶目前擋單：{credit.blockedReason}
-            </div>
+            <div className="nx-alert-danger mt-3">⛔ 這個客戶目前擋單：{credit.blockedReason}</div>
           ) : null}
           {credit && credit.passed && credit.overdueTransferToCash ? (
-            <div className="mt-3 rounded-lg border-2 border-amber-500 bg-amber-500/10 px-4 py-2.5 text-[15px] font-medium text-foreground">
+            <div className="nx-alert-warn mt-3">
               ⚠️ 這個客戶已逾期 {credit.details.overdueDays} 天——這一單要收現金。
             </div>
           ) : null}
@@ -554,64 +547,58 @@ export function QuoteOpsView() {
                查不到客戶時同一個位置變成可編輯的建檔表單，存完直接變成這通的對象。
                ⛔ 不跳去主檔頁：跳出去再回來，剛剛打的字跟情境都沒了。
           */}
-          <div className="mt-4 rounded-lg border-2 border-border bg-card p-4">
+          {/*
+            ⚠️ 2026-08-02 改版：這一塊原本是「卡中卡」（外面已經是一張段落卡、裡面再包一個 border-2 的框）。
+               雙層框線是視覺雜訊，改成一條分隔線——上面是要填的、下面是系統告訴你的。
+          */}
+          <div className="mt-5 border-t border-border pt-5">
             {draft ? (
               <div>
-                <div className="mb-3 text-[15px] font-bold text-foreground">
-                  建立客戶　<span className="font-normal text-foreground/70">代碼由系統自動產生</span>
+                <div className="nx-t-sub mb-4">
+                  建立客戶　<span className="font-normal text-foreground/75">代碼由系統自動產生</span>
                 </div>
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                {/* ⭐ 兩欄網格（規格 §6 欄位密度 6–8）：⛔ 不用四欄——1366 下一欄放不下一個地址 */}
+                <div className="nx-form-grid">
                   <label className="block">
-                    <span className="mb-1 block text-[14px] font-medium text-foreground">客戶類型</span>
+                    <span className="nx-label">客戶類型</span>
                     <select
                       value={draft.partnerType}
                       onChange={(e) => setDraft({ ...draft, partnerType: e.target.value as PartnerType })}
-                      className={`h-11 w-full px-2 text-[15px] ${FIELD}`}
+                      className="nx-field"
                     >
                       <option value="C">保養廠</option>
                       <option value="O">同行</option>
                       <option value="L">散客</option>
                     </select>
                   </label>
-                  <label className="block lg:col-span-2">
-                    <span className="mb-1 block text-[14px] font-medium text-foreground">客戶名稱（必填）</span>
+                  <label className="block">
+                    <span className="nx-label">客戶名稱（必填）</span>
                     <input
                       ref={draftNameRef}
                       value={draft.name}
                       onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-                      className={`h-11 w-full px-2 text-[15px] ${FIELD}`}
+                      className="nx-field"
                     />
                   </label>
+
                   <label className="block">
-                    <span className="mb-1 block text-[14px] font-medium text-foreground">預設取貨方式</span>
+                    <span className="nx-label">預設取貨方式</span>
                     <select
                       value={draft.defaultDeliveryType}
                       onChange={(e) => setDraft({ ...draft, defaultDeliveryType: e.target.value })}
-                      className={`h-11 w-full px-2 text-[15px] ${FIELD}`}
+                      className="nx-field"
                     >
                       <option value="D">配送</option>
                       <option value="P">自取</option>
                       <option value="C">寄貨</option>
                     </select>
                   </label>
-
-                  <label className="block lg:col-span-3">
-                    <span className="mb-1 block text-[14px] font-medium text-foreground">
-                      客戶地址（送去哪）
-                    </span>
-                    <input
-                      value={draft.address}
-                      onChange={(e) => setDraft({ ...draft, address: e.target.value })}
-                      placeholder="整行打進來就好，⛔ 不用拆縣市巷弄"
-                      className={`h-11 w-full px-2 text-[15px] ${FIELD}`}
-                    />
-                  </label>
                   <label className="block">
-                    <span className="mb-1 block text-[14px] font-medium text-foreground">預設倉位</span>
+                    <span className="nx-label">預設倉位</span>
                     <select
                       value={draft.defaultWarehouseId}
                       onChange={(e) => setDraft({ ...draft, defaultWarehouseId: e.target.value })}
-                      className={`h-11 w-full px-2 text-[15px] ${FIELD}`}
+                      className="nx-field"
                     >
                       <option value="">（不指定）</option>
                       {whOptions.map((w) => (
@@ -622,50 +609,58 @@ export function QuoteOpsView() {
                     </select>
                   </label>
 
+                  {/* 長欄位跨滿兩欄，⛔ 不要讓地址擠在半欄裡 */}
+                  <label className="block md:col-span-2">
+                    <span className="nx-label">客戶地址（送去哪）</span>
+                    <input
+                      value={draft.address}
+                      onChange={(e) => setDraft({ ...draft, address: e.target.value })}
+                      placeholder="整行打進來就好，⛔ 不用拆縣市巷弄"
+                      className="nx-field"
+                    />
+                  </label>
+
                   <label className="block">
-                    <span className="mb-1 block text-[14px] font-medium text-foreground">聯絡人</span>
+                    <span className="nx-label">聯絡人</span>
                     <input
                       value={draft.contactName}
                       onChange={(e) => setDraft({ ...draft, contactName: e.target.value })}
-                      className={`h-11 w-full px-2 text-[15px] ${FIELD}`}
+                      className="nx-field"
                     />
                   </label>
                   <label className="block">
-                    <span className="mb-1 block text-[14px] font-medium text-foreground">電話</span>
+                    <span className="nx-label">電話</span>
                     <input
                       value={draft.phone}
                       onChange={(e) => setDraft({ ...draft, phone: e.target.value })}
-                      className={`h-11 w-full px-2 text-[15px] ${FIELD}`}
+                      className="nx-field"
                     />
                   </label>
+
                   <label className="block">
-                    <span className="mb-1 block text-[14px] font-medium text-foreground">手機</span>
+                    <span className="nx-label">手機</span>
                     <input
                       value={draft.mobile}
                       onChange={(e) => setDraft({ ...draft, mobile: e.target.value })}
-                      className={`h-11 w-full px-2 text-[15px] ${FIELD}`}
+                      className="nx-field"
                     />
                   </label>
                   <label className="block">
-                    <span className="mb-1 block text-[14px] font-medium text-foreground">備註</span>
+                    <span className="nx-label">備註</span>
                     <input
                       value={draft.remark}
                       onChange={(e) => setDraft({ ...draft, remark: e.target.value })}
-                      className={`h-11 w-full px-2 text-[15px] ${FIELD}`}
+                      className="nx-field"
                     />
                   </label>
                 </div>
-                {createErr ? (
-                  <div className="mt-3 rounded-md border-2 border-red-500 bg-red-500/10 px-3 py-2 text-[15px] text-foreground">
-                    {createErr}
-                  </div>
-                ) : null}
-                <div className="mt-3 flex items-center gap-2">
+                {createErr ? <div className="nx-alert-danger mt-4">{createErr}</div> : null}
+                <div className="mt-4 flex flex-wrap items-center gap-3">
                   <button
                     type="button"
                     disabled={!draft.name.trim() || creating}
                     onClick={() => void saveNewCustomer()}
-                    className="h-11 rounded-md border-2 border-primary bg-primary/10 px-5 text-[15px] font-bold text-foreground hover:bg-primary/20 disabled:border-border disabled:bg-transparent disabled:opacity-50"
+                    className="nx-btn-primary"
                   >
                     {creating ? '存檔中…' : '存檔並帶入'}
                   </button>
@@ -675,18 +670,18 @@ export function QuoteOpsView() {
                       setDraft(null);
                       setTimeout(() => customerRef.current?.focus(), 0);
                     }}
-                    className="h-11 rounded-md border-2 border-border px-4 text-[15px] text-foreground hover:bg-accent"
+                    className="nx-btn"
                   >
                     取消
                   </button>
-                  <span className="text-[14px] text-foreground/70">
+                  <span className="nx-hint">
                     ⚠️ 交易條件（付款方式、額度、月結）系統先給預設值——
                     客戶要談月結請轉財務，⛔ 不在這裡決定。
                   </span>
                 </div>
               </div>
             ) : profileLoading ? (
-              <div className="text-[15px] text-foreground/70">讀取客戶資料中…</div>
+              <div className="nx-hint">讀取客戶資料中…</div>
             ) : profile ? (
               /*
                 ⭐ 選完客戶焦點落在這張卡片、Enter 進下一段（執行長 2026-08-01）：
@@ -714,24 +709,24 @@ export function QuoteOpsView() {
                   ⭐ 授信狀態直接放進卡片——那是「這個客戶」的一部分，
                      ⛔ 不該只是飄在上面的一條警示條。
                 */}
-                <div className="mb-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                  <span className="text-[22px] font-bold leading-7 text-foreground">{profile.name}</span>
-                  <span className="font-mono text-[15px] text-foreground">{profile.code}</span>
+                <div className="mb-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                  <span className="nx-t-page">{profile.name}</span>
+                  <span className="nx-mono">{profile.code}</span>
                   {profile.contactName || profile.phone || profile.mobile ? (
-                    <span className="text-[15px] text-foreground">
+                    <span className="nx-body">
                       {profile.contactName ? `${profile.contactName}　` : ''}
                       {profile.phone ?? profile.mobile ?? ''}
                     </span>
                   ) : null}
-                  <span className="ml-auto rounded border border-border px-2 py-0.5 text-[13px] text-foreground">
+                  <span className="nx-hint ml-auto rounded border border-border px-2 py-0.5">
                     確認無誤按 Enter 進下一段
                   </span>
                 </div>
 
-                <div className="grid gap-3 lg:grid-cols-2">
-                  <div className="rounded-md border border-border p-3">
-                    <div className="mb-2 text-[13px] font-bold text-foreground">貨怎麼出</div>
-                    <div className="grid gap-x-6 gap-y-2 sm:grid-cols-2">
+                <div className="grid gap-4 lg:grid-cols-2">
+                  <div className="nx-card-inner">
+                    <div className="nx-t-sub mb-2">貨怎麼出</div>
+                    <div className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
                       <Field
                         label="取貨方式"
                         value={
@@ -747,9 +742,9 @@ export function QuoteOpsView() {
                     </div>
                   </div>
 
-                  <div className="rounded-md border border-border p-3">
-                    <div className="mb-2 text-[13px] font-bold text-foreground">錢</div>
-                    <div className="grid gap-x-6 gap-y-2 sm:grid-cols-2">
+                  <div className="nx-card-inner">
+                    <div className="nx-t-sub mb-2">錢</div>
+                    <div className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
                       <Field label="客戶等級" value={profile.customerGradeName ?? profile.customerGradeCode} />
                       <Field label="付款條件" value={profile.paymentTermDomestic} />
                       <Field label="統一編號" value={profile.taxId} />
@@ -770,7 +765,7 @@ export function QuoteOpsView() {
                 </div>
               </div>
             ) : (
-              <div className="text-[15px] text-foreground/70">
+              <div className="nx-hint">
                 還沒選客戶。選定之後這裡會顯示他的基本資料；查不到的話會變成建檔表單。
               </div>
             )}
@@ -800,7 +795,7 @@ export function QuoteOpsView() {
               }}
               placeholder="料號／品名／車型"
               aria-label="查料"
-              className={`h-14 w-full rounded-lg pl-12 pr-4 text-[17px] ${FIELD}`}
+              className="nx-field-lg pl-12"
             />
           </div>
 
@@ -819,17 +814,18 @@ export function QuoteOpsView() {
                 searchRef.current?.focus();
               }
             }}
-            className="mt-3 rounded-lg border border-border bg-card p-2 focus:outline focus:outline-2 focus:outline-primary"
+            className="mt-4 rounded-lg border border-border p-2 focus:outline focus:outline-2 focus:outline-primary"
           >
             <div className="px-1 pb-2 text-[14px] font-bold text-foreground">
               找到 {hits.length} 筆{searching ? '（查詢中…）' : ''}
             </div>
             {hits.length === 0 ? (
-              <div className="px-1 py-3 text-[14px] text-foreground/70">
+              <div className="nx-hint px-1 py-3">
                 {searched && !searching ? '沒有符合的零件。' : '打料號、品名或車型，按 Enter。'}
               </div>
             ) : (
-              <div className="grid max-h-[30vh] gap-1 overflow-y-auto sm:grid-cols-2 lg:grid-cols-3">
+              /* ⚠️ 命中清單保留段內捲動（max-h）：一次可能上百筆，全部展開會把這一段撐到十個畫面高 */
+              <div className="grid max-h-[46vh] gap-1 overflow-y-auto sm:grid-cols-2 lg:grid-cols-3">
                 {hits.map((h, i) => (
                   <button
                     key={h.id}
@@ -840,8 +836,8 @@ export function QuoteOpsView() {
                     }`}
                   >
                     <div className="text-[15px] font-medium text-foreground">{h.code}</div>
-                    <div className="text-[14px] text-foreground/80">{h.name}</div>
-                    <div className="text-[13px] text-foreground/70">
+                    <div className="nx-hint">{h.name}</div>
+                    <div className="nx-hint">
                       {h.brandName ?? '—'}・可出 {num(h.availableTotal).toLocaleString()}
                     </div>
                   </button>
@@ -864,30 +860,30 @@ export function QuoteOpsView() {
             ⛔ 這裡不出現任何價格——比價是下一段「報價」的事。
                混在一起會讓業務在還沒確定要出哪一支料的時候就先看價、先想折扣。
           */}
-          <div className="overflow-x-auto rounded-lg border border-border bg-card">
+          <div className="overflow-x-auto rounded-lg border border-border">
             <table className="w-full min-w-[720px] border-collapse">
               <thead>
                 <tr className="border-b-2 border-border text-left">
-                  <th className="px-3 py-2.5 text-[14px] font-bold text-foreground">料號 / 品名 / 廠牌</th>
-                  <th className="px-3 py-2.5 text-[14px] font-bold text-foreground">通用件</th>
-                  <th className="px-3 py-2.5 text-[14px] font-bold text-foreground">在哪些倉位</th>
-                  <th className="px-3 py-2.5 text-right text-[14px] font-bold text-foreground">
+                  <th className="nx-th">料號 / 品名 / 廠牌</th>
+                  <th className="nx-th">通用件</th>
+                  <th className="nx-th">在哪些倉位</th>
+                  <th className="nx-th text-right">
                     可出量
-                    <div className="text-[12px] font-normal text-foreground/70">全公司</div>
+                    <div className="nx-th-note">全公司</div>
                   </th>
-                  <th className="px-3 py-2.5" />
+                  <th className="nx-th" />
                 </tr>
               </thead>
               <tbody>
                 {rowsLoading ? (
                   <tr>
-                    <td colSpan={5} className="px-3 py-6 text-[15px] text-foreground/70">
+                    <td colSpan={5} className="nx-hint px-3 py-6">
                       查詢中…
                     </td>
                   </tr>
                 ) : rows.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-3 py-6 text-[15px] text-foreground/70">
+                    <td colSpan={5} className="nx-hint px-3 py-6">
                       上一段選一支料，這裡列出它和它的通用件、各在哪個倉。
                     </td>
                   </tr>
@@ -898,54 +894,45 @@ export function QuoteOpsView() {
                     const added = lines.some((l) => l.partId === c.id);
                     return (
                       <tr key={c.id} className="border-b border-border last:border-b-0">
-                        <td className="px-3 py-2.5">
-                          <div className="text-[15px] font-medium text-foreground">{c.code}</div>
-                          <div className="text-[14px] text-foreground/80">
+                        <td className="nx-td">
+                          <div className="font-medium">{c.code}</div>
+                          <div className="nx-hint">
                             {c.name}・{c.brandName ?? '—'}
                             {c.isOem ? '・正廠' : ''}
                           </div>
                         </td>
-                        <td className="px-3 py-2.5">
+                        <td className="nx-td">
                           {c.role === 1 ? (
-                            <span className="rounded bg-primary/15 px-2 py-1 text-[14px] font-medium text-foreground">
-                              客戶問的這支
-                            </span>
+                            <span className="nx-tag-primary">客戶問的這支</span>
                           ) : (
-                            <span className="rounded border-2 border-border px-2 py-1 text-[14px] font-medium text-foreground">
-                              可代用
-                            </span>
+                            <span className="nx-tag">可代用</span>
                           )}
                         </td>
-                        <td className="px-3 py-2.5">
+                        <td className="nx-td">
                           {spots.length === 0 ? (
                             <span className="text-[15px] font-bold text-red-500">都沒貨</span>
                           ) : (
                             <div className="flex flex-wrap gap-1.5">
                               {spots.map((s) => (
-                                <span
-                                  key={s.name}
-                                  className="rounded-md border-2 border-border px-2 py-1 text-[14px] text-foreground"
-                                >
-                                  {s.name}{' '}
-                                  <b className="tabular-nums">{s.qty.toLocaleString()}</b>
+                                <span key={s.name} className="nx-tag font-normal">
+                                  {s.name} <b className="tabular-nums">{s.qty.toLocaleString()}</b>
                                 </span>
                               ))}
                             </div>
                           )}
                         </td>
+                        {/* ⚠️ 沒貨轉紅：utilities 層排在 components 層之後，text-red-500 會蓋過 .nx-num-lg 的顏色，⛔ 不需要 important */}
                         <td
-                          className={`px-3 py-2.5 text-right text-[20px] font-bold tabular-nums ${
-                            avail > 0 ? 'text-foreground' : 'text-red-500'
-                          }`}
+                          className={`nx-num-lg px-3 py-2.5 text-right ${avail > 0 ? '' : 'text-red-500'}`}
                         >
                           {avail.toLocaleString()}
                         </td>
-                        <td className="px-3 py-2.5 text-right">
+                        <td className="nx-td text-right">
                           <button
                             type="button"
                             disabled={added}
                             onClick={() => addLine(c)}
-                            className="rounded-md border-2 border-border bg-background px-3 py-1.5 text-[14px] font-medium text-foreground hover:border-primary disabled:opacity-50 disabled:hover:border-border"
+                            className="nx-btn-cell"
                           >
                             {added ? '已加入' : '拿這支報'}
                           </button>
@@ -972,57 +959,53 @@ export function QuoteOpsView() {
                公司定價（我們的價）、上次賣他（議價依據）。
                ⛔ 上一段「檢查庫存」刻意不放價，那裡只決定「要出哪一支」。
           */}
-          <div className="overflow-x-auto rounded-lg border-2 border-border bg-card">
+          <div className="overflow-x-auto rounded-lg border border-border">
             <table className="w-full min-w-[980px] border-collapse">
               <thead>
                 <tr className="border-b-2 border-border text-left">
-                  <th className="px-3 py-2.5 text-[14px] font-bold text-foreground">料號 / 品名</th>
-                  <th className="px-3 py-2.5 text-right text-[14px] font-bold text-foreground">
+                  <th className="nx-th">料號 / 品名</th>
+                  <th className="nx-th text-right">
                     市場行情價
-                    <div className="text-[12px] font-normal text-foreground/70">保養廠對車主</div>
+                    <div className="nx-th-note">保養廠對車主</div>
                   </th>
-                  <th className="px-3 py-2.5 text-right text-[14px] font-bold text-foreground">
+                  <th className="nx-th text-right">
                     公司定價
-                    <div className="text-[12px] font-normal text-foreground/70">我們賣他</div>
+                    <div className="nx-th-note">我們賣他</div>
                   </th>
-                  <th className="px-3 py-2.5 text-right text-[14px] font-bold text-foreground">上次賣他</th>
-                  <th className="px-3 py-2.5 text-right text-[14px] font-bold text-foreground">數量</th>
-                  <th className="px-3 py-2.5 text-right text-[14px] font-bold text-foreground">報價</th>
-                  <th className="px-3 py-2.5 text-right text-[14px] font-bold text-foreground">小計</th>
-                  <th className="px-3 py-2.5 text-[14px] font-bold text-foreground">備註</th>
-                  <th className="px-3 py-2.5" />
+                  <th className="nx-th text-right">上次賣他</th>
+                  <th className="nx-th text-right">數量</th>
+                  <th className="nx-th text-right">報價</th>
+                  <th className="nx-th text-right">小計</th>
+                  <th className="nx-th">備註</th>
+                  <th className="nx-th" />
                 </tr>
               </thead>
               <tbody>
                 {lines.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="px-3 py-6 text-[15px] text-foreground/70">
+                    <td colSpan={9} className="nx-hint px-3 py-6">
                       上一段按「拿這支報」把料帶下來。
                     </td>
                   </tr>
                 ) : (
                   lines.map((l) => (
                     <tr key={l.partId} className="border-b border-border last:border-b-0">
-                      <td className="px-3 py-2.5">
-                        <div className="text-[15px] font-medium text-foreground">{l.code}</div>
-                        <div className="text-[14px] text-foreground/80">
+                      <td className="nx-td">
+                        <div className="font-medium">{l.code}</div>
+                        <div className="nx-hint">
                           {l.name}
                           {l.available <= 0 ? (
                             <span className="ml-2 font-bold text-red-500">目前沒貨</span>
                           ) : null}
                         </div>
                       </td>
-                      <td className="px-3 py-2.5 text-right text-[17px] font-bold tabular-nums text-foreground">
-                        {money(l.marketPrice)}
-                      </td>
-                      <td className="px-3 py-2.5 text-right text-[17px] font-bold tabular-nums text-foreground">
-                        {money(l.listPrice)}
-                      </td>
-                      <td className="px-3 py-2.5 text-right text-[15px] tabular-nums text-foreground">
+                      <td className="nx-num-md px-3 py-2.5 text-right">{money(l.marketPrice)}</td>
+                      <td className="nx-num-md px-3 py-2.5 text-right">{money(l.listPrice)}</td>
+                      <td className="nx-num px-3 py-2.5 text-right">
                         {l.customerLastAmount ? (
                           <>
                             {money(l.customerLastAmount)}
-                            <div className="text-[13px] text-foreground/70">
+                            <div className="nx-hint">
                               {l.customerLastDate ? l.customerLastDate.slice(0, 10) : ''}
                             </div>
                           </>
@@ -1036,7 +1019,7 @@ export function QuoteOpsView() {
                           onChange={(e) => patchLine(l.partId, { qty: e.target.value })}
                           inputMode="decimal"
                           aria-label={`${l.code} 數量`}
-                          className={`h-10 w-24 px-2 text-right text-[16px] tabular-nums ${FIELD}`}
+                          className="nx-field-cell w-24 text-right tabular-nums"
                         />
                       </td>
                       <td className="px-3 py-2.5 text-right">
@@ -1045,10 +1028,10 @@ export function QuoteOpsView() {
                           onChange={(e) => patchLine(l.partId, { unitPrice: e.target.value })}
                           inputMode="decimal"
                           aria-label={`${l.code} 報價`}
-                          className={`h-10 w-28 px-2 text-right text-[16px] tabular-nums ${FIELD}`}
+                          className="nx-field-cell w-28 text-right tabular-nums"
                         />
                       </td>
-                      <td className="px-3 py-2.5 text-right text-[17px] font-bold tabular-nums text-foreground">
+                      <td className="nx-num-md px-3 py-2.5 text-right">
                         {(num(l.qty) * num(l.unitPrice)).toLocaleString()}
                       </td>
                       <td className="px-3 py-2.5">
@@ -1057,7 +1040,7 @@ export function QuoteOpsView() {
                           onChange={(e) => patchLine(l.partId, { remark: e.target.value })}
                           placeholder="選填"
                           aria-label={`${l.code} 備註`}
-                          className={`h-10 w-full min-w-[120px] px-2 text-[15px] ${FIELD}`}
+                          className="nx-field-cell min-w-[120px]"
                         />
                       </td>
                       <td className="px-3 py-2.5 text-right">
@@ -1066,7 +1049,7 @@ export function QuoteOpsView() {
                           onClick={() => removeLine(l.partId)}
                           aria-label={`移除 ${l.code}`}
                           title="移除"
-                          className="rounded-md border-2 border-border p-2 text-foreground hover:border-red-500"
+                          className="nx-btn-cell px-2 hover:border-red-500"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -1077,8 +1060,8 @@ export function QuoteOpsView() {
               </tbody>
             </table>
           </div>
-          <div className="mt-2 text-right text-[16px] font-medium text-foreground">
-            合計 <span className="text-[26px] font-bold tabular-nums">{total.toLocaleString()}</span>
+          <div className="nx-body mt-3 text-right font-medium">
+            合計 <span className="nx-num-xl">{total.toLocaleString()}</span>
           </div>
         </div>
       ),
@@ -1093,35 +1076,27 @@ export function QuoteOpsView() {
             value={msgText || '（還沒有可發送的報價——回「報價」那一段填數量與價格）'}
             aria-label="給客戶的報價訊息"
             rows={10}
-            className="w-full rounded-lg border-2 border-border bg-card p-3 text-[15px] leading-relaxed text-foreground"
+            className="w-full rounded-lg border border-border bg-muted p-3 text-[15px] leading-relaxed text-foreground"
           />
-          <div className="mt-2 flex flex-wrap items-center gap-3">
+          <div className="mt-3 flex flex-wrap items-center gap-3">
             <button
               type="button"
               disabled={!msgText}
               onClick={() => {
                 void navigator.clipboard.writeText(msgText).then(() => setCopied(true));
               }}
-              className="h-11 rounded-md border-2 border-border bg-card px-5 text-[15px] font-medium text-foreground hover:bg-accent disabled:opacity-50"
+              className="nx-btn font-medium"
             >
               複製訊息
             </button>
             {copied ? <span className="text-[15px] font-bold text-foreground">已複製</span> : null}
-            <span className="text-[14px] text-foreground/70">
+            <span className="nx-hint">
               複製後貼到 LINE 給客戶。⚠️ 散客可以只複製訊息不存檔；要存報價紀錄才需要客戶。
             </span>
           </div>
 
-          {savedMsg ? (
-            <div className="mt-3 rounded-lg border-2 border-border bg-card px-4 py-2.5 text-[15px] font-bold text-foreground">
-              {savedMsg}
-            </div>
-          ) : null}
-          {errMsg ? (
-            <div className="mt-3 rounded-lg border-2 border-red-500 bg-red-500/10 px-4 py-2.5 text-[15px] text-foreground">
-              {errMsg}
-            </div>
-          ) : null}
+          {savedMsg ? <div className="nx-alert-ok mt-3">{savedMsg}</div> : null}
+          {errMsg ? <div className="nx-alert-danger mt-3">{errMsg}</div> : null}
         </div>
       ),
     },
