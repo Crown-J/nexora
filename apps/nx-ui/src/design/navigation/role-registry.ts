@@ -118,8 +118,7 @@ export const ROLES: RoleDef[] = [
         label: '銷貨作業',
         status: 'live',
         children: [
-          // ⚠️ 頁面施工中：⛔ 先不要改成 live——格子會連到不存在的路由
-          { no: 1, id: 'so-create', label: '建立銷貨單', href: '/dashboard/sale/order', status: 'pending' },
+          { no: 1, id: 'so-create', label: '建立銷貨單', href: '/dashboard/sale/order', status: 'live' },
           { no: 2, id: 'so-docs', label: '銷貨管理', href: '/dashboard/sale/so', status: 'live' },
         ],
       },
