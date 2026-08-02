@@ -102,11 +102,27 @@ export const ROLES: RoleDef[] = [
         status: 'live',
         children: [
           { no: 1, id: 'quote-create', label: '建立報價', href: '/dashboard/sale/quote', status: 'live' },
-          { no: 2, id: 'quote-docs', label: '單據管理', href: '/dashboard/sale/qt', status: 'live' },
+          // ⚠️ 2026-08-02 執行長改名：原「單據管理」→「報價管理」。
+          //    理由是每一格底下都有一個「單據管理」時分不出來是誰的單據，
+          //    冠上所屬作業（報價管理／銷貨管理）才看得出差別。⛔ 號碼不動（§5 號碼凍結）。
+          { no: 2, id: 'quote-docs', label: '報價管理', href: '/dashboard/sale/qt', status: 'live' },
         ],
       },
-      // 2 銷貨作業：報價談成 → 開單、查單、改單同一頁
-      { no: 2, id: 'so-ops', label: '銷貨作業', href: '/dashboard/sale/so', status: 'live' },
+      // 2 銷貨作業：報價談成 → 開單
+      // ⚠️ 2026-08-02 執行長拍板加第三層（比照 1 報價作業）：
+      //    「建立銷貨單」是做事、「銷貨管理」是查已經做過的，兩件不同的事。
+      //    ⛔ 這跟舊的「即時銷售／銷貨單列表」配對不是同一回事——那是同一件事的兩套做法。
+      {
+        no: 2,
+        id: 'so-ops',
+        label: '銷貨作業',
+        status: 'live',
+        children: [
+          // ⚠️ 頁面施工中：⛔ 先不要改成 live——格子會連到不存在的路由
+          { no: 1, id: 'so-create', label: '建立銷貨單', href: '/dashboard/sale/order', status: 'pending' },
+          { no: 2, id: 'so-docs', label: '銷貨管理', href: '/dashboard/sale/so', status: 'live' },
+        ],
+      },
       // 3 退貨作業：客戶要退 → 依零件的退貨政策自動分流成一般退貨或轉保固（規格 §4.2）
       { no: 3, id: 'sr-ops', label: '退貨作業', href: '/dashboard/sale/return', status: 'live' },
       // 4 調貨作業：沒貨時跟同行問價、建調貨單、看問過誰
