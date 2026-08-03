@@ -1,33 +1,27 @@
 // apps/nx-ui/src/design/layout/v3/V3Workbench.tsx
 //
-// v3.0.0 工作檯（＝登入落點首頁）。階段 3 建立；2026-08-03 改成執行長拍板的五區塊。
+// v3.0.0 工作檯（＝登入落點首頁）。2026-08-03 改成執行長拍板的卡片牆。
 // 規格：docs/專案/介面規格/NEXORA-介面架構-v3.0.0.md v1.2 §3.3
 //       docs/專案/介面規格/NEXORA-外殼規格-v3.0.0.md §3（殼 1）
 //
-// ⭐ 2026-08-03 執行長定的五區塊，版面收成「積木拼圖」：
+// ⭐ 十一張卡片（執行長 2026-08-03 逐張點名）：
+//    簽到 · 查價查貨 · 業績目標 · 銷貨單 · 報價單 · 採購單 · 進貨單
+//    撿貨單 · 盤點單 · 調撥單 · 異常回報
 //
-//   ┌────────┬──────────────────────────────────┐
-//   │ 出勤   │ 搜尋框（永遠聚焦）                 │
-//   │ 業績   ├────────────────┬─────────────────┤
-//   │ 備忘   │ 待處理單據      │ 待處理清單       │
-//   └────────┴────────────────┴─────────────────┘
+// ⭐ 三條規矩：
+//    1. 沒權限 → 變灰但仍佔位。⛔ 不隱藏、⛔ 不重排——位置固定是肌肉記憶的前提
+//    2. 有待處理 → 紅點＋數字。0 的不上色，⛔ 不製造假的緊迫感
+//    3. 卡片大小可以不同，但⛔ 不留空格（bento 拼盤）
 //
-// ⭐ 左欄窄積木＝一眼掃過就好的東西；右欄寬積木＝要動手處理的東西。
-//    左欄靠最左，與固定在左上角的小行星同一側，滑鼠不必跨螢幕。
+// ⭐ 為什麼是卡片不是表格（執行長 2026-08-03）：
+//    工作檯是入口不是內容。紅點的作用是「讓人想清掉」，
+//    而人會想清掉的前提是那個數字他真的動得了——所以數字只算「現在要動手的」。
+//    要看單號與客戶請點進去，那是清單殼的事。
 //
-// ⭐ 兩個軸不一樣，所以分兩塊：單據問「卡在哪」、清單問「還剩多久做完」。
-// ⭐ 有幾塊排幾塊：業務只會有單據那半、倉管只會有清單那半，單獨一塊時佔滿整行，
-//    ⛔ 不留空白格（版型⛔ 不得寫死五格）。
+// ⚠️ 本輪仍是殼：簽到與業績目標只有卡片、⛔ 還沒接功能（執行長指示先畫殼）。
+// ⚠️ 權限目前全開（開發期免登入），灰卡的判定已寫好但實際不會觸發。
 //
-// ⚠️ 本輪＝執行長指示「先把殼畫好、功能一步步放入」，所以：
-//    · 打卡上／下班：後端已有 checkin / checkout 兩支 API，⛔ 本輪不接
-//      （未打卡就擋住工作的攔截設計會妨礙測試，等功能期再開）
-//    · 備忘錄：系統目前完全沒有這個東西，⛔ 只有殼
-//    · 業績目標：當月五項；每個職務一組的定義尚未拍板，⛔ 只有殼
-//      ⚠️ 多職務頁籤要等「職務」欄位送到前端才做得出來（目前 /auth/me 不回職務）
-//    · 「久未下單」拿掉——它沒有下一步動作，是名單不是待辦，歸報表（執行長 2026-08-03 分析）
-//
-// ⛔ 不放圖表、⛔ 不做自訂儀表板、⛔ 不用灰字、⛔ 禁動畫（規格 §6）。
+// ⛔ 不放圖表、⛔ 不用灰字、⛔ 禁動畫（規格 §6）。
 
 'use client';
 
@@ -38,26 +32,72 @@ import { Search } from 'lucide-react';
 import { openPartQuickSearch } from '@design/components/quick-search/GlobalPartQuickSearch';
 import { tryNavigate } from '@design/hooks/useDirtyGuard';
 
-import { PendingDocsBlock } from './PendingDocsBlock';
-import { PendingTasksBlock } from './PendingTasksBlock';
+import { WORKBENCH_TILES, type WorkbenchTile } from './workbench-tiles';
+
+/** 紅點＋數字。⛔ 0 不顯示——沒事就不要製造緊迫感 */
+function Badge({ count }: { count: number }) {
+  if (count <= 0) return null;
+  return (
+    <span className="flex items-center gap-1.5">
+      {/* 紅點：手遊那一套，人看到就想清掉 */}
+      <span className="h-2.5 w-2.5 rounded-full bg-destructive" aria-hidden />
+      <span className="nx-num-lg text-destructive">{count}</span>
+    </span>
+  );
+}
+
+function TileShell({
+  tile,
+  disabled,
+  onClick,
+  children,
+}: {
+  tile: WorkbenchTile;
+  disabled?: boolean;
+  onClick?: () => void;
+  children?: React.ReactNode;
+}) {
+  const base =
+    'flex min-h-[7.5rem] flex-col justify-between rounded-2xl p-4 text-left backdrop-blur focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary';
+  // ⛔ 沒權限變灰但仍佔位（規格 §3.1 同一條鐵則）
+  const skin = disabled
+    ? 'cursor-not-allowed bg-card/30 text-muted-foreground'
+    : 'bg-card/70 hover:bg-primary/[0.08]';
+  const cls = `${base} ${skin} ${tile.wide ? 'sm:col-span-2' : ''}`;
+
+  if (!onClick) return <div className={cls}>{children}</div>;
+  return (
+    <button type="button" disabled={disabled} onClick={onClick} className={cls}>
+      {children}
+    </button>
+  );
+}
 
 export function V3Workbench() {
   const router = useRouter();
   const [term, setTerm] = useState('');
+  const [counts, setCounts] = useState<Record<string, number | null>>({});
   const searchRef = useRef<HTMLInputElement>(null);
 
-  // ⚠️ 原本在這裡打 getHomeSummary 拿一整包統計數字。
-  //    改成單據／清單兩塊各自去撈自己的單之後，那包數字沒有人用了，整段移除
-  //    ——首頁少一次 API 呼叫。⛔ 端點本身沒刪，別的地方還在用。
+  useEffect(() => {
+    let alive = true;
+    for (const t of WORKBENCH_TILES) {
+      if (!t.load) continue;
+      t.load()
+        .then((n) => alive && setCounts((p) => ({ ...p, [t.key]: n })))
+        .catch(() => alive && setCounts((p) => ({ ...p, [t.key]: 0 })));
+    }
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   // 規則 1：搜尋框永遠聚焦。
-  // ⚠️ 不只是開頁聚焦——設計約束表寫「雙螢幕切走再切回要能立刻定位」，
-  //    所以視窗重新取得焦點時也搶回來（除非使用者正在別的輸入框裡打字）。
+  // ⚠️ 不只是開頁聚焦——雙螢幕切走再切回也要能立刻定位。
   useEffect(() => {
     searchRef.current?.focus();
     const refocus = () => {
-      const el = document.activeElement;
-      const tag = el?.tagName;
+      const tag = document.activeElement?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
       searchRef.current?.focus();
     };
@@ -78,79 +118,64 @@ export function V3Workbench() {
   }, [term]);
 
   return (
-    // ⭐ 積木拼圖（執行長 2026-08-03）：左欄是窄積木（打卡／業績／備忘），
-    //    右欄是寬積木（搜尋＋兩張清單）。左欄放的都是「一眼掃過就好」的東西，
-    //    右欄放的是「要動手處理」的東西。
-    //    ⛔ 左欄留在最左邊，讓小行星（固定左上角）與它同一側，滑鼠不用跨螢幕。
-    // ⭐ h-full + min-h-0：整頁⛔ 不長出捲軸，捲動一律發生在表格自己的框裡
-    // ⚠️ 給左上角星球讓位：桌機往右讓（pl-20），手機改成往下讓（pt-20）——
-    //    手機只有 375 寬，橫向再吃掉 80px 會把磚塊擠爛。
-    <div className="mx-auto flex h-full min-h-0 w-full max-w-[1800px] flex-col gap-5 px-4 pb-5 pt-20 sm:px-6 lg:flex-row lg:pl-20 lg:pt-5">
-      {/* ── 左欄：窄積木 ── */}
-      <aside className="flex w-full shrink-0 flex-col gap-4 lg:w-64">
-        {/* 打卡：一天的第一個與最後一個動作，兩顆放一起。⚠️ 本輪只有殼 */}
-        <section className="rounded-2xl bg-card/70 p-4 backdrop-blur">
-          <h2 className="nx-t-sec">出勤</h2>
-          <p className="nx-hint mt-1">尚未打卡上班</p>
-          <div className="mt-3 flex flex-col gap-2">
-            <span className="rounded-xl bg-primary/15 px-3 py-2.5 text-center text-base ring-1 ring-primary/50">
-              打卡上班
-            </span>
-            <span className="rounded-xl bg-background/40 px-3 py-2.5 text-center text-base">
-              打卡下班
-            </span>
-          </div>
-          {/* 下班＝當日結算＝產出日報，講清楚它不只是記出勤 */}
-          <p className="nx-hint mt-3">下班打卡會產出當日日報與當日評分。功能建置中。</p>
-        </section>
+    // ⚠️ 給左上角星球讓位：桌機往右讓、手機往下讓（手機只有 375 寬，橫向讓會擠爛）
+    <div className="mx-auto w-full max-w-[1600px] px-4 pb-6 pt-20 sm:px-6 lg:pl-24 lg:pt-6">
+      {/* bento 拼盤：手機 2 欄、平板 3 欄、桌機 4 欄。⛔ 不留空格 */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 xl:grid-cols-4">
+        {WORKBENCH_TILES.map((t) => {
+          if (t.kind === 'search') {
+            return (
+              <TileShell key={t.key} tile={t}>
+                <span className="nx-hint">{t.label}</span>
+                <div className="relative mt-2">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-foreground" />
+                  <input
+                    ref={searchRef}
+                    value={term}
+                    onChange={(e) => setTerm(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        submit();
+                      }
+                    }}
+                    placeholder={t.hint}
+                    aria-label={t.label}
+                    // 搜尋框永遠聚焦，⛔ 不套「未輸入退成灰底」那套
+                    className="nx-field-lg h-12 w-full rounded-xl bg-background/60 pl-11"
+                  />
+                </div>
+              </TileShell>
+            );
+          }
 
-        <section className="rounded-2xl bg-card/70 p-4 backdrop-blur">
-          <h2 className="nx-t-sec">業績目標</h2>
-          <p className="nx-hint mt-1">當月累計</p>
-          <div className="mt-2 rounded-xl bg-background/40 px-3 py-4 text-center">
-            <p className="nx-body">建置中</p>
-          </div>
-          <p className="nx-hint mt-3">每個職務一組五項指標，定義尚未拍板。</p>
-        </section>
+          if (t.kind === 'action') {
+            return (
+              <TileShell key={t.key} tile={t}>
+                <span className="nx-t-sec">{t.label}</span>
+                <span className="nx-hint">{t.hint}</span>
+                {/* ⚠️ 只有卡片、還沒接功能（執行長指示先畫殼） */}
+                <span className="nx-hint mt-2">建置中</span>
+              </TileShell>
+            );
+          }
 
-        <section className="rounded-2xl bg-card/70 p-4 backdrop-blur">
-          <h2 className="nx-t-sec">備忘錄</h2>
-          <p className="nx-hint mt-1">誰交代了什麼事要處理</p>
-          <div className="mt-2 rounded-xl bg-background/40 px-3 py-4 text-center">
-            <p className="nx-body">建置中</p>
-          </div>
-        </section>
-      </aside>
-
-      {/* ── 右欄：寬積木 ── */}
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-4">
-        {/* 搜尋框：游標預設就在這 */}
-        <div className="relative">
-          <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-foreground" />
-          <input
-            ref={searchRef}
-            value={term}
-            onChange={(e) => setTerm(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                submit();
-              }
-            }}
-            placeholder="料號／品名／車型"
-            aria-label="查價查貨"
-            // 一段的主要輸入框＝整頁最大的目標。⚠️ 這裡刻意留 border-2 與 bg-card：
-            // 搜尋框永遠是聚焦狀態，⛔ 不該套 nx-field-lg 的「未輸入退成灰底」
-            className="nx-field-lg h-14 border-2 bg-card pl-12"
-          />
-        </div>
-
-        {/* 狀態軸與進度軸並排：一個問卡在哪、一個問還剩多久 */}
-        <div className="grid min-h-0 flex-1 gap-5 xl:grid-cols-2">
-          <PendingDocsBlock onGo={go} />
-          <PendingTasksBlock onGo={go} />
-        </div>
+          const n = counts[t.key] ?? null;
+          return (
+            <TileShell key={t.key} tile={t} onClick={() => go(t.href!, t.label)}>
+              <div className="flex items-start justify-between gap-2">
+                <span className="nx-t-sec">{t.label}</span>
+                {n === null ? <span className="nx-hint">—</span> : <Badge count={n} />}
+              </div>
+              <span className="nx-hint">{n === 0 ? '沒有待處理的' : t.hint}</span>
+            </TileShell>
+          );
+        })}
       </div>
+
+      <p className="nx-hint mt-4">
+        數字只算「現在輪到我們動手的」。等客戶簽收、等廠商交期、等帳期的⛔ 不在這裡——點進去看得到。
+      </p>
     </div>
   );
 }
