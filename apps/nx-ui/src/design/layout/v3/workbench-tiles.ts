@@ -19,6 +19,7 @@
 import {
   AlertTriangle,
   ArrowLeftRight,
+  Handshake,
   ClipboardCheck,
   ClipboardList,
   Fingerprint,
@@ -38,6 +39,7 @@ import { listRr } from '@data/endpoints/nx02/rr/api/rr';
 import { listPks } from '@data/endpoints/nx03/workstation/api';
 import { listStockTake } from '@data/endpoints/nx03/stocktake/api/stocktake';
 import { listSt } from '@data/endpoints/nx03/transfer/api/transfer';
+import { listTi } from '@data/endpoints/nx02/ti/api/ti';
 import { listIssueReport } from '@data/endpoints/nx03/issue-report/api/issue-report';
 
 const SCAN = 100;
@@ -99,6 +101,16 @@ export const WORKBENCH_TILES: WorkbenchTile[] = [
     href: '/dashboard/sale/qt',
     // ⛔ 已寄出不算——那是等客戶回覆，不是卡住
     load: () => countBy(() => listQuote({ page: 1, pageSize: SCAN }), ['DRAFT', 'EXPIRED']),
+  },
+  {
+    key: 'ti',
+    icon: Handshake,
+    label: '調貨',
+    hint: '要發出、要驗收的',
+    kind: 'doc',
+    href: '/dashboard/purchase/ti',
+    // ⛔ 已發出不算——那是等同行回覆；已回覆要決定、待驗收要點收，都算自己人要動
+    load: () => countBy(() => listTi({ page: 1, pageSize: SCAN }), ['DRAFT', 'REPLIED', 'PENDING_RECEIPT']),
   },
   {
     key: 'po',

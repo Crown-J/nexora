@@ -1,49 +1,80 @@
 // apps/nx-ui/src/design/layout/v3/V3Workbench.tsx
 //
-// v3.0.0 工作檯（＝登入落點首頁）。2026-08-03 執行長拍板的卡片牆。
+// v3.0.0 工作檯（＝登入落點首頁）。2026-08-03 執行長手繪配置。
 // 規格：docs/專案/介面規格/NEXORA-介面架構-v3.0.0.md v1.2 §3.3
 //       docs/專案/介面規格/NEXORA-外殼規格-v3.0.0.md §3（殼 1）
 //
-// ⭐ 卡片＝小行星 ＋ 十一張（執行長 2026-08-03 逐張點名）：
-//    簽到 · 查價查貨 · 業績目標 · 銷貨單 · 報價單 · 採購單 · 進貨單
-//    撿貨單 · 盤點單 · 調撥單 · 異常回報
+// ⭐ 版面（桌機 12 欄 × 5 排，依執行長手繪）：
 //
-// ⭐ 四條規矩：
-//    1. 沒權限 → 變灰但仍佔位。⛔ 不隱藏、⛔ 不重排——位置固定是肌肉記憶的前提
+//   ┌─────────────┬───────────────┬──────────┬─────────┐
+//   │ 簽到        │ 小行星         │ 業績     │         │
+//   ├─────────────┤               │          │         │
+//   │ 查價查貨    │               │          │ 備忘錄  │
+//   ├───┬───┬─────┼───────────────┴──────────┤         │
+//   │報價│銷貨│調貨│                          │         │
+//   ├───┼───┼─────┤        行事曆             │         │
+//   │採購│進貨│調撥│                          │         │
+//   ├───┼───┼─────┤                          │         │
+//   │撿貨│盤點│異常│                          │         │
+//   └───┴───┴─────┴──────────────────────────┴─────────┘
+//
+// ⭐ 九張單據卡排成 3×3——與九宮格同一種形狀，兩邊的肌肉記憶互通。
+// ⭐ 三條規矩：
+//    1. 沒權限 → 變灰但仍佔位。⛔ 不隱藏、⛔ 不重排
 //    2. 有待處理 → 紅點＋數字。0 的不上色，⛔ 不製造假的緊迫感
-//    3. 滿版鋪滿、⛔ 不留孤兒格：手機 2 欄 · 平板 3 欄 · 桌機 4 欄（⛔ 不再開到 6 欄）
-//       算式：星球／簽到／查價／業績 各跨兩欄（4×2＝8 格）＋ 八張單據各一格（8 格）
-//       ＝16 格，4 欄剛好 4 排整齊，⛔ 沒有半排孤兒。
-//       每排等高（auto-rows-fr）＋牆吃滿高度，畫面下半⛔ 不再空一大片
-//    4. ⭐ 小行星是第一張卡，⛔ 不是浮在牆外面的東西
-//       （執行長：「不然那顆小行星變得好突兀」——根因就是它沒有被編進版面）
+//    3. 位置寫死、⛔ 不隨資料變動——會跳就失去肌肉記憶
 //
-// ⚠️ 玻璃感靠三層疊出來：半透明底 + backdrop-blur + 內側白色細框（ring-inset）。
-//    ⛔ 不用 box-shadow 做假立體——黑底上陰影看不出來，只會糊掉。
+// ⚠️ 小螢幕不套這張圖：xl 以下退回單純流排（手機 2 欄、平板 3 欄）。
+//    手繪配置是給有寬度的螢幕看的，硬塞進 375px 只會擠爛。
 //
-// ⚠️ Hover 反光：跟著游標跑的高光，⛔ 不是會自己動的動畫。
-//    規格 §6 禁的是「畫面自己在動」（長輩會問剛剛怎麼了）；
-//    指標驅動的回饋不在此列。仍然尊重系統的「減少動態」設定。
+// ⚠️ 玻璃感三層：半透明底 + backdrop-blur + 內側白色細框。⛔ 不用陰影（黑底上看不出來）。
+// ⚠️ Hover 反光是指標驅動的回饋，⛔ 不是會自己動的動畫（規格 §6 禁的是後者）。
 //
-// ⚠️ 本輪仍是殼：簽到與業績目標只有卡片、⛔ 還沒接功能。
-// ⚠️ 權限目前全開（開發期免登入），灰卡的判定已寫好但實際不會觸發。
+// ⚠️ 本輪仍是殼：簽到、業績目標、備忘錄只有卡片、⛔ 還沒接功能。
 
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search } from 'lucide-react';
+import { Search, StickyNote } from 'lucide-react';
 
 import { PlanetSlot } from '@design/home/SharedPlanetRoot';
 import { openPartQuickSearch } from '@design/components/quick-search/GlobalPartQuickSearch';
 import { tryNavigate } from '@design/hooks/useDirtyGuard';
 
 import { useV3Menu } from './v3-menu-context';
+import { WorkbenchCalendar } from './WorkbenchCalendar';
 import { WORKBENCH_TILES, type WorkbenchTile } from './workbench-tiles';
 
 /** 玻璃卡：半透明底 + 毛玻璃 + 內側細框。⛔ 不用陰影，黑底上看不出來 */
 const GLASS =
   'relative overflow-hidden rounded-2xl bg-white/[0.045] ring-1 ring-inset ring-white/10 backdrop-blur-xl';
+const HOVER = 'hover:bg-white/[0.08] hover:ring-white/20';
+const FOCUS = 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary';
+
+/**
+ * 桌機格位（xl 以上才套）。⛔ 寫死不隨資料變動。
+ * 用 arbitrary property 直接寫 grid-column / grid-row，
+ * ⛔ 不依賴 col-start-N 那組工具類（欄數到 12 時哪些數字有被產出來不一定）。
+ */
+const AT: Record<string, string> = {
+  checkin: 'xl:[grid-column:1/span_3] xl:[grid-row:1]',
+  search: 'xl:[grid-column:1/span_3] xl:[grid-row:2]',
+  planet: 'xl:[grid-column:4/span_3] xl:[grid-row:1/span_2]',
+  kpi: 'xl:[grid-column:7/span_2] xl:[grid-row:1/span_2]',
+  memo: 'xl:[grid-column:9/span_4] xl:[grid-row:1/span_5]',
+  calendar: 'xl:[grid-column:4/span_5] xl:[grid-row:3/span_3]',
+  // 九張單據＝3×3，與九宮格同形狀
+  qt: 'xl:[grid-column:1] xl:[grid-row:3]',
+  so: 'xl:[grid-column:2] xl:[grid-row:3]',
+  ti: 'xl:[grid-column:3] xl:[grid-row:3]',
+  po: 'xl:[grid-column:1] xl:[grid-row:4]',
+  rr: 'xl:[grid-column:2] xl:[grid-row:4]',
+  st: 'xl:[grid-column:3] xl:[grid-row:4]',
+  pk: 'xl:[grid-column:1] xl:[grid-row:5]',
+  stocktake: 'xl:[grid-column:2] xl:[grid-row:5]',
+  ir: 'xl:[grid-column:3] xl:[grid-row:5]',
+};
 
 /** 紅點＋數字。⛔ 0 不顯示——沒事就不要製造緊迫感 */
 function Badge({ count }: { count: number }) {
@@ -57,10 +88,7 @@ function Badge({ count }: { count: number }) {
   );
 }
 
-/**
- * 卡面反光。跟著游標的位置移動，離開就消失。
- * ⚠️ 用 CSS 變數餵座標，⛔ 不每次 setState——一格一個 state 會讓整面牆重畫。
- */
+/** 卡面反光：跟著游標跑。⚠️ 座標走 CSS 變數，⛔ 不 setState（整面牆會重畫） */
 function Sheen() {
   return (
     <span
@@ -74,34 +102,35 @@ function Sheen() {
   );
 }
 
-function TileShell({
-  tile,
-  disabled,
+function Card({
+  at,
   onClick,
+  label,
+  className = '',
   children,
 }: {
-  tile: WorkbenchTile;
-  disabled?: boolean;
+  at: string;
   onClick?: () => void;
-  children?: React.ReactNode;
+  label?: string;
+  className?: string;
+  children: React.ReactNode;
 }) {
-  const base = `group flex min-h-[8.5rem] flex-col justify-between p-4 text-left ${GLASS} focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary`;
-  // ⛔ 沒權限變灰但仍佔位（規格 §3.1 同一條鐵則）
-  const skin = disabled
-    ? 'cursor-not-allowed opacity-40'
-    : 'hover:bg-white/[0.08] hover:ring-white/20';
-  const cls = `${base} ${skin} ${tile.wide ? 'xl:col-span-2' : ''}`;
-
+  const cls = `group flex min-h-[7.5rem] flex-col p-4 text-left ${GLASS} ${HOVER} ${FOCUS} ${at} ${className}`;
   const body = (
     <>
-      {!disabled ? <Sheen /> : null}
-      <span className="relative flex h-full flex-col justify-between">{children}</span>
+      <Sheen />
+      <span className="relative flex min-h-0 flex-1 flex-col">{children}</span>
     </>
   );
-
-  if (!onClick) return <div data-tile className={cls}>{body}</div>;
+  if (!onClick) {
+    return (
+      <div data-tile className={cls}>
+        {body}
+      </div>
+    );
+  }
   return (
-    <button type="button" data-tile disabled={disabled} onClick={onClick} className={cls}>
+    <button type="button" data-tile aria-label={label} onClick={onClick} className={cls}>
       {body}
     </button>
   );
@@ -113,7 +142,6 @@ export function V3Workbench() {
   const [term, setTerm] = useState('');
   const [counts, setCounts] = useState<Record<string, number | null>>({});
   const searchRef = useRef<HTMLInputElement>(null);
-  const wallRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let alive = true;
@@ -161,99 +189,118 @@ export function V3Workbench() {
     openPartQuickSearch({ entry: 'sales', initialKeyword: kw });
   }, [term]);
 
+  const tile = (key: string): WorkbenchTile | undefined =>
+    WORKBENCH_TILES.find((t) => t.key === key);
+
+  const docCard = (key: string) => {
+    const t = tile(key);
+    if (!t) return null;
+    const Icon = t.icon;
+    const n = counts[key] ?? null;
+    return (
+      <Card key={key} at={AT[key] ?? ''} label={t.label} onClick={() => go(t.href!, t.label)}>
+        <span className="flex items-start justify-between gap-2">
+          <Icon className="h-6 w-6 text-primary" aria-hidden />
+          {n === null ? <span className="nx-hint">—</span> : <Badge count={n} />}
+        </span>
+        <span className="mt-auto">
+          <span className="nx-t-sec block">{t.label}</span>
+          <span className="nx-hint block">{n === 0 ? '沒有待處理的' : t.hint}</span>
+        </span>
+      </Card>
+    );
+  };
+
+  const checkin = tile('checkin')!;
+  const search = tile('search')!;
+  const kpi = tile('kpi')!;
+  const CheckinIcon = checkin.icon;
+  const SearchIcon = search.icon;
+  const KpiIcon = kpi.icon;
+
   return (
     // ⭐ 滿版：⛔ 不設 max-width，卡片牆吃滿整個工作區
-    <div className="flex h-full w-full flex-col gap-2 px-3 py-3 sm:px-4 sm:py-4">
+    <div className="h-full w-full p-3 sm:p-4">
       <div
-        ref={wallRef}
         onMouseMove={onWallMove}
-        className="grid h-full auto-rows-fr grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4"
+        // 手機 2 欄／平板 3 欄＝單純流排；xl 以上才套執行長手繪的 12 欄配置
+        className="grid h-full auto-rows-fr grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-12 xl:grid-rows-5"
       >
-        {/* ⭐ 第一張卡＝小行星（九宮格入口）。它被編進版面，就不再是浮在外面的異物 */}
-        <button
-          type="button"
-          data-tile
+        {/* 小行星＝九宮格入口。被編進版面，⛔ 不再浮在牆外面 */}
+        <Card
+          at={AT.planet}
+          label="功能選單"
           onClick={() => menu?.openMenu()}
-          title="功能選單（F2）"
-          aria-label="功能選單"
-          className={`group flex min-h-[8.5rem] flex-col items-center justify-center gap-2 p-4 xl:col-span-2 ${GLASS} hover:bg-white/[0.08] hover:ring-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary`}
+          className="items-center justify-center"
         >
-          <Sheen />
-          {/* 星球停泊點：本體是 root layout 那顆，飛過來停在這。
-              ⚠️ 星球會縮到「停泊點尺寸的兩倍」（SharedPlanetRoot 對 topbar 的既有規則），
-                 所以這裡給 36px＝星球實際 72px，才不會壓到底下的字。 */}
-          <PlanetSlot id="topbar" className="relative h-9 w-9" />
-          <span className="nx-hint relative">功能選單　F2</span>
-        </button>
+          <span className="flex h-full flex-col items-center justify-center gap-2">
+            {/* ⚠️ 星球會放大成停泊點的兩倍（SharedPlanetRoot 對 topbar 的既有規則） */}
+            <PlanetSlot id="topbar" className="h-12 w-12" />
+            <span className="nx-hint">功能選單　F2</span>
+          </span>
+        </Card>
 
-        {WORKBENCH_TILES.map((t) => {
-          const Icon = t.icon;
+        <Card at={AT.checkin}>
+          <span className="flex items-center gap-2">
+            <CheckinIcon className="h-6 w-6 text-primary" aria-hidden />
+            <span className="nx-t-sec">{checkin.label}</span>
+          </span>
+          <span className="nx-hint mt-1">{checkin.hint}　·　建置中</span>
+        </Card>
 
-          if (t.kind === 'search') {
-            return (
-              <TileShell key={t.key} tile={t}>
-                <span className="flex items-center gap-2">
-                  <Icon className="h-5 w-5 text-primary" aria-hidden />
-                  <span className="nx-t-sec">{t.label}</span>
-                </span>
-                <div className="relative mt-2">
-                  <Search
-                    className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-foreground"
-                    aria-hidden
-                  />
-                  <input
-                    ref={searchRef}
-                    value={term}
-                    onChange={(e) => setTerm(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        submit();
-                      }
-                    }}
-                    placeholder={t.hint}
-                    aria-label={t.label}
-                    // 搜尋框永遠聚焦，⛔ 不套「未輸入退成灰底」那套
-                    className="nx-field-lg h-12 w-full rounded-xl bg-black/25 pl-11 ring-1 ring-inset ring-white/10"
-                  />
-                </div>
-              </TileShell>
-            );
-          }
+        <Card at={AT.search}>
+          <span className="flex items-center gap-2">
+            <SearchIcon className="h-5 w-5 text-primary" aria-hidden />
+            <span className="nx-t-sec">{search.label}</span>
+          </span>
+          <div className="relative mt-2">
+            <Search
+              className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-foreground"
+              aria-hidden
+            />
+            <input
+              ref={searchRef}
+              value={term}
+              onChange={(e) => setTerm(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  submit();
+                }
+              }}
+              placeholder={search.hint}
+              aria-label={search.label}
+              // 搜尋框永遠聚焦，⛔ 不套「未輸入退成灰底」那套
+              className="nx-field-lg h-12 w-full rounded-xl bg-black/25 pl-11 ring-1 ring-inset ring-white/10"
+            />
+          </div>
+        </Card>
 
-          if (t.kind === 'action') {
-            return (
-              <TileShell key={t.key} tile={t}>
-                <Icon className="h-6 w-6 text-primary" aria-hidden />
-                <span>
-                  <span className="nx-t-sec block">{t.label}</span>
-                  <span className="nx-hint block">{t.hint}</span>
-                  {/* ⚠️ 只有卡片、還沒接功能（執行長指示先畫殼） */}
-                  <span className="nx-hint mt-1 block">建置中</span>
-                </span>
-              </TileShell>
-            );
-          }
+        <Card at={AT.kpi}>
+          <span className="flex items-center gap-2">
+            <KpiIcon className="h-6 w-6 text-primary" aria-hidden />
+            <span className="nx-t-sec">{kpi.label}</span>
+          </span>
+          <span className="nx-hint mt-1">{kpi.hint}</span>
+          <span className="nx-body mt-auto">建置中</span>
+        </Card>
 
-          const n = counts[t.key] ?? null;
-          return (
-            <TileShell key={t.key} tile={t} onClick={() => go(t.href!, t.label)}>
-              <span className="flex items-start justify-between gap-2">
-                <Icon className="h-6 w-6 text-primary" aria-hidden />
-                {n === null ? <span className="nx-hint">—</span> : <Badge count={n} />}
-              </span>
-              <span>
-                <span className="nx-t-sec block">{t.label}</span>
-                <span className="nx-hint block">{n === 0 ? '沒有待處理的' : t.hint}</span>
-              </span>
-            </TileShell>
-          );
-        })}
+        {/* 九張單據＝3×3 */}
+        {['qt', 'so', 'ti', 'po', 'rr', 'st', 'pk', 'stocktake', 'ir'].map(docCard)}
+
+        <Card at={AT.calendar}>
+          <WorkbenchCalendar />
+        </Card>
+
+        <Card at={AT.memo}>
+          <span className="flex items-center gap-2">
+            <StickyNote className="h-6 w-6 text-primary" aria-hidden />
+            <span className="nx-t-sec">備忘錄</span>
+          </span>
+          <span className="nx-hint mt-1">誰交代了什麼事要處理</span>
+          <span className="nx-body mt-auto">建置中</span>
+        </Card>
       </div>
-
-      <p className="nx-hint mt-3">
-        數字只算「現在輪到我們動手的」。等客戶簽收、等廠商交期、等帳期的⛔ 不在這裡——點進去看得到。
-      </p>
     </div>
   );
 }
