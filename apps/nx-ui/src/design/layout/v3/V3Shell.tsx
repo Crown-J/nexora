@@ -88,6 +88,11 @@ function V3Chrome({ children }: Props) {
       <NineGrid
         open={menuOpen}
         onClose={() => setMenuOpen(false)}
+        // 第一層按 0＝退到底：關掉九宮格、回工作檯（執行長 2026-08-03）
+        onHome={() => {
+          setMenuOpen(false);
+          router.push('/dashboard');
+        }}
         onPick={(t) => {
           if (t.station) {
             window.dispatchEvent(

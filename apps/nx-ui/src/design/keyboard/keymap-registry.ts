@@ -63,6 +63,26 @@ export const GLOBAL_KEYMAP: GlobalKeyDef[] = [
   },
 ];
 
+/**
+ * 九宮格「面板內」鍵位（執行長 2026-08-03 拍板：整個數字鍵盤複製上螢幕）。
+ *
+ * ⚠️ 刻意⛔ 不進 GLOBAL_KEYMAP：這些鍵只在九宮格開著的時候有效，
+ *    面板一關就完全還給頁面。全系統的全域鍵仍然只有 F2 一個（規格 §7.3）。
+ * 實作位置：design/navigation/NineGrid.tsx；格位定義在 design/navigation/role-registry.ts。
+ * 對照表：docs/專案/介面規格/NEXORA-快捷鍵對照表-v3.0.0.xlsx
+ */
+export const NINE_GRID_PANEL_KEYS = [
+  { keys: ['1', '2', '3', '4', '5', '6', '7', '8', '9'], label: '選角色／功能／子功能' },
+  { keys: ['0'], label: '第一層＝回首頁；其餘層＝回上一層' },
+  { keys: ['.'], label: '資訊（個人資訊／行事曆／佈告欄）' },
+  { keys: ['+'], label: '任務／通知' },
+  { keys: ['-'], label: '設定' },
+  { keys: ['/'], label: '全域搜尋' },
+  { keys: ['Enter'], label: '確認游標所在的格' },
+  { keys: ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'], label: '移動游標' },
+  { keys: ['Escape'], label: '關閉九宮格' },
+] as const;
+
 /** 永久還給瀏覽器、系統絕不攔（instant-workbench-keymap-plan.md §4.1）*/
 export const BROWSER_RESERVED_KEYS = ['F1', 'F5', 'F12'] as const;
 

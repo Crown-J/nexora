@@ -53,6 +53,8 @@ export default function NineGridPreviewPage() {
         open={open}
         onClose={() => setOpen(false)}
         onPick={(t) => setPicked({ href: t.href ?? `（即時工作站 ${t.station}）`, label: t.label })}
+        // 預覽頁沒有真的工作檯可回，第一層按 0 就當關閉
+        onHome={() => setOpen(false)}
       />
     </div>
   );

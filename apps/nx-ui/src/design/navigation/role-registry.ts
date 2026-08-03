@@ -448,3 +448,97 @@ export const NUMPAD_ROWS: CellNo[][] = [
   [4, 5, 6],
   [1, 2, 3],
 ];
+
+// ─────────────────────────────────────────────────────────────
+// 數字鍵盤整鍵複製（執行長 2026-08-03 拍板）
+//
+// ⭐ 面板不只有 3×3，是把**整個數字鍵盤**搬上螢幕：
+//   NumLock  /  *  -
+//     7  8  9   +
+//     4  5  6
+//     1  2  3   Enter
+//     0     .
+//
+// 這樣做的理由：頂欄那三顆按鈕（待辦／使用者／設定）收進來之後要有地方擺，
+// 而 1-9 已被九個角色佔滿且終身凍結（§5），只能落在數字鍵盤剩下的實體鍵上。
+// 照實體鍵盤擺，手指位置＝螢幕位置，中間不用轉換。
+//
+// ⛔ 位置照實體鍵盤，不得為了美觀重排——重排就失去「複製鍵盤」的意義。
+// ⚠️ 鍵位對照表：docs/專案/介面規格/NEXORA-快捷鍵對照表-v3.0.0.xlsx
+// ─────────────────────────────────────────────────────────────
+
+export type UtilityKeyId =
+  | 'numlock'
+  | 'search'
+  | 'reserved'
+  | 'settings'
+  | 'tasks'
+  | 'enter'
+  | 'home'
+  | 'info';
+
+export type UtilityKey = {
+  id: UtilityKeyId;
+  /** 鍵帽上印的字（＝實體鍵） */
+  cap: string;
+  label: string;
+  /** 直接開的路由 */
+  href?: string;
+  /** 灰掉：保留鍵或尚未建置 */
+  enabled: boolean;
+  hint?: string;
+};
+
+export const UTILITY_KEYS: Record<UtilityKeyId, UtilityKey> = {
+  // 攔了會讓整個數字鍵盤失效，⛔ 永遠不攔
+  numlock: { id: 'numlock', cap: 'Num', label: '（不攔）', enabled: false },
+  search: { id: 'search', cap: '/', label: '全域搜尋', enabled: true, hint: '建置中' },
+  // ⛔ 刻意留白：不要一次把鍵位用完，將來有新東西才有地方放
+  reserved: { id: 'reserved', cap: '*', label: '', enabled: false },
+  settings: { id: 'settings', cap: '−', label: '設定', href: '/dashboard/settings', enabled: true },
+  tasks: { id: 'tasks', cap: '+', label: '任務／通知', href: '/dashboard/task-pool', enabled: true },
+  enter: { id: 'enter', cap: '⏎', label: '確認', enabled: true },
+  // 第一層＝回首頁（離開九宮格）、其餘層＝回上一層。一路退到底，只記「退一步」一件事
+  home: { id: 'home', cap: '0', label: '回上一層', enabled: true },
+  info: { id: 'info', cap: '.', label: '資訊', enabled: true },
+};
+
+/** 面板格位（4 欄 × 5 列），座標照實體數字鍵盤。col/row 由 1 起算 */
+export type PadSlot = {
+  kind: 'num' | 'util';
+  no?: CellNo;
+  util?: UtilityKeyId;
+  col: number;
+  row: number;
+  colSpan: number;
+  rowSpan: number;
+};
+
+export const PAD_LAYOUT: PadSlot[] = [
+  { kind: 'util', util: 'numlock', col: 1, row: 1, colSpan: 1, rowSpan: 1 },
+  { kind: 'util', util: 'search', col: 2, row: 1, colSpan: 1, rowSpan: 1 },
+  { kind: 'util', util: 'reserved', col: 3, row: 1, colSpan: 1, rowSpan: 1 },
+  { kind: 'util', util: 'settings', col: 4, row: 1, colSpan: 1, rowSpan: 1 },
+
+  { kind: 'num', no: 7, col: 1, row: 2, colSpan: 1, rowSpan: 1 },
+  { kind: 'num', no: 8, col: 2, row: 2, colSpan: 1, rowSpan: 1 },
+  { kind: 'num', no: 9, col: 3, row: 2, colSpan: 1, rowSpan: 1 },
+  { kind: 'util', util: 'tasks', col: 4, row: 2, colSpan: 1, rowSpan: 2 },
+
+  { kind: 'num', no: 4, col: 1, row: 3, colSpan: 1, rowSpan: 1 },
+  { kind: 'num', no: 5, col: 2, row: 3, colSpan: 1, rowSpan: 1 },
+  { kind: 'num', no: 6, col: 3, row: 3, colSpan: 1, rowSpan: 1 },
+
+  { kind: 'num', no: 1, col: 1, row: 4, colSpan: 1, rowSpan: 1 },
+  { kind: 'num', no: 2, col: 2, row: 4, colSpan: 1, rowSpan: 1 },
+  { kind: 'num', no: 3, col: 3, row: 4, colSpan: 1, rowSpan: 1 },
+  { kind: 'util', util: 'enter', col: 4, row: 4, colSpan: 1, rowSpan: 2 },
+
+  { kind: 'util', util: 'home', col: 1, row: 5, colSpan: 2, rowSpan: 1 },
+  { kind: 'util', util: 'info', col: 3, row: 5, colSpan: 1, rowSpan: 1 },
+];
+
+/** 格位的中心點——方向鍵找「同方向最近的一格」用 */
+export function padCenter(s: PadSlot): { x: number; y: number } {
+  return { x: s.col + s.colSpan / 2, y: s.row + s.rowSpan / 2 };
+}
