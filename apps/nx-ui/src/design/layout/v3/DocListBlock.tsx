@@ -128,10 +128,16 @@ export function DocListBlock({
     <section className="flex min-h-0 min-w-0 flex-col gap-2">
       <h2 className="nx-t-sec">{title}</h2>
 
-      {/* 頁籤：單別分組。⚠️ 這是區塊內的頁籤，⛔ 不是 2026-08-01 拍板拿掉的那條全站分頁列 */}
-      <div className="flex flex-wrap gap-2">
+      {/* ⭐ 數字磚（bento 範式，執行長 2026-08-03 指定的呈現方式）：
+             ⛔ 無框——卡片靠間距分開，框線在黑底上只會製造雜訊
+             · 數字當主角、單別名退成小字
+             · 有事的（>0）數字上主色；0 的維持低調，⛔ 不上色也⛔ 不隱藏（位置固定）
+          ⚠️ 這是區塊內的頁籤，⛔ 不是 2026-08-01 拍板拿掉的那條全站分頁列 */}
+      <div className="grid shrink-0 grid-cols-2 gap-3 sm:grid-cols-4">
         {tabs.map((t) => {
           const n = rows[t.key];
+          const count = n ? n.length : null;
+          const hot = (count ?? 0) > 0;
           const on = t.key === active;
           return (
             <button
@@ -139,24 +145,23 @@ export function DocListBlock({
               type="button"
               onClick={() => setActive(t.key)}
               className={[
-                // ⚠️ 2026-08-03 收框：2px → 1px。粗框在黑底上每一顆都在喊，
-                //    改成細框＋主色底，讓「現在在哪一格」自己站出來
-                'rounded-lg border px-4 py-2 text-left',
-                on
-                  ? 'border-primary bg-primary/[0.12]'
-                  : 'border-border bg-card/60 hover:border-primary/60 hover:bg-primary/[0.06]',
+                'rounded-2xl px-4 py-3 text-left',
+                on ? 'bg-primary/15 ring-1 ring-primary/60' : 'bg-card/70 hover:bg-primary/[0.08]',
               ].join(' ')}
             >
-              <span className="nx-body font-medium">{t.label}</span>
-              <span className="nx-body ml-2 font-medium">{n ? n.length : '—'}</span>
+              <span className={hot ? 'nx-num-lg block text-primary' : 'nx-num-lg block'}>
+                {count ?? '—'}
+              </span>
+              <span className="nx-hint block">{t.label}</span>
             </button>
           );
         })}
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col rounded-lg border border-border bg-card/80 backdrop-blur">
+      {/* ⛔ 無框：靠卡片底色與間距分開（bento 範式） */}
+      <div className="flex min-h-0 flex-1 flex-col rounded-2xl bg-card/70 backdrop-blur">
         {/* 表頭釘住：捲動時還看得到欄位與排序方向 */}
-        <div className="flex shrink-0 items-center gap-3 rounded-t-lg border-b border-border px-4 py-2">
+        <div className="flex shrink-0 items-center gap-3 border-b border-border/60 px-4 py-2.5">
           <SortHeader label="單號" col="docNo" width={COL_DOC} sort={sort} onSort={onSort} />
           <SortHeader label={middleLabel} col="partnerName" width={COL_MID} sort={sort} onSort={onSort} />
           <SortHeader label="狀態" col="statusLabel" width={COL_STATUS} align="right" sort={sort} onSort={onSort} />
@@ -175,7 +180,7 @@ export function DocListBlock({
                 type="button"
                 onClick={() => onGo(r.href, r.docNo)}
                 // ⛔ 無 transition：規格 §6 動畫全部關掉
-                className="flex w-full items-center gap-3 border-b border-border px-4 py-2.5 text-left last:border-b-0 hover:bg-primary/[0.06] focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+                className="flex w-full items-center gap-3 border-b border-border/40 px-4 py-2.5 text-left last:border-b-0 hover:bg-primary/[0.08] focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
               >
                 <span className={`nx-mono ${COL_DOC}`}>{r.docNo}</span>
                 <span className={`nx-body truncate ${COL_MID}`}>{r.partnerName}</span>

@@ -83,18 +83,20 @@ export function V3Workbench() {
     //    右欄放的是「要動手處理」的東西。
     //    ⛔ 左欄留在最左邊，讓小行星（固定左上角）與它同一側，滑鼠不用跨螢幕。
     // ⭐ h-full + min-h-0：整頁⛔ 不長出捲軸，捲動一律發生在表格自己的框裡
-    <div className="mx-auto flex h-full min-h-0 w-full max-w-[1800px] flex-col gap-5 px-6 py-5 pl-20 lg:flex-row">
+    // ⚠️ 給左上角星球讓位：桌機往右讓（pl-20），手機改成往下讓（pt-20）——
+    //    手機只有 375 寬，橫向再吃掉 80px 會把磚塊擠爛。
+    <div className="mx-auto flex h-full min-h-0 w-full max-w-[1800px] flex-col gap-5 px-4 pb-5 pt-20 sm:px-6 lg:flex-row lg:pl-20 lg:pt-5">
       {/* ── 左欄：窄積木 ── */}
       <aside className="flex w-full shrink-0 flex-col gap-4 lg:w-64">
         {/* 打卡：一天的第一個與最後一個動作，兩顆放一起。⚠️ 本輪只有殼 */}
-        <section className="rounded-lg border border-border bg-card/80 p-4 backdrop-blur">
+        <section className="rounded-2xl bg-card/70 p-4 backdrop-blur">
           <h2 className="nx-t-sec">出勤</h2>
           <p className="nx-hint mt-1">尚未打卡上班</p>
           <div className="mt-3 flex flex-col gap-2">
-            <span className="rounded-md border border-primary/50 px-3 py-2 text-center text-base">
+            <span className="rounded-xl bg-primary/15 px-3 py-2.5 text-center text-base ring-1 ring-primary/50">
               打卡上班
             </span>
-            <span className="rounded-md border border-border px-3 py-2 text-center text-base">
+            <span className="rounded-xl bg-background/40 px-3 py-2.5 text-center text-base">
               打卡下班
             </span>
           </div>
@@ -102,19 +104,19 @@ export function V3Workbench() {
           <p className="nx-hint mt-3">下班打卡會產出當日日報與當日評分。功能建置中。</p>
         </section>
 
-        <section className="rounded-lg border border-border bg-card/80 p-4 backdrop-blur">
+        <section className="rounded-2xl bg-card/70 p-4 backdrop-blur">
           <h2 className="nx-t-sec">業績目標</h2>
           <p className="nx-hint mt-1">當月累計</p>
-          <div className="mt-2 rounded-md border border-dashed border-border px-3 py-4 text-center">
+          <div className="mt-2 rounded-xl bg-background/40 px-3 py-4 text-center">
             <p className="nx-body">建置中</p>
           </div>
           <p className="nx-hint mt-3">每個職務一組五項指標，定義尚未拍板。</p>
         </section>
 
-        <section className="rounded-lg border border-border bg-card/80 p-4 backdrop-blur">
+        <section className="rounded-2xl bg-card/70 p-4 backdrop-blur">
           <h2 className="nx-t-sec">備忘錄</h2>
           <p className="nx-hint mt-1">誰交代了什麼事要處理</p>
-          <div className="mt-2 rounded-md border border-dashed border-border px-3 py-4 text-center">
+          <div className="mt-2 rounded-xl bg-background/40 px-3 py-4 text-center">
             <p className="nx-body">建置中</p>
           </div>
         </section>
