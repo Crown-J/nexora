@@ -356,15 +356,33 @@ export function SharedPlanetRoot({ children }: { children: ReactNode }) {
     if (!el) return () => {};
     slotsRef.current[id] = [...(slotsRef.current[id] ?? []), el];
     tick();
+
     // 若當前 idle 且新 register 的就是 target slot、立刻補做歸位
     // （修真兇：useLayoutEffect 先跑、PlanetSlot useEffect 後跑、原本第一次歸位常拿不到 slot）
-    if (modeRef.current === 'idle' && id === targetRef.current && placeAtRef.current) {
-      // 用 rAF 等一幀讓 layout 穩定再量 rect
-      requestAnimationFrame(() => {
-        placeAtRef.current?.(targetRef.current, 'none');
+    const place = () => {
+      if (modeRef.current === 'idle' && id === targetRef.current && placeAtRef.current) {
+        // 先同步試一次：⚠️ 原本只走 rAF，而 rAF 在分頁沒被合成（背景分頁、內嵌預覽器）時
+        //    完全不會執行，星球就永遠卡在畫面正中央歸不了位。
+        placeAtRef.current(targetRef.current, 'none');
+        // 再用 rAF 等一幀讓 layout 穩定後補量一次（尺寸通常這時才是最終值）
+        requestAnimationFrame(() => {
+          placeAtRef.current?.(targetRef.current, 'none');
+        });
+      }
+    };
+    place();
+
+    // slot 真的量到尺寸時再歸位一次（首屏 layout 未穩、或容器晚一步撐開時的保險）
+    let ro: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined') {
+      ro = new ResizeObserver(() => {
+        if (el.getBoundingClientRect().width > 1) place();
       });
+      ro.observe(el);
     }
+
     return () => {
+      ro?.disconnect();
       slotsRef.current[id] = (slotsRef.current[id] ?? []).filter((x) => x !== el);
       tick();
     };
@@ -576,8 +594,11 @@ export function SharedPlanetRoot({ children }: { children: ReactNode }) {
           .nx-sp-halo, .nx-sp-reactor { animation: none; }
         }
       `}</style>
-      {/* 2026-06-27 大改版：太空風封存——登入頁與 TopBar 星球位皆退役、星球一律隱藏（保留元件/context 供日後復原） */}
-      <div ref={planetRef} className="nx-shared-planet" style={{ display: 'none' }}>
+      {/* 2026-06-27 大改版：太空風封存——星球一律隱藏（保留元件/context 供日後復原）
+          ⭐ 2026-08-03 執行長要鋼鐵星球回來：解除隱藏，就是當初說的「日後復原」。
+          停泊點＝V3Shell 左上角那顆按鈕裡的 PlanetSlot id="topbar"。
+          ⛔ 沒有重畫星球——反應爐呼吸／halo／環紋／六角漣漪全是原本那顆。 */}
+      <div ref={planetRef} className="nx-shared-planet">
         <div className="nx-sp-halo" />
         <div className="nx-sp-sphere">
           <PlanetSVG uid="root" />

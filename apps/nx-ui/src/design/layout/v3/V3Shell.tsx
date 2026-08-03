@@ -31,8 +31,8 @@ import {
   useWorkbenchToolbarSlot,
 } from '@design/layout/workbench/WorkbenchToolbarSlot';
 import { NineGrid } from '@design/navigation/NineGrid';
-// ⭐ 鋼鐵星球的小行星本體（軌道動畫）。封存的 Dock 裡撈回來、⛔ 沒有重畫一顆
-import { PlanetOrbTrigger } from '@design/home/Dock';
+// ⭐ 鋼鐵星球的停泊點。星球本體在 root layout 的 SharedPlanetRoot、⛔ 沒有重畫一顆
+import { PlanetSlot } from '@design/home/SharedPlanetRoot';
 
 // ⚠️ V3TopBar 2026-08-03 起不再掛上（執行長拍板拿掉常駐橫列）。
 //    檔案封存不刪——回退時把 import 與 <V3TopBar …/> 兩行加回來即可。
@@ -74,17 +74,22 @@ function V3Chrome({ children }: Props) {
       {/* ⭐ 2026-08-03 執行長拍板：常駐橫列整條移除，畫面上⛔ 沒有任何常駐 chrome。
           導覽全部走 F2 九宮格。V3TopBar.tsx 封存不刪——要回退只要把這裡加回一行。 */}
 
-      {/* ⭐ 小行星＝滑鼠使用者的九宮格入口（執行長 2026-08-03 指定固定左上角）。
+      {/* ⭐ 鋼鐵星球＝滑鼠使用者的九宮格入口（執行長 2026-08-03 指定固定左上角）。
           鍵盤走 F2、滑鼠點這顆，兩條路同一個面板。
-          ⛔ 不做成一整條橫列——它只佔一顆按鈕的位置。 */}
+          ⛔ 不做成一整條橫列——它只佔一顆按鈕的位置。
+
+          ⚠️ 這裡放的是 PlanetSlot「停泊點」，不是星球本體：
+             真正的星球是 root layout 的 SharedPlanetRoot 那一顆（fixed、z-60、pointer-events:none），
+             它會飛過來停在這個位置並縮到 slot 尺寸的兩倍。
+             ⛔ 按鈕本身不能有底色，有底色就把星球蓋住了。 */}
       <button
         type="button"
         onClick={() => setMenuOpen(true)}
         title="功能選單（F2）"
         aria-label="功能選單"
-        className="fixed left-3 top-3 z-[150] grid h-12 w-12 place-items-center rounded-full border border-primary/40 bg-card/70 backdrop-blur hover:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+        className="fixed left-4 top-4 z-[150] h-14 w-14 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
       >
-        <PlanetOrbTrigger />
+        <PlanetSlot id="topbar" className="absolute inset-[25%] rounded-full" />
       </button>
 
       {/* 情境工具列插槽：頁面自帶的操作列投影至此；無工具列的頁面自動收合 */}
