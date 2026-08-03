@@ -11,7 +11,10 @@
 // ⭐ 四條規矩：
 //    1. 沒權限 → 變灰但仍佔位。⛔ 不隱藏、⛔ 不重排——位置固定是肌肉記憶的前提
 //    2. 有待處理 → 紅點＋數字。0 的不上色，⛔ 不製造假的緊迫感
-//    3. 滿版鋪滿、⛔ 不留空格（bento）；手機 2 欄、平板 3 欄、桌機 4 欄、寬螢幕 6 欄
+//    3. 滿版鋪滿、⛔ 不留孤兒格：手機 2 欄 · 平板 3 欄 · 桌機 4 欄（⛔ 不再開到 6 欄）
+//       算式：星球／簽到／查價／業績 各跨兩欄（4×2＝8 格）＋ 八張單據各一格（8 格）
+//       ＝16 格，4 欄剛好 4 排整齊，⛔ 沒有半排孤兒。
+//       每排等高（auto-rows-fr）＋牆吃滿高度，畫面下半⛔ 不再空一大片
 //    4. ⭐ 小行星是第一張卡，⛔ 不是浮在牆外面的東西
 //       （執行長：「不然那顆小行星變得好突兀」——根因就是它沒有被編進版面）
 //
@@ -87,7 +90,7 @@ function TileShell({
   const skin = disabled
     ? 'cursor-not-allowed opacity-40'
     : 'hover:bg-white/[0.08] hover:ring-white/20';
-  const cls = `${base} ${skin} ${tile.wide ? 'sm:col-span-2' : ''}`;
+  const cls = `${base} ${skin} ${tile.wide ? 'xl:col-span-2' : ''}`;
 
   const body = (
     <>
@@ -160,11 +163,11 @@ export function V3Workbench() {
 
   return (
     // ⭐ 滿版：⛔ 不設 max-width，卡片牆吃滿整個工作區
-    <div className="h-full w-full px-3 py-3 sm:px-4 sm:py-4">
+    <div className="flex h-full w-full flex-col gap-2 px-3 py-3 sm:px-4 sm:py-4">
       <div
         ref={wallRef}
         onMouseMove={onWallMove}
-        className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6"
+        className="grid h-full auto-rows-fr grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4"
       >
         {/* ⭐ 第一張卡＝小行星（九宮格入口）。它被編進版面，就不再是浮在外面的異物 */}
         <button
@@ -173,7 +176,7 @@ export function V3Workbench() {
           onClick={() => menu?.openMenu()}
           title="功能選單（F2）"
           aria-label="功能選單"
-          className={`group flex min-h-[8.5rem] flex-col items-center justify-center gap-2 p-4 ${GLASS} hover:bg-white/[0.08] hover:ring-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary`}
+          className={`group flex min-h-[8.5rem] flex-col items-center justify-center gap-2 p-4 xl:col-span-2 ${GLASS} hover:bg-white/[0.08] hover:ring-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary`}
         >
           <Sheen />
           {/* 星球停泊點：本體是 root layout 那顆，飛過來停在這。

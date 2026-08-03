@@ -57,7 +57,11 @@ export type WorkbenchTile = {
   href?: string;
   /** doc 卡片的待處理筆數；⛔ 只算「現在要動手的」 */
   load?: () => Promise<number>;
-  /** 大格：搜尋要橫跨兩格才放得下輸入框 */
+  /**
+   * 桌機（xl 以上）橫跨兩欄。⭐ 這是把牆「排滿」的手段：
+   * 12 張卡在 4 欄下是 3 排，最後一排會缺兩格；讓四張卡各佔兩欄剛好補成 16 格＝4 排整。
+   * ⛔ 跨欄是固定設定，⛔ 不隨資料多寡變動——位置會跳就失去肌肉記憶。
+   */
   wide?: boolean;
 };
 
@@ -71,9 +75,9 @@ async function countBy<T extends { status: string }>(
 }
 
 export const WORKBENCH_TILES: WorkbenchTile[] = [
-  { key: 'checkin', icon: Fingerprint, label: '簽到', hint: '上班／下班打卡', kind: 'action' },
+  { key: 'checkin', icon: Fingerprint, label: '簽到', hint: '上班／下班打卡', kind: 'action', wide: true },
   { key: 'search', icon: Search, label: '查價查貨', hint: '料號／品名／車型', kind: 'search', wide: true },
-  { key: 'kpi', icon: Target, label: '業績目標', hint: '當月累計', kind: 'action' },
+  { key: 'kpi', icon: Target, label: '業績目標', hint: '當月累計', kind: 'action', wide: true },
 
   {
     key: 'so',
