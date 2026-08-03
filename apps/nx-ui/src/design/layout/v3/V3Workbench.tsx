@@ -1,26 +1,31 @@
 // apps/nx-ui/src/design/layout/v3/V3Workbench.tsx
 //
-// v3.0.0 工作檯（＝登入落點首頁）。階段 3。
-// 規格：docs/專案/介面規格/NEXORA-介面架構-v3.0.0.md v1.1 §3.3
+// v3.0.0 工作檯（＝登入落點首頁）。階段 3 建立；2026-08-03 改成執行長拍板的五區塊。
+// 規格：docs/專案/介面規格/NEXORA-介面架構-v3.0.0.md v1.2 §3.3
+//       docs/專案/介面規格/NEXORA-外殼規格-v3.0.0.md §3（殼 1）
 //
-// 舊的 WorkbenchHome 封存不刪——回退只要把 app/dashboard/page.tsx 換回一行 import。
+// ⭐ 2026-08-03 執行長重新定義：工作檯＝一天的形狀，從上往下就是一天的順序。
 //
-// 規格 §3.3 三條規則，每條都有理由：
-//   1. 搜尋框永遠聚焦 —— 客戶隨時來電詢價是常態，進系統就能直接打料號
-//   2. 只有三塊、數字要大 —— ⛔ 不放圖表，長輩看數字比看圓餅圖快
-//   3. 點數字直接進清單 —— 不必先選日期或條件
+//   打卡上班
+//   ─ 搜尋框（永遠聚焦）
+//   ─ 待處理單據（狀態軸：這張單走到哪了）　│　待處理清單（進度軸：這批活還剩多少）
+//   ─ 備忘錄
+//   ─ 業績目標（當月；多職務用頁籤切換）
+//   ─ 打卡下班 → 產出當日日報與當日評分
 //
-// 與舊首頁的差異（執行長 2026-08-01：不要看到舊設定）：
-//   ⛔ 拿掉「快捷動作」整區 —— 上面標著 F1 查庫存 / F2 報價，兩個鍵位在 v3.0.0 都改了
-//      （F1 永久還給瀏覽器、F2 是九宮格），留著等於教錯
-//   ⛔ 拿掉數字鍵 1/2/3 直達 —— 規格 §7.3：全系統的全域鍵只有 F2 一個，這是刻意的
-//   ⛔ 拿掉「模組入口」七顆 —— 導覽一律走九宮格，⛔ 不留第二套入口
-//   ⛔ 拿掉公告區 —— 規格 §3.3 明寫「只有三塊」；公告走九宮格 行政作業 → 公告管理
+// ⭐ 兩個軸不一樣，所以分兩塊：單據問「卡在哪」、清單問「還剩多久做完」。
+// ⭐ 有幾塊排幾塊：業務只會有單據那半、倉管只會有清單那半，單獨一塊時佔滿整行，
+//    ⛔ 不留空白格（版型⛔ 不得寫死五格）。
 //
-// ⚠️ 規格 §3.3 舉例的 8 個項目，系統目前只做得出 6 個。缺的兩個⛔不放空卡、不造假：
-//   · 生日回訪 —— 客戶主檔沒有生日欄位（只有員工檔有），要補欄位才做得出來
-//   · 待簽核   —— 全系統沒有簽核單據表，九宮格的「待簽核」也還是未建置
-//   兩項都是補做候選、已回報執行長。
+// ⚠️ 本輪＝執行長指示「先把殼畫好、功能一步步放入」，所以：
+//    · 打卡上／下班：後端已有 checkin / checkout 兩支 API，⛔ 本輪不接
+//      （未打卡就擋住工作的攔截設計會妨礙測試，等功能期再開）
+//    · 備忘錄：系統目前完全沒有這個東西，⛔ 只有殼
+//    · 業績目標：當月五項；每個職務一組的定義尚未拍板，⛔ 只有殼
+//      ⚠️ 多職務頁籤要等「職務」欄位送到前端才做得出來（目前 /auth/me 不回職務）
+//    · 「久未下單」拿掉——它沒有下一步動作，是名單不是待辦，歸報表（執行長 2026-08-03 分析）
+//
+// ⛔ 不放圖表、⛔ 不做自訂儀表板、⛔ 不用灰字、⛔ 禁動畫（規格 §6）。
 
 'use client';
 
@@ -33,7 +38,10 @@ import { openPartQuickSearch } from '@design/components/quick-search/GlobalPartQ
 import { tryNavigate } from '@design/hooks/useDirtyGuard';
 
 type Metric = {
+  /** 單別或作業名（例：銷貨單、撿貨） */
   label: string;
+  /** 狀態軸＝階段（待出貨）；進度軸＝單位（剩餘項數） */
+  stage: string;
   value: number | null;
   href: string;
   /** 非零時給邊框提示：warning=要注意、danger=已經出事 */
@@ -41,10 +49,10 @@ type Metric = {
 };
 
 /**
- * 一個數字。
- * ⛔ 不用灰字（規格 §6：老花看灰字最吃力）——標籤也走 foreground、只用字級與粗細分層。
+ * 一列。
+ * ⛔ 不用灰字（規格 §6：老花看灰字最吃力）——階段也走 foreground、只用字級與粗細分層。
  */
-function MetricTile({ m, onGo }: { m: Metric; onGo: (href: string, label: string) => void }) {
+function MetricRow({ m, onGo }: { m: Metric; onGo: (href: string, label: string) => void }) {
   const hot = (m.value ?? 0) > 0;
   const border =
     hot && m.alert === 'danger'
@@ -56,13 +64,14 @@ function MetricTile({ m, onGo }: { m: Metric; onGo: (href: string, label: string
   return (
     <button
       type="button"
-      onClick={() => onGo(m.href, m.label)}
+      onClick={() => onGo(m.href, `${m.label}｜${m.stage}`)}
       // ⛔ 無 transition：規格 §6 動畫全部關掉
       className={`flex items-baseline justify-between gap-3 rounded-lg border-2 bg-card px-4 py-3 text-left hover:bg-primary/[0.06] focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${border}`}
     >
-      <span className="nx-body font-medium">{m.label}</span>
-      {/* ⚠️ 原本 30px 不在 v3.css 收斂後的六種字級裡（14/15/17/20/22/26）——
-          自己選數字正是 v3.css 要消滅的行為。改掛 nx-num-xl（26px）。 */}
+      <span className="min-w-0">
+        <span className="nx-body block font-medium">{m.label}</span>
+        <span className="nx-hint block">{m.stage}</span>
+      </span>
       <span className="nx-num-xl leading-9">{m.value ?? '—'}</span>
     </button>
   );
@@ -70,26 +79,28 @@ function MetricTile({ m, onGo }: { m: Metric; onGo: (href: string, label: string
 
 function Block({
   title,
-  metrics,
+  children,
   note,
-  onGo,
 }: {
   title: string;
-  metrics: Metric[];
+  children: React.ReactNode;
   note?: string;
-  onGo: (href: string, label: string) => void;
 }) {
   return (
     <section className="flex flex-col gap-2">
-      {/* ⚠️ 原本 16px——v3.css 已把 16 併進 15（肉眼分不出、卻多一個決定）。
-          這是「段落標題」語意，掛 nx-t-sec（17px）。 */}
       <h2 className="nx-t-sec">{title}</h2>
-      {metrics.map((m) => (
-        <MetricTile key={m.label} m={m} onGo={onGo} />
-      ))}
-      {/* ⚠️ 原本 13px 直接違反 §6（最小級距 14）；/70 也不是 v3.css 定的 /75 */}
+      {children}
       {note ? <p className="nx-hint mt-1">{note}</p> : null}
     </section>
+  );
+}
+
+/** 還沒接功能的區塊：⛔ 不放假資料、⛔ 不留空白，直接說它還沒好 */
+function ShellNote({ text }: { text: string }) {
+  return (
+    <div className="rounded-lg border-2 border-dashed border-border px-4 py-6 text-center">
+      <p className="nx-body">{text}</p>
+    </div>
   );
 }
 
@@ -142,6 +153,12 @@ export function V3Workbench() {
 
   return (
     <div className="mx-auto w-full max-w-6xl px-6 py-5">
+      {/* 打卡條：一天的第一個動作。⚠️ 本輪只有殼，⛔ 還不會真的打卡 */}
+      <div className="mb-5 flex items-center justify-between gap-3 rounded-lg border-2 border-border bg-card px-4 py-3">
+        <span className="nx-body">尚未打卡上班</span>
+        <span className="nx-hint">打卡功能建置中</span>
+      </div>
+
       {/* 搜尋框：游標預設就在這 */}
       <div className="relative">
         <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-foreground" />
@@ -163,44 +180,58 @@ export function V3Workbench() {
         />
       </div>
 
-      <div className="mt-6 grid gap-6 md:grid-cols-3">
-        <Block
-          title="今天要處理"
-          onGo={go}
-          metrics={[
-            { label: '待出貨', value: n(s?.sales.toShipSo), href: '/dashboard/sale/so' },
-            { label: '待撿貨', value: n(s?.warehouse.pickingItems), href: '/dashboard/inventory/picking' },
-            { label: '待包貨', value: n(s?.warehouse.packingItems), href: '/dashboard/inventory/packing' },
-            { label: '待驗收', value: n(s?.warehouse.inspectingRr), href: '/dashboard/inventory/receiving' },
-            {
-              label: '缺貨卡住',
-              value: n(s?.sales.replenishingItems),
-              href: '/dashboard/sale/so',
-              alert: 'warning',
-            },
-          ]}
-        />
+      {/* 狀態軸與進度軸並排：一個問卡在哪、一個問還剩多久 */}
+      <div className="mt-6 grid gap-6 md:grid-cols-2">
+        <Block title="待處理單據">
+          <MetricRow m={{ label: '銷貨單', stage: '待出貨', value: n(s?.sales.toShipSo), href: '/dashboard/sale/so' }} onGo={go} />
+          <MetricRow
+            m={{ label: '銷貨單', stage: '缺貨卡住', value: n(s?.sales.replenishingItems), href: '/dashboard/sale/so', alert: 'warning' }}
+            onGo={go}
+          />
+          <MetricRow
+            m={{ label: '報價單', stage: '過期待追', value: n(s?.track.expiredQuotes), href: '/dashboard/sale/qt', alert: 'warning' }}
+            onGo={go}
+          />
+          <MetricRow m={{ label: '進貨單', stage: '待驗收', value: n(s?.warehouse.inspectingRr), href: '/dashboard/inventory/receiving' }} onGo={go} />
+          <MetricRow
+            m={{ label: '應收帳款', stage: '已逾期', value: n(s?.track.overdueAr), href: '/dashboard/finance/ar', alert: 'danger' }}
+            onGo={go}
+          />
+          <MetricRow
+            m={{ label: '應付帳款', stage: '7 日內到期', value: n(s?.track.apDueSoon), href: '/dashboard/finance/ap', alert: 'warning' }}
+            onGo={go}
+          />
+        </Block>
 
         <Block
-          title="要追蹤的"
-          onGo={go}
-          metrics={[
-            { label: '報價過期', value: n(s?.track.expiredQuotes), href: '/dashboard/sale/qt', alert: 'warning' },
-            { label: '久未下單', value: n(s?.track.dormantCustomers), href: '/dashboard/master/partners/customer' },
-            { label: '逾期應收', value: n(s?.track.overdueAr), href: '/dashboard/finance/ar', alert: 'danger' },
-            { label: '7 日內應付', value: n(s?.track.apDueSoon), href: '/dashboard/finance/ap', alert: 'warning' },
-          ]}
-          note="久未下單＝曾經下過單、但最近 90 天沒再下的客戶。"
-        />
+          title="待處理清單"
+          note="⚠️ 目前只給得出總項數。要顯示「這張撿貨單已撿 8／20 項」需要新的後端端點，功能期再接。"
+        >
+          <MetricRow m={{ label: '撿貨', stage: '待撿項數', value: n(s?.warehouse.pickingItems), href: '/dashboard/inventory/picking' }} onGo={go} />
+          <MetricRow m={{ label: '包貨', stage: '待包項數', value: n(s?.warehouse.packingItems), href: '/dashboard/inventory/packing' }} onGo={go} />
+          <MetricRow m={{ label: '異常回報', stage: '待處理', value: n(s?.mine.openIssues), href: '/dashboard/inventory/issue-report' }} onGo={go} />
+        </Block>
+      </div>
 
+      <div className="mt-6">
+        <Block title="備忘錄" note="誰交代了什麼事要處理，寫在這裡。">
+          <ShellNote text="備忘錄建置中——系統目前沒有這個功能。" />
+        </Block>
+      </div>
+
+      <div className="mt-6">
         <Block
-          title="我的待辦"
-          onGo={go}
-          metrics={[
-            { label: '異常回報', value: n(s?.mine.openIssues), href: '/dashboard/inventory/issue-report' },
-          ]}
-          note="⚠️ 待簽核尚未建置——系統目前沒有簽核單據。"
-        />
+          title="業績目標"
+          note="⚠️ 看的是當月累計。當日評分在下班打卡、產出日報時才出現。"
+        >
+          <ShellNote text="業績目標建置中——每個職務一組五項指標的定義尚未拍板。" />
+        </Block>
+      </div>
+
+      {/* 下班打卡放最後：下班＝當日結算＝產出日報，動作與結果放在一起 */}
+      <div className="mt-6 flex items-center justify-between gap-3 rounded-lg border-2 border-border bg-card px-4 py-3">
+        <span className="nx-body">打卡下班　·　產出當日日報與當日評分</span>
+        <span className="nx-hint">建置中</span>
       </div>
     </div>
   );
