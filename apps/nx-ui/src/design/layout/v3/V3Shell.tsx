@@ -32,7 +32,8 @@ import {
 } from '@design/layout/workbench/WorkbenchToolbarSlot';
 import { NineGrid } from '@design/navigation/NineGrid';
 
-import { V3TopBar } from './V3TopBar';
+// ⚠️ V3TopBar 2026-08-03 起不再掛上（執行長拍板拿掉常駐橫列）。
+//    檔案封存不刪——回退時把 import 與 <V3TopBar …/> 兩行加回來即可。
 
 /**
  * 九宮格開關鍵＝全系統唯一的全域鍵（規格 §7.3）。
@@ -67,8 +68,10 @@ function V3Chrome({ children }: Props) {
   return (
     // relative z-10：壓在全域 NxAppBackdrop（z-0）之上；bg-background 不透明蓋滿
     <div className="relative z-10 flex h-dvh flex-col bg-background text-foreground">
-      {/* 2026-08-03：右上三顆搬進九宮格，常駐橫列只剩 ☰ 與工作檯 */}
-      <V3TopBar onOpenMenu={() => setMenuOpen(true)} onGoHome={() => router.push('/dashboard')} />
+      {/* ⭐ 2026-08-03 執行長拍板：常駐橫列整條移除，畫面上⛔ 沒有任何常駐 chrome。
+          導覽全部走 F2 九宮格。V3TopBar.tsx 封存不刪——要回退只要把這裡加回一行。
+          ⚠️ 代價：純滑鼠使用者沒有入口（F2 是鍵盤鍵）。執行長已知，
+             風格討論時再決定要不要補一個不佔版面的滑鼠入口。 */}
 
       {/* 情境工具列插槽：頁面自帶的操作列投影至此；無工具列的頁面自動收合 */}
       <div ref={toolbarSlot?.setSlotEl} className={toolbarSlot?.count ? '' : 'hidden'} />
