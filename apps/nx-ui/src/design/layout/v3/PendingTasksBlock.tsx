@@ -23,6 +23,10 @@ import { DocListBlock, type DocTab } from './DocListBlock';
 
 const SCAN = 100;
 
+// ⭐ 這一塊四種單的狀態本來就全部是「自己人要動手」的，⛔ 沒有等外部的狀態，
+//    所以判定與「待處理單據」那邊不同——那邊要濾掉已出貨／已寄廠商，這裡不用。
+//    盤點在數、調撥在搬、撿貨在撿、異常在處置，每一個都是現在有人在做。
+
 /** 撿貨單狀態：P=待撿 / C=撿貨中 / F=已完成 / V=作廢（見 workstation api 檔頭） */
 const PK_STATUS_LABEL: Record<string, string> = {
   P: '待撿',
@@ -116,7 +120,7 @@ export function PendingTasksBlock({ onGo }: { onGo: (href: string, label: string
       tabs={TABS}
       onGo={onGo}
       middleLabel="對象"
-      note="⚠️ 撿貨單的客戶與「已撿 8／20 項」的進度，後端目前都給不出來，功能期再接。"
+      note="只列現在要動手的。⚠️ 撿貨單的客戶與「已撿 8／20 項」的進度，後端目前都給不出來。"
     />
   );
 }

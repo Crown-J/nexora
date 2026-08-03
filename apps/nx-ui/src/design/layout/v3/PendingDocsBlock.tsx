@@ -26,6 +26,30 @@ import { DocListBlock, type DocTab } from './DocListBlock';
 /** 掃描筆數。⚠️ 前端濾的權宜之計，見檔頭 */
 const SCAN = 100;
 
+/**
+ * ⭐ 「要動手的」判定（執行長 2026-08-03 拍板：只顯示我能處理的）。
+ *
+ * 判準只有一句：**這張單現在卡在自己人手上、而且動作現在就做得了。**
+ * ⛔ 等外部回應的一律不算——已出貨等客戶簽收、已寄廠商等交期、已開立等帳期到，
+ *    這些掛在這裡只會讓人對數字免疫，看久了連真的急件也一起忽略。
+ *
+ * ⚠️ 實測佐證：最新 100 張銷貨單裡 91 張是「已出貨」、只有 4 張撿貨中。
+ *    舊做法的「95」有 91 是業務動不了的，紅點寫 95 等於自我廢除。
+ *
+ * ⚠️ 現在是「有人要動手」，還不是「指派給我」——
+ *    要做到後者得先有職務欄位（/auth/me 目前不回職務），等那個到位再收窄。
+ */
+const ACTIONABLE = {
+  // 草稿要確認、已確認要撿貨；撿貨中是倉庫正在做、已出貨在等簽收，都⛔ 不算
+  so: ['DRAFT', 'CONFIRMED'],
+  // 草稿要寄出、過期要去追；已寄出是等客戶回覆，⛔ 不算卡住
+  qt: ['DRAFT', 'EXPIRED'],
+  // 草稿／待核准／已核准要往下推、部分到貨要繼續收；已寄廠商與廠商確認是等交期，⛔ 不算
+  po: ['DRAFT', 'PENDING_APPROVAL', 'APPROVED', 'PARTIAL_RECEIVED'],
+  // 兩個狀態都是自己人要動
+  rr: ['DRAFT', 'INSPECTING'],
+} as const;
+
 /** 狀態標籤太長時砍掉括號補述（例：已確認（自動調撥已觸發）→ 已確認） */
 function shortLabel(s: string): string {
   return s.replace(/（.*$/, '').trim();
@@ -38,7 +62,7 @@ const TABS: DocTab[] = [
     load: async () => {
       const r = await listSo({ page: 1, pageSize: SCAN });
       return (r.items ?? [])
-        .filter((x) => !['COMPLETED', 'CANCELLED'].includes(x.status))
+        .filter((x) => (ACTIONABLE.so as readonly string[]).includes(x.status))
         .map((x) => ({
           id: x.id,
           docNo: x.docNo,
@@ -53,9 +77,8 @@ const TABS: DocTab[] = [
     label: '報價單',
     load: async () => {
       const r = await listQuote({ page: 1, pageSize: SCAN });
-      // ⚠️ 過期也算待處理——業務要去追，⛔ 不是結案
       return (r.items ?? [])
-        .filter((x) => ['DRAFT', 'SENT', 'EXPIRED'].includes(x.status))
+        .filter((x) => (ACTIONABLE.qt as readonly string[]).includes(x.status))
         .map((x) => ({
           id: x.id,
           docNo: x.docNo,
@@ -71,7 +94,7 @@ const TABS: DocTab[] = [
     load: async () => {
       const r = await listPo({ page: 1, pageSize: SCAN });
       return (r.items ?? [])
-        .filter((x) => !['RECEIVED', 'CLOSED', 'CANCELLED'].includes(x.status))
+        .filter((x) => (ACTIONABLE.po as readonly string[]).includes(x.status))
         .map((x) => ({
           id: x.id,
           docNo: x.docNo,
@@ -87,7 +110,7 @@ const TABS: DocTab[] = [
     load: async () => {
       const r = await listRr({ page: 1, pageSize: SCAN });
       return (r.items ?? [])
-        .filter((x) => ['DRAFT', 'INSPECTING'].includes(x.status))
+        .filter((x) => (ACTIONABLE.rr as readonly string[]).includes(x.status))
         .map((x) => ({
           id: x.id,
           docNo: x.docNo,
@@ -100,5 +123,12 @@ const TABS: DocTab[] = [
 ];
 
 export function PendingDocsBlock({ onGo }: { onGo: (href: string, label: string) => void }) {
-  return <DocListBlock title="待處理單據" tabs={TABS} onGo={onGo} />;
+  return (
+    <DocListBlock
+      title="待處理單據"
+      tabs={TABS}
+      onGo={onGo}
+      note="只列現在要動手的。等客戶簽收、等廠商交期、等帳期的不在這裡——進單據管理看得到。"
+    />
+  );
 }
