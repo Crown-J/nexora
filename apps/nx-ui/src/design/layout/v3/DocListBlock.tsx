@@ -70,6 +70,14 @@ function SortHeader({
   );
 }
 
+/**
+ * 三欄寬度。⚠️ 2026-08-03 量到單號欄被截斷（需要 171px、只給 121px）——
+ * 單號是這張表的識別欄，⛔ 截斷等於整欄失效。改成固定 12rem 不參與壓縮。
+ */
+const COL_DOC = 'w-48 shrink-0';
+const COL_MID = 'min-w-0 flex-1';
+const COL_STATUS = 'w-24 shrink-0 text-right';
+
 export function DocListBlock({
   title,
   tabs,
@@ -115,7 +123,9 @@ export function DocListBlock({
     setSort((s) => (s.col === c ? { col: c, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { col: c, dir: 'asc' }));
 
   return (
-    <section className="flex min-w-0 flex-col gap-2">
+    // ⭐ min-h-0 是「表格吃滿剩餘高度」的關鍵：沒有它，flex 子項會被內容撐高、
+    //    整頁跟著長出捲軸，表格自己反而縮在固定高度裡（2026-08-03 量到的問題）
+    <section className="flex min-h-0 min-w-0 flex-col gap-2">
       <h2 className="nx-t-sec">{title}</h2>
 
       {/* 頁籤：單別分組。⚠️ 這是區塊內的頁籤，⛔ 不是 2026-08-01 拍板拿掉的那條全站分頁列 */}
@@ -129,8 +139,12 @@ export function DocListBlock({
               type="button"
               onClick={() => setActive(t.key)}
               className={[
-                'rounded-lg border-2 px-4 py-2 text-left',
-                on ? 'border-primary bg-primary/[0.08]' : 'border-border bg-card hover:bg-primary/[0.06]',
+                // ⚠️ 2026-08-03 收框：2px → 1px。粗框在黑底上每一顆都在喊，
+                //    改成細框＋主色底，讓「現在在哪一格」自己站出來
+                'rounded-lg border px-4 py-2 text-left',
+                on
+                  ? 'border-primary bg-primary/[0.12]'
+                  : 'border-border bg-card/60 hover:border-primary/60 hover:bg-primary/[0.06]',
               ].join(' ')}
             >
               <span className="nx-body font-medium">{t.label}</span>
@@ -140,16 +154,16 @@ export function DocListBlock({
         })}
       </div>
 
-      <div className="rounded-lg border-2 border-border bg-card">
+      <div className="flex min-h-0 flex-1 flex-col rounded-lg border border-border bg-card/80 backdrop-blur">
         {/* 表頭釘住：捲動時還看得到欄位與排序方向 */}
-        <div className="sticky top-0 z-10 flex items-center gap-3 rounded-t-md border-b border-border bg-card px-4 py-2">
-          <SortHeader label="單號" col="docNo" width="w-[34%]" sort={sort} onSort={onSort} />
-          <SortHeader label={middleLabel} col="partnerName" width="flex-1" sort={sort} onSort={onSort} />
-          <SortHeader label="狀態" col="statusLabel" width="w-[22%]" align="right" sort={sort} onSort={onSort} />
+        <div className="flex shrink-0 items-center gap-3 rounded-t-lg border-b border-border px-4 py-2">
+          <SortHeader label="單號" col="docNo" width={COL_DOC} sort={sort} onSort={onSort} />
+          <SortHeader label={middleLabel} col="partnerName" width={COL_MID} sort={sort} onSort={onSort} />
+          <SortHeader label="狀態" col="statusLabel" width={COL_STATUS} align="right" sort={sort} onSort={onSort} />
         </div>
 
-        {/* ⭐ 全部顯示、⛔ 不截斷；超過就在這個框裡捲 */}
-        <div className="max-h-[420px] overflow-y-auto">
+        {/* ⭐ 全部顯示、⛔ 不截斷；吃滿剩下的高度，超過就在這個框裡捲 */}
+        <div className="min-h-0 flex-1 overflow-y-auto">
           {list === null ? (
             <p className="nx-body px-4 py-6 text-center">載入中…</p>
           ) : list.length === 0 ? (
@@ -163,9 +177,9 @@ export function DocListBlock({
                 // ⛔ 無 transition：規格 §6 動畫全部關掉
                 className="flex w-full items-center gap-3 border-b border-border px-4 py-2.5 text-left last:border-b-0 hover:bg-primary/[0.06] focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
               >
-                <span className="nx-mono w-[34%] truncate">{r.docNo}</span>
-                <span className="nx-body flex-1 truncate">{r.partnerName}</span>
-                <span className="nx-body w-[22%] truncate text-right font-medium">{r.statusLabel}</span>
+                <span className={`nx-mono ${COL_DOC}`}>{r.docNo}</span>
+                <span className={`nx-body truncate ${COL_MID}`}>{r.partnerName}</span>
+                <span className={`nx-body truncate font-medium ${COL_STATUS}`}>{r.statusLabel}</span>
               </button>
             ))
           )}
