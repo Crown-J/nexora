@@ -31,6 +31,8 @@ import {
   useWorkbenchToolbarSlot,
 } from '@design/layout/workbench/WorkbenchToolbarSlot';
 import { NineGrid } from '@design/navigation/NineGrid';
+// ⭐ 鋼鐵星球的小行星本體（軌道動畫）。封存的 Dock 裡撈回來、⛔ 沒有重畫一顆
+import { PlanetOrbTrigger } from '@design/home/Dock';
 
 // ⚠️ V3TopBar 2026-08-03 起不再掛上（執行長拍板拿掉常駐橫列）。
 //    檔案封存不刪——回退時把 import 與 <V3TopBar …/> 兩行加回來即可。
@@ -66,17 +68,29 @@ function V3Chrome({ children }: Props) {
   }, []);
 
   return (
-    // relative z-10：壓在全域 NxAppBackdrop（z-0）之上；bg-background 不透明蓋滿
-    <div className="relative z-10 flex h-dvh flex-col bg-background text-foreground">
+    // ⭐ 2026-08-03：拿掉 bg-background，讓全域 NxAppBackdrop 的星空／極光透上來。
+    //    ⛔ 原本這裡是不透明底、把背景整片蓋掉，鋼鐵星球等於只剩配色。
+    <div className="relative z-10 flex h-dvh flex-col text-foreground">
       {/* ⭐ 2026-08-03 執行長拍板：常駐橫列整條移除，畫面上⛔ 沒有任何常駐 chrome。
-          導覽全部走 F2 九宮格。V3TopBar.tsx 封存不刪——要回退只要把這裡加回一行。
-          ⚠️ 代價：純滑鼠使用者沒有入口（F2 是鍵盤鍵）。執行長已知，
-             風格討論時再決定要不要補一個不佔版面的滑鼠入口。 */}
+          導覽全部走 F2 九宮格。V3TopBar.tsx 封存不刪——要回退只要把這裡加回一行。 */}
+
+      {/* ⭐ 小行星＝滑鼠使用者的九宮格入口（執行長 2026-08-03 指定固定左上角）。
+          鍵盤走 F2、滑鼠點這顆，兩條路同一個面板。
+          ⛔ 不做成一整條橫列——它只佔一顆按鈕的位置。 */}
+      <button
+        type="button"
+        onClick={() => setMenuOpen(true)}
+        title="功能選單（F2）"
+        aria-label="功能選單"
+        className="fixed left-3 top-3 z-[150] grid h-12 w-12 place-items-center rounded-full border border-primary/40 bg-card/70 backdrop-blur hover:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+      >
+        <PlanetOrbTrigger />
+      </button>
 
       {/* 情境工具列插槽：頁面自帶的操作列投影至此；無工具列的頁面自動收合 */}
       <div ref={toolbarSlot?.setSlotEl} className={toolbarSlot?.count ? '' : 'hidden'} />
 
-      <main className="flex min-h-0 flex-1 flex-col overflow-auto bg-background">
+      <main className="flex min-h-0 flex-1 flex-col overflow-auto">
         {children}
         <AutoPageGuide />
       </main>

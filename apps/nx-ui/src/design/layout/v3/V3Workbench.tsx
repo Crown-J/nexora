@@ -4,14 +4,16 @@
 // 規格：docs/專案/介面規格/NEXORA-介面架構-v3.0.0.md v1.2 §3.3
 //       docs/專案/介面規格/NEXORA-外殼規格-v3.0.0.md §3（殼 1）
 //
-// ⭐ 2026-08-03 執行長重新定義：工作檯＝一天的形狀，從上往下就是一天的順序。
+// ⭐ 2026-08-03 執行長定的五區塊，版面收成「積木拼圖」：
 //
-//   打卡上班
-//   ─ 搜尋框（永遠聚焦）
-//   ─ 待處理單據（狀態軸：這張單走到哪了）　│　待處理清單（進度軸：這批活還剩多少）
-//   ─ 備忘錄
-//   ─ 業績目標（當月；多職務用頁籤切換）
-//   ─ 打卡下班 → 產出當日日報與當日評分
+//   ┌────────┬──────────────────────────────────┐
+//   │ 出勤   │ 搜尋框（永遠聚焦）                 │
+//   │ 業績   ├────────────────┬─────────────────┤
+//   │ 備忘   │ 待處理單據      │ 待處理清單       │
+//   └────────┴────────────────┴─────────────────┘
+//
+// ⭐ 左欄窄積木＝一眼掃過就好的東西；右欄寬積木＝要動手處理的東西。
+//    左欄靠最左，與固定在左上角的小行星同一側，滑鼠不必跨螢幕。
 //
 // ⭐ 兩個軸不一樣，所以分兩塊：單據問「卡在哪」、清單問「還剩多久做完」。
 // ⭐ 有幾塊排幾塊：業務只會有單據那半、倉管只會有清單那半，單獨一塊時佔滿整行，
@@ -38,33 +40,6 @@ import { tryNavigate } from '@design/hooks/useDirtyGuard';
 
 import { PendingDocsBlock } from './PendingDocsBlock';
 import { PendingTasksBlock } from './PendingTasksBlock';
-
-function Block({
-  title,
-  children,
-  note,
-}: {
-  title: string;
-  children: React.ReactNode;
-  note?: string;
-}) {
-  return (
-    <section className="flex flex-col gap-2">
-      <h2 className="nx-t-sec">{title}</h2>
-      {children}
-      {note ? <p className="nx-hint mt-1">{note}</p> : null}
-    </section>
-  );
-}
-
-/** 還沒接功能的區塊：⛔ 不放假資料、⛔ 不留空白，直接說它還沒好 */
-function ShellNote({ text }: { text: string }) {
-  return (
-    <div className="rounded-lg border-2 border-dashed border-border px-4 py-6 text-center">
-      <p className="nx-body">{text}</p>
-    </div>
-  );
-}
 
 export function V3Workbench() {
   const router = useRouter();
@@ -103,59 +78,75 @@ export function V3Workbench() {
   }, [term]);
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-6 py-5">
-      {/* 打卡條：一天的第一個動作。⚠️ 本輪只有殼，⛔ 還不會真的打卡 */}
-      <div className="mb-5 flex items-center justify-between gap-3 rounded-lg border-2 border-border bg-card px-4 py-3">
-        <span className="nx-body">尚未打卡上班</span>
-        <span className="nx-hint">打卡功能建置中</span>
-      </div>
+    // ⭐ 積木拼圖（執行長 2026-08-03）：左欄是窄積木（打卡／業績／備忘），
+    //    右欄是寬積木（搜尋＋兩張清單）。左欄放的都是「一眼掃過就好」的東西，
+    //    右欄放的是「要動手處理」的東西。
+    //    ⛔ 左欄留在最左邊，讓小行星（固定左上角）與它同一側，滑鼠不用跨螢幕。
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-6 py-5 pl-20 lg:flex-row">
+      {/* ── 左欄：窄積木 ── */}
+      <aside className="flex w-full shrink-0 flex-col gap-5 lg:w-64">
+        {/* 打卡：一天的第一個與最後一個動作，兩顆放一起。⚠️ 本輪只有殼 */}
+        <section className="rounded-lg border border-border bg-card/80 p-4 backdrop-blur">
+          <h2 className="nx-t-sec">出勤</h2>
+          <p className="nx-hint mt-1">尚未打卡上班</p>
+          <div className="mt-3 flex flex-col gap-2">
+            <span className="rounded-md border border-primary/50 px-3 py-2 text-center text-base">
+              打卡上班
+            </span>
+            <span className="rounded-md border border-border px-3 py-2 text-center text-base">
+              打卡下班
+            </span>
+          </div>
+          {/* 下班＝當日結算＝產出日報，講清楚它不只是記出勤 */}
+          <p className="nx-hint mt-3">下班打卡會產出當日日報與當日評分。功能建置中。</p>
+        </section>
 
-      {/* 搜尋框：游標預設就在這 */}
-      <div className="relative">
-        <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-foreground" />
-        <input
-          ref={searchRef}
-          value={term}
-          onChange={(e) => setTerm(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              submit();
-            }
-          }}
-          placeholder="料號／品名／車型"
-          aria-label="查價查貨"
-          // 一段的主要輸入框＝整頁最大的目標。⚠️ 這裡刻意留 border-2 與 bg-card：
-          // 搜尋框永遠是聚焦狀態，⛔ 不該套 nx-field-lg 的「未輸入退成灰底」
-          className="nx-field-lg h-14 border-2 bg-card pl-12"
-        />
-      </div>
+        <section className="rounded-lg border border-border bg-card/80 p-4 backdrop-blur">
+          <h2 className="nx-t-sec">業績目標</h2>
+          <p className="nx-hint mt-1">當月累計</p>
+          <div className="mt-3 rounded-md border border-dashed border-border px-3 py-6 text-center">
+            <p className="nx-body">建置中</p>
+          </div>
+          <p className="nx-hint mt-3">每個職務一組五項指標，定義尚未拍板。</p>
+        </section>
 
-      {/* 狀態軸與進度軸並排：一個問卡在哪、一個問還剩多久 */}
-      <div className="mt-6 grid gap-6 md:grid-cols-2">
-        <PendingDocsBlock onGo={go} />
-        <PendingTasksBlock onGo={go} />
-      </div>
+        <section className="rounded-lg border border-border bg-card/80 p-4 backdrop-blur">
+          <h2 className="nx-t-sec">備忘錄</h2>
+          <p className="nx-hint mt-1">誰交代了什麼事要處理</p>
+          <div className="mt-3 rounded-md border border-dashed border-border px-3 py-6 text-center">
+            <p className="nx-body">建置中</p>
+          </div>
+        </section>
+      </aside>
 
-      <div className="mt-6">
-        <Block title="備忘錄" note="誰交代了什麼事要處理，寫在這裡。">
-          <ShellNote text="備忘錄建置中——系統目前沒有這個功能。" />
-        </Block>
-      </div>
+      {/* ── 右欄：寬積木 ── */}
+      <div className="flex min-w-0 flex-1 flex-col gap-6">
+        {/* 搜尋框：游標預設就在這 */}
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-foreground" />
+          <input
+            ref={searchRef}
+            value={term}
+            onChange={(e) => setTerm(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                submit();
+              }
+            }}
+            placeholder="料號／品名／車型"
+            aria-label="查價查貨"
+            // 一段的主要輸入框＝整頁最大的目標。⚠️ 這裡刻意留 border-2 與 bg-card：
+            // 搜尋框永遠是聚焦狀態，⛔ 不該套 nx-field-lg 的「未輸入退成灰底」
+            className="nx-field-lg h-14 border-2 bg-card pl-12"
+          />
+        </div>
 
-      <div className="mt-6">
-        <Block
-          title="業績目標"
-          note="⚠️ 看的是當月累計。當日評分在下班打卡、產出日報時才出現。"
-        >
-          <ShellNote text="業績目標建置中——每個職務一組五項指標的定義尚未拍板。" />
-        </Block>
-      </div>
-
-      {/* 下班打卡放最後：下班＝當日結算＝產出日報，動作與結果放在一起 */}
-      <div className="mt-6 flex items-center justify-between gap-3 rounded-lg border-2 border-border bg-card px-4 py-3">
-        <span className="nx-body">打卡下班　·　產出當日日報與當日評分</span>
-        <span className="nx-hint">建置中</span>
+        {/* 狀態軸與進度軸並排：一個問卡在哪、一個問還剩多久 */}
+        <div className="grid gap-6 xl:grid-cols-2">
+          <PendingDocsBlock onGo={go} />
+          <PendingTasksBlock onGo={go} />
+        </div>
       </div>
     </div>
   );
