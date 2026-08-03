@@ -33,51 +33,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search } from 'lucide-react';
 
-import { getHomeSummary, type HomeSummary } from '@data/endpoints/nx08/api';
 import { openPartQuickSearch } from '@design/components/quick-search/GlobalPartQuickSearch';
 import { tryNavigate } from '@design/hooks/useDirtyGuard';
 
 import { PendingDocsBlock } from './PendingDocsBlock';
-
-type Metric = {
-  /** 單別或作業名（例：銷貨單、撿貨） */
-  label: string;
-  /** 狀態軸＝階段（待出貨）；進度軸＝單位（剩餘項數） */
-  stage: string;
-  value: number | null;
-  href: string;
-  /** 非零時給邊框提示：warning=要注意、danger=已經出事 */
-  alert?: 'warning' | 'danger';
-};
-
-/**
- * 一列。
- * ⛔ 不用灰字（規格 §6：老花看灰字最吃力）——階段也走 foreground、只用字級與粗細分層。
- */
-function MetricRow({ m, onGo }: { m: Metric; onGo: (href: string, label: string) => void }) {
-  const hot = (m.value ?? 0) > 0;
-  const border =
-    hot && m.alert === 'danger'
-      ? 'border-red-500'
-      : hot && m.alert === 'warning'
-        ? 'border-amber-500'
-        : 'border-border';
-
-  return (
-    <button
-      type="button"
-      onClick={() => onGo(m.href, `${m.label}｜${m.stage}`)}
-      // ⛔ 無 transition：規格 §6 動畫全部關掉
-      className={`flex items-baseline justify-between gap-3 rounded-lg border-2 bg-card px-4 py-3 text-left hover:bg-primary/[0.06] focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${border}`}
-    >
-      <span className="min-w-0">
-        <span className="nx-body block font-medium">{m.label}</span>
-        <span className="nx-hint block">{m.stage}</span>
-      </span>
-      <span className="nx-num-xl leading-9">{m.value ?? '—'}</span>
-    </button>
-  );
-}
+import { PendingTasksBlock } from './PendingTasksBlock';
 
 function Block({
   title,
@@ -108,19 +68,12 @@ function ShellNote({ text }: { text: string }) {
 
 export function V3Workbench() {
   const router = useRouter();
-  const [summary, setSummary] = useState<HomeSummary | null>(null);
   const [term, setTerm] = useState('');
   const searchRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    let alive = true;
-    getHomeSummary()
-      .then((s) => alive && setSummary(s))
-      .catch(() => alive && setSummary(null));
-    return () => {
-      alive = false;
-    };
-  }, []);
+  // ⚠️ 原本在這裡打 getHomeSummary 拿一整包統計數字。
+  //    改成單據／清單兩塊各自去撈自己的單之後，那包數字沒有人用了，整段移除
+  //    ——首頁少一次 API 呼叫。⛔ 端點本身沒刪，別的地方還在用。
 
   // 規則 1：搜尋框永遠聚焦。
   // ⚠️ 不只是開頁聚焦——設計約束表寫「雙螢幕切走再切回要能立刻定位」，
@@ -148,10 +101,6 @@ export function V3Workbench() {
     if (!kw) return;
     openPartQuickSearch({ entry: 'sales', initialKeyword: kw });
   }, [term]);
-
-  const s = summary;
-  /** 資料還沒回來顯示「—」而不是 0——0 是「真的沒有」、不該跟「還不知道」長一樣 */
-  const n = (v: number | undefined) => (s ? (v ?? 0) : null);
 
   return (
     <div className="mx-auto w-full max-w-6xl px-6 py-5">
@@ -185,15 +134,7 @@ export function V3Workbench() {
       {/* 狀態軸與進度軸並排：一個問卡在哪、一個問還剩多久 */}
       <div className="mt-6 grid gap-6 md:grid-cols-2">
         <PendingDocsBlock onGo={go} />
-
-        <Block
-          title="待處理清單"
-          note="⚠️ 目前只給得出總項數。要顯示「這張撿貨單已撿 8／20 項」需要新的後端端點，功能期再接。"
-        >
-          <MetricRow m={{ label: '撿貨', stage: '待撿項數', value: n(s?.warehouse.pickingItems), href: '/dashboard/inventory/picking' }} onGo={go} />
-          <MetricRow m={{ label: '包貨', stage: '待包項數', value: n(s?.warehouse.packingItems), href: '/dashboard/inventory/packing' }} onGo={go} />
-          <MetricRow m={{ label: '異常回報', stage: '待處理', value: n(s?.mine.openIssues), href: '/dashboard/inventory/issue-report' }} onGo={go} />
-        </Block>
+        <PendingTasksBlock onGo={go} />
       </div>
 
       <div className="mt-6">
