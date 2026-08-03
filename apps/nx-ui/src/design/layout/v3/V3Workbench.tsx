@@ -37,6 +37,8 @@ import { getHomeSummary, type HomeSummary } from '@data/endpoints/nx08/api';
 import { openPartQuickSearch } from '@design/components/quick-search/GlobalPartQuickSearch';
 import { tryNavigate } from '@design/hooks/useDirtyGuard';
 
+import { PendingDocsBlock } from './PendingDocsBlock';
+
 type Metric = {
   /** 單別或作業名（例：銷貨單、撿貨） */
   label: string;
@@ -182,26 +184,7 @@ export function V3Workbench() {
 
       {/* 狀態軸與進度軸並排：一個問卡在哪、一個問還剩多久 */}
       <div className="mt-6 grid gap-6 md:grid-cols-2">
-        <Block title="待處理單據">
-          <MetricRow m={{ label: '銷貨單', stage: '待出貨', value: n(s?.sales.toShipSo), href: '/dashboard/sale/so' }} onGo={go} />
-          <MetricRow
-            m={{ label: '銷貨單', stage: '缺貨卡住', value: n(s?.sales.replenishingItems), href: '/dashboard/sale/so', alert: 'warning' }}
-            onGo={go}
-          />
-          <MetricRow
-            m={{ label: '報價單', stage: '過期待追', value: n(s?.track.expiredQuotes), href: '/dashboard/sale/qt', alert: 'warning' }}
-            onGo={go}
-          />
-          <MetricRow m={{ label: '進貨單', stage: '待驗收', value: n(s?.warehouse.inspectingRr), href: '/dashboard/inventory/receiving' }} onGo={go} />
-          <MetricRow
-            m={{ label: '應收帳款', stage: '已逾期', value: n(s?.track.overdueAr), href: '/dashboard/finance/ar', alert: 'danger' }}
-            onGo={go}
-          />
-          <MetricRow
-            m={{ label: '應付帳款', stage: '7 日內到期', value: n(s?.track.apDueSoon), href: '/dashboard/finance/ap', alert: 'warning' }}
-            onGo={go}
-          />
-        </Block>
+        <PendingDocsBlock onGo={go} />
 
         <Block
           title="待處理清單"
