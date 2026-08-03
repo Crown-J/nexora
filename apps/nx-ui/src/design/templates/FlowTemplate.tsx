@@ -85,6 +85,8 @@ export function FlowTemplate({
   apiRef,
 }: FlowTemplateProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  /** 手機頂部橫軌：段位一變就把該格捲進視線，⛔ 不然第 4、5 段在畫面外看不到自己在哪 */
+  const railRef = useRef<HTMLElement>(null);
   const [active, setActive] = useState(0);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -344,6 +346,17 @@ export function FlowTemplate({
     return () => root.removeEventListener('focusin', onFocusIn);
   }, []);
 
+  /**
+   * 手機橫軌：目前這一段捲進視線。
+   * ⚠️ 只捲橫軸（inline），⛔ block:'nearest' 不能省——省了瀏覽器會連整頁一起上下捲，
+   *    把使用者正在看的內容拉走。
+   */
+  useEffect(() => {
+    railRef.current
+      ?.querySelector<HTMLElement>(`[data-step="${active}"]`)
+      ?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }, [active]);
+
   function submit() {
     const bad = sections.findIndex((s) => s.blocked);
     if (bad >= 0) {
@@ -357,47 +370,43 @@ export function FlowTemplate({
   }
 
   return (
-    <div className="flex h-full min-h-0">
-      {/* ───── 左側流程軌：常駐、捲到哪一區就亮哪一格（形狀沿用舊浮層工作站）───── */}
+    // ⭐ 手機直排（軌在上）、lg 以上橫排（軌在左）。執行長 2026-08-03 拍板：
+    //    「手機上那條軌改成橫的一條放最上面」——⛔ 不藏起來（規格 §6：不做只有滑過才看得到的東西），
+    //    也⛔ 不改成純圖示（長輩看圖示不如看字）。
+    <div className="flex h-full min-h-0 flex-col lg:flex-row">
+      {/*
+        ───── 手機流程軌：頂部一條、橫向可捲 ─────
+        ⚠️ 只佔一列高：手機垂直像素最貴，⛔ 不把標題與鍵位提示也搬上來
+           （Alt 跳段在手機上本來就按不出來，那段提示留給桌機）。
+      */}
+      <nav
+        ref={railRef}
+        aria-label="流程"
+        className="flex shrink-0 gap-2 overflow-x-auto border-b border-border bg-card px-3 py-2 lg:hidden"
+      >
+        {sections.map((s, i) => (
+          <StepButton
+            key={s.key}
+            index={i}
+            section={s}
+            active={i === active}
+            onGo={goTo}
+            horizontal
+          />
+        ))}
+      </nav>
+
+      {/* ───── 桌機左側流程軌：常駐、捲到哪一區就亮哪一格（形狀沿用舊浮層工作站）───── */}
       <nav
         aria-label="流程"
-        className="flex w-[200px] shrink-0 flex-col border-r border-border bg-card"
+        className="hidden w-[200px] shrink-0 flex-col border-r border-border bg-card lg:flex"
       >
         <div className="nx-t-sec border-b border-border px-4 py-3">{title}</div>
 
         <ol className="min-h-0 flex-1 overflow-auto p-2">
           {sections.map((s, i) => (
             <li key={s.key}>
-              <button
-                type="button"
-                onClick={() => goTo(i)}
-                aria-current={i === active ? 'step' : undefined}
-                // ⛔ 無 transition（規格 §6 動畫全關）
-                className={[
-                  'mb-1 flex w-full items-center gap-2.5 rounded-md px-2.5 py-2.5 text-left text-[15px]',
-                  i === active
-                    ? 'border-2 border-primary bg-primary/10 font-bold text-foreground'
-                    : 'border-2 border-transparent text-foreground hover:bg-foreground/[0.05]',
-                ].join(' ')}
-              >
-                {/* 圈號＝階段序號，⛔ 不用打勾/驚嘆號當主標記——序號才是使用者記得的東西 */}
-                <span
-                  className={[
-                    'grid h-7 w-7 shrink-0 place-items-center rounded-full text-[15px] font-bold tabular-nums',
-                    i === active
-                      ? 'bg-primary text-primary-foreground'
-                      : 'border-2 border-border text-foreground',
-                  ].join(' ')}
-                >
-                  {i + 1}
-                </span>
-                <span className="min-w-0 flex-1">{s.label}</span>
-                {s.blocked ? (
-                  <AlertCircle className="h-4 w-4 shrink-0 text-amber-500" aria-label="尚未完成" />
-                ) : (
-                  <Check className="h-4 w-4 shrink-0 text-foreground/40" aria-hidden="true" />
-                )}
-              </button>
+              <StepButton index={i} section={s} active={i === active} onGo={goTo} />
             </li>
           ))}
         </ol>
@@ -409,7 +418,7 @@ export function FlowTemplate({
         </div>
       </nav>
 
-      {/* ───── 右側內容：一頁到底，每段一張佔滿畫面的卡片 ───── */}
+      {/* ───── 內容：一頁到底，每段一張佔滿畫面的卡片 ───── */}
       <div className="flex min-w-0 flex-1 flex-col bg-background">
         {submitError ? (
           <div className="border-b-2 border-red-500 bg-red-500/10 px-4 py-2.5 text-[15px] font-medium text-foreground">
@@ -449,7 +458,7 @@ export function FlowTemplate({
           ))}
         </div>
 
-        {/* 送出列固定在底部——⛔ 不要讓使用者為了按送出還要捲到最下面 */}
+        {/* 送出列固定在底部——⛔ 不要讓使用者為了按送出還要捲到最下面（手機也一樣） */}
         <div className="flex items-center gap-2 border-t border-border bg-card px-4 py-2.5">
           <button type="button" onClick={onCancel} className="nx-btn">
             取消
@@ -460,5 +469,59 @@ export function FlowTemplate({
         </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * 流程軌的一格。桌機直排（左欄）與手機橫排（頂列）共用同一顆，
+ * ⛔ 不做成兩套——兩套一定會 drift，而且序號與段名是肌肉記憶，桌機手機必須一模一樣。
+ *
+ * ⚠️ 差別只有兩點：橫排不撐滿寬度（whitespace-nowrap 讓它照文字長度排、超出就橫向捲），
+ *    而且橫排⛔ 不顯示完成／未完成的小圖示——手機一列就那麼高，塞圖示會擠掉段名。
+ */
+function StepButton({
+  index,
+  section,
+  active,
+  onGo,
+  horizontal,
+}: {
+  index: number;
+  section: FlowSection;
+  active: boolean;
+  onGo: (i: number) => void;
+  horizontal?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      data-step={index}
+      onClick={() => onGo(index)}
+      aria-current={active ? 'step' : undefined}
+      // ⛔ 無 transition（規格 §6 動畫全關）
+      className={[
+        'flex items-center gap-2.5 rounded-md px-2.5 py-2.5 text-left text-[15px]',
+        horizontal ? 'shrink-0 whitespace-nowrap' : 'mb-1 w-full',
+        active
+          ? 'border-2 border-primary bg-primary/10 font-bold text-foreground'
+          : 'border-2 border-transparent text-foreground hover:bg-foreground/[0.05]',
+      ].join(' ')}
+    >
+      {/* 圈號＝階段序號，⛔ 不用打勾/驚嘆號當主標記——序號才是使用者記得的東西 */}
+      <span
+        className={[
+          'grid h-7 w-7 shrink-0 place-items-center rounded-full text-[15px] font-bold tabular-nums',
+          active ? 'bg-primary text-primary-foreground' : 'border-2 border-border text-foreground',
+        ].join(' ')}
+      >
+        {index + 1}
+      </span>
+      <span className={horizontal ? undefined : 'min-w-0 flex-1'}>{section.label}</span>
+      {horizontal ? null : section.blocked ? (
+        <AlertCircle className="h-4 w-4 shrink-0 text-amber-500" aria-label="尚未完成" />
+      ) : (
+        <Check className="h-4 w-4 shrink-0 text-foreground/40" aria-hidden="true" />
+      )}
+    </button>
   );
 }
