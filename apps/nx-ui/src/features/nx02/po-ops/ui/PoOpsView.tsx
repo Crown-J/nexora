@@ -69,6 +69,21 @@ const PURCHASE_TYPES: { v: 'D' | 'I' | 'B'; label: string; hint: string }[] = [
 
 const today = () => new Date().toISOString().slice(0, 10);
 
+/** 要寄給廠商的內容帶哪些欄位。⚠️ 單價預設⛔ 不帶——掃貨談一批時亮我方價格＝先亮底牌 */
+type MsgOptKey = 'unitCost' | 'expectedDate' | 'lineRemark' | 'docRemark';
+const MSG_OPT_DEFS: { key: MsgOptKey; label: string }[] = [
+  { key: 'unitCost', label: '帶我方單價（⚠️ 等於先亮底牌）' },
+  { key: 'expectedDate', label: '帶希望到貨日' },
+  { key: 'lineRemark', label: '帶每一行的備註' },
+  { key: 'docRemark', label: '帶整張單的備註' },
+];
+const DEFAULT_MSG_OPTS: Record<MsgOptKey, boolean> = {
+  unitCost: false,
+  expectedDate: true,
+  lineRemark: true,
+  docRemark: true,
+};
+
 export function PoOpsView() {
   const router = useRouter();
 
@@ -90,6 +105,13 @@ export function PoOpsView() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   /** 送審成功後留在畫面上，⛔ 不自動跳走——使用者要看得到單號 */
   const [created, setCreated] = useState<{ id: string; docNo: string } | null>(null);
+
+  // ── 第 4 段：訊息 ──
+  const [msgOpts, setMsgOpts] = useState(DEFAULT_MSG_OPTS);
+
+  // ── 第 5 段：確認（廠商回覆）──
+  /** 用字串存：使用者打到一半的「12.」不能被 Number 吃掉變成 12 */
+  const [reply, setReply] = useState<Record<string, { unitCost: string; expectedDate: string }>>({});
 
   const flowApi = useRef<FlowApi | null>(null);
   const supplierRef = useRef<HTMLInputElement>(null);
@@ -156,6 +178,63 @@ export function PoOpsView() {
 
   /** 沒填單價的行：擋送審。⚠️ 0 元進採購單＝之後對不了帳，也核不了 */
   const zeroPriced = useMemo(() => lines.filter((l) => !(l.unitCost > 0)), [lines]);
+
+  /** 要寄給廠商的內容。⛔ 純前端組字串，不打任何 API */
+  const messageText = useMemo(() => {
+    if (!supplier || !lines.length) return '選好供應商、加完品項之後，這裡會出現要寄給廠商的內容。';
+    const head = [
+      `${supplier.name} 您好，`,
+      '',
+      `我們要訂購以下品項（${PURCHASE_TYPE_LABEL[purchaseType]}）：`,
+      '',
+    ];
+    const body = lines.map((l, i) => {
+      const bits = [`${i + 1}. ${l.partNo}　${l.partName}　${nf.format(l.qty)} 個`];
+      if (msgOpts.unitCost) bits.push(`單價 ${money(l.unitCost)}`);
+      if (msgOpts.expectedDate && l.expectedDate) bits.push(`希望 ${l.expectedDate} 到`);
+      if (msgOpts.lineRemark && l.remark.trim()) bits.push(`（${l.remark.trim()}）`);
+      return bits.join('　');
+    });
+    const tail = ['', '請回覆價格與可交期，謝謝。'];
+    if (msgOpts.docRemark && remark.trim()) tail.unshift('', `備註：${remark.trim()}`);
+    return [...head, ...body, ...tail].join('\n');
+  }, [supplier, lines, purchaseType, msgOpts, remark]);
+
+  const patchReply = useCallback(
+    (partId: string, patch: Partial<{ unitCost: string; expectedDate: string }>) => {
+      setReply((prev) => {
+        const cur = prev[partId] ?? { unitCost: '', expectedDate: '' };
+        return { ...prev, [partId]: { ...cur, ...patch } };
+      });
+    },
+    [],
+  );
+
+  /** 只列「廠商真的回了價、而且跟我們送出的不一樣」的行——⛔ 沒差的不佔版面 */
+  const diffRows = useMemo(
+    () =>
+      lines
+        .map((l) => {
+          const raw = reply[l.partId]?.unitCost;
+          if (raw == null || raw.trim() === '') return null;
+          const theirs = Number(raw);
+          if (!Number.isFinite(theirs) || theirs === l.unitCost) return null;
+          return { partId: l.partId, partNo: l.partNo, ours: l.unitCost, theirs, delta: theirs - l.unitCost };
+        })
+        .filter((d): d is NonNullable<typeof d> => d !== null),
+    [lines, reply],
+  );
+
+  /** 廠商回的總額：有回的用回的、沒回的沿用我們送出的 */
+  const repliedSubtotal = useMemo(
+    () =>
+      lines.reduce((s, l) => {
+        const raw = reply[l.partId]?.unitCost;
+        const theirs = raw != null && raw.trim() !== '' ? Number(raw) : NaN;
+        return s + l.qty * (Number.isFinite(theirs) ? theirs : l.unitCost);
+      }, 0),
+    [lines, reply],
+  );
 
   async function submitForApproval() {
     setSubmitError(null);
@@ -646,38 +725,185 @@ export function PoOpsView() {
       ),
     },
 
-    // ⚠️ 第 4、5 段要有「已核准的單」才做得了事，所以在新建流程裡只說明下一步該怎麼走。
-    //    ⛔ 這不是佔位空殼——這兩段本來就不屬於「建單當下」，它們是幾天後回來接著走的。
-    //    實作見下一個 commit（帶單號進本頁 → 直接落在該走的那一段）。
+    // ⚠️ 第 4、5 段在時間上發生於「主管核准之後」與「廠商回覆之後」，
+    //    ⛔ 不是建單當下做得完的。本輪先把版面畫出來（執行長 2026-08-03：「這階段只是畫殼」），
+    //    真正的送出與寫回下一輪接。
     {
       key: 'message',
       label: '訊息',
-      blocked: '要等主管核准',
       content: (
-        <div className="nx-card">
-          <h3 className="nx-t-sub">把單子寄給廠商</h3>
-          <p className="nx-body mt-3">
-            這一段是主管核准之後才做的：匯出 Excel 寄給廠商，或直接開信件。
-          </p>
-          <p className="nx-hint mt-3">
-            ⚠️ 還沒接。核准後從採購單清單點進那張單，會回到這一頁的這一段。
-          </p>
-        </div>
+        <FlowPanes
+          mainTitle="要寄給廠商的內容"
+          mainNote={created ? `單號 ${created.docNo}` : '送審核准後才寄得出去'}
+          main={
+            <div className="flex h-full flex-col">
+              <textarea
+                readOnly
+                value={messageText}
+                aria-label="要寄給廠商的訂購內容"
+                className="min-h-0 w-full flex-1 rounded-lg border border-border bg-muted p-3 text-[15px] leading-relaxed text-foreground"
+              />
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => void navigator.clipboard.writeText(messageText)}
+                  className="nx-btn font-medium"
+                >
+                  複製內容
+                </button>
+                {/* ⚠️ 匯出與寄信下一輪接：兩者都要先決定檔案格式與信件範本，⛔ 不在畫殼這一輪拍板 */}
+                <button type="button" disabled className="nx-btn">
+                  匯出 Excel
+                </button>
+                <button type="button" disabled className="nx-btn">
+                  開信件寄出
+                </button>
+              </div>
+              <p className="nx-hint mt-2">
+                ⚠️ 匯出與寄信還沒接，先用「複製內容」貼到你自己的信裡。
+              </p>
+            </div>
+          }
+          sideTitle="要帶哪些東西"
+          sideNote="會記住"
+          side={
+            <div className="h-full overflow-auto">
+              <div className="space-y-2">
+                {MSG_OPT_DEFS.map((d) => (
+                  <label
+                    key={d.key}
+                    className={[
+                      'flex cursor-pointer items-start gap-3 rounded-lg border-2 px-3 py-2.5',
+                      msgOpts[d.key]
+                        ? 'border-primary bg-primary/[0.07]'
+                        : 'border-border hover:bg-foreground/[0.04]',
+                    ].join(' ')}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={msgOpts[d.key]}
+                      onChange={(e) => setMsgOpts((p) => ({ ...p, [d.key]: e.target.checked }))}
+                      className="mt-1 h-4 w-4 shrink-0 accent-[var(--primary)]"
+                    />
+                    <span className="nx-body">{d.label}</span>
+                  </label>
+                ))}
+              </div>
+              <p className="nx-hint mt-3">
+                ⚠️ 單價要不要給廠商看是有差的——⛔ 掃貨那種一次談一批的，把我方單價寫進去等於先亮底牌。
+              </p>
+            </div>
+          }
+        />
       ),
     },
 
     {
       key: 'confirm',
       label: '確認',
-      blocked: '要等廠商回覆',
       content: (
-        <div className="nx-card">
-          <h3 className="nx-t-sub">廠商回覆之後填在這裡</h3>
-          <p className="nx-body mt-3">
-            廠商回了價格與交期，在這一段輸入。存進去之後這張單就算廠商確認、系統會產生應付帳款。
-          </p>
-          <p className="nx-hint mt-3">⚠️ 還沒接。</p>
-        </div>
+        <FlowPanes
+          mainTitle="廠商回了什麼"
+          mainNote={`共 ${lines.length} 筆　·　沒回的留白`}
+          main={
+            <div className="flex h-full flex-col overflow-auto">
+              {lines.length === 0 ? (
+                <div className="nx-hint">還沒有品項。</div>
+              ) : (
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr>
+                      <th className="nx-th text-left">料號</th>
+                      <th className="nx-th text-right">回覆單價</th>
+                      <th className="nx-th text-left">回覆交期</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {lines.map((l) => {
+                      const r = reply[l.partId];
+                      return (
+                        <tr key={l.partId}>
+                          <td className="nx-td">
+                            <span className="nx-mono">{l.partNo}</span>
+                            <div className="nx-hint truncate">{l.partName}</div>
+                          </td>
+                          <td className="nx-td">
+                            <input
+                              value={r?.unitCost ?? ''}
+                              onChange={(e) => patchReply(l.partId, { unitCost: e.target.value })}
+                              inputMode="decimal"
+                              placeholder={String(l.unitCost)}
+                              aria-label={`${l.partNo} 廠商回覆單價`}
+                              className="nx-field text-right tabular-nums"
+                            />
+                          </td>
+                          <td className="nx-td">
+                            <input
+                              type="date"
+                              value={r?.expectedDate ?? ''}
+                              onChange={(e) =>
+                                patchReply(l.partId, { expectedDate: e.target.value })
+                              }
+                              aria-label={`${l.partNo} 廠商回覆交期`}
+                              className="nx-field"
+                            />
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
+
+              <button type="button" disabled className="nx-btn-primary mt-6 self-start">
+                存成廠商確認
+              </button>
+              <p className="nx-hint mt-2">
+                ⚠️ 還沒接。存進去之後這張單會變成「廠商確認」，⭐ 系統會在那一刻產生應付帳款
+                （先款後貨）——所以這一顆⛔ 不能隨便按，下一輪接的時候要配確認對話。
+              </p>
+            </div>
+          }
+          sideTitle="跟我們報的差多少"
+          side={
+            <div className="flex h-full flex-col overflow-auto">
+              {diffRows.length === 0 ? (
+                <div className="nx-hint">左邊還沒填廠商回的價格。填了這裡會列出差異。</div>
+              ) : (
+                <>
+                  <div className="space-y-2">
+                    {diffRows.map((d) => (
+                      <div
+                        key={d.partId}
+                        className="flex items-baseline gap-3 rounded-lg border border-border bg-card px-3 py-2"
+                      >
+                        <span className="nx-mono min-w-0 flex-1 truncate">{d.partNo}</span>
+                        <span className="nx-hint tabular-nums">
+                          {money(d.ours)} → {money(d.theirs)}
+                        </span>
+                        <span className={d.delta > 0 ? 'nx-pill-danger' : 'nx-pill-ok'}>
+                          {d.delta > 0 ? '貴' : '便宜'} {money(Math.abs(d.delta))}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-4 space-y-1 border-t border-border pt-4 text-right">
+                    <div className="nx-body">
+                      我們送出的 <span className="nx-num-md ml-2">{money(subtotal)}</span>
+                    </div>
+                    <div className="nx-body font-medium">
+                      廠商回的 <span className="nx-num-xl ml-2">{money(repliedSubtotal)}</span>
+                    </div>
+                  </div>
+                </>
+              )}
+              <p className="nx-hint mt-4 border-t border-border pt-4">
+                ⭐ 差異放在右邊是刻意的：主管要決定的是「差這麼多還要不要買」，
+                ⛔ 不是重看一次料號。
+              </p>
+            </div>
+          }
+        />
       ),
     },
   ];
