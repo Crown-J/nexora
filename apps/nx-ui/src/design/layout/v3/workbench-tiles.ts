@@ -16,6 +16,21 @@
 //    「待處理」是好幾個狀態的集合，所以先抓最新 100 筆再在前端濾。
 //    ⛔ 這不是正解——正解是後端加一支「待處理」端點，功能期補。
 
+import {
+  AlertTriangle,
+  ArrowLeftRight,
+  ClipboardCheck,
+  ClipboardList,
+  Fingerprint,
+  FileText,
+  PackagePlus,
+  PackageSearch,
+  Search,
+  ShoppingCart,
+  Target,
+  type LucideIcon,
+} from 'lucide-react';
+
 import { listSo } from '@data/endpoints/nx04/so/api/so';
 import { listQuote } from '@data/endpoints/nx04/quote/api/quote';
 import { listPo } from '@data/endpoints/nx02/po/api/po';
@@ -35,6 +50,8 @@ export type WorkbenchTile = {
   label: string;
   /** 副標：一句話講清楚這張卡是幹嘛的 */
   hint: string;
+  /** 卡面圖示。⭐ 圖示是給「掃視」用的——找卡片時眼睛先抓形狀、再讀字 */
+  icon: LucideIcon;
   kind: TileKind;
   /** doc 卡片點下去要去哪 */
   href?: string;
@@ -54,12 +71,13 @@ async function countBy<T extends { status: string }>(
 }
 
 export const WORKBENCH_TILES: WorkbenchTile[] = [
-  { key: 'checkin', label: '簽到', hint: '上班／下班打卡', kind: 'action' },
-  { key: 'search', label: '查價查貨', hint: '料號／品名／車型', kind: 'search', wide: true },
-  { key: 'kpi', label: '業績目標', hint: '當月累計', kind: 'action' },
+  { key: 'checkin', icon: Fingerprint, label: '簽到', hint: '上班／下班打卡', kind: 'action' },
+  { key: 'search', icon: Search, label: '查價查貨', hint: '料號／品名／車型', kind: 'search', wide: true },
+  { key: 'kpi', icon: Target, label: '業績目標', hint: '當月累計', kind: 'action' },
 
   {
     key: 'so',
+    icon: ShoppingCart,
     label: '銷貨單',
     hint: '要確認、要撿貨的',
     kind: 'doc',
@@ -70,6 +88,7 @@ export const WORKBENCH_TILES: WorkbenchTile[] = [
   },
   {
     key: 'qt',
+    icon: FileText,
     label: '報價單',
     hint: '要寄出、要追的',
     kind: 'doc',
@@ -79,6 +98,7 @@ export const WORKBENCH_TILES: WorkbenchTile[] = [
   },
   {
     key: 'po',
+    icon: ClipboardList,
     label: '採購單',
     hint: '要核准、要收貨的',
     kind: 'doc',
@@ -94,6 +114,7 @@ export const WORKBENCH_TILES: WorkbenchTile[] = [
   },
   {
     key: 'rr',
+    icon: PackagePlus,
     label: '進貨單',
     hint: '要驗收的',
     kind: 'doc',
@@ -102,6 +123,7 @@ export const WORKBENCH_TILES: WorkbenchTile[] = [
   },
   {
     key: 'pk',
+    icon: PackageSearch,
     label: '撿貨單',
     hint: '要撿的',
     kind: 'doc',
@@ -111,6 +133,7 @@ export const WORKBENCH_TILES: WorkbenchTile[] = [
   },
   {
     key: 'stocktake',
+    icon: ClipboardCheck,
     label: '盤點單',
     hint: '要數、要調整的',
     kind: 'doc',
@@ -120,6 +143,7 @@ export const WORKBENCH_TILES: WorkbenchTile[] = [
   },
   {
     key: 'st',
+    icon: ArrowLeftRight,
     label: '調撥單',
     hint: '要出庫、要收貨的',
     kind: 'doc',
@@ -128,6 +152,7 @@ export const WORKBENCH_TILES: WorkbenchTile[] = [
   },
   {
     key: 'ir',
+    icon: AlertTriangle,
     label: '異常回報',
     hint: '要處置的',
     kind: 'doc',

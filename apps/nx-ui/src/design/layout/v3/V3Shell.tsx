@@ -17,8 +17,8 @@
 
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 
 import { DashboardBulletinProvider } from '@/features/nx00/context/DashboardBulletinContext';
 import { DashboardPaletteProvider } from '@/features/nx00/context/DashboardPaletteContext';
@@ -33,6 +33,7 @@ import {
 import { NineGrid } from '@design/navigation/NineGrid';
 // ⭐ 鋼鐵星球的停泊點。星球本體在 root layout 的 SharedPlanetRoot、⛔ 沒有重畫一顆
 import { PlanetSlot } from '@design/home/SharedPlanetRoot';
+import { V3MenuProvider } from './v3-menu-context';
 
 // ⚠️ V3TopBar 2026-08-03 起不再掛上（執行長拍板拿掉常駐橫列）。
 //    檔案封存不刪——回退時把 import 與 <V3TopBar …/> 兩行加回來即可。
@@ -52,8 +53,13 @@ type Props = { children: React.ReactNode };
 function V3Chrome({ children }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
   const { displayName, employeeNo, tenantName, onLogout } = useShellSession();
   const toolbarSlot = useWorkbenchToolbarSlot();
+
+  /** 工作檯自己會把星球長成第一張卡片，⛔ 外殼就不要再畫一顆浮著的 */
+  const isWorkbench = pathname === '/dashboard';
+  const menuCtx = useMemo(() => ({ openMenu: () => setMenuOpen(true) }), []);
 
   // window capture：搶在頁面與 modal-stack 的 guard 之前
   useEffect(() => {
@@ -68,29 +74,32 @@ function V3Chrome({ children }: Props) {
   }, []);
 
   return (
-    // ⭐ 2026-08-03：拿掉 bg-background，讓全域 NxAppBackdrop 的星空／極光透上來。
-    //    ⛔ 原本這裡是不透明底、把背景整片蓋掉，鋼鐵星球等於只剩配色。
-    <div className="relative z-10 flex h-dvh flex-col text-foreground">
+    <V3MenuProvider value={menuCtx}>
+      {/* ⭐ 2026-08-03：拿掉 bg-background，讓全域 NxAppBackdrop 的星空／極光透上來。
+          ⛔ 原本這裡是不透明底、把背景整片蓋掉，鋼鐵星球等於只剩配色。 */}
+      <div className="relative z-10 flex h-dvh flex-col text-foreground">
       {/* ⭐ 2026-08-03 執行長拍板：常駐橫列整條移除，畫面上⛔ 沒有任何常駐 chrome。
           導覽全部走 F2 九宮格。V3TopBar.tsx 封存不刪——要回退只要把這裡加回一行。 */}
 
-      {/* ⭐ 鋼鐵星球＝滑鼠使用者的九宮格入口（執行長 2026-08-03 指定固定左上角）。
-          鍵盤走 F2、滑鼠點這顆，兩條路同一個面板。
-          ⛔ 不做成一整條橫列——它只佔一顆按鈕的位置。
+      {/* ⭐ 鋼鐵星球＝滑鼠使用者的九宮格入口。鍵盤走 F2、滑鼠點星球，兩條路同一個面板。
+          ⚠️ 2026-08-03 執行長：「不然那顆小行星變得好突兀」——
+             根因是它浮在卡片牆外面。所以工作檯改成把星球長成第一張卡片（見 V3Workbench），
+             這裡只在「沒有卡片牆的頁面」畫那顆浮在左上角的，⛔ 免得同時出現兩顆。
 
-          ⚠️ 這裡放的是 PlanetSlot「停泊點」，不是星球本體：
-             真正的星球是 root layout 的 SharedPlanetRoot 那一顆（fixed、z-60、pointer-events:none），
-             它會飛過來停在這個位置並縮到 slot 尺寸的兩倍。
-             ⛔ 按鈕本身不能有底色，有底色就把星球蓋住了。 */}
-      <button
-        type="button"
-        onClick={() => setMenuOpen(true)}
-        title="功能選單（F2）"
-        aria-label="功能選單"
-        className="fixed left-4 top-4 z-[150] h-14 w-14 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
-      >
-        <PlanetSlot id="topbar" className="absolute inset-[25%] rounded-full" />
-      </button>
+          ⚠️ 放的是 PlanetSlot「停泊點」不是星球本體：真正的星球是 root layout 的
+             SharedPlanetRoot（fixed、z-60、pointer-events:none），它會飛過來停在這裡。
+             ⛔ 按鈕不能有底色，有底色就把星球蓋住了。 */}
+      {!isWorkbench ? (
+        <button
+          type="button"
+          onClick={() => setMenuOpen(true)}
+          title="功能選單（F2）"
+          aria-label="功能選單"
+          className="fixed left-4 top-4 z-[150] h-14 w-14 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+        >
+          <PlanetSlot id="topbar" className="absolute inset-[25%] rounded-full" />
+        </button>
+      ) : null}
 
       {/* 情境工具列插槽：頁面自帶的操作列投影至此；無工具列的頁面自動收合 */}
       <div ref={toolbarSlot?.setSlotEl} className={toolbarSlot?.count ? '' : 'hidden'} />
@@ -121,7 +130,8 @@ function V3Chrome({ children }: Props) {
           if (t.href) router.push(t.href);
         }}
       />
-    </div>
+      </div>
+    </V3MenuProvider>
   );
 }
 
