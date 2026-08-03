@@ -55,6 +55,14 @@ type Cursor = { kind: 'num'; no: CellNo } | { kind: 'util'; util: UtilityKeyId }
 /** 選到的最終目的地。href＝開頁面；station＝開既有的即時工作站（過渡，見 role-registry） */
 export type NineGridTarget = { href?: string; station?: number; label: string };
 
+/** 頂欄「使用者」那顆搬進來之後，登出的唯一入口就在這裡（資訊 → 1 個人資訊） */
+export type NineGridSession = {
+  displayName: string;
+  employeeNo: string;
+  tenantName: string;
+  onLogout: () => void;
+};
+
 export type NineGridProps = {
   open: boolean;
   onClose: () => void;
@@ -62,25 +70,32 @@ export type NineGridProps = {
   onPick: (target: NineGridTarget) => void;
   /** 第一層按 0：離開九宮格、回工作檯 */
   onHome: () => void;
+  /** 有給才有「個人資訊」可以進（預覽頁沒有 session） */
+  session?: NineGridSession;
 };
 
 /**
  * 「資訊」層的九格（執行長 2026-08-03：個人資訊／行事曆／佈告欄）。
- * ⚠️ 本階段只做殼——三格都還沒有頁面，內容分段進行。
- * ⚠️ 佈告欄只有「管理端」存在（行政作業 9-3），員工「看」的那一端要新做。
+ * ⚠️ 行事曆與佈告欄本階段只有格子——內容分段進行。
+ *    · 行事曆：後端 API 與前端元件都在（封存的舊首頁 design/home/HomeView），撿現成的即可
+ *    · 佈告欄：只有「管理端」存在（行政作業 9-3），員工「看」的那一端要新做
  */
-const INFO_CELLS: PanelItem[] = [
-  { no: 1, label: '個人資訊', hint: '建置中', enabled: false },
-  { no: 2, label: '行事曆', hint: '建置中', enabled: false },
-  { no: 3, label: '佈告欄', hint: '建置中', enabled: false },
-];
+function buildInfoCells(hasSession: boolean): PanelItem[] {
+  return [
+    { no: 1, label: '個人資訊', hint: hasSession ? undefined : '建置中', enabled: hasSession },
+    { no: 2, label: '行事曆', hint: '建置中', enabled: false },
+    { no: 3, label: '佈告欄', hint: '建置中', enabled: false },
+  ];
+}
 
-export function NineGrid({ open, onClose, onPick: onPickTarget, onHome }: NineGridProps) {
+export function NineGrid({ open, onClose, onPick: onPickTarget, onHome, session }: NineGridProps) {
   const [level, setLevel] = useState<Level>('role');
   const [role, setRole] = useState<RoleDef | null>(null);
   const [cell, setCell] = useState<GridCell | null>(null);
   const [cursor, setCursor] = useState<Cursor>(null);
   const [searchOpen, setSearchOpen] = useState(false);
+  /** 資訊層裡展開的小面板（目前只有個人資訊） */
+  const [infoPanel, setInfoPanel] = useState<'profile' | null>(null);
 
   // 每次開啟都從第一層開始——⛔ 不記住上次位置，位置要可預測。
   // ⚠️ 用 render 階段調整而不是 useEffect：effect 裡 setState 會多跑一輪 render
@@ -94,11 +109,17 @@ export function NineGrid({ open, onClose, onPick: onPickTarget, onHome }: NineGr
       setCell(null);
       setCursor(null);
       setSearchOpen(false);
+      setInfoPanel(null);
     }
   }
 
   const back = useCallback(() => {
     setCursor(null);
+    // 展開的小面板算一層：先收面板，再退層
+    if (infoPanel) {
+      setInfoPanel(null);
+      return;
+    }
     if (level === 'child') {
       setCell(null);
       setLevel('cell');
@@ -111,12 +132,13 @@ export function NineGrid({ open, onClose, onPick: onPickTarget, onHome }: NineGr
     }
     // 第一層＝已經退到底：離開九宮格、回工作檯（執行長 2026-08-03）
     onHome();
-  }, [level, onHome]);
+  }, [level, onHome, infoPanel]);
 
   const pick = useCallback(
     (no: CellNo) => {
       if (level === 'info') {
-        // 三格都還沒有頁面，本階段只做殼
+        // 1 個人資訊＝頂欄「使用者」搬進來的東西（含登出）；2/3 本階段只有格子
+        if (no === 1 && session) setInfoPanel('profile');
         return;
       }
       if (level === 'role') {
@@ -148,7 +170,7 @@ export function NineGrid({ open, onClose, onPick: onPickTarget, onHome }: NineGr
       onPickTarget({ href: child.href, station: child.station, label: child.label });
       onClose();
     },
-    [level, role, cell, onPickTarget, onClose],
+    [level, role, cell, onPickTarget, onClose, session],
   );
 
   const pickUtil = useCallback(
@@ -296,7 +318,10 @@ export function NineGrid({ open, onClose, onPick: onPickTarget, onHome }: NineGr
     return () => window.removeEventListener('keydown', h, true);
   }, [open, back, pick, pickUtil, confirmCursor, moveCursor, onClose, searchOpen]);
 
-  const items: PanelItem[] = useMemo(() => buildItems(level, role, cell), [level, role, cell]);
+  const items: PanelItem[] = useMemo(
+    () => buildItems(level, role, cell, !!session),
+    [level, role, cell, session],
+  );
 
   if (!open) return null;
 
@@ -330,6 +355,8 @@ export function NineGrid({ open, onClose, onPick: onPickTarget, onHome }: NineGr
 
         {searchOpen ? (
           <SearchShell onBack={() => setSearchOpen(false)} />
+        ) : infoPanel === 'profile' && session ? (
+          <ProfilePanel session={session} onBack={() => setInfoPanel(null)} />
         ) : (
           <div
             className="grid gap-3 p-5"
@@ -415,6 +442,47 @@ function SearchShell({ onBack }: { onBack: () => void }) {
   );
 }
 
+/**
+ * 個人資訊（資訊 → 1）。頂欄那顆「使用者」整個搬進來，⭐ 含登出。
+ * ⚠️ 頂欄拆掉之後，這裡是全系統唯一的登出入口——⛔ 不可再被拿掉。
+ */
+function ProfilePanel({
+  session,
+  onBack,
+}: {
+  session: NineGridSession;
+  onBack: () => void;
+}) {
+  return (
+    <div className="p-5">
+      <div className="rounded-lg border border-border p-5">
+        <div className="text-lg">{session.displayName}</div>
+        {session.employeeNo ? (
+          <div className="nx-hint mt-1">工號 {session.employeeNo}</div>
+        ) : null}
+        <div className="nx-hint mt-1">{session.tenantName}</div>
+      </div>
+
+      <div className="mt-4 flex gap-2">
+        <button
+          type="button"
+          onClick={onBack}
+          className="rounded-md border border-border px-4 py-2 text-base hover:bg-accent"
+        >
+          0 返回
+        </button>
+        <button
+          type="button"
+          onClick={session.onLogout}
+          className="rounded-md border border-border px-4 py-2 text-base hover:bg-accent"
+        >
+          登出
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /** 一顆鍵。空位與不可用的鍵照樣佔位——⛔ 不遞補 */
 function PadButton({
   style,
@@ -486,8 +554,13 @@ function PadButton({
 }
 
 /** 依目前層級組出九格內容 */
-function buildItems(level: Level, role: RoleDef | null, cell: GridCell | null): PanelItem[] {
-  if (level === 'info') return INFO_CELLS;
+function buildItems(
+  level: Level,
+  role: RoleDef | null,
+  cell: GridCell | null,
+  hasSession: boolean,
+): PanelItem[] {
+  if (level === 'info') return buildInfoCells(hasSession);
   if (level === 'role') {
     // 第一層永遠是九個角色的固定位置（規格 §3.1）；權限過濾階段 2 接線，目前全開
     return ROLES.map((r) => ({ no: r.no, label: r.label, hint: r.department, enabled: true }));

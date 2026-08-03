@@ -67,15 +67,8 @@ function V3Chrome({ children }: Props) {
   return (
     // relative z-10：壓在全域 NxAppBackdrop（z-0）之上；bg-background 不透明蓋滿
     <div className="relative z-10 flex h-dvh flex-col bg-background text-foreground">
-      <V3TopBar
-        onOpenMenu={() => setMenuOpen(true)}
-        onGoHome={() => router.push('/dashboard')}
-        onOpenSettings={() => router.push('/dashboard/settings')}
-        tenantName={tenantName}
-        displayName={displayName}
-        employeeNo={employeeNo}
-        onLogout={onLogout}
-      />
+      {/* 2026-08-03：右上三顆搬進九宮格，常駐橫列只剩 ☰ 與工作檯 */}
+      <V3TopBar onOpenMenu={() => setMenuOpen(true)} onGoHome={() => router.push('/dashboard')} />
 
       {/* 情境工具列插槽：頁面自帶的操作列投影至此；無工具列的頁面自動收合 */}
       <div ref={toolbarSlot?.setSlotEl} className={toolbarSlot?.count ? '' : 'hidden'} />
@@ -93,6 +86,8 @@ function V3Chrome({ children }: Props) {
           setMenuOpen(false);
           router.push('/dashboard');
         }}
+        // 頂欄「使用者」搬進來：資訊 → 1 個人資訊，⭐ 登出的唯一入口
+        session={{ displayName, employeeNo, tenantName, onLogout }}
         onPick={(t) => {
           if (t.station) {
             window.dispatchEvent(
