@@ -22,11 +22,14 @@ export type DashboardPalette = 'classic' | 'steel' | 'pro';
 const VALID: ReadonlySet<string> = new Set(['classic', 'steel', 'pro']);
 
 function readStoredPalette(): DashboardPalette {
-  // 2026-06-27 大改版：傳統 ERP 外殼為新預設、配色預設 pro 專業版（steel/classic 太空風封存）
-  if (typeof window === 'undefined') return 'pro';
+  // 2026-06-27 大改版：配色預設 pro 專業版（steel/classic 太空風封存）
+  // ⭐ 2026-08-03 執行長拍板改回 steel（鋼鐵星球）：暖米白底＋純白卡＋金黃主色。
+  //    pro 的深藏青主色暗到跟正文一樣重、失去「這裡可以動作」的指示作用。
+  //    ⛔ pro / classic 兩套變數沒刪，把下面兩個 'steel' 改回去就還原。
+  if (typeof window === 'undefined') return 'steel';
   const raw = window.localStorage.getItem(NX_DASHBOARD_PALETTE_STORAGE_KEY);
   if (raw && VALID.has(raw)) return raw as DashboardPalette;
-  return 'pro';
+  return 'steel';
 }
 
 function applyPaletteToDocument(p: DashboardPalette) {
